@@ -1,0 +1,148 @@
+/* ============================================
+   CodeBook 像素风主题（默认）
+   ============================================ */
+:root,
+[data-theme="pixel"] {
+  /* 页面底色 */
+  --theme-bg: #e8f4fd;
+
+  /* 卡片 */
+  --theme-card-bg: #fff8e7;
+  --theme-card-inner: #fffdf5;
+
+  /* 文字 */
+  --theme-text-main: #3d312a;
+  --theme-text-secondary: #5e4c41;
+  --theme-text-light: #8e705b;
+  --theme-text-muted: #5c5552;
+
+  /* 边框 */
+  --theme-border-color: #5e4c41;
+  --theme-border-width: 4px;
+  --theme-border-width-sm: 3px;
+  --theme-border-width-xs: 2px;
+
+  /* 圆角 */
+  --theme-radius-sm: 0px;
+  --theme-radius-md: 0px;
+  --theme-radius-lg: 0px;
+
+  /* 阴影 - 像素 bevel 风格 */
+  --theme-shadow-card:
+    inset -4px -4px 0 0 rgba(0, 0, 0, 0.12),
+    inset 4px 4px 0 0 rgba(255, 255, 255, 0.35),
+    5px 5px 0 0 rgba(94, 76, 65, 0.2);
+  --theme-shadow-card-hover:
+    inset -4px -4px 0 0 rgba(0, 0, 0, 0.12),
+    inset 4px 4px 0 0 rgba(255, 255, 255, 0.35),
+    7px 7px 0 0 rgba(94, 76, 65, 0.3);
+  --theme-shadow-card-active:
+    inset 4px 4px 0 0 rgba(0, 0, 0, 0.15),
+    inset -4px -4px 0 0 rgba(255, 255, 255, 0.2);
+  --theme-shadow-btn:
+    inset -3px -3px 0 0 rgba(0, 0, 0, 0.12),
+    inset 3px 3px 0 0 rgba(255, 255, 255, 0.5),
+    4px 4px 0 0 rgba(94, 76, 65, 0.3);
+  --theme-shadow-btn-hover: 5px 5px 0 rgba(94, 76, 65, 0.3);
+  --theme-shadow-btn-active: 0 0 0 transparent;
+  --theme-shadow-inner:
+    inset 2px 2px 0 0 rgba(0, 0, 0, 0.06),
+    inset -2px -2px 0 0 rgba(255, 255, 255, 0.6);
+  --theme-shadow-panel:
+    inset -4px -4px 0 0 rgba(0, 0, 0, 0.08),
+    inset 4px 4px 0 0 rgba(255, 255, 255, 0.35),
+    5px 5px 0 0 rgba(94, 76, 65, 0.15);
+
+  /* 按钮交互偏移 */
+  --theme-hover-transform: translate(-2px, -2px);
+  --theme-active-transform: translate(2px, 2px);
+
+  /* 功能色 */
+  --theme-success: #6db33f;
+  --theme-error: #e74c3c;
+  --theme-accent: #f8b182;
+  --theme-highlight: #e67e22;
+  --theme-info: #a3d1e6;
+  --theme-warning: #ffd93d;
+
+  /* 按钮颜色 */
+  --theme-btn-bg: #fff8e7;
+  --theme-btn-primary-bg: #a3d1e6;
+  --theme-btn-secondary-bg: #eaeaea;
+  --theme-btn-settings-bg: #d9e3b4;
+  --theme-btn-settings-accent: #a3d1e6;
+  --theme-btn-disabled-bg: #eaeaea;
+  --theme-fav-active-bg: #fff9e6;
+  --theme-fav-active-border: var(--theme-accent);
+  --theme-tab-active-bg: #d9e3b4;
+  --theme-tab-active-text: var(--theme-text-secondary);
+  --theme-category-card-border: var(--theme-border-width) solid
+    var(--theme-border-color);
+  --theme-category-card-bg: var(--card-color);
+  --theme-category-card-padding: 5px;
+  --theme-level-card-border: var(--theme-border-width) solid var(--theme-info);
+  --theme-gallery-card-border: var(--theme-border-width) solid
+    var(--theme-accent);
+
+  /* 选项色板 */
+  --theme-opt-0: #ffe8ec;
+  --theme-opt-0-hover: #ffd5dc;
+  --theme-opt-0-bar: var(--theme-border-color);
+  --theme-opt-1: #e8f4ff;
+  --theme-opt-1-hover: #d5ecff;
+  --theme-opt-1-bar: var(--theme-border-color);
+  --theme-opt-2: #fff5e0;
+  --theme-opt-2-hover: #ffecc8;
+  --theme-opt-2-bar: var(--theme-border-color);
+  --theme-opt-3: #f0e8ff;
+  --theme-opt-3-hover: #e0d5ff;
+  --theme-opt-3-bar: var(--theme-border-color);
+
+  /* 选项样式 - 像素风左边框与整体边框保持一致 */
+  --theme-opt-border: none;
+  --theme-opt-shadow: none;
+  --theme-opt-shadow-hover: none;
+  --theme-opt-bar-width: var(--theme-border-width);
+  --theme-opt-bg-image: none;
+  --theme-opt-bg-size: auto;
+  --theme-opt-bg-position: 0 0;
+
+  /* 反馈色 */
+  --theme-correct-bg: #d5f5d5;
+  --theme-correct-border: #6db33f;
+  --theme-wrong-bg: #ffd5d5;
+  --theme-wrong-border: #e74c3c;
+
+  /* 特殊色 */
+  --theme-badge-bg: #f8b182;
+  --theme-fact-bg: #e8f4f8;
+  --theme-fact-color: #1a5276;
+  --theme-explain-bg: #fdf5e6;
+
+  /* Logo */
+  --theme-logo-font: "FredokaOne", "Press Start 2P", system-ui;
+  --theme-logo-stroke: 2px #5e4c41;
+  --theme-logo-shadow:
+    2px 2px 0 #5e4c41, 3px 3px 0 #5e4c41, 4px 4px 0 #5e4c41,
+    5px 5px 0 rgba(94, 76, 65, 0.4);
+
+  /* 进度条 */
+  --theme-progress-bg: #d0d0d0;
+  --theme-progress-border: 1px solid rgba(94, 76, 65, 0.25);
+
+  /* Modal */
+  --theme-overlay-bg: rgba(94, 76, 65, 0.65);
+
+  /* 统计卡特殊色 */
+  --theme-stat-total-bg: #fff7df;
+  --theme-stat-accuracy-bg: #f4f9f1;
+  --theme-stat-eval-bg: #fdf5e6;
+  --theme-circle-bg-stroke: #d9e3b4;
+  --theme-circle-fill-stroke: #6db33f;
+
+  /* 笔记本场景样式 */
+  --theme-scenario-bg: #fef9eb;
+  --theme-scenario-line-color: rgba(163, 209, 230, 0.45);
+  --theme-scenario-margin-color: rgba(232, 90, 127, 0.35);
+  --theme-scenario-tape-bg: rgba(163, 209, 230, 0.6);
+}

@@ -18,6 +18,12 @@
     "description": "框架原理与源码：深入 React/Vue 内部机制"
   },
   {
+    "id": "framework-v2",
+    "name": "前端框架V2",
+    "icon": "⚛️",
+    "description": "框架原理与源码：深入 React/Vue 内部机制"
+  },
+  {
     "id": "network",
     "name": "浏览器与网络",
     "icon": "🌐",

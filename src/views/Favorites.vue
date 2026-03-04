@@ -37,13 +37,16 @@
             {{ item.question?.title || "题目加载失败" }}
           </div>
           <pre class="item-content" v-if="item.question?.content">{{
-            (item.question as any).content.replace(/\\n/g, "\n")
+            processText((item.question as any).content)
           }}</pre>
           <div class="item-answer" v-if="item.question">
             正确答案: <span>{{ formatAnswer(item.question) }}</span>
           </div>
           <div class="item-explain" v-if="item.question?.explanation">
-            <strong>💡 解析：</strong> {{ item.question.explanation }}
+            <strong>💡 解析：</strong>
+            <pre class="explain-text">{{
+              processText(item.question.explanation)
+            }}</pre>
           </div>
         </div>
       </div>
@@ -71,6 +74,11 @@ function goBack() {
 }
 
 import { fetchQuestionsByCategory } from "@/data/questions";
+
+function processText(text: string | undefined): string {
+  if (!text) return "";
+  return text.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+}
 
 function formatAnswer(q: any) {
   const ans = q.correct_answer !== undefined ? q.correct_answer : q.answer;
@@ -275,6 +283,20 @@ onMounted(() => loadFavorites());
       }
     }
 
+    .item-content {
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--theme-text-main);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0 0 1rem;
+      background: rgba(0, 0, 0, 0.03);
+      border-left: 4px solid var(--theme-accent);
+      padding: 0.8rem 1rem;
+      border-radius: 0 4px 4px 0;
+    }
+
     .item-answer {
       color: var(--theme-accent);
       font-weight: 800;
@@ -299,6 +321,13 @@ onMounted(() => loadFavorites());
       border: var(--theme-border-width-xs) solid var(--theme-border-color);
       border-radius: var(--theme-radius-sm);
       margin-top: 0.5rem;
+
+      .explain-text {
+        margin: 0.5rem 0 0;
+        font-family: inherit;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
 
       &.fact {
         background: var(--theme-fact-bg);

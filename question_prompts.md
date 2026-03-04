@@ -6,12 +6,12 @@
 
 ## 领域与范围
 
-当前需要生成的题库领域为：【基建与研发效能】（脚手架开发、CLI 工具构建、CI/CD 自动化流水线以及组件库的从 0 到 1等）
+当前需要生成的题库领域为：【前端框架】（框架原理与源码：深入 React/Vue 内部机制，扩展Svelte、Solid、Qwik、Angular等）
 
 示例涵盖内容:
-脚手架开发：从零构建企业级脚手架，支持多模板管理、依赖自动安装与环境适配。
-CLI 工具构建：使用 Commander/Yargs/Oclif 开发命令行工具，实现文件操作、数据处理自动化。
-CI/CD 自动化流水线：基于 GitHub Actions/GitLab CI/Jenkins 配置前端自动化构建、测试与部署流程。
+框架原理与源码：深入 React/Vue 内部机制，扩展Svelte、Solid、Qwik、Angular等。
+状态管理：React Context/Redux/Zustand/Jotai/Pinia/Vuex/Vue Composition API 状态管理机制。
+路由与导航：React Router/Vue Router 路由机制与性能优化。
 组件库工程化：从零搭建组件库，包含 TypeScript 封装、文档生成（Storybook/VitePress）、版本管理与发布。
 
 请穷尽该领域内的深水区和高级考点（源码级、架构级、性能瓶颈、工程化等），题目宁缺毋滥，务必体现出拔高的区分度。

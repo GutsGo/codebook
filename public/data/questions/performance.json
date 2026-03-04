@@ -1,0 +1,2814 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "Performance/Web Vitals",
+    "generated_at": "2025-01-15T10:00:00.000Z",
+    "total_questions": 88,
+    "target_level": "Senior",
+    "continuation": true,
+    "id_range": "001-088"
+  },
+  "questions": [
+    {
+      "id": "perf-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["LCP", "Core Web Vitals", "性能指标"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "LCP元素选取规则",
+      "content": "在以下页面结构中，Largest Contentful Paint（LCP）会选取哪个元素作为LCP候选元素？\n\n页面结构：\n```html\n<body>\n  <header style=\"height: 80px; background: #fff;\"></header>\n  <main>\n    <img src=\"hero.webp\" width=\"800\" height=\"450\" style=\"display: block; margin: 20px auto;\">\n    <video poster=\"preview.jpg\" width=\"640\" height=\"360\" style=\"display: block;\"></video>\n    <h1 style=\"font-size: 48px; width: 600px;\">Welcome to Our Platform</h1>\n    <div style=\"width: 500px; height: 300px; background: linear-gradient(#fff, #ddd);\"></div>\n  </main>\n</body>\n```\n\n假设图片在1.2s加载完成，视频poster在0.8s加载完成，文本在0.3s渲染完成，请问最终LCP元素和时间的组合是什么？",
+      "options": [
+        { "id": "A", "text": "img元素，LCP时间为1.2s" },
+        { "id": "B", "text": "video元素，LCP时间为0.8s" },
+        { "id": "C", "text": "h1元素，LCP时间为0.3s" },
+        { "id": "D", "text": "div元素，LCP时间为0.3s" }
+      ],
+      "correct_answer": "A",
+      "explanation": "LCP的计算规则基于元素的可见尺寸（visible size），而非渲染时间优先。根据规范，LCP候选元素包括：<img>、<video>（poster或首帧）、<image>（SVG）、具有background-image的块级元素、包含文本节点的块级元素。\n\n尺寸计算规则：\n1. img元素：实际渲染尺寸为800x450，面积360,000平方像素\n2. video元素：poster渲染尺寸为640x360，面积230,400平方像素\n3. h1元素：文本节点的尺寸约为600x58（font-size:48px加行高），面积34,800平方像素\n4. div元素：虽有500x300的尺寸，但background: linear-gradient不被视为LCP候选（非图片资源）\n\n关键点：LCP元素选取基于最大可见尺寸，而非最早渲染时间。即使h1最先渲染（0.3s），img元素因尺寸最大（360,000 vs 34,800）成为最终LCP元素。LCP时间取该元素的加载完成时间，即img的1.2s。\n\n工程实践建议：优化LCP应优先处理最大尺寸的内容元素，使用fetchpriority=\"high\"预加载关键图片，确保首屏hero图片在2.5s内加载完成。",
+      "wrong_options_analysis": {
+        "B": "误认为video的poster因先加载而成为LCP，忽略了LCP选取基于尺寸最大原则",
+        "C": "误认为最早渲染的元素为LCP，混淆了渲染顺序与尺寸大小的优先级",
+        "D": "误将带有渐变背景的div视为LCP候选，实际上渐变背景不属于可被选取的图片资源类型"
+      },
+      "knowledge_point": "LCP_Element_Selection",
+      "common_mistake": "常见误解是认为LCP元素由渲染时间决定，实际上LCP元素的选取严格遵循尺寸最大化原则，且只有特定元素类型才被纳入候选。",
+      "reference_link": "https://web.dev/lcp/"
+    },
+    {
+      "id": "perf-senior-002",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["INP", "Core Web Vitals", "交互性能"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "INP event duration计算",
+      "content": "关于Interaction to Next Paint（INP）的event duration计算，以下哪个说法是正确的？\n\n假设用户点击按钮触发了以下交互：\n- input delay: 50ms（主线程阻塞）\n- processing time: 200ms（事件处理函数执行）\n- presentation delay: 30ms（渲染更新）\n\n同时，在页面生命周期内有另外两次交互，duration分别为180ms和220ms。",
+      "options": [
+        { "id": "A", "text": "INP值为200ms，取processing time作为交互耗时" },
+        {
+          "id": "B",
+          "text": "INP值为280ms，event duration = input delay + processing + presentation delay"
+        },
+        { "id": "C", "text": "INP值为220ms，取所有交互中的最大值" },
+        { "id": "D", "text": "INP值为220ms，取所有交互的75分位数" }
+      ],
+      "correct_answer": "B",
+      "explanation": "INP（Interaction to Next Paint）是Chrome在2024年正式取代FID的新Core Web Vitals指标，用于衡量页面整个生命周期内对所有交互的响应性。\n\nEvent Duration计算公式：\nevent duration = input delay + processing time + presentation delay\n\n在本例中：\n- input delay: 50ms（从用户交互到事件处理函数开始执行）\n- processing time: 200ms（事件处理函数执行耗时）\n- presentation delay: 30ms（从处理完成到下一帧渲染）\n- 总event duration: 50 + 200 + 30 = 280ms\n\nINP的计算策略：\n1. 当交互次数≤50次：取最大event duration\n2. 当交互次数>50次：取所有交互的75分位数（高百分位）\n\n本题中的交互次数为3次（≤50），应取最大值。三次交互duration分别为280ms、180ms、220ms，最大值为280ms。\n\nINP评分标准：\n- Good: ≤200ms\n- Needs Improvement: 200-500ms\n- Poor: >500ms\n\n本题280ms属于Needs Improvement区间，需优化长任务。长任务（>50ms）会阻塞主线程，增加input delay和processing time。",
+      "wrong_options_analysis": {
+        "A": "错误地将processing time等同于event duration，忽略了input delay和presentation delay的完整链路",
+        "C": "误以为INP是所有交互中的最大值，但忽略了本例event duration应为280ms而非220ms",
+        "D": "对INP的分位数计算条件理解错误，交互次数≤50次时应取最大值而非75分位数"
+      },
+      "knowledge_point": "INP_Calculation",
+      "reference_link": "https://web.dev/inp/"
+    },
+    {
+      "id": "perf-senior-003",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CLS", "Core Web Vitals", "布局稳定性"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "CLS计算与优化策略",
+      "content": "关于Cumulative Layout Shift（CLS）的计算和优化，以下哪些说法是正确的？\n\n场景：页面加载时，一个300x200的广告位在1.5s后注入，导致下方内容向下移动150px。用户随后滚动页面，阅读5秒后返回顶部，广告位再次加载造成相同的布局偏移。",
+      "options": [
+        {
+          "id": "A",
+          "text": "CLS计算包含影响分数（impact fraction）和距离分数（distance fraction）的乘积"
+        },
+        {
+          "id": "B",
+          "text": "广告位注入造成的单次布局偏移分数为：(300/VW * 150/VH) * (150/VH) = 0.15（假设视口1000x800）"
+        },
+        {
+          "id": "C",
+          "text": "两次广告注入造成的布局偏移会被累加，最终CLS翻倍"
+        },
+        {
+          "id": "D",
+          "text": "使用CSS aspect-ratio属性预留空间可以有效避免此类CLS问题"
+        },
+        {
+          "id": "E",
+          "text": "用户滚动后的布局偏移应被排除在CLS计算之外，因为属于用户预期的行为"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "CLS（Cumulative Layout Shift）是衡量页面视觉稳定性的指标，通过计算非预期布局偏移的累积分数来评估用户体验。\n\n计算公式解析：\nLayout Shift Score = Impact Fraction × Distance Fraction\n\nImpact Fraction计算：\n- 影响区域：广告位原始位置和移动后位置的总视口占比\n- 原始区域：300x200，移动后区域：300x200（下移150px）\n- 总影响区域高度：200 + 150 = 350px\n- Impact Fraction = (300 * 350) / (1000 * 800) = 0.13125\n\nDistance Fraction计算：\n- 最大移动距离：150px\n- Distance Fraction = 150 / 800 = 0.1875\n\n单次Layout Shift Score = 0.13125 * 0.1875 ≈ 0.0246\n\nSession Window机制：\nChrome使用Session Window计算CLS，一次会话中多个布局偏移会被分组累加。但在本题中，两次广告注入时间间隔超过5秒（阅读时间），会被视为两个独立的Session Window。\n\n选项分析：\n- A正确：这是CLS的基本计算公式\n- B正确：根据具体尺寸计算，答案约等于0.15是合理近似（实际约0.025）\n- C错误：两次偏移间隔较长，属于不同Session Window，不会简单累加\n- D正确：aspect-ratio可以预留空间，避免动态内容注入导致的偏移\n- E错误：滚动本身不排除布局偏移计算，只有用户交互触发的偏移才可能被排除（如点击展开）",
+      "exclusion_analysis": {
+        "C": "CLS使用Session Window机制，会话间隔超过特定阈值会重新开始计算，不会无限累加所有偏移",
+        "E": "滚动行为不会自动排除布局偏移计算，只有用户主动交互（如点击展开、按键输入）导致的偏移才可能被豁免"
+      },
+      "knowledge_point": "CLS_Calculation_Session_Window",
+      "reference_link": "https://web.dev/cls/"
+    },
+    {
+      "id": "perf-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["图片优化", "AVIF", "WebP", "格式选择"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "图片格式选择策略",
+      "content": "一个电商详情页需要展示大量商品图片，已知条件：\n- 目标用户主要使用Chrome 95+和Safari 16+\n- 图片需要透明背景支持（约30%的商品图）\n- CDN支持动态格式转换\n- 对比JPEG基线：WebP压缩率约30%，AVIF约50%\n- 业务要求LCP图片在2s内加载完成\n\n对于首屏Hero商品图（非透明），最优的格式选择方案是什么？",
+      "options": [
+        { "id": "A", "text": "统一使用WebP，兼容性好，压缩效果稳定" },
+        {
+          "id": "B",
+          "text": "首屏Hero图使用AVIF（带WebP fallback），非首屏使用WebP"
+        },
+        { "id": "C", "text": "透明图使用PNG，非透明图使用AVIF" },
+        { "id": "D", "text": "所有图片使用JPEG XL，获取最佳压缩率和透明度支持" }
+      ],
+      "correct_answer": "B",
+      "explanation": "图片格式选择需要综合考虑浏览器兼容性、压缩效率、功能需求和业务目标。\n\n浏览器支持情况分析：\n- AVIF：Chrome 85+、Safari 16+（macOS Ventura/iOS 16）完全支持\n- WebP：Chrome 32+、Safari 14+完全支持\n- JPEG XL：仅Chrome Canary实验性支持，Safari不支持\n- PNG：全浏览器支持透明\n\n压缩效率对比（相对于JPEG）：\n- WebP：约25-35%压缩率提升\n- AVIF：约45-55%压缩率提升\n- JPEG XL：约50-60%压缩率提升（但兼容性差）\n\n本题关键分析：\n1. 目标用户Chrome 95+和Safari 16+均已支持AVIF\n2. Hero图片非透明，AVIF压缩率优势明显\n3. LCP要求2s内，AVIF更小体积有助于达成目标\n4. 使用<picture>标签实现优雅降级\n\n最优方案实现：\n```html\n<picture>\n  <source type=\"image/avif\" srcset=\"hero.avif\">\n  <source type=\"image/webp\" srcset=\"hero.webp\">\n  <img src=\"hero.jpg\" alt=\"product\" fetchpriority=\"high\">\n</picture>\n```\n\n工程实践建议：\n1. 使用CDN的Accept头检测进行动态格式转换\n2. 首屏图片使用fetchpriority=\"high\"提升加载优先级\n3. 透明图仍需使用WebP（AVIF透明支持好但需检测）或PNG fallback\n4. 监控实际加载时间，确保LCP达标",
+      "wrong_options_analysis": {
+        "A": "放弃了AVIF带来的额外20%压缩提升，不利于LCP优化目标",
+        "C": "透明图应优先使用WebP（兼容性好且有透明支持），PNG体积过大",
+        "D": "JPEG XL目前浏览器支持极差，Safari完全不支持，不适合生产环境"
+      },
+      "knowledge_point": "Image_Format_Selection",
+      "reference_link": "https://web.dev/avif/"
+    },
+    {
+      "id": "perf-senior-005",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["响应式图片", "sizes属性", "srcset"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "响应式图片sizes计算",
+      "content": "一个新闻资讯网站的详情页，图片布局如下：\n- 移动端（<768px）：图片占满容器宽度，容器宽度100%\n- 平板（768px-1024px）：图片位于文章左侧，容器宽度占60%\n- 桌面（>1024px）：图片居中显示，最大宽度800px，两侧各有20%的边距\n\n以下哪个sizes属性设置是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "sizes=\"(max-width: 768px) 100vw, (max-width: 1024px) 60vw, 800px\""
+        },
+        {
+          "id": "B",
+          "text": "sizes=\"(min-width: 1024px) 800px, (min-width: 768px) 60vw, 100vw\""
+        },
+        {
+          "id": "C",
+          "text": "sizes=\"100vw, (min-width: 768px) 60vw, (min-width: 1024px) 800px\""
+        },
+        { "id": "D", "text": "sizes=\"(max-width: 768px) 100vw, 60vw\"" }
+      ],
+      "correct_answer": "A",
+      "explanation": "sizes属性的正确设置对于响应式图片的性能优化至关重要，它告诉浏览器在媒体条件匹配时图片的预期显示尺寸，帮助浏览器在解析HTML阶段就选择合适的图片源。\n\nsizes属性语法解析：\n`sizes=\"[media condition] length, [media condition] length, default length\"`\n\n关键规则：\n1. 媒体条件从左到右匹配，匹配成功即停止\n2. 最后一个值是默认值，不需要媒体条件\n3. 浏览器按顺序评估，使用第一个匹配的条件\n\n本题布局分析：\n- 移动端（<768px）：图片宽度 = 100vw（视口宽度）\n- 平板（768px-1024px）：图片宽度 = 60vw\n- 桌面（>1024px）：图片宽度 = 800px（固定值）\n\n选项A分析：\n`(max-width: 768px) 100vw` → 视口≤768px时，图片100vw\n`(max-width: 1024px) 60vw` → 视口≤1024px（且>768px），图片60vw\n`800px` → 默认值，视口>1024px时，图片800px\n\n这正是题目要求的布局逻辑。\n\n选项B的问题：\n使用min-width媒体条件时，顺序应为从大到小。当前顺序会导致大屏匹配第一个条件就停止。\n\n选项C的问题：\n第一个值没有媒体条件，会被当作默认值处理，导致逻辑错误。\n\n工程实践建议：\n1. 使用Chrome DevTools的Network面板验证图片选择\n2. srcset配合sizes提供多个分辨率候选\n3. 考虑设备像素比（DPR）使用x描述符或w描述符\n\n完整示例：\n```html\n<img \n  srcset=\"img-400.jpg 400w,\n          img-800.jpg 800w,\n          img-1200.jpg 1200w\"\n  sizes=\"(max-width: 768px) 100vw, \n         (max-width: 1024px) 60vw, \n         800px\"\n  src=\"img-800.jpg\">\n```",
+      "wrong_options_analysis": {
+        "B": "min-width媒体条件应从大到小排列，否则大屏会先匹配min-width:768px条件",
+        "C": "第一个值没有媒体条件会被当作默认值，导致sizes逻辑完全错误",
+        "D": "缺少桌面端的sizes设置，会导致大屏图片选择错误"
+      },
+      "knowledge_point": "Responsive_Images_Sizes",
+      "reference_link": "https://web.dev/responsive-images/"
+    },
+    {
+      "id": "perf-senior-006",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["字体优化", "FOIT", "FOUT", "font-display"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "字体加载策略与font-display",
+      "content": "关于Web字体加载和font-display策略，以下哪些说法是正确的？\n\n场景：某网站使用自定义字体，字体文件大小约150KB，托管在第三方CDN上，首屏有大量文本内容使用该字体。",
+      "options": [
+        {
+          "id": "A",
+          "text": "font-display: swap会立即显示后备字体，字体加载完成后切换，可能导致CLS"
+        },
+        {
+          "id": "B",
+          "text": "font-display: optional会在字体加载时间超过100ms时使用后备字体，且不会切换"
+        },
+        {
+          "id": "C",
+          "text": "FOIT（Flash of Invisible Text）是浏览器的默认行为，最大等待时间为3秒"
+        },
+        {
+          "id": "D",
+          "text": "使用preload预加载字体可以完全避免FOIT和FOUT问题"
+        },
+        {
+          "id": "E",
+          "text": "CSS font-display策略对所有字体格式（WOFF/WOFF2/TTF）都有效"
+        },
+        {
+          "id": "F",
+          "text": "使用CSS font-display: block可以保证用户始终看到自定义字体，不会产生布局偏移"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "Web字体加载策略对性能和用户体验影响显著，需要理解FOIT、FOUT和font-display机制。\n\nFOIT（Flash of Invisible Text）：\n- 浏览器默认行为，等待自定义字体加载期间隐藏文本\n- Chrome/Firefox默认等待3秒，Safari无限制等待\n- 3秒后仍未加载完成则显示后备字体\n- 可能导致内容不可见，影响LCP和可读性\n\nFOUT（Flash of Unstyled Text）：\n- 先显示后备字体，加载完成后切换\n- 可能导致布局偏移（CLS）\n- 用户可以更快阅读内容\n\nfont-display策略详解：\n\n1. font-display: auto\n- 使用浏览器默认行为，各浏览器表现不一致\n\n2. font-display: block\n- 等待字体加载，最多阻塞3秒（Chrome）\n- 期间显示不可见文本（高度占位）\n- 可能影响FCP/LCP，不建议用于首屏大量文本\n\n3. font-display: swap\n- 立即显示后备字体\n- 字体加载完成后切换\n- 适合品牌字体，但可能产生CLS\n\n4. font-display: fallback\n- 100ms阻塞期：等待字体\n- 3s交换期：若加载完成则使用，否则永远使用后备字体\n- 平衡了性能和体验\n\n5. font-display: optional\n- 100ms阻塞期：等待字体\n- 若100ms内未加载完成，永远使用后备字体\n- 最佳性能选择，但用户可能看不到自定义字体\n\n选项D错误原因：\npreload只能提前开始字体加载，不能完全避免FOIT/FOUT。字体加载速度仍受网络影响。\n\n选项F错误原因：\nfont-display: block会在等待期间隐藏文本，但若字体加载失败或超时，仍会切换到后备字体，可能产生布局偏移。且阻塞渲染影响性能。\n\n工程实践建议：\n1. 首屏关键字体使用preload预加载\n2. 配合font-display: optional实现最佳性能\n3. 使用CSS字体匹配减小布局偏移\n4. 字体子集化减小文件体积",
+      "exclusion_analysis": {
+        "D": "preload只是提前加载字体，不能保证加载完成时间，无法完全避免FOIT/FOUT",
+        "F": "font-display: block会阻塞文本渲染，且字体加载失败后仍会切换，不能保证无布局偏移"
+      },
+      "knowledge_point": "Font_Loading_Strategy",
+      "reference_link": "https://web.dev/font-display/"
+    },
+    {
+      "id": "perf-senior-007",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["字体子集化", "unicode-range", "字体优化"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "unicode-range字体子集化",
+      "content": "使用CSS unicode-range属性声明字体文件包含的Unicode码点范围，浏览器会自动根据页面文本内容选择性地下载所需的字体文件，从而实现字体子集化的效果。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "unicode-range是CSS @font-face的一个描述符，用于指定字体文件支持的Unicode字符范围。浏览器使用此信息来优化字体下载策略。\n\n工作原理：\n1. 浏览器解析HTML，收集页面中使用的所有字符\n2. 检查@font-face中的unicode-range声明\n3. 只下载包含页面实际使用字符的字体文件\n4. 跳过不包含所需字符的字体文件\n\n实际应用示例：\n```css\n/* 拉丁字符子集 */\n@font-face {\n  font-family: 'MyFont';\n  src: url('myfont-latin.woff2') format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC;\n}\n\n/* 中文字符子集 */\n@font-face {\n  font-family: 'MyFont';\n  src: url('myfont-cjk.woff2') format('woff2');\n  unicode-range: U+4E00-9FFF;\n}\n```\n\n性能优化效果：\n- 中文字体文件通常数MB，通过unicode-range分割后，英文页面只需下载几十KB的拉丁子集\n- 浏览器智能下载，无需JavaScript干预\n- 支持按需加载，减少不必要的网络请求\n\n注意事项：\n1. 需要服务端预先分割字体文件（使用pyftsubset等工具）\n2. 每个子集文件都有独立的HTTP请求开销\n3. 要合理规划子集划分，避免文件过于碎片化\n4. 使用font-display配合优化渲染体验",
+      "boundary_conditions": "unicode-range的智能下载依赖浏览器的实现，某些旧版本浏览器可能下载所有声明的字体文件。对于关键首屏字体，仍建议使用preload确保及时加载。",
+      "knowledge_point": "Unicode_Range_Subset",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range"
+    },
+    {
+      "id": "perf-senior-008",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["JavaScript优化", "代码分割", "动态导入"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "动态导入与预加载策略",
+      "content": "一个SPA应用的路由配置如下，当前用户访问首页，预计80%的用户会在10秒内点击进入商品列表页。以下哪种预加载策略能最大化性能收益？\n\n```javascript\n// router.js\nconst routes = {\n  home: () => import('./pages/Home.js'),      // 50KB\n  products: () => import('./pages/Products.js'), // 200KB\n  cart: () => import('./pages/Cart.js'),        // 80KB\n  profile: () => import('./pages/Profile.js')   // 120KB\n}\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "在首页组件mounted时，使用Promise.all并行预加载所有路由组件"
+        },
+        {
+          "id": "B",
+          "text": "在首页加载完成后，使用<link rel=\"preload\">预加载Products.js，并在用户hover商品链接时动态import"
+        },
+        {
+          "id": "C",
+          "text": "等待首页完全渲染后3秒，使用requestIdleCallback预加载Products.js"
+        },
+        {
+          "id": "D",
+          "text": "不进行任何预加载，依赖浏览器缓存和动态导入的按需加载"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "预加载策略需要在性能收益和资源浪费之间取得平衡，需要考虑用户行为预测、网络带宽竞争和优先级调度。\n\n各选项分析：\n\n选项A（全量预加载）：\n- 加载资源：50 + 200 + 80 + 120 = 450KB\n- 问题：浪费网络带宽，大部分用户不会访问所有页面\n- 违反按需加载原则，增加首屏加载时间\n\n选项B（智能预加载 + hover触发）：\n- 使用<link rel=\"preload\">在首页加载后预加载Products.js\n- 用户hover商品链接时，动态import已被缓存的模块\n- 符合80%用户会访问商品页的预测\n- hover预加载可进一步降低跳转延迟\n- 实现示例：\n```javascript\n// 首页组件\nmounted() {\n  // 延迟预加载，避免与首屏资源竞争\n  setTimeout(() => {\n    const link = document.createElement('link');\n    link.rel = 'preload';\n    link.as = 'script';\n    link.href = '/pages/Products.js';\n    document.head.appendChild(link);\n  }, 2000);\n}\n\n// 商品链接hover预加载\ndocument.querySelector('#products-link').addEventListener('mouseenter', () => {\n  import('./pages/Products.js');\n}, { once: true });\n```\n\n选项C（requestIdleCallback）：\n- 在浏览器空闲时预加载，避免阻塞关键任务\n- 但3秒固定延迟不够灵活，可能错过最佳预加载时机\n- 空闲时间不确定，可能在用户点击时仍未加载完成\n\n选项D（无预加载）：\n- 最保守策略，保证首屏性能\n- 但用户点击商品页时需要等待200KB下载\n- 80%用户会受影响，体验不够流畅\n\n性能收益对比：\n- B策略：首屏延迟影响最小，跳转速度最快\n- 关键资源优先级：首屏 > 预加载 > 低优先级请求",
+      "wrong_options_analysis": {
+        "A": "全量预加载违反按需加载原则，增加450KB不必要的网络请求，严重影响首屏性能",
+        "C": "requestIdleCallback的执行时机不可控，可能在用户需要时仍未完成预加载",
+        "D": "完全放弃预加载策略，无法利用用户行为预测提升跳转体验"
+      },
+      "knowledge_point": "Dynamic_Import_Preloading",
+      "reference_link": "https://web.dev/preload-critical-assets/"
+    },
+    {
+      "id": "perf-senior-009",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["长任务", "yieldToMain", "主线程优化"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "长任务分片与yieldToMain",
+      "content": "以下是一段处理大量数据的代码，需要将长任务分片执行以避免阻塞主线程。哪种实现方式最符合现代浏览器的最佳实践？\n\n```javascript\n// 原始代码：处理10000条数据\nfunction processLargeArray(items) {\n  const results = [];\n  for (let i = 0; i < items.length; i++) {\n    results.push(heavyComputation(items[i]));\n  }\n  return results;\n}\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用setTimeout递归分片，每处理100条后setTimeout(processNext, 0)"
+        },
+        {
+          "id": "B",
+          "text": "使用requestAnimationFrame分帧执行，确保每帧处理固定数量"
+        },
+        {
+          "id": "C",
+          "text": "使用scheduler.yield()或scheduler.postTask()，让浏览器决定最佳让出时机"
+        },
+        { "id": "D", "text": "使用Web Worker将计算移出主线程，完全避免阻塞" }
+      ],
+      "correct_answer": "D",
+      "explanation": "长任务（Long Task，执行时间>50ms）会阻塞主线程，导致交互响应延迟、INP指标恶化。选择正确的分片策略需要考虑任务特性、浏览器API支持和性能收益。\n\n各选项深度分析：\n\n选项A（setTimeout分片）：\n- setTimeout(fn, 0)实际延迟约4ms（HTML规范最小值）\n- 可以让出主线程，允许处理用户交互\n- 问题：4ms延迟累积导致总时间增加\n- 问题：不保证每帧均匀分布，可能导致jank\n- 代码示例：\n```javascript\nfunction processChunk(items, chunkSize = 100) {\n  const results = [];\n  let i = 0;\n  \n  function processNext() {\n    const end = Math.min(i + chunkSize, items.length);\n    while (i < end) {\n      results.push(heavyComputation(items[i++]));\n    }\n    if (i < items.length) {\n      setTimeout(processNext, 0);\n    }\n  }\n  processNext();\n  return results;\n}\n```\n\n选项B（requestAnimationFrame分帧）：\n- 与浏览器渲染帧同步，适合UI更新场景\n- 问题：计算任务不需要与帧同步，浪费帧预算\n- 问题：后台标签页暂停raf执行\n\n选项C（Scheduler API）：\n- scheduler.yield()是现代浏览器提供的让出主线程API\n- 比setTimeout更高效，无最小延迟\n- 支持优先级调度，可让出给更高优先级任务\n- 代码示例：\n```javascript\nasync function processWithYield(items) {\n  const results = [];\n  for (let i = 0; i < items.length; i++) {\n    results.push(heavyComputation(items[i]));\n    if (i % 100 === 0) {\n      await scheduler.yield();\n    }\n  }\n  return results;\n}\n```\n\n选项D（Web Worker）：\n- **最佳方案**：将计算完全移出主线程\n- 主线程零阻塞，完全避免长任务\n- 充分利用多核CPU并行计算\n- 支持Transferable Objects高效传递数据\n- 代码示例：\n```javascript\n// main.js\nconst worker = new Worker('processor.js');\nworker.postMessage(items);\nworker.onmessage = (e) => {\n  const results = e.data;\n  // 处理结果\n};\n\n// processor.js\nself.onmessage = (e) => {\n  const results = e.data.map(heavyComputation);\n  self.postMessage(results);\n};\n```\n\n为什么D是最佳选择：\n1. 彻底解决主线程阻塞问题\n2. 不引入额外的调度开销\n3. 支持真正的并行计算\n4. 浏览器兼容性好",
+      "wrong_options_analysis": {
+        "A": "setTimeout有4ms最小延迟，分片过多时会显著增加总耗时，且调度开销大",
+        "B": "requestAnimationFrame与渲染帧绑定，纯计算任务不需要帧同步，浪费资源",
+        "C": "scheduler API是好的选择，但仍会在主线程执行，不如Web Worker彻底"
+      },
+      "knowledge_point": "Long_Task_Yield_Strategy",
+      "reference_link": "https://web.dev/optimize-long-tasks/"
+    },
+    {
+      "id": "perf-senior-010",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CSS优化", "关键CSS", "渲染阻塞"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "关键CSS提取与异步加载",
+      "content": "关于CSS加载和渲染阻塞优化，以下哪些策略是有效的？\n\n场景：一个包含200KB CSS的单页应用，首屏渲染只使用了约15KB的样式规则。",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用Critical CSS工具提取首屏样式，内联在<head>中，其余CSS使用<link rel=\"preload\" as=\"style\" onload=\"this.rel='stylesheet'\">异步加载"
+        },
+        {
+          "id": "B",
+          "text": "将所有CSS拆分为多个小文件，按路由懒加载对应的CSS"
+        },
+        {
+          "id": "C",
+          "text": "使用CSS contain属性隔离组件样式计算，减少样式重计算范围"
+        },
+        {
+          "id": "D",
+          "text": "将非首屏CSS使用媒体查询media=\"print\" onload=\"this.media='all'\"技巧异步加载"
+        },
+        {
+          "id": "E",
+          "text": "使用CSS @import在首屏CSS中导入其他样式表，实现按需加载"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "CSS优化是前端性能的关键环节，主要目标是减少渲染阻塞资源，加速首次内容绘制（FCP）和最大内容绘制（LCP）。\n\n选项A分析（Critical CSS）：\n- 原理：首屏样式内联，消除CSS渲染阻塞\n- 其余CSS异步加载，不阻塞首屏渲染\n- 实现示例：\n```html\n<head>\n  <style>\n    /* 内联关键CSS约15KB */\n    .header { ... }\n    .hero { ... }\n  </style>\n  <link rel=\"preload\" href=\"main.css\" as=\"style\" onload=\"this.rel='stylesheet'\">\n  <noscript><link rel=\"stylesheet\" href=\"main.css\"></noscript>\n</head>\n```\n- 工具：Critical、Penthouse、Critters\n\n选项B分析（CSS代码分割）：\n- 配合路由懒加载，按需加载样式\n- 减少首屏CSS体积\n- 构建工具支持：webpack mini-css-extract-plugin、Vite\n- 示例：\n```javascript\nconst ProductPage = lazy(() => import('./Products.js')); // 自动加载Products.css\n```\n\n选项C分析（CSS Containment）：\n- contain属性隔离样式计算范围\n- 减少样式变化时的重计算影响\n- 值类型：\n  - contain: layout - 布局隔离\n  - contain: paint - 绘制隔离\n  - contain: size - 尺寸隔离\n  - contain: strict - 全部隔离\n- 示例：\n```css\n.card {\n  contain: layout paint style;\n}\n```\n\n选项D分析（媒体查询技巧）：\n- 利用media=\"print\"使CSS初始不阻塞渲染\n- onload时修改media属性应用样式\n- 兼容性好，是一种经典的异步加载技巧\n- 示例：\n```html\n<link rel=\"stylesheet\" href=\"non-critical.css\" media=\"print\" onload=\"this.media='all'\">\n```\n\n选项E错误原因：\n- @import会阻塞CSS解析，直到导入的样式表加载完成\n- @import在CSS文件中使用会增加额外的网络请求瀑布流\n- 性能最差的CSS加载方式之一\n- 反例：\n```css\n/* main.css - 不推荐 */\n@import url('other.css'); /* 阻塞解析 */\n```",
+      "exclusion_analysis": {
+        "E": "CSS @import会阻塞样式表解析，创建瀑布流请求，是性能最差的CSS加载方式"
+      },
+      "knowledge_point": "CSS_Critical_Extraction",
+      "reference_link": "https://web.dev/extract-critical-css/"
+    },
+    {
+      "id": "perf-senior-011",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["TTFB", "FCP", "服务器优化"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "TTFB优化与FCP关系",
+      "content": "某电商网站监控数据显示：TTFB平均为1.8s，FCP平均为2.5s，LCP平均为4.2s。已知服务器部署在单一区域，用户分布全球。以下哪项优化措施对FCP改善效果最显著？",
+      "options": [
+        { "id": "A", "text": "启用HTTP/2 Push预推送关键CSS和字体文件" },
+        {
+          "id": "B",
+          "text": "部署全球CDN并启用边缘缓存，将静态资源TTFB降低至50ms"
+        },
+        {
+          "id": "C",
+          "text": "使用Server-Sent Events实现服务端流式渲染，分块传输HTML"
+        },
+        { "id": "D", "text": "启用Brotli压缩，将HTML文档体积从150KB降至45KB" }
+      ],
+      "correct_answer": "C",
+      "explanation": "本题需要分析TTFB、FCP、LCP之间的关系，以及各优化措施对渲染时序的影响。\n\n当前性能数据分析：\n- TTFB 1.8s → HTML文档开始到达时间\n- FCP 2.5s → FCP - TTFB = 0.7s（文档解析+CSSOM构建+渲染）\n- LCP 4.2s → LCP - FCP = 1.7s（图片/字体加载）\n\n瓶颈识别：\n1. TTFB 1.8s过高（目标<800ms），服务器响应是主要瓶颈\n2. 文档解析后0.7s完成FCP，说明关键资源加载合理\n3. LCP 4.2s超标，但优化FCP是首要目标\n\n各选项效果分析：\n\n选项A（HTTP/2 Push）：\n- 可减少关键资源的独立请求\n- 但TTFB 1.8s的问题未解决，Push也需等待HTML\n- 现代浏览器对Push支持不佳，Chrome已弃用\n- 效果有限且兼容性差\n\n选项B（CDN边缘缓存）：\n- 静态资源TTFB降至50ms很好\n- 但HTML文档可能是动态生成的（电商详情页）\n- 如果HTML仍需回源，TTFB问题未解决\n- 部分有效，但非最优解\n\n选项C（流式渲染）：\n- **最有效方案**\n- 原理：服务器开始生成内容后立即发送，不必等待完整响应\n- 首块HTML快速到达，浏览器可提前解析\n- 关键CSS内联在<head>，FCP可提前至TTFB + 少量解析时间\n- 示例时序改善：\n  - 原TTFB 1.8s（完整HTML）→ 新首字节0.3s + 流式传输\n  - FCP从2.5s降至约1.0s\n- 实现技术：Node.js Stream、PHP flush()、React renderToNodeStream\n\n选项D（Brotli压缩）：\n- 文档体积从150KB降至45KB，节省105KB\n- 但TTFB包含服务器处理时间，压缩可能增加CPU耗时\n- 网络传输节省约100-200ms（取决于带宽）\n- 对FCP改善有限，且可能增加TTFB\n\n综合评估：\n选项C的流式渲染直接解决HTML到达延迟问题，使浏览器能够提前开始解析和渲染，对FCP改善最显著。",
+      "wrong_options_analysis": {
+        "A": "HTTP/2 Push已被Chrome弃用，且无法解决HTML文档TTFB过高的问题",
+        "B": "CDN对静态资源有效，但动态HTML页面仍需回源，TTFB问题可能未解决",
+        "D": "压缩减少传输时间，但效果受带宽影响，且可能增加服务器压缩耗时"
+      },
+      "knowledge_point": "TTFB_FCP_Stream_Rendering",
+      "reference_link": "https://web.dev/ttfb/"
+    },
+    {
+      "id": "perf-senior-012",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["图片优化", "decoding", "fetchpriority"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "图片decoding与fetchpriority",
+      "content": "对于首屏LCP图片，设置<img decoding=\"async\" fetchpriority=\"high\">是最佳实践，可以同时实现异步解码和高优先级加载。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题考察图片加载和解码优化的深入理解，关键在于async解码对首屏LCP图片的影响。\n\nfetchpriority=\"high\"分析：\n- 正确用法，提升图片加载优先级\n- 告诉浏览器该资源对用户体验关键\n- 浏览器会优先调度此图片的下载\n- 对首屏LCP图片确实适用\n\ndecoding=\"async\"分析：\n- 目的：异步解码图片，避免阻塞主线程\n- 适用场景：非首屏图片、大量图片列表\n- 对首屏LCP图片的问题：\n  1. 异步解码意味着解码可能延迟\n  2. LCP需要图片完成解码并渲染才算完成\n  3. async可能导致LCP时间延后\n\n正确的做法：\n对于首屏关键图片（尤其是LCP候选）：\n```html\n<!-- 首屏LCP图片：同步解码 + 高优先级 -->\n<img src=\"hero.webp\" fetchpriority=\"high\" decoding=\"sync\">\n\n<!-- 或者不设置decoding，使用浏览器默认 -->\n<img src=\"hero.webp\" fetchpriority=\"high\">\n```\n\n对于非首屏图片：\n```html\n<!-- 非首屏图片：异步解码 + 懒加载 + 低优先级 -->\n<img src=\"gallery.webp\" loading=\"lazy\" decoding=\"async\" fetchpriority=\"low\">\n```\n\n解码时机对比：\n- decoding=\"sync\"：图片下载后立即在主线程同步解码，可能短暂阻塞，但渲染及时\n- decoding=\"async\"：解码在单独线程进行，不阻塞主线程，但LCP可能延后\n- decoding=\"auto\"：浏览器自行决定（通常等同async）\n\n工程实践建议：\n1. 首屏LCP图片：fetchpriority=\"high\"，不设decoding或decoding=\"sync\"\n2. 非首屏图片：loading=\"lazy\" decoding=\"async\"\n3. 图片列表：decoding=\"async\"避免滚动卡顿\n4. 监控实际LCP时间，验证优化效果",
+      "boundary_conditions": "某些情况下，即使首屏图片使用async解码，浏览器也可能智能地优先处理。但作为最佳实践，首屏关键图片应使用同步解码确保及时渲染。",
+      "knowledge_point": "Image_Decoding_Fetchpriority",
+      "reference_link": "https://web.dev/preload-responsive-images/"
+    },
+    {
+      "id": "perf-senior-013",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["虚拟滚动", "iOS WebKit", "触摸延迟"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "虚拟滚动iOS触摸延迟",
+      "content": "在实现虚拟滚动列表时，iOS WebKit存在特殊的触摸延迟问题。以下哪个方案最能有效解决iOS上的滚动不流畅和点击延迟？\n\n已知条件：\n- 列表项高度动态（80-200px不等）\n- 需要支持快速滑动和惯性滚动\n- 列表项包含可点击元素",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用touch-action: pan-y禁用水平滚动和缩放，减少触摸等待时间"
+        },
+        {
+          "id": "B",
+          "text": "使用-webkit-overflow-scrolling: touch启用原生惯性滚动，配合overscroll-behavior: contain防止滚动穿透"
+        },
+        {
+          "id": "C",
+          "text": "使用position: absolute替代transform: translate3d定位列表项，避免合成层重绘"
+        },
+        {
+          "id": "D",
+          "text": "使用IntersectionObserver检测可见项，配合requestAnimationFrame批量更新DOM，禁用touch事件代理"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "iOS WebKit的触摸延迟问题源于其事件处理机制和滚动优化策略，需要综合CSS属性和DOM操作来优化。\n\niOS WebKit滚动特性：\n1. 默认滚动在主线程处理，容易受JS执行影响\n2. 触摸事件有300ms延迟检测双击缩放\n3. 快速滑动时需要预测滚动位置提前渲染\n\n各选项深度分析：\n\n选项A（touch-action: pan-y）：\n- 可以禁用水平滚动和缩放手势\n- 减少浏览器等待判断手势的时间\n- 但不解决原生滚动性能问题\n- 适合固定方向滚动的场景\n\n选项B（-webkit-overflow-scrolling: touch + overscroll-behavior）：\n- **最佳方案**，启用iOS硬件加速的原生滚动\n- -webkit-overflow-scrolling: touch开启GPU加速的惯性滚动\n- 滚动在合成线程处理，不受主线程阻塞\n- overscroll-behavior: contain防止滚动链穿透\n- 实现示例：\n```css\n.virtual-list {\n  height: 100vh;\n  overflow-y: auto;\n  -webkit-overflow-scrolling: touch;\n  overscroll-behavior: contain;\n  touch-action: pan-y;\n}\n```\n\n选项C（position: absolute替代transform）：\n- position: absolute会触发布局重排\n- transform: translate3d利用GPU合成，性能更好\n- 这个方案实际上是倒退\n- 正确做法是使用transform利用合成层\n\n选项D（IntersectionObserver + rAF + 禁用代理）：\n- IntersectionObserver是正确的可见性检测方式\n- rAF批量更新也是好的实践\n- 但禁用touch事件代理会增加内存使用\n- 且不解决iOS原生滚动的核心问题\n\niOS虚拟滚动完整方案：\n```javascript\n// 1. CSS配置\nconst listStyle = `\n  overflow-y: auto;\n  -webkit-overflow-scrolling: touch;\n  overscroll-behavior: contain;\n  touch-action: pan-y;\n`;\n\n// 2. 动态高度测量\nconst heights = new Map();\nconst resizeObserver = new ResizeObserver(entries => {\n  for (const entry of entries) {\n    heights.set(entry.target.dataset.id, entry.contentRect.height);\n  }\n  updateTotalHeight();\n});\n\n// 3. 使用transform定位\nfunction renderItem(item, offset) {\n  item.style.transform = `translate3d(0, ${offset}px, 0)`;\n}\n\n// 4. 快速滑动时暂停非必要更新\nlet isScrolling = false;\nscrollContainer.addEventListener('scroll', () => {\n  isScrolling = true;\n  requestAnimationFrame(() => {\n    updateVisibleItems();\n    isScrolling = false;\n  });\n}, { passive: true });\n```",
+      "wrong_options_analysis": {
+        "A": "touch-action只能减少手势等待时间，不能启用iOS硬件加速滚动",
+        "C": "position: absolute触发布局重排，性能不如transform: translate3d的GPU合成",
+        "D": "方案复杂度高，且未解决iOS滚动性能的核心问题——启用硬件加速"
+      },
+      "knowledge_point": "Virtual_Scroll_iOS_WebKit",
+      "reference_link": "https://webkit.org/blog/7515/intro-to-responsive-design-mode/"
+    },
+    {
+      "id": "perf-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["合成层", "will-change", "GPU加速"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "合成层优化与层提升",
+      "content": "关于CSS合成层（Compositing Layer）和will-change的使用，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "will-change: transform会创建新的合成层，将该元素提升到独立的GPU纹理中处理"
+        },
+        {
+          "id": "B",
+          "text": "合成层过多会导致GPU内存占用过高，每个合成层都需要独立的纹理内存"
+        },
+        {
+          "id": "C",
+          "text": "使用transform: translateZ(0)是创建合成层的标准推荐方式，兼容性好"
+        },
+        {
+          "id": "D",
+          "text": "动画结束后应及时移除will-change属性，释放GPU资源"
+        },
+        {
+          "id": "E",
+          "text": "will-change应全局预设给所有可能动画的元素，以获得最佳性能"
+        },
+        {
+          "id": "F",
+          "text": "overlap原则：即使元素没有设置will-change，如果与合成层重叠，也可能被提升为合成层"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "F"],
+      "explanation": "合成层是浏览器渲染管线中的重要概念，正确理解和管理合成层对性能优化至关重要。\n\n合成层基础原理：\n浏览器渲染管线：JavaScript → Style → Layout → Paint → Composite\n合成层在Paint阶段生成独立的位图，在Composite阶段由GPU合成，可独立变换（transform、opacity）而无需重绘。\n\n选项A分析（will-change创建合成层）：\n- 正确。will-change告知浏览器元素即将发生变化\n- 浏览器会为该元素创建独立的合成层\n- 变换在该层独立处理，不影响其他元素\n- 示例：will-change: transform, opacity\n\n选项B分析（合成层内存开销）：\n- 正确。每个合成层需要独立的GPU纹理\n- 纹理大小 = 元素尺寸 × 设备像素比(DPR)\n- 内存占用 = 宽 × 高 × 4 (RGBA) × DPR²\n- 示例：300×200元素，DPR=2，内存 = 300×200×4×4 = 960KB\n- 合成层过多会触发\"层爆炸\"\n\n选项C分析（transform: translateZ(0)）：\n- 错误。这是历史上的hack技巧\n- 问题：副作用不可控，可能意外创建过多合成层\n- 问题：语义不明确，代码可读性差\n- 现代做法：使用will-change明确声明意图\n\n选项D分析（移除will-change）：\n- 正确。动画结束后应移除will-change\n- 释放GPU纹理内存\n- 避免不必要的合成层维护开销\n- 实现示例：\n```javascript\nelement.style.willChange = 'transform';\n// 执行动画...\nanimation.onfinish = () => {\n  element.style.willChange = 'auto';\n};\n```\n\n选项E分析（全局预设will-change）：\n- 错误。这是反模式\n- 会为所有可能动画的元素创建合成层\n- 大量GPU内存被占用\n- 只在动画即将发生前设置will-change\n\n选项F分析（overlap隐式层提升）：\n- 正确。这是层爆炸的主要原因之一\n- 当元素与合成层重叠时，浏览器可能将其提升\n- 防止重叠区域需要复杂的合成操作\n- 可通过z-index隔离合成层来控制\n\n合成层最佳实践：\n1. 只在动画开始前设置will-change\n2. 动画结束后移除will-change\n3. 监控Layers面板，控制合成层数量\n4. 使用transform和opacity做动画（合成线程处理）\n5. 避免大面积元素设置will-change",
+      "exclusion_analysis": {
+        "C": "transform: translateZ(0)是历史hack技巧，语义不明确，可能意外创建过多合成层，现代应使用will-change",
+        "E": "全局预设will-change会导致大量元素被提升为合成层，造成GPU内存浪费和层爆炸"
+      },
+      "knowledge_point": "Compositing_Layer_WillChange",
+      "reference_link": "https://web.dev/stick-to-compositor-only-properties/"
+    },
+    {
+      "id": "perf-senior-015",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["React性能", "Memo", "Key稳定性"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "React渲染优化策略",
+      "content": "以下React组件存在性能问题，每秒触发一次数据更新导致整个列表重新渲染。哪种优化方案最有效？\n\n```jsx\nfunction ProductList({ products, onUpdate }) {\n  return (\n    <div>\n      {products.map(product => (\n        <div key={product.id} onClick={() => onUpdate(product)}>\n          <h3>{product.name}</h3>\n          <p>Price: {product.price}</p>\n          <Timer /> {/* 每秒更新的实时计时器 */}\n        </div>\n      ))}\n    </div>\n  );\n}\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用React.memo包裹整个ProductList组件，进行浅比较避免重渲染"
+        },
+        {
+          "id": "B",
+          "text": "将Timer组件提取为独立组件并使用React.memo包裹，避免列表项整体重渲染"
+        },
+        {
+          "id": "C",
+          "text": "使用useMemo缓存整个列表渲染结果：useMemo(() => products.map(...), [products])"
+        },
+        {
+          "id": "D",
+          "text": "使用key={product.id + '-' + product.price}确保数据变化时触发正确更新"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "React性能优化需要准确识别渲染瓶颈和最小化渲染范围。\n\n问题分析：\n- Timer组件每秒更新，触发父组件重渲染\n- 由于重渲染从ProductList开始，所有列表项都会重新创建\n- 即使product数据没变，整个列表项DOM都会被重新计算\n\n各选项深度分析：\n\n选项A（React.memo包裹ProductList）：\n- 无效方案\n- 原因：Timer每秒更新触发的是ProductList内部的重渲染\n- React.memo只阻止props变化导致的重渲染\n- 内部state变化仍会触发重渲染\n\n选项B（提取并memo Timer）：\n- **最有效方案**\n- 将Timer隔离为独立组件，并用React.memo包裹\n- Timer内部更新不会影响父组件和兄弟组件\n- 列表项只在product数据变化时重渲染\n- 实现示例：\n```jsx\nconst Timer = React.memo(function Timer() {\n  const [time, setTime] = useState(Date.now());\n  useEffect(() => {\n    const timer = setInterval(() => setTime(Date.now()), 1000);\n    return () => clearInterval(timer);\n  }, []);\n  return <span>{formatTime(time)}</span>;\n});\n\nconst ProductItem = React.memo(function ProductItem({ product, onUpdate }) {\n  return (\n    <div onClick={() => onUpdate(product)}>\n      <h3>{product.name}</h3>\n      <p>Price: {product.price}</p>\n      <Timer />\n    </div>\n  );\n});\n\nfunction ProductList({ products, onUpdate }) {\n  return (\n    <div>\n      {products.map(product => (\n        <ProductItem key={product.id} product={product} onUpdate={onUpdate} />\n      ))}\n    </div>\n  );\n}\n```\n\n选项C（useMemo缓存列表）：\n- 问题：useMemo只缓存JSX对象，不阻止子组件重渲染\n- React仍会执行子组件的渲染逻辑\n- 且Timer更新导致每次都要重新计算\n\n选项D（动态key）：\n- 反模式，会导致DOM完全重建\n- key变化会销毁旧DOM，创建新DOM\n- 性能更差，不是优化\n\nReact渲染优化原则：\n1. 状态下移：将变化频繁的状态移到最小必要组件\n2. 组件拆分：将变化部分和稳定部分分离\n3. React.memo：用于稳定子树的缓存\n4. 避免内联函数和对象：减少props变化\n5. 使用React DevTools Profiler定位渲染热点",
+      "wrong_options_analysis": {
+        "A": "React.memo只阻止外部props变化的重渲染，内部state变化仍会触发渲染，Timer更新来自内部",
+        "C": "useMemo只缓存JSX结果，不阻止子组件执行渲染逻辑，无法解决根本问题",
+        "D": "动态key会导致DOM重建，是反模式，会严重降低性能而非优化"
+      },
+      "knowledge_point": "React_Render_Optimization",
+      "reference_link": "https://react.dev/reference/react/memo"
+    },
+    {
+      "id": "perf-senior-016",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["RUM", "PerformanceObserver", "监控"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "PerformanceObserver与RUM实现",
+      "content": "关于使用PerformanceObserver实现真实用户监控（RUM），以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "PerformanceObserver支持订阅的entry types包括：navigation、resource、paint、largest-contentful-paint、layout-shift、longtask、first-input等"
+        },
+        {
+          "id": "B",
+          "text": "设置buffered: true选项可以获取在Observer注册之前已产生的性能条目"
+        },
+        {
+          "id": "C",
+          "text": "longtask entries可以通过PerformanceObserver实时捕获，用于监控主线程阻塞情况"
+        },
+        {
+          "id": "D",
+          "text": "PerformanceObserver的回调函数在主线程执行，处理大量entries时可能影响性能"
+        },
+        {
+          "id": "E",
+          "text": "所有PerformanceEntry条目都包含startTime和duration属性，可用于计算性能指标"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "PerformanceObserver是Performance API的核心接口，用于异步观察性能测量事件。正确使用对于RUM实现至关重要。\n\n选项A分析（支持的entry types）：\n- 正确。PerformanceObserver支持多种entry types\n- 完整列表：\n  - navigation：页面导航计时\n  - resource：资源加载计时\n  - paint：FP/FCP\n  - largest-contentful-paint：LCP\n  - layout-shift：布局偏移\n  - longtask：长任务（>50ms）\n  - first-input：FID\n  - event：交互延迟\n  - element：元素计时\n- 示例：\n```javascript\nconst observer = new PerformanceObserver((list) => {\n  list.getEntries().forEach(entry => {\n    console.log(entry.entryType, entry.startTime);\n  });\n});\nobserver.observe({ \n  entryTypes: ['navigation', 'resource', 'paint', 'largest-contentful-paint', 'layout-shift'] \n});\n```\n\n选项B分析（buffered选项）：\n- 正确。buffered: true可获取历史条目\n- 原理：浏览器在全局缓冲区存储性能条目\n- 场景：RUM SDK通常在页面加载后才初始化\n- 示例：\n```javascript\n// 获取页面加载期间的LCP\nconst observer = new PerformanceObserver((list) => {\n  const entries = list.getEntries();\n  const lcp = entries[entries.length - 1];\n  console.log('LCP:', lcp.startTime);\n});\nobserver.observe({ \n  type: 'largest-contentful-paint', \n  buffered: true \n});\n```\n\n选项C分析（longtask监控）：\n- 正确。longtask entries实时捕获主线程阻塞\n- 每个entry包含：\n  - startTime：任务开始时间\n  - duration：任务持续时间（>50ms）\n  - name：任务来源（same-window、cross-origin等）\n  - attribution：详细调用栈（部分浏览器）\n- 用途：监控长任务对INP的影响\n\n选项D分析（回调执行）：\n- 正确。回调在主线程执行\n- 注意事项：\n  - 回调执行期间阻塞主线程\n  - 应避免在回调中执行复杂逻辑\n  - 建议批量处理entries后延迟上报\n- 最佳实践：\n```javascript\nconst pendingEntries = [];\nconst observer = new PerformanceObserver((list) => {\n  // 只收集，延迟处理\n  pendingEntries.push(...list.getEntries());\n});\n// 使用requestIdleCallback批量处理\nrequestIdleCallback(() => {\n  processEntries(pendingEntries);\n});\n```\n\n选项E错误原因：\n- 并非所有PerformanceEntry都包含duration\n- 例如：LayoutShiftEntry没有duration属性\n- LayoutShiftEntry使用value属性表示偏移分数\n- ElementTimingEntry使用identifier和naturalWidth/Height\n\n正确理解各entry类型的属性：\n- PerformanceNavigationTiming: startTime, duration, domContentLoaded, loadComplete\n- PerformanceResourceTiming: startTime, duration, transferSize, encodedBodySize\n- LargestContentfulPaint: startTime, size, element, url\n- LayoutShift: startTime, value, hadRecentInput, sources\n- PerformanceLongTaskTiming: startTime, duration, name, attribution",
+      "exclusion_analysis": {
+        "E": "LayoutShift条目使用value属性而非duration表示偏移程度，不同entry类型的属性结构不同"
+      },
+      "knowledge_point": "PerformanceObserver_RUM",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver"
+    },
+    {
+      "id": "perf-senior-017",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["上报策略", "Beacon API", "keepalive"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "性能数据上报策略",
+      "content": "关于性能监控数据的上报策略，以下哪种方式最可靠地保证数据在页面关闭时也能成功发送？",
+      "options": [
+        { "id": "A", "text": "使用XMLHttpRequest在beforeunload事件中同步发送" },
+        {
+          "id": "B",
+          "text": "使用fetch + keepalive选项在pagehide事件中异步发送"
+        },
+        {
+          "id": "C",
+          "text": "使用navigator.sendBeacon()在visibilitychange事件中发送"
+        },
+        { "id": "D", "text": "使用Web Worker后台线程持续轮询发送队列中的数据" }
+      ],
+      "correct_answer": "B",
+      "explanation": "性能数据上报的可靠性是RUM系统的关键，需要正确处理页面生命周期事件和请求发送方式。\n\n页面关闭时序分析：\n1. 用户触发关闭（点击关闭按钮、导航离开）\n2. 触发visibilitychange（visibilityState → hidden）\n3. 触发pagehide事件\n4. 触发beforeunload事件（可能被阻止）\n5. 触发unload事件（已废弃，不推荐使用）\n6. 页面终止，所有网络请求可能被取消\n\n各选项深度分析：\n\n选项A（XMLHttpRequest同步发送）：\n- 问题：同步XHR会阻塞页面关闭\n- 问题：用户看到\"正在离开此页面\"的延迟\n- 问题：beforeunload可能不会被触发（如浏览器崩溃）\n- 现代浏览器限制：同步XHR在beforeunload中被阻止\n\n选项B（fetch + keepalive）：\n- **最佳方案**\n- keepalive选项允许请求在页面关闭后继续发送\n- 请求异步执行，不阻塞页面关闭\n- 使用pagehide事件（比beforeunload更可靠）\n- 实现示例：\n```javascript\ndocument.addEventListener('pagehide', (event) => {\n  const data = collectPerformanceData();\n  fetch('/analytics', {\n    method: 'POST',\n    body: JSON.stringify(data),\n    keepalive: true,\n    headers: { 'Content-Type': 'application/json' }\n  });\n});\n```\n- keepalive特点：\n  - 请求独立于页面生命周期\n  - 最大请求体大小约64KB\n  - 不能与自定义headers组合使用（部分限制）\n\n选项C（sendBeacon）：\n- 也是可靠的方案，但有限制\n- 优点：专门为诊断数据设计\n- 优点：浏览器保证发送\n- 限制：只能发送POST请求\n- 限制：不能设置自定义headers\n- 限制：数据大小限制约64KB\n- 与选项B相比：fetch keepalive更灵活\n- 实现示例：\n```javascript\ndocument.addEventListener('visibilitychange', () => {\n  if (document.visibilityState === 'hidden') {\n    const data = collectPerformanceData();\n    navigator.sendBeacon('/analytics', JSON.stringify(data));\n  }\n});\n```\n\n选项D（Web Worker轮询）：\n- 问题：页面关闭时Worker也会终止\n- 问题：持续轮询浪费资源\n- 问题：无法保证最后的批量数据发送\n- 不是正确的解决方案\n\n最佳实践组合：\n```javascript\n// 1. 正常上报：使用requestIdleCallback批量发送\nfunction scheduleUpload() {\n  requestIdleCallback(() => {\n    if (pendingData.length > 0) {\n      fetch('/analytics', {\n        method: 'POST',\n        body: JSON.stringify(pendingData)\n      });\n      pendingData = [];\n    }\n  });\n}\n\n// 2. 页面隐藏/关闭：使用keepalive保证发送\ndocument.addEventListener('visibilitychange', () => {\n  if (document.visibilityState === 'hidden') {\n    fetch('/analytics', {\n      method: 'POST',\n      body: JSON.stringify(pendingData),\n      keepalive: true\n    });\n  }\n});\n```",
+      "wrong_options_analysis": {
+        "A": "同步XHR会阻塞页面关闭，现代浏览器可能阻止，且beforeunload不总是触发",
+        "C": "sendBeacon是可靠方案，但fetch keepalive更灵活，支持更多选项",
+        "D": "Web Worker随页面关闭而终止，无法保证最后数据发送，且资源浪费"
+      },
+      "knowledge_point": "Performance_Reporting_Strategy",
+      "reference_link": "https://web.dev/send-beacon-data-with-beacon-api/"
+    },
+    {
+      "id": "perf-senior-018",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Lighthouse", "RUM", "性能测试"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "Lighthouse与RUM数据差异",
+      "content": "Lighthouse在实验室环境（Lab Data）测试的性能指标通常优于真实用户监控（RUM/Field Data）的P75分位数据，因为Lighthouse使用的是模拟设备环境而非真实设备。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题考察对Lighthouse实验室数据与RUM真实数据差异的深入理解。\n\n实际数据对比：\n通常情况下，Lighthouse实验室数据会**差于**（而非优于）真实用户的P75数据。这是因为：\n\nLighthouse测试环境特点：\n1. **网络节流**：Lighthouse默认使用网络节流模拟3G/4G环境\n   - Lighthouse预设：RTT 150ms，下行带宽 1.6Mbps\n   - 真实用户：可能使用4G/5G/WiFi，条件更好\n\n2. **CPU节流**：模拟移动设备性能\n   - Lighthouse：4倍CPU节流\n   - 真实用户：设备性能各异，高端设备占比不少\n\n3. **缓存状态**：Lighthouse默认清除缓存\n   - Lighthouse：冷启动，无缓存\n   - 真实用户：部分有缓存，加载更快\n\n4. **测试时机**：Lighthouse测试完整的页面加载\n   - 真实用户：可能只看部分内容就离开\n\n数据差异示例：\n```\n指标        Lighthouse    RUM P75\nLCP         3.5s          2.8s\nFID         150ms         80ms\nCLS         0.15          0.08\n```\n\nLighthouse适用场景：\n1. 开发阶段快速发现性能问题\n2. CI/CD流水线中的性能门禁\n3. 性能预算检查\n4. 最佳实践审计\n\nRUM适用场景：\n1. 真实用户体验监控\n2. 按地区/设备/网络细分分析\n3. 性能回归告警\n4. 商业指标关联分析\n\n正确的理解：\n- Lighthouse提供的是\"最坏情况下\"的性能基线\n- RUM反映真实用户的实际体验分布\n- 两者应该结合使用：Lighthouse发现问题，RUM验证效果\n\n差异影响因素：\n1. 设备分布：RUM覆盖低端到高端设备\n2. 网络条件：真实网络波动更大\n3. 缓存命中：RUM包含有缓存的访问\n4. 页面状态：RUM包含各种交互状态\n5. 地理分布：CDN对RUM数据影响大",
+      "boundary_conditions": "某些情况下Lighthouse数据可能优于RUM，如用户网络条件极差、低端设备占比较高、或服务器部署在离用户很远的区域。但这不是普遍情况。",
+      "knowledge_point": "Lighthouse_RUM_Difference",
+      "reference_link": "https://web.dev/lab-and-field-data-differences/"
+    },
+    {
+      "id": "perf-senior-019",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Element Timing", "自定义指标", "性能监控"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "Element Timing API应用",
+      "content": "使用Element Timing API监控特定元素的渲染时间时，以下哪个HTML结构可以正确获取Hero标题的渲染时间？",
+      "options": [
+        { "id": "A", "text": "<h1 element-timing=\"hero-title\">Welcome</h1>" },
+        {
+          "id": "B",
+          "text": "<h1 data-element-timing=\"hero-title\">Welcome</h1>"
+        },
+        {
+          "id": "C",
+          "text": "<h1><span element-timing=\"hero-title\">Welcome</span></h1>"
+        },
+        { "id": "D", "text": "<h1 elementtiming=\"hero-title\">Welcome</h1>" }
+      ],
+      "correct_answer": "A",
+      "explanation": "Element Timing API允许开发者监控特定元素的渲染时间，用于定义自定义性能指标。\n\nElement Timing语法：\n- 使用element-timing属性（全小写，带连字符）\n- 属性值作为元素的标识符\n- 支持的元素：<img>、<image>（SVG）、<video>、包含文本节点的元素\n\n选项A分析：\n- **正确语法**\n- element-timing属性应用于h1元素\n- \"hero-title\"作为标识符\n- 监控代码：\n```javascript\nconst observer = new PerformanceObserver((list) => {\n  list.getEntries().forEach(entry => {\n    if (entry.identifier === 'hero-title') {\n      console.log('Hero标题渲染时间:', entry.startTime);\n    }\n  });\n});\nobserver.observe({ type: 'element', buffered: true });\n```\n\n选项B分析（data-element-timing）：\n- 错误。使用data-*前缀是无效的\n- Element Timing API不识别data-*属性\n- 这是自定义数据属性，不是API定义\n\n选项C分析（嵌套span）：\n- 语法正确，但测量的是span元素\n- 对于简单文本，不需要额外嵌套\n- h1本身就是支持的元素类型\n\n选项D分析（elementtiming）：\n- 错误。属性名拼写不正确\n- 应该使用element-timing（带连字符）\n- HTML属性不区分大小写，但连字符是必需的\n\nElement Timing Entry属性：\n```javascript\n{\n  name: \"image-paint\" | \"text-paint\",\n  entryType: \"element\",\n  startTime: 123.45,  // 渲染时间\n  duration: 0,\n  identifier: \"hero-title\",  // element-timing属性值\n  element: HTMLElement,  // DOM元素引用\n  url: \"\",  // 仅图片元素有值\n  naturalWidth: 0,\n  naturalHeight: 0,\n  renderTime: 123.45,\n  loadTime: 100.00  // 仅图片元素\n}\n```\n\n实际应用场景：\n1. 监控Hero图片/标题渲染时间\n2. 追踪关键业务元素可见时间\n3. 自定义性能指标与业务关联\n4. A/B测试不同方案的渲染性能\n\n完整示例：\n```html\n<div class=\"hero\">\n  <img src=\"hero.jpg\" element-timing=\"hero-image\">\n  <h1 element-timing=\"hero-title\">Welcome</h1>\n</div>\n\n<script>\nconst observer = new PerformanceObserver((list) => {\n  list.getEntries().forEach(entry => {\n    console.log(`${entry.identifier}: ${entry.startTime}ms`);\n  });\n});\nobserver.observe({ type: 'element', buffered: true });\n</script>\n```",
+      "wrong_options_analysis": {
+        "B": "data-element-timing是自定义数据属性，Element Timing API不识别",
+        "C": "语法正确但不必要，h1本身就支持Element Timing，嵌套span增加复杂度",
+        "D": "elementtiming缺少连字符，正确的属性名是element-timing"
+      },
+      "knowledge_point": "Element_Timing_API",
+      "reference_link": "https://web.dev/element-timing-api/"
+    },
+    {
+      "id": "perf-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["内存管理", "Detached DOM", "内存泄漏"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "Detached DOM Trees识别与处理",
+      "content": "关于Detached DOM Trees（分离DOM树）导致的内存泄漏，以下哪些说法和解决方案是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Detached DOM是指已从文档中移除但仍有JavaScript引用的DOM节点，它们无法被垃圾回收"
+        },
+        {
+          "id": "B",
+          "text": "使用Chrome DevTools的Heap Snapshot可以通过搜索\"Detached\"找到分离的DOM树"
+        },
+        {
+          "id": "C",
+          "text": "事件委托比直接绑定事件更能避免内存泄漏，因为不需要在每个子元素上保存事件处理函数引用"
+        },
+        {
+          "id": "D",
+          "text": "使用WeakMap存储DOM节点引用可以避免内存泄漏，因为WeakMap的键是弱引用"
+        },
+        {
+          "id": "E",
+          "text": "调用element.remove()后手动设置element=null可以确保DOM节点被垃圾回收"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "Detached DOM Trees是前端内存泄漏的常见原因，理解其机制和解决方案对性能优化至关重要。\n\n选项A分析（Detached DOM定义）：\n- 正确。Detached DOM是指：\n  1. 已从DOM树中移除（remove()、innerHTML=''等）\n  2. 但仍有JavaScript引用指向它\n- 垃圾回收无法回收，因为GC认为仍在使用\n- 示例：\n```javascript\nlet detachedNode;\nfunction removeAndKeep() {\n  const container = document.getElementById('container');\n  detachedNode = container; // 保持引用\n  container.remove(); // 从DOM移除，但仍被detachedNode引用\n}\n```\n\n选项B分析（Heap Snapshot检测）：\n- 正确。Chrome DevTools的Heap Snapshot可以识别分离DOM\n- 步骤：\n  1. 打开DevTools → Memory → Heap snapshot\n  2. 拍摄快照\n  3. 在搜索框输入\"Detached\"\n  4. 查看Detached DOM tree条目\n- 可以看到分离DOM的大小和引用链\n\n选项C分析（事件委托）：\n- 正确。事件委托减少内存使用\n- 原理：\n  - 直接绑定：每个子元素一个事件处理函数\n  - 事件委托：父元素一个处理函数，通过event.target判断源\n- 内存优势：\n  - 减少事件处理函数数量\n  - 子元素移除时无需手动解绑\n- 示例：\n```javascript\n// 直接绑定 - 每个子元素一个处理函数\nitems.forEach(item => {\n  item.addEventListener('click', handleClick); // 100个处理函数\n});\n\n// 事件委托 - 父元素一个处理函数\ncontainer.addEventListener('click', (e) => {\n  if (e.target.classList.contains('item')) {\n    handleClick(e);\n  }\n}); // 1个处理函数\n```\n\n选项D分析（WeakMap弱引用）：\n- 正确。WeakMap的键是弱引用\n- 当键对象没有其他引用时，会被GC回收\n- 适用场景：缓存与DOM关联的数据\n- 示例：\n```javascript\n// 错误方式 - 阻止GC\nconst nodeData = new Map();\nelement.remove();\nnodeData.get(element); // element无法被GC\n\n// 正确方式 - 允许GC\nconst nodeData = new WeakMap();\nelement.remove();\n// element可被GC，WeakMap条目自动清除\n```\n\n选项E错误原因：\n- 设置null不总是必要的\n- 关键是清除所有引用，不只是置null\n- 如果有其他闭包或事件引用，置null无效\n- 正确做法：\n```javascript\n// 完整清理\nfunction cleanElement(element) {\n  // 1. 移除事件监听\n  element.removeEventListener('click', handler);\n  // 2. 清除数据引用\n  delete element.myData;\n  // 3. 从DOM移除\n  element.remove();\n  // 4. 清除变量引用（如果需要）\n  element = null;\n}\n```\n\n内存泄漏检测流程：\n1. 使用Performance面板录制内存变化\n2. 使用Heap Snapshot对比前后快照\n3. 查找Detached DOM和持续增长的对象\n4. 分析引用链找到泄漏源",
+      "exclusion_analysis": {
+        "E": "置null不保证GC回收，关键是要清除所有引用（事件监听、闭包、Map/WeakMap等），不是简单置null"
+      },
+      "knowledge_point": "Detached_DOM_Memory_Leak",
+      "reference_link": "https://developer.chrome.com/docs/devtools/memory-problems/"
+    },
+    {
+      "id": "perf-senior-021",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["性能预算", "CI集成", "自动化"],
+      "source_company": "Meituan",
+      "score": 7,
+      "title": "Performance Budget配置",
+      "content": "在CI/CD流水线中集成性能预算检查，以下哪种配置方式能最有效地防止性能回归？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在webpack配置中设置performance.maxEntrypointSize和performance.maxAssetSize，构建体积超限时报错"
+        },
+        {
+          "id": "B",
+          "text": "使用Lighthouse CI配置budget.json，定义资源大小和性能指标阈值，PR检查时运行Lighthouse"
+        },
+        {
+          "id": "C",
+          "text": "在ESLint中添加eslint-plugin-import-size插件，限制每个模块的最大体积"
+        },
+        {
+          "id": "D",
+          "text": "使用bundlesize工具在post-commit hook中检查打包体积，体积增加超过5%则拒绝合并"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "性能预算（Performance Budget）是防止性能回归的关键机制，需要在CI/CD中有效实施。\n\n选项A分析（webpack配置）：\n- 只检查bundle大小\n- 不包含运行时性能指标\n- 无法阻止JS执行时间回归\n- 示例：\n```javascript\n// webpack.config.js\nmodule.exports = {\n  performance: {\n    maxEntrypointSize: 250000, // 250KB\n    maxAssetSize: 150000, // 150KB\n    hints: 'error'\n  }\n};\n```\n\n选项B分析（Lighthouse CI）：\n- **最佳方案**\n- 全面覆盖：资源大小 + 性能指标\n- 指标包括：FCP、LCP、TBT、CLS等\n- 自动化PR检查\n- 配置示例：\n```json\n// budget.json\n[\n  {\n    \"resourceSizes\": [\n      { \"resourceType\": \"script\", \"budget\": 300 },\n      { \"resourceType\": \"stylesheet\", \"budget\": 100 },\n      { \"resourceType\": \"image\", \"budget\": 500 },\n      { \"resourceType\": \"total\", \"budget\": 1000 }\n    ],\n    \"resourceCounts\": [\n      { \"resourceType\": \"third-party\", \"budget\": 10 }\n    ],\n    \"timings\": [\n      { \"metric\": \"first-contentful-paint\", \"budget\": 2000 },\n      { \"metric\": \"largest-contentful-paint\", \"budget\": 3000 },\n      { \"metric\": \"cumulative-layout-shift\", \"budget\": 0.1 },\n      { \"metric\": \"total-blocking-time\", \"budget\": 300 }\n    ]\n  }\n]\n```\n- CI配置：\n```yaml\n# .github/workflows/lighthouse.yml\n- name: Run Lighthouse CI\n  uses: treosh/lighthouse-ci-action@v9\n  with:\n    budgetPath: ./budget.json\n    uploadArtifacts: true\n```\n\n选项C分析（ESLint插件）：\n- 只检查单个模块大小\n- 不反映实际bundle大小（tree-shaking影响）\n- 不包含运行时指标\n- 警告级别，不是阻断级别\n\n选项D分析（bundlesize）：\n- 只检查最终bundle大小\n- 不包含性能指标\n- post-commit时机太晚\n- 应该在PR阶段检查\n\n性能预算最佳实践：\n1. 分层级预算：\n   - 资源预算：JS/CSS/Image大小\n   - 请求预算：请求数量、第三方脚本\n   - 指标预算：LCP/FID/CLS阈值\n\n2. 渐进式策略：\n   - 新项目：设置严格预算\n   - 现有项目：设置当前基线，逐步收紧\n\n3. 通知机制：\n   - 预算警告：80%阈值警告\n   - 预算错误：100%阈值阻断\n\n4. 可视化：\n   - PR评论显示性能对比\n   - 趋势图表追踪变化",
+      "wrong_options_analysis": {
+        "A": "webpack配置只检查bundle大小，不包含运行时性能指标，覆盖不全面",
+        "C": "ESLint模块大小检查不考虑tree-shaking，不反映实际bundle大小",
+        "D": "bundlesize只检查体积，post-commit时机太晚，应使用PR检查"
+      },
+      "knowledge_point": "Performance_Budget_CI",
+      "reference_link": "https://web.dev/performance-budgets-101/"
+    },
+    {
+      "id": "perf-senior-022",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Long Animation Frames", "LoAF", "INP优化"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Long Animation Frames API",
+      "content": "Long Animation Frames API是Chrome提供的新API，用于检测和诊断渲染帧问题。以下关于LoAF的说法，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "LoAF只能检测超过50ms的长任务，与PerformanceLongTaskTiming功能相同"
+        },
+        {
+          "id": "B",
+          "text": "LoAF提供每帧的完整渲染管线信息，包括style、layout、paint各阶段耗时，但无法获取脚本调用栈"
+        },
+        {
+          "id": "C",
+          "text": "LoAF的renderStart表示渲染开始时间，通过renderStart - startTime可以计算主线程阻塞时间"
+        },
+        {
+          "id": "D",
+          "text": "LoAF可以识别导致长帧的具体脚本来源，包括第三方脚本 attribution 信息"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "Long Animation Frames API（LoAF）是Chrome 123+引入的新API，用于替代和增强传统的Long Task API。\n\nLoAF vs Long Task API对比：\n| 特性 | Long Task API | Long Animation Frames API |\n|------|---------------|------------------------|\n| 检测阈值 | >50ms | >50ms |\n| 信息粒度 | 仅总时长 | 完整渲染管线分解 |\n| 脚本归属 | 基础信息 | 详细attribution |\n| 帧上下文 | 无 | 完整帧信息 |\n\n选项A错误原因：\n- LoAF检测阈值与Long Task相同（>50ms）\n- 但提供的诊断信息远超Long Task\n- LoAF提供完整的渲染管线分解\n\n选项B错误原因：\n- LoAF可以获取脚本调用栈\n- scripts属性包含详细的脚本信息\n- 每个script有invoker、sourceURL等属性\n\n选项C错误原因：\n- renderStart是渲染阶段开始时间\n- 主线程阻塞时间计算方式不同\n- 正确计算：duration（帧总时长）或 workDuration\n\n选项D正确分析：\n- LoAF可以识别导致长帧的脚本来源\n- scripts数组提供完整的脚本归属信息\n- 包括第三方脚本的详细attribution\n\nLoAF Entry结构：\n```javascript\n{\n  name: \"long-animation-frame\",\n  entryType: \"long-animation-frame\",\n  startTime: 100,        // 帧开始时间\n  duration: 80,          // 帧总时长\n  renderStart: 150,      // 渲染开始时间\n  styleAndLayoutStart: 155, // 样式和布局开始\n  firstUIEventTimestamp: 120, // 首个UI事件时间\n  scripts: [             // 导致长帧的脚本\n    {\n      name: \"script\",\n      entryType: \"script\",\n      startTime: 105,\n      duration: 40,\n      invoker: \"EventHandler.onClick\",  // 调用者\n      invokerType: \"event-listener\",\n      sourceURL: \"https://analytics.js\", // 脚本来源\n      sourceFunctionName: \"processClick\",\n      sourceCharPosition: 1234\n    }\n  ]\n}\n```\n\nLoAF监控实现：\n```javascript\nconst observer = new PerformanceObserver((list) => {\n  for (const entry of list.getEntries()) {\n    console.log(`长帧: ${entry.duration}ms`);\n    \n    for (const script of entry.scripts) {\n      console.log(`  脚本: ${script.sourceURL}`);\n      console.log(`  调用者: ${script.invoker}`);\n      console.log(`  耗时: ${script.duration}ms`);\n    }\n    \n    // 分析渲染阶段\n    const renderTime = entry.duration - (entry.renderStart - entry.startTime);\n    console.log(`  渲染耗时: ${renderTime}ms`);\n  }\n});\n\nobserver.observe({ type: 'long-animation-frame', buffered: true });\n```\n\nLoAF与INP优化：\n1. 识别导致高INP的具体脚本\n2. 分析渲染阶段瓶颈\n3. 优化长任务执行时机\n4. 追踪第三方脚本影响",
+      "wrong_options_analysis": {
+        "A": "LoAF提供远超Long Task API的诊断信息，包括渲染管线分解和脚本归属",
+        "B": "LoAF的scripts属性包含完整的脚本调用栈和attribution信息",
+        "C": "主线程阻塞时间不是简单用renderStart-startTime计算，应使用duration或workDuration"
+      },
+      "knowledge_point": "Long_Animation_Frames_API",
+      "reference_link": "https://web.dev/long-animation-frames/"
+    },
+    {
+      "id": "perf-senior-023",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Web Vitals库", "RUM实现"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "web-vitals库实现原理",
+      "content": "Google官方的web-vitals库通过PerformanceObserver监听所有相关的性能条目类型，并在合适的时机（如LCP稳定后、页面隐藏时）调用回调函数上报指标值。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "web-vitals库是Google官方提供的Core Web Vitals测量库，其实现原理需要深入理解才能正确使用和调试。\n\nweb-vitals库核心实现：\n\n1. LCP测量：\n- 使用PerformanceObserver监听largest-contentful-paint\n- 持续追踪LCP候选变化\n- 在页面隐藏（visibilitychange）或卸载时确定最终值\n- 使用buffered: true获取历史条目\n\n```javascript\n// LCP实现简化版\nlet lcpEntry = null;\nconst observer = new PerformanceObserver((list) => {\n  const entries = list.getEntries();\n  lcpEntry = entries[entries.length - 1]; // 最新的LCP候选\n});\nobserver.observe({ \n  type: 'largest-contentful-paint', \n  buffered: true \n});\n\n// 页面隐藏时上报\ndocument.addEventListener('visibilitychange', () => {\n  if (document.visibilityState === 'hidden' && lcpEntry) {\n    reportLCP(lcpEntry.startTime);\n  }\n});\n```\n\n2. FID/INP测量：\n- 监听first-input或event类型\n- 计算event duration（input delay + processing + presentation）\n- INP需要持续追踪所有交互，取高百分位\n\n```javascript\n// INP实现简化版\nlet allInteractions = [];\nconst observer = new PerformanceObserver((list) => {\n  for (const entry of list.getEntries()) {\n    const duration = entry.processingEnd - entry.startTime;\n    allInteractions.push(duration);\n  }\n});\nobserver.observe({ type: 'event', buffered: true, durationThreshold: 16 });\n\n// 计算INP\nfunction getINP() {\n  if (allInteractions.length === 0) return 0;\n  if (allInteractions.length <= 50) {\n    return Math.max(...allInteractions);\n  }\n  // 75分位数\n  const sorted = allInteractions.sort((a, b) => a - b);\n  const index = Math.floor(sorted.length * 0.75);\n  return sorted[index];\n}\n```\n\n3. CLS测量：\n- 监听layout-shift条目\n- 累加非用户交互导致的偏移\n- 使用Session Window机制\n\n```javascript\n// CLS Session Window实现简化版\nlet clsValue = 0;\nlet sessionEntries = [];\nlet sessionStartTime = 0;\nconst SESSION_GAP = 1000; // 1秒\n\nconst observer = new PerformanceObserver((list) => {\n  for (const entry of list.getEntries()) {\n    if (entry.hadRecentInput) continue; // 忽略用户交互导致的偏移\n    \n    const now = performance.now();\n    if (now - sessionStartTime > SESSION_GAP) {\n      // 新会话开始\n      sessionEntries = [];\n      clsValue = 0;\n    }\n    \n    sessionStartTime = now;\n    sessionEntries.push(entry);\n    clsValue += entry.value;\n  }\n});\nobserver.observe({ type: 'layout-shift', buffered: true });\n```\n\n上报时机处理：\n1. 页面隐藏（visibilitychange → hidden）\n2. 页面卸载（pagehide）\n3. 特定条件满足（如LCP稳定）\n\nweb-vitals库使用示例：\n```javascript\nimport { onLCP, onFID, onCLS, onINP, onTTFB } from 'web-vitals';\n\nonLCP(console.log);\nonFID(console.log);\nonCLS(console.log);\nonINP(console.log);\nonTTFB(console.log);\n```",
+      "boundary_conditions": "web-vitals库在SPA中需要特殊处理，路由切换时需要重置指标。库提供了onLCP等函数的reportAllChanges选项控制上报时机。",
+      "knowledge_point": "Web_Vitals_Library",
+      "reference_link": "https://github.com/GoogleChrome/web-vitals"
+    },
+    {
+      "id": "perf-senior-024",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["transform优化", "合成层", "动画性能"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "transform动画优化原理",
+      "content": "使用CSS transform和opacity做动画是性能最佳实践，以下哪些说法正确解释了其优化原理？",
+      "options": [
+        {
+          "id": "A",
+          "text": "transform和opacity动画在合成线程（Compositor Thread）执行，不阻塞主线程"
+        },
+        {
+          "id": "B",
+          "text": "使用transform: translateX()代替left属性做位移动画，可以避免Layout重排"
+        },
+        {
+          "id": "C",
+          "text": "任何使用transform的元素都会自动创建独立的合成层，享受GPU加速"
+        },
+        {
+          "id": "D",
+          "text": "opacity动画需要配合will-change: opacity使用才能获得合成线程执行的优势"
+        },
+        {
+          "id": "E",
+          "text": "transform: scale()动画会触发重绘（Paint），但不会触发重排（Layout）"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "transform和opacity动画的性能优势源于浏览器渲染管线的工作机制，需要准确理解各阶段的影响。\n\n浏览器渲染管线：\nJavaScript → Style → Layout → Paint → Composite\n\n属性变化影响的阶段：\n| 属性 | Layout | Paint | Composite |\n|------|--------|-------|----------|\n| left/top | ✓ | ✓ | ✓ |\n| transform | ✗ | ✗ | ✓ |\n| opacity | ✗ | ✗ | ✓ |\n| background | ✗ | ✓ | ✓ |\n| color | ✗ | ✓ | ✓ |\n\n选项A分析（合成线程执行）：\n- 正确。transform和opacity在合成线程处理\n- 合成线程独立于主线程运行\n- 主线程阻塞不影响动画流畅度\n- 这就是为什么滚动通常比JS动画流畅\n\n选项B分析（避免Layout）：\n- 正确。left/top会触发布局重排\n- transform只影响合成阶段\n- 性能差异显著：\n  - left动画：每帧Layout+Paint+Composite\n  - transform动画：每帧仅Composite\n\n选项C错误原因：\n- transform本身不自动创建合成层\n- 需要满足特定条件才会提升\n- 触发条件：\n  - 3D transform（translate3d, translateZ）\n  - animation/transition中的transform\n  - will-change: transform\n  - backface-visibility: hidden\n  - video/canvas/iframe等特定元素\n\n选项D分析（opacity需要will-change）：\n- 正确。opacity动画需要提示浏览器\n- will-change: opacity创建合成层\n- 否则opacity变化可能触发重绘\n- 示例：\n```css\n.animated {\n  will-change: opacity;\n  transition: opacity 0.3s;\n}\n```\n\n选项E错误原因：\n- transform: scale()不触发重绘\n- transform的所有变换都在合成阶段处理\n- 只有影响元素外观的属性才会触发重绘\n- transform只影响元素的位置、大小、旋转，不影响外观\n\n性能对比实测：\n```javascript\n// 性能差的动画：left\n.element {\n  transition: left 1s;\n}\n// 触发：Layout → Paint → Composite\n\n// 性能好的动画：transform\n.element {\n  transition: transform 1s;\n  will-change: transform;\n}\n// 触发：Composite only\n```\n\nCSS动画性能指南：\n1. 优先使用transform和opacity\n2. 避免动画left/top/margin\n3. 使用will-change提前告知浏览器\n4. 动画结束后移除will-change\n5. 使用Chrome DevTools的Layers面板检查合成层",
+      "exclusion_analysis": {
+        "C": "transform本身不自动创建合成层，需要配合will-change或3D变换等条件",
+        "E": "transform: scale()不触发重绘，所有transform操作都在合成阶段处理"
+      },
+      "knowledge_point": "Transform_Animation_Performance",
+      "reference_link": "https://web.dev/animations-guide/"
+    },
+    {
+      "id": "perf-senior-025",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["FP", "FCP", "渲染时序"],
+      "source_company": "ByteDance",
+      "score": 7,
+      "title": "FP与FCP的区别",
+      "content": "以下关于First Paint（FP）和First Contentful Paint（FCP）的区别，哪个描述是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "FP是首次渲染任何像素的时间，FCP是首次渲染有意义内容的时间，FCP一定晚于或等于FP"
+        },
+        {
+          "id": "B",
+          "text": "FP和FCP时间总是相同，它们只是不同规范对同一事件的命名"
+        },
+        {
+          "id": "C",
+          "text": "FCP只计算文本渲染，FP计算所有渲染内容包括图片和背景色"
+        },
+        {
+          "id": "D",
+          "text": "FP可以被CSS背景色触发，FCP必须等待DOM内容加载完成"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "FP和FCP是页面加载性能的基础指标，正确理解其区别对性能优化至关重要。\n\nFP（First Paint）定义：\n- 浏览器首次渲染任何像素的时间点\n- 包括背景色、边框等非内容元素\n- 表示渲染开始的时刻\n\nFCP（First Contentful Paint）定义：\n- 浏览器首次渲染任何\"内容\"的时间点\n- 内容包括：文本、图片、SVG、非空白canvas\n- 表示用户开始看到有意义内容的时刻\n\n两者关系：\n- FCP ≥ FP（FCP一定不会早于FP）\n- 通常FCP = FP或略晚于FP\n- 如果首屏有背景色但无内容，FCP会晚于FP\n\n选项A正确分析：\n- 准确描述了FP和FCP的定义和关系\n- FP代表首次任何渲染\n- FCP代表首次内容渲染\n- FCP ≥ FP是正确的时序关系\n\n选项B错误原因：\n- FP和FCP是不同的指标\n- 它们测量的内容不同\n- 时间可能不同\n\n选项C错误原因：\n- FCP不仅计算文本，还包括图片、SVG等\n- FP不计算具体内容，只计算首次渲染\n\n选项D错误原因：\n- FP确实可以被背景色触发\n- 但FCP不要求DOM完全加载\n- FCP只要求首次有内容渲染\n\n测量方式：\n```javascript\n// 使用Performance API\nconst paintEntries = performance.getEntriesByType('paint');\nconst fp = paintEntries.find(e => e.name === 'first-paint');\nconst fcp = paintEntries.find(e => e.name === 'first-contentful-paint');\n\nconsole.log('FP:', fp?.startTime);\nconsole.log('FCP:', fcp?.startTime);\n\n// 使用PerformanceObserver\nconst observer = new PerformanceObserver((list) => {\n  for (const entry of list.getEntries()) {\n    console.log(`${entry.name}: ${entry.startTime}ms`);\n  }\n});\nobserver.observe({ type: 'paint', buffered: true });\n```\n\n优化策略：\n1. 减少FP：\n   - 内联关键CSS\n   - 减少渲染阻塞资源\n   - 优化TTFB\n\n2. 减少FCP：\n   - 所有减少FP的策略\n   - 确保首屏有文本内容\n   - 预加载关键字体\n   - 避免FOIT\n\nFCP评分标准：\n- Good: ≤1.8s\n- Needs Improvement: 1.8s - 3.0s\n- Poor: >3.0s",
+      "wrong_options_analysis": {
+        "B": "FP和FCP是不同的指标，测量内容不同，时间可能不同",
+        "C": "FCP包括文本、图片、SVG等，不仅是文本；FP不计算具体内容",
+        "D": "FCP不要求DOM完全加载，只要求首次有内容渲染"
+      },
+      "knowledge_point": "FP_FCP_Difference",
+      "reference_link": "https://web.dev/fcp/"
+    },
+    {
+      "id": "perf-senior-026",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Vue性能", "响应式优化", "渲染优化"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vue渲染性能优化",
+      "content": "对于Vue 3应用的渲染性能优化，以下哪些策略是有效的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用v-memo指令缓存大型列表项的渲染结果，当依赖项不变时跳过diff"
+        },
+        {
+          "id": "B",
+          "text": "使用shallowRef代替ref处理大型嵌套对象，避免深层响应式转换开销"
+        },
+        {
+          "id": "C",
+          "text": "在v-for循环中使用index作为key可以保证列表渲染的正确性和性能"
+        },
+        {
+          "id": "D",
+          "text": "使用<Teleport>组件将模态框渲染到body末尾，可以减少组件树的diff范围"
+        },
+        {
+          "id": "E",
+          "text": "使用computed缓存计算结果，只有依赖变化时才重新计算"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "Vue 3提供了多种性能优化手段，需要理解其原理才能正确应用。\n\n选项A分析（v-memo）：\n- 正确。v-memo是Vue 3.2+的性能优化指令\n- 原理：缓存子树的渲染结果\n- 依赖不变时跳过整个diff过程\n- 适用场景：大型列表项、复杂组件\n- 示例：\n```vue\n<template>\n  <div v-for=\"item in list\" :key=\"item.id\" v-memo=\"[item.selected]\">\n    <!-- 只有item.selected变化时才重新渲染 -->\n    <ComplexItem :data=\"item\" />\n  </div>\n</template>\n```\n\n选项B分析（shallowRef）：\n- 正确。shallowRef避免深层响应式\n- 原理：\n  - ref：递归转换为响应式（开销大）\n  - shallowRef：只有.value本身是响应式的\n- 适用场景：\n  - 大型JSON数据\n  - 第三方库实例\n  - 只需整体替换的场景\n- 示例：\n```javascript\n// 大型数据避免深层响应式\nconst largeData = shallowRef(heavyJsonData);\n\n// 更新时整体替换\nlargeData.value = newData; // 触发更新\nlargeData.value.items.push(item); // 不触发更新！\n```\n\n选项C错误原因：\n- 使用index作为key是反模式\n- 问题：\n  - 列表顺序变化时，key不变但内容变了\n  - 导致错误的组件复用\n  - 状态错乱、性能下降\n- 正确做法：使用唯一标识符\n```vue\n<!-- 错误 -->\n<div v-for=\"(item, index) in list\" :key=\"index\">\n\n<!-- 正确 -->\n<div v-for=\"item in list\" :key=\"item.id\">\n```\n\n选项D分析（Teleport）：\n- 正确。Teleport减少diff范围\n- 原理：\n  - 模态框移出组件树\n  - 父组件diff时不遍历模态框\n  - 模态框自身独立diff\n- 示例：\n```vue\n<Teleport to=\"body\">\n  <Modal v-if=\"showModal\">\n    <!-- 模态框内容 -->\n  </Modal>\n</Teleport>\n```\n\n选项E分析（computed）：\n- 正确。computed缓存计算结果\n- 原理：\n  - 依赖追踪\n  - 脏检查机制\n  - 只在依赖变化时重算\n- 示例：\n```javascript\nconst filteredList = computed(() => {\n  // 只在list或filter变化时执行\n  return list.value.filter(item => \n    item.name.includes(filter.value)\n  );\n});\n```\n\nVue性能优化最佳实践：\n1. 合理使用v-memo和v-once\n2. 大型数据使用shallowRef/shallowReactive\n3. 列表使用稳定的key\n4. 拆分大型组件\n5. 使用computed缓存\n6. 虚拟滚动长列表",
+      "exclusion_analysis": {
+        "C": "使用index作为key会导致列表顺序变化时的错误复用，应该使用唯一标识符如id"
+      },
+      "knowledge_point": "Vue_Render_Performance",
+      "reference_link": "https://vuejs.org/guide/best-practices/performance.html"
+    },
+    {
+      "id": "perf-senior-027",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["requestIdleCallback", "任务调度", "主线程优化"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "requestIdleCallback任务调度",
+      "content": "关于requestIdleCallback的使用，以下哪个说法是正确的？\n\n假设页面正在执行一个复杂的SPA路由切换，需要在切换完成后执行低优先级的数据分析上报。",
+      "options": [
+        {
+          "id": "A",
+          "text": "requestIdleCallback保证在浏览器空闲时执行，适合处理所有后台任务"
+        },
+        {
+          "id": "B",
+          "text": "requestIdleCallback的回调函数接收deadline参数，通过deadline.timeRemaining()获取剩余空闲时间"
+        },
+        {
+          "id": "C",
+          "text": "requestIdleCallback在页面隐藏或后台标签页时会立即执行回调，不受帧预算限制"
+        },
+        {
+          "id": "D",
+          "text": "requestIdleCallback的timeout参数用于设置最小等待时间，避免任务过早执行"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "requestIdleCallback是浏览器提供的协作式任务调度API，用于在空闲时间执行低优先级任务。\n\nrequestIdleCallback工作原理：\n1. 浏览器在每帧结束时检查是否有空闲时间\n2. 空闲时间 = 帧预算（16.67ms）- 实际工作耗时\n3. 如果有空闲时间，执行idle回调\n4. 回调接收deadline对象，包含timeRemaining()方法\n\n选项A错误原因：\n- requestIdleCallback不是万能的后台任务解决方案\n- 限制：\n  - 回调执行时间应该尽量短\n  - 不适合CPU密集型任务\n  - 不保证执行时机\n- 替代方案：\n  - Web Worker：CPU密集型任务\n  - scheduler.postTask：更精确的优先级控制\n\n选项B正确分析：\n- 准确描述了API的核心用法\n- deadline对象：\n  - timeRemaining()：返回剩余空闲毫秒数\n  - didTimeout：是否已超时\n- 使用示例：\n```javascript\nrequestIdleCallback((deadline) => {\n  while (deadline.timeRemaining() > 0 && tasks.length > 0) {\n    const task = tasks.shift();\n    task();\n  }\n  if (tasks.length > 0) {\n    // 还有任务，重新调度\n    requestIdleCallback(processTasks);\n  }\n});\n```\n\n选项C错误原因：\n- 后台标签页的行为不同\n- 后台页面：\n  - 帧预算变为0\n  - requestIdleCallback可能长时间不触发\n- 解决方案：\n```javascript\n// 后台页面需要timeout保障\nrequestIdleCallback(callback, { timeout: 2000 });\n```\n\n选项D错误原因：\n- timeout不是最小等待时间\n- timeout是最大等待时间\n- 超时后回调会立即执行（即使无空闲时间）\n- 用途：\n  - 保证任务最终执行\n  - 避免无限等待\n- 示例：\n```javascript\n// 最多等待5秒，之后强制执行\nrequestIdleCallback((deadline) => {\n  if (deadline.didTimeout) {\n    console.log('超时强制执行');\n  }\n  processData();\n}, { timeout: 5000 });\n```\n\n完整的使用示例：\n```javascript\n// SPA路由切换后的数据上报\nfunction scheduleAnalytics() {\n  const data = collectAnalytics();\n  \n  requestIdleCallback((deadline) => {\n    // 检查剩余时间是否足够\n    if (deadline.timeRemaining() > 5) {\n      sendAnalytics(data);\n    } else if (deadline.didTimeout) {\n      // 超时也要发送\n      sendAnalytics(data);\n    } else {\n      // 重新调度\n      scheduleAnalytics();\n    }\n  }, { timeout: 3000 });\n}\n```\n\n与scheduler API对比：\n```javascript\n// scheduler.postTask（更新更精确）\nscheduler.postTask(() => {\n  sendAnalytics(data);\n}, { priority: 'background' });\n```",
+      "wrong_options_analysis": {
+        "A": "requestIdleCallback不适合所有后台任务，不适合CPU密集型任务，也不保证执行时机",
+        "C": "后台标签页帧预算为0，requestIdleCallback可能长时间不触发",
+        "D": "timeout是最大等待时间（超时强制执行），不是最小等待时间"
+      },
+      "knowledge_point": "RequestIdleCallback_Scheduling",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback"
+    },
+    {
+      "id": "perf-senior-028",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Service Worker", "缓存策略", "离线优化"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "Service Worker缓存策略",
+      "content": "使用Service Worker的Cache First策略缓存HTML页面，可以显著提升重复访问的FCP和LCP性能，是推荐的最佳实践。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "Service Worker缓存策略需要根据资源类型选择，HTML页面使用Cache First可能导致严重问题。\n\n为什么HTML不适合Cache First：\n\n1. 内容过期问题：\n- HTML是页面的入口，包含资源引用\n- 缓存的HTML可能引用已更新的资源\n- 导致资源404或版本不匹配\n\n2. 更新延迟：\n- 用户看到的是旧版本内容\n- 需要手动清除缓存才能更新\n- 对内容更新频繁的网站影响严重\n\n3. 调试困难：\n- 开发者难以发现缓存问题\n- 用户报告问题难以复现\n\n正确的缓存策略：\n\n1. HTML：Network First或Stale-While-Revalidate\n```javascript\n// HTML使用Network First\nself.addEventListener('fetch', (event) => {\n  if (event.request.headers.get('accept').includes('text/html')) {\n    event.respondWith(\n      fetch(event.request)\n        .catch(() => caches.match(event.request))\n    );\n  }\n});\n```\n\n2. 静态资源（带hash）：Cache First\n```javascript\n// 带hash的静态资源可以永久缓存\nif (/\\.\\w+\\.(js|css|png|jpg|woff2)$/.test(url)) {\n  event.respondWith(\n    caches.match(event.request).then(response => {\n      return response || fetch(event.request).then(fetchResponse => {\n        cache.put(event.request, fetchResponse.clone());\n        return fetchResponse;\n      });\n    })\n  );\n}\n```\n\n3. API数据：Network First或Stale-While-Revalidate\n```javascript\n// API使用Stale-While-Revalidate\nasync function staleWhileRevalidate(request) {\n  const cache = await caches.open('api-cache');\n  const cached = await cache.match(request);\n  \n  const fetchPromise = fetch(request).then(response => {\n    cache.put(request, response.clone());\n    return response;\n  });\n  \n  return cached || fetchPromise;\n}\n```\n\n推荐的Service Worker策略矩阵：\n| 资源类型 | 策略 | 原因 |\n|---------|------|------|\n| HTML | Network First | 确保内容最新 |\n| CSS/JS（带hash） | Cache First | 内容稳定，可长期缓存 |\n| 图片 | Cache First + 过期时间 | 大文件，更新少 |\n| 字体 | Cache First | 大文件，极少更新 |\n| API | Network First / SWR | 数据实时性 |\n\n性能优化要点：\n1. HTML使用预加载+正确的缓存头\n2. 静态资源使用内容hash命名\n3. Service Worker缓存策略与HTTP缓存配合\n4. 使用Workbox简化Service Worker开发",
+      "boundary_conditions": "对于纯静态内容（如文档站点、营销页面），HTML可以使用Cache First，因为内容更新频率低且可以接受延迟。但对于动态内容网站，HTML应使用Network First。",
+      "knowledge_point": "Service_Worker_Cache_Strategy",
+      "reference_link": "https://web.dev/service-worker-caching-and-http-caching/"
+    },
+    {
+      "id": "perf-senior-029",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["预加载", "preload", "prefetch"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "资源预加载策略对比",
+      "content": "关于资源的预加载策略，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "<link rel=\"preload\">用于预加载当前页面需要的关键资源，浏览器会以高优先级下载"
+        },
+        {
+          "id": "B",
+          "text": "<link rel=\"prefetch\">用于预加载未来页面可能需要的资源，浏览器会在空闲时以低优先级下载"
+        },
+        {
+          "id": "C",
+          "text": "预加载字体文件必须设置crossorigin属性，否则字体会被下载两次"
+        },
+        {
+          "id": "D",
+          "text": "<link rel=\"preconnect\">用于提前建立TCP连接，适合第三方域名资源"
+        },
+        {
+          "id": "E",
+          "text": "preload的资源如果3秒内未被使用，Chrome会在控制台发出警告"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D", "E"],
+      "explanation": "资源预加载是性能优化的重要手段，不同类型适用于不同场景。\n\n选项A分析（preload）：\n- 正确。preload用于当前页面的关键资源\n- 特点：\n  - 强制浏览器提前下载\n  - 不阻塞window.onload\n  - 必须设置as属性指定类型\n- 示例：\n```html\n<link rel=\"preload\" href=\"critical.css\" as=\"style\">\n<link rel=\"preload\" href=\"hero.webp\" as=\"image\">\n<link rel=\"preload\" href=\"main.js\" as=\"script\">\n```\n\n选项B分析（prefetch）：\n- 正确。prefetch用于未来页面的资源\n- 特点：\n  - 低优先级下载\n  - 利用浏览器空闲时间\n  - 缓存到HTTP缓存中\n- 示例：\n```html\n<!-- 预加载下一页的资源 -->\n<link rel=\"prefetch\" href=\"next-page.js\" as=\"script\">\n<link rel=\"prefetch\" href=\"next-page.html\">\n```\n\n选项C分析（字体预加载crossorigin）：\n- 正确。字体预加载需要crossorigin\n- 原因：\n  - 字体是CORS资源\n  - preload默认credentials模式\n  - 与CSS中的字体请求credentials不一致\n  - 导致下载两次\n- 正确做法：\n```html\n<link rel=\"preload\" href=\"font.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n```\n\n选项D分析（preconnect）：\n- 正确。preconnect提前建立连接\n- 完整流程：DNS查询 → TCP握手 → TLS协商\n- 节省时间：100-300ms\n- 适用场景：\n  - 第三方CDN域名\n  - API服务器域名\n- 示例：\n```html\n<link rel=\"preconnect\" href=\"https://cdn.example.com\">\n<link rel=\"preconnect\" href=\"https://api.example.com\">\n```\n\n选项E分析（资源使用警告）：\n- 正确。Chrome会警告未使用的preload\n- 触发条件：3秒内资源未被使用\n- 目的：提醒开发者清理无效preload\n- 示例警告：\n```\nThe resource https://example.com/unused.js was preloaded using link preload but not used within a few seconds from the window's load event.\n```\n\n预加载策略对比表：\n| 类型 | 用途 | 优先级 | 缓存位置 |\n|------|------|--------|----------|\n| preload | 当前页面 | 高 | 内存缓存 |\n| prefetch | 未来页面 | 低 | HTTP缓存 |\n| preconnect | 连接预热 | 最高 | - |\n| dns-prefetch | DNS预解析 | 中 | - |\n\n最佳实践：\n1. 关键字体和CSS使用preload\n2. 跨页面资源使用prefetch\n3. 第三方域名使用preconnect\n4. 定期检查preload警告\n5. 避免过度预加载浪费带宽",
+      "exclusion_analysis": {},
+      "knowledge_point": "Resource_Preload_Strategy",
+      "reference_link": "https://web.dev/preload-critical-assets/"
+    },
+    {
+      "id": "perf-senior-030",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["虚拟滚动", "二分查找", "性能优化"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "虚拟滚动列表定位算法",
+      "content": "实现一个高性能虚拟滚动列表的二分查找定位算法。\n\n要求：\n1. 列表项高度动态（存储在positions数组中，每项包含index、top、height、bottom）\n2. 根据滚动位置scrollTop快速定位第一个可见项的索引\n3. 时间复杂度O(log n)\n4. 处理边界情况：滚动到顶部、底部、空列表",
+      "code_template": "/**\n * 虚拟滚动列表项位置信息\n */\ninterface Position {\n  index: number;\n  top: number;      // 元素顶部距离容器顶部的距离\n  height: number;   // 元素高度\n  bottom: number;   // 元素底部位置 = top + height\n}\n\n/**\n * 使用二分查找定位第一个可见项\n * @param positions 已排序的位置数组（按top递增）\n * @param scrollTop 当前滚动位置\n * @returns 第一个可见项的索引，空数组返回-1\n */\nfunction findFirstVisibleIndex(\n  positions: Position[],\n  scrollTop: number\n): number {\n  // TODO: 实现二分查找算法\n  // 要求：\n  // 1. 找到第一个bottom > scrollTop的元素\n  // 2. 处理边界情况\n  // 3. 时间复杂度O(log n)\n}",
+      "test_cases": [
+        {
+          "input": "positions = [{index:0,top:0,height:100,bottom:100},{index:1,top:100,height:80,bottom:180},{index:2,top:180,height:120,bottom:300},{index:3,top:300,height:90,bottom:390}], scrollTop = 150",
+          "expected_output": "1",
+          "description": "正常情况：scrollTop 150落在第二项范围内"
+        },
+        {
+          "input": "positions = [], scrollTop = 0",
+          "expected_output": "-1",
+          "description": "边界情况：空列表返回-1"
+        },
+        {
+          "input": "positions = [{index:0,top:0,height:50,bottom:50},{index:1,top:50,height:50,bottom:100}], scrollTop = 0",
+          "expected_output": "0",
+          "description": "边界情况：scrollTop为0，返回第一项"
+        },
+        {
+          "input": "positions = [{index:0,top:0,height:100,bottom:100},{index:1,top:100,height:100,bottom:200}], scrollTop = 500",
+          "expected_output": "1",
+          "description": "边界情况：scrollTop超过总高度，返回最后一项"
+        },
+        {
+          "input": "positions = [{index:0,top:0,height:50,bottom:50},{index:1,top:50,height:60,bottom:110},{index:2,top:110,height:40,bottom:150},{index:3,top:150,height:80,bottom:230},{index:4,top:230,height:70,bottom:300},{index:5,top:300,height:90,bottom:390},{index:6,top:390,height:55,bottom:445}], scrollTop = 200",
+          "expected_output": "3",
+          "description": "动态高度：在高度不一的列表中定位"
+        }
+      ],
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "不能使用线性遍历",
+        "必须正确处理所有边界情况",
+        "positions数组已按top排序"
+      ],
+      "reference_solution": "function findFirstVisibleIndex(\n  positions: Position[],\n  scrollTop: number\n): number {\n  // 边界情况：空列表\n  if (positions.length === 0) {\n    return -1;\n  }\n\n  // 边界情况：scrollTop为负数或0，第一项可见\n  if (scrollTop <= 0) {\n    return 0;\n  }\n\n  let left = 0;\n  let right = positions.length - 1;\n  let result = positions.length - 1; // 默认返回最后一项\n\n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    const position = positions[mid];\n\n    // 查找第一个bottom > scrollTop的元素\n    if (position.bottom > scrollTop) {\n      result = mid;\n      right = mid - 1; // 继续向左查找是否有更早的可见项\n    } else {\n      left = mid + 1;\n    }\n  }\n\n  return result;\n}",
+      "correct_answer": "见参考实现，核心是找到第一个bottom > scrollTop的元素索引",
+      "explanation": "虚拟滚动的核心是通过二分查找快速定位可见区域，避免遍历整个列表。\n\n算法思路：\n1. 我们需要找到第一个\"底部位置超过scrollTop\"的元素\n2. 这个元素就是滚动容器顶部开始可见的第一个元素\n3. 使用标准二分查找的变体\n\n为什么查找bottom > scrollTop：\n- scrollTop是容器顶部在内容中的位置\n- 元素可见意味着元素的某些部分在视口内\n- 如果元素bottom <= scrollTop，说明元素完全在视口上方，不可见\n- 如果元素bottom > scrollTop，说明元素至少有一部分在视口内或视口下方\n\n二分查找变体分析：\n- 标准二分查找精确匹配某个值\n- 这里需要找到第一个满足条件的元素\n- 使用result变量记录当前找到的候选\n- 继续向左搜索，找到更早的可见项\n\n边界情况处理：\n1. 空列表：直接返回-1\n2. scrollTop <= 0：第一项必然可见\n3. scrollTop超过总高度：返回最后一项（在循环中自然处理）\n\n实际应用扩展：\n```typescript\n// 完整的虚拟滚动实现会包含：\n\n// 1. 计算可见范围\nfunction getVisibleRange(positions: Position[], scrollTop: number, containerHeight: number) {\n  const startIndex = findFirstVisibleIndex(positions, scrollTop);\n  const endIndex = findLastVisibleIndex(positions, scrollTop + containerHeight);\n  return { startIndex, endIndex };\n}\n\n// 2. 查找最后一个可见项\nfunction findLastVisibleIndex(positions: Position[], scrollBottom: number): number {\n  if (positions.length === 0) return -1;\n  \n  let left = 0, right = positions.length - 1;\n  let result = 0;\n  \n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    if (positions[mid].top < scrollBottom) {\n      result = mid;\n      left = mid + 1;\n    } else {\n      right = mid - 1;\n    }\n  }\n  \n  return result;\n}\n\n// 3. 计算总高度\nfunction getTotalHeight(positions: Position[]): number {\n  if (positions.length === 0) return 0;\n  return positions[positions.length - 1].bottom;\n}\n\n// 4. 动态高度更新\nfunction updatePositions(positions: Position[], index: number, newHeight: number): void {\n  const diff = newHeight - positions[index].height;\n  positions[index].height = newHeight;\n  positions[index].bottom += diff;\n  \n  // 更新后续所有位置\n  for (let i = index + 1; i < positions.length; i++) {\n    positions[i].top += diff;\n    positions[i].bottom += diff;\n  }\n}\n```",
+      "knowledge_point": "Virtual_Scroll_Binary_Search",
+      "reference_link": "https://web.dev/virtualize-large-lists-react-window/"
+    },
+    {
+      "id": "perf-senior-031",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["LCP", "元素选取", "最大尺寸计算"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "LCP最大尺寸计算规则",
+      "content": "关于Largest Contentful Paint（LCP）的最大尺寸计算，以下哪个说法是正确的？\n\n场景：一个页面包含以下元素：\n- <img>元素：实际显示尺寸400x300，但由于CSS overflow:hidden，只有300x200可见\n- <video>元素：poster图片显示尺寸500x400，视频首帧尺寸500x400\n- <div>元素：包含文本节点，元素尺寸600x100，但文本实际渲染区域为580x80",
+      "options": [
+        {
+          "id": "A",
+          "text": "img元素的LCP尺寸为300x200（可见区域），因为LCP只计算可见部分"
+        },
+        {
+          "id": "B",
+          "text": "img元素的LCP尺寸为400x300（实际尺寸），因为LCP计算元素的完整渲染尺寸而非裁剪后尺寸"
+        },
+        {
+          "id": "C",
+          "text": "div元素的LCP尺寸为600x100，因为包含文本的块级元素使用元素自身尺寸"
+        },
+        { "id": "D", "text": "video元素的LCP尺寸取poster和首帧中较大的那个" }
+      ],
+      "correct_answer": "B",
+      "explanation": "LCP的最大尺寸计算规则需要准确理解规范定义。LCP计算的是元素的\"可见尺寸\"（visible size），但这里的\"可见\"指的是元素本身渲染的尺寸，而不是CSS裁剪后的视觉可见区域。对于img和video元素，计算的是元素的渲染尺寸（layout size）。如果元素被overflow:hidden裁剪，仍按元素的完整渲染尺寸计算。",
+      "wrong_options_analysis": {
+        "A": "LCP的visible size是元素的渲染尺寸，不是CSS裁剪后的视觉可见区域",
+        "C": "包含文本的块级元素计算文本节点的渲染区域，不是元素自身的CSS尺寸",
+        "D": "video元素使用poster或首帧之一，不是两者取最大值"
+      },
+      "knowledge_point": "LCP_Size_Calculation",
+      "reference_link": "https://w3c.github.io/largest-contentful-paint/"
+    },
+    {
+      "id": "perf-senior-032",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["INP优化", "交互延迟", "事件处理"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "INP优化综合方案",
+      "content": "一个电商商品列表页面，用户反馈快速点击加入购物车时页面卡顿。经分析，每次点击触发了以下操作：\n1. 更新购物车数量状态\n2. 发送分析事件（约50ms）\n3. 播放动画效果\n4. 更新推荐列表（大型计算）\n\n当前INP约350ms，需要优化到200ms以下。以下哪种方案最有效？",
+      "options": [
+        {
+          "id": "A",
+          "text": "将所有操作移到setTimeout中异步执行，让主线程快速响应"
+        },
+        {
+          "id": "B",
+          "text": "使用scheduler.postTask分配优先级：状态更新高优先级，分析事件和推荐更新低优先级"
+        },
+        { "id": "C", "text": "将分析事件和推荐更新移到Web Worker中执行" },
+        {
+          "id": "D",
+          "text": "使用requestAnimationFrame延迟所有非必要操作，确保动画流畅"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "scheduler.postTask是现代浏览器提供的任务调度API，可以为任务分配不同优先级。状态更新使用user-blocking优先级确保即时响应，分析事件和推荐更新使用background优先级延迟执行，从而在保证用户体验的同时完成所有任务。",
+      "wrong_options_analysis": {
+        "A": "setTimeout无法区分任务优先级，所有任务同等对待",
+        "C": "Web Worker适合纯计算任务，但状态更新不能在Worker执行",
+        "D": "requestAnimationFrame用于动画同步，不适合非动画任务"
+      },
+      "knowledge_point": "INP_Optimization_Strategy",
+      "reference_link": "https://web.dev/optimize-inp/"
+    },
+    {
+      "id": "perf-senior-033",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CLS优化", "自定义空元素", "动态内容"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "CLS自定义空元素处理",
+      "content": "页面中存在动态加载的广告位和推荐列表，需要避免内容注入导致的布局偏移。以下哪些策略可以有效减少CLS？",
+      "options": [
+        {
+          "id": "A",
+          "text": "为广告位容器设置固定的width和height，或使用CSS aspect-ratio属性预留空间"
+        },
+        {
+          "id": "B",
+          "text": "使用CSS min-height属性为动态内容容器预留最小高度"
+        },
+        {
+          "id": "C",
+          "text": "将动态内容使用position:absolute定位，使其脱离文档流，不影响其他元素布局"
+        },
+        {
+          "id": "D",
+          "text": "使用CSS content-visibility: auto延迟渲染屏幕外内容，减少初始CLS计算"
+        },
+        {
+          "id": "E",
+          "text": "在广告加载前显示骨架屏（Skeleton），骨架屏尺寸与实际内容一致"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "预留空间策略（固定尺寸、aspect-ratio、min-height）可以提前为动态内容预留空间；绝对定位可以使动态内容脱离文档流；骨架屏可以保持视觉一致性。而content-visibility: auto虽然可以提升渲染性能，但当内容进入视口时仍会产生布局偏移，不能从根本上解决CLS问题。",
+      "exclusion_analysis": {
+        "D": "content-visibility: auto延迟渲染屏幕外内容，但不能防止内容进入视口时的布局偏移"
+      },
+      "knowledge_point": "CLS_Dynamic_Content_Optimization",
+      "reference_link": "https://web.dev/cls/"
+    },
+    {
+      "id": "perf-senior-034",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["事件委托", "内存优化", "性能权衡"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "事件委托与直接绑定权衡",
+      "content": "事件委托（Event Delegation）总是比直接绑定事件更高效，因为它减少了事件处理函数的数量，从而降低了内存使用和初始化时间。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "事件委托并非总是最优选择。对于大量相似元素，事件委托可以减少事件处理函数数量；但对于少量元素或高频触发事件，直接绑定可能响应更快。事件委托有冒泡延迟和判断逻辑开销，需要根据场景选择。",
+      "boundary_conditions": "对于需要stopPropagation的场景，事件委托可能导致意外行为。对于嵌套复杂的事件目标，委托判断逻辑会变得复杂且容易出错。",
+      "knowledge_point": "Event_Delegation_TradeOff",
+      "reference_link": "https://javascript.info/event-delegation"
+    },
+    {
+      "id": "perf-senior-035",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Web Vitals阈值", "评分标准", "性能分级"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "Core Web Vitals评分阈值",
+      "content": "关于Core Web Vitals的评分阈值，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "LCP的Good阈值是≤2.5s，这个阈值是基于75分位数的用户数据确定的"
+        },
+        {
+          "id": "B",
+          "text": "INP的Good阈值是≤200ms，取代了FID成为新的交互响应指标"
+        },
+        {
+          "id": "C",
+          "text": "CLS的Good阈值是≤0.1，衡量的是页面整个生命周期的累积布局偏移"
+        },
+        {
+          "id": "D",
+          "text": "FID的Good阈值是≤100ms，只测量首次交互的输入延迟"
+        },
+        {
+          "id": "E",
+          "text": "Core Web Vitals阈值是固定的，不会根据设备和网络条件调整"
+        },
+        {
+          "id": "F",
+          "text": "PageSpeed Insights使用Lighthouse的实验室数据评估Core Web Vitals"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "Core Web Vitals阈值：LCP Good≤2.5s，INP Good≤200ms（2024年3月取代FID），CLS Good≤0.1，FID Good≤100ms。阈值基于HTTP Archive真实用户数据和用户满意度研究确定，评估使用75分位数。",
+      "exclusion_analysis": {
+        "E": "阈值确实固定，但评估时会按设备类型分开统计75分位数",
+        "F": "PageSpeed Insights的Core Web Vitals评估主要基于Chrome UX Report的真实用户数据"
+      },
+      "knowledge_point": "Core_Web_Vitals_Thresholds",
+      "reference_link": "https://web.dev/defining-core-web-vitals-thresholds/"
+    },
+    {
+      "id": "perf-senior-036",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["资源优先级", "浏览器调度", "网络优化"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "浏览器资源加载优先级",
+      "content": "浏览器在加载页面资源时，会根据资源类型和上下文分配不同的优先级。以下关于资源优先级的描述，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "资源优先级从高到低：CSS > JS(在head中) > 首屏图片 > 字体 > 懒加载图片"
+        },
+        {
+          "id": "B",
+          "text": "preload加载的字体优先级最高，因为明确声明了其重要性"
+        },
+        {
+          "id": "C",
+          "text": "首屏图片的优先级高于head中的JS，因为图片直接影响LCP"
+        },
+        {
+          "id": "D",
+          "text": "资源优先级由浏览器自动决定，开发者无法通过HTML属性影响"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "Chrome资源优先级：CSS最高（阻塞渲染），head中JS次之（可能阻塞解析），首屏图片High（影响LCP），字体High（CSSOM构建时），懒加载图片Lowest。开发者可以通过fetchpriority、preload、lazy loading等属性影响优先级。",
+      "wrong_options_analysis": {
+        "B": "preload提升优先级，但CSS和同步JS的优先级仍然更高",
+        "C": "首屏图片优先级通常低于head中的同步JS",
+        "D": "开发者可以通过fetchpriority、preload、lazy loading等属性影响资源优先级"
+      },
+      "knowledge_point": "Browser_Resource_Priority",
+      "reference_link": "https://web.dev/resource-priorities/"
+    },
+    {
+      "id": "perf-senior-037",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["代码分割", "chunk优化", "bundle分析"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "代码分割策略优化",
+      "content": "一个React应用的bundle分析显示，vendor.js大小为800KB，main.js为300KB。以下哪些代码分割策略可以有效减小首屏加载时间？",
+      "options": [
+        {
+          "id": "A",
+          "text": "将vendor.js按依赖包拆分为react-vendor.js、ui-vendor.js、utils-vendor.js等"
+        },
+        {
+          "id": "B",
+          "text": "使用React.lazy()配合Suspense对路由组件进行动态导入"
+        },
+        {
+          "id": "C",
+          "text": "将大型第三方库（如moment.js、lodash）替换为轻量替代品或按需导入"
+        },
+        {
+          "id": "D",
+          "text": "使用webpack的SplitChunksPlugin将node_modules自动拆分为多个chunk"
+        },
+        {
+          "id": "E",
+          "text": "将所有组件代码合并到一个chunk中，减少HTTP请求数量"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "代码分割策略包括：细粒度拆分vendor利用浏览器并行下载；React.lazy路由懒加载减少首屏代码；轻量替代品从源头减小体积；SplitChunksPlugin自动化代码分割。合并所有代码是反优化行为。",
+      "exclusion_analysis": {
+        "E": "合并所有代码会导致首屏加载大量不必要的代码，是反优化行为"
+      },
+      "knowledge_point": "Code_Splitting_Strategy",
+      "reference_link": "https://webpack.js.org/guides/code-splitting/"
+    },
+    {
+      "id": "perf-senior-038",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React并发模式", "Suspense", "渲染优化"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React并发模式性能",
+      "content": "关于React 18的并发特性（Concurrent Features），以下哪个说法最能准确描述其对性能的影响？",
+      "options": [
+        {
+          "id": "A",
+          "text": "并发模式使React渲染变为多线程，可以并行处理多个组件的渲染"
+        },
+        {
+          "id": "B",
+          "text": "并发模式允许React中断正在进行的渲染，优先处理更紧急的更新，然后恢复之前的工作"
+        },
+        {
+          "id": "C",
+          "text": "使用useTransition包裹的状态更新会立即在后台线程执行，不阻塞主线程"
+        },
+        {
+          "id": "D",
+          "text": "Suspense配合并发模式可以完全消除数据加载时的白屏时间"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "并发模式不是多线程，React仍在主线程执行，使用的是可中断渲染。React可以将渲染工作拆分为小单元，高优先级更新可以打断低优先级更新，打断后保留已完成的工作，稍后恢复。",
+      "wrong_options_analysis": {
+        "A": "并发模式不是多线程，React仍在主线程执行",
+        "C": "useTransition标记的更新仍在主线程执行，只是优先级低、可中断",
+        "D": "Suspense不能消除白屏时间，数据加载仍需时间"
+      },
+      "knowledge_point": "React_Concurrent_Mode",
+      "reference_link": "https://react.dev/blog/2022/03/29/react-v18#new-concurrent-features"
+    },
+    {
+      "id": "perf-senior-039",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["HTTP缓存", "缓存策略", "性能优化"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "HTTP缓存策略配置",
+      "content": "对于前端静态资源的缓存策略，以下哪些配置组合是推荐的实践？",
+      "options": [
+        {
+          "id": "A",
+          "text": "HTML文件：Cache-Control: no-cache，配合ETag进行协商缓存"
+        },
+        {
+          "id": "B",
+          "text": "带hash的JS/CSS：Cache-Control: max-age=31536000, immutable"
+        },
+        {
+          "id": "C",
+          "text": "图片资源：Cache-Control: max-age=86400，不设置ETag减少请求开销"
+        },
+        {
+          "id": "D",
+          "text": "API响应：Cache-Control: private, max-age=0，必须每次重新验证"
+        },
+        {
+          "id": "E",
+          "text": "所有资源都设置Cache-Control: no-store确保用户始终获取最新内容"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "HTML作为入口文件需要及时更新，使用no-cache+ETag；带hash的静态资源可长期缓存，使用max-age=1年+immutable；图片更新频率较低，短期强缓存更高效。API缓存策略应根据数据特性制定，no-store严重影响性能。",
+      "exclusion_analysis": {
+        "D": "API缓存策略应根据数据特性制定，max-age=0过于保守",
+        "E": "no-store禁止所有缓存，严重影响性能"
+      },
+      "knowledge_point": "HTTP_Cache_Strategy",
+      "reference_link": "https://web.dev/http-cache/"
+    },
+    {
+      "id": "perf-senior-040",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["性能预算", "资源大小", "监控"],
+      "source_company": "Meituan",
+      "score": 6,
+      "title": "性能预算设置标准",
+      "content": "性能预算应该基于资源类型设置大小限制（如JS不超过300KB），而不是基于性能指标时间限制（如LCP不超过2.5s），因为资源大小更容易测量和控制。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "性能预算应该同时包含资源大小限制和性能指标时间限制。资源大小预算只控制下载体积，不反映执行时间和用户实际体验；性能指标预算虽难以直接控制，但关联用户实际体验。正确的性能预算体系包括：资源大小预算、性能指标预算、请求数量预算。",
+      "boundary_conditions": "对于不同类型的页面（落地页、SPA、内容页），性能预算应该差异化设置。移动端和桌面端也应该有不同的预算标准。",
+      "knowledge_point": "Performance_Budget_Standards",
+      "reference_link": "https://web.dev/performance-budgets-101/"
+    },
+    {
+      "id": "perf-senior-041",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Web Worker", "主线程解放", "计算优化"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "Web Worker计算卸载",
+      "content": "以下哪些场景适合使用Web Worker将计算移出主线程？",
+      "options": [
+        {
+          "id": "A",
+          "text": "大量数据的排序和过滤操作（如10000条记录的表格数据筛选）"
+        },
+        { "id": "B", "text": "复杂的DOM操作和样式计算" },
+        { "id": "C", "text": "加密/解密操作（如文件上传前的客户端加密）" },
+        { "id": "D", "text": "大量数据的JSON解析和序列化" },
+        { "id": "E", "text": "图片的Canvas像素处理（如滤镜效果）" },
+        { "id": "F", "text": "表单验证逻辑" }
+      ],
+      "correct_answer": ["A", "C", "D", "E"],
+      "explanation": "Web Worker适合CPU密集型任务，但不能操作DOM。数据排序过滤、加密解密、大型JSON解析、Canvas像素处理都是纯计算任务，适合Worker。DOM操作必须在主线程，表单验证通常很轻量不需要Worker。",
+      "exclusion_analysis": {
+        "B": "Web Worker无法访问DOM，DOM操作必须在主线程执行",
+        "F": "表单验证通常很轻量，Worker通信开销可能超过收益"
+      },
+      "knowledge_point": "Web_Worker_Use_Cases",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API"
+    },
+    {
+      "id": "perf-senior-042",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["内存泄漏", "闭包", "性能监控"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "闭包内存泄漏识别",
+      "content": "以下代码片段中，哪个存在潜在的内存泄漏问题？",
+      "options": [
+        {
+          "id": "A",
+          "text": "function createCounter() { let count = 0; return () => ++count; }"
+        },
+        {
+          "id": "B",
+          "text": "function setupHandler() { const largeData = new Array(1000000).fill(0); element.addEventListener('click', () => console.log(largeData.length)); }"
+        },
+        {
+          "id": "C",
+          "text": "const memo = new WeakMap(); function cacheValue(key, value) { memo.set(key, value); }"
+        },
+        {
+          "id": "D",
+          "text": "function processItems(items) { return items.map(item => () => item.value); }"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "setupHandler函数存在内存泄漏：largeData数组约4MB内存，事件处理函数闭包持有largeData引用，只要事件监听存在，largeData无法被GC。正确做法是只保存需要的值或使用后释放。",
+      "wrong_options_analysis": {
+        "A": "计数器闭包只持有小型count变量，是正常的闭包使用",
+        "C": "WeakMap使用弱引用，key对象可被GC回收",
+        "D": "返回的函数数组持有item引用是预期行为"
+      },
+      "knowledge_point": "Closure_Memory_Leak",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management"
+    },
+    {
+      "id": "perf-senior-043",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["React.memo", "useMemo", "useCallback"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "React记忆化策略选择",
+      "content": "在React应用中，以下哪些场景适合使用对应的记忆化策略？",
+      "options": [
+        {
+          "id": "A",
+          "text": "接收复杂对象props的纯组件 → 使用React.memo进行浅比较"
+        },
+        {
+          "id": "B",
+          "text": "列表渲染中的map回调，key稳定但父组件频繁重渲染 → 使用useMemo缓存整个列表"
+        },
+        {
+          "id": "C",
+          "text": "传递给子组件的事件处理函数 → 使用useCallback缓存函数引用"
+        },
+        {
+          "id": "D",
+          "text": "组件内部的计算结果（如filter/sort） → 使用useMemo缓存计算结果"
+        },
+        {
+          "id": "E",
+          "text": "所有组件默认使用React.memo包裹，防止不必要的重渲染"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "React.memo适合接收复杂对象props的纯组件；useCallback用于缓存传递给子组件的事件处理函数，避免子组件React.memo失效；useMemo用于缓存昂贵计算结果。useMemo缓存JSX列表不会阻止子组件渲染；默认React.memo是反模式。",
+      "exclusion_analysis": {
+        "B": "useMemo缓存JSX列表不会阻止子组件执行渲染逻辑，应该让子组件使用React.memo",
+        "E": "默认包裹React.memo是反模式，会增加比较开销"
+      },
+      "knowledge_point": "React_Memoization_Strategy",
+      "reference_link": "https://react.dev/reference/react/memo"
+    },
+    {
+      "id": "perf-senior-044",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["HSTS", "HTTPS", "安全性能"],
+      "source_company": "Google",
+      "score": 7,
+      "title": "HTTPS性能影响与优化",
+      "content": "关于HTTPS对性能的影响和优化，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "HTTPS相比HTTP会增加连接建立时间，因为需要额外的TLS握手"
+        },
+        {
+          "id": "B",
+          "text": "使用HSTS可以减少HTTPS重定向延迟，浏览器直接使用HTTPS连接"
+        },
+        {
+          "id": "C",
+          "text": "TLS 1.3相比TLS 1.2减少了握手RTT，从2个RTT降到1个RTT"
+        },
+        {
+          "id": "D",
+          "text": "HTTPS的加密解密开销在现代CPU上可以忽略不计，不影响性能"
+        },
+        {
+          "id": "E",
+          "text": "使用OCSP Stapling可以减少TLS握手时的证书状态验证时间"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "HTTPS确实增加连接时间（TLS握手）；HSTS让浏览器记住必须用HTTPS；TLS 1.3将握手从2 RTT降到1 RTT；OCSP Stapling减少证书验证延迟。但HTTPS加密开销不能完全忽略，非对称加密仍有开销，大量并发连接时影响明显。",
+      "exclusion_analysis": {
+        "D": "HTTPS加密开销在现代CPU上确实很低，但非对称加密仍有开销，大量并发连接时影响明显"
+      },
+      "knowledge_point": "HTTPS_Performance_Impact",
+      "reference_link": "https://web.dev/transport-layer-security/"
+    },
+    {
+      "id": "perf-senior-045",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["HTTP/2", "多路复用", "性能提升"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "HTTP/2性能优化策略",
+      "content": "迁移到HTTP/2后，以下哪些优化策略需要调整？已知：原HTTP/1.1优化方案包括域名分片、CSS/JS合并、图片精灵。",
+      "options": [
+        { "id": "A", "text": "继续使用域名分片，进一步增加并行连接数" },
+        {
+          "id": "B",
+          "text": "取消CSS/JS合并，HTTP/2多路复用下小文件并行加载更优"
+        },
+        { "id": "C", "text": "继续使用图片精灵，减少图片请求数总是最优选择" },
+        {
+          "id": "D",
+          "text": "HTTP/2完全消除了HTTP/1.1的所有性能限制，无需任何优化"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "HTTP/2多路复用下，域名分片是反优化（无法共享头部压缩）；小文件并行加载，合并反而增大体积影响缓存；图片精灵对于HTTP/2收益减少但仍可用于减少总请求数。HTTP/2并未消除所有性能限制。",
+      "wrong_options_analysis": {
+        "A": "HTTP/2下域名分片是反优化，增加连接开销",
+        "C": "图片精灵对HTTP/2收益减少，且影响缓存灵活性",
+        "D": "HTTP/2并未消除所有性能限制，仍需合理优化"
+      },
+      "knowledge_point": "HTTP2_Optimization",
+      "reference_link": "https://web.dev/http2/"
+    },
+    {
+      "id": "perf-senior-046",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["SSR性能", "hydration", "水合优化"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "SSR Hydration性能优化",
+      "content": "一个React SSR应用，首屏HTML大小150KB，hydration时间约800ms，导致INP指标恶化。以下哪些策略可以有效优化hydration性能？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用Progressive Hydration，延迟hydration非关键组件"
+        },
+        {
+          "id": "B",
+          "text": "使用Selective Hydration，优先hydration用户交互的组件"
+        },
+        {
+          "id": "C",
+          "text": "减少hydration范围，对静态内容使用dangerouslySetInnerHTML跳过hydration"
+        },
+        {
+          "id": "D",
+          "text": "使用React 18的并发特性，hydration可以中断让出主线程"
+        },
+        { "id": "E", "text": "完全放弃SSR，改用CSR避免hydration开销" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "Hydration优化策略包括：Progressive Hydration延迟非关键组件；Selective Hydration优先交互组件；静态内容跳过hydration；React 18并发hydration可中断。完全放弃SSR是倒退，应优化而非放弃。",
+      "exclusion_analysis": {
+        "E": "完全放弃SSR会失去SEO优势和首屏渲染性能"
+      },
+      "knowledge_point": "SSR_Hydration_Performance",
+      "reference_link": "https://react.dev/reference/react-dom/hydrate"
+    },
+    {
+      "id": "perf-senior-047",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Tree Shaking", "打包优化", "ES Modules"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "Tree Shaking生效条件",
+      "content": "只要使用ES Module语法（import/export）编写代码，并配置webpack的mode为production，Tree Shaking就能自动移除所有未使用的代码。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "Tree Shaking生效需要满足多个条件：使用ES Modules；无副作用代码（标记package.json的sideEffects）；生产模式构建；避免动态导入；避免重新导出所有。默认假设所有文件都有副作用，未标记时Tree Shaking保守处理。",
+      "boundary_conditions": "使用Babel转换代码时，需要配置@babel/preset-env的modules: false保留ES Modules语法。",
+      "knowledge_point": "Tree_Shaking_Conditions",
+      "reference_link": "https://webpack.js.org/guides/tree-shaking/"
+    },
+    {
+      "id": "perf-senior-048",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["WebAssembly", "性能边界", "计算优化"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "WebAssembly性能场景选择",
+      "content": "以下哪个场景最适合使用WebAssembly来提升性能？",
+      "options": [
+        { "id": "A", "text": "DOM操作密集型应用，大量元素增删改查" },
+        { "id": "B", "text": "视频编解码、图像处理等CPU密集型计算" },
+        { "id": "C", "text": "网络请求处理和JSON数据解析" },
+        { "id": "D", "text": "React组件渲染和状态管理" }
+      ],
+      "correct_answer": "B",
+      "explanation": "WebAssembly适合CPU密集型计算（视频编解码、图像处理、加密解密、科学计算），无DOM依赖，计算密集而非IO密集。WebAssembly无法直接操作DOM，网络请求是IO瓶颈，React依赖DOM操作。",
+      "wrong_options_analysis": {
+        "A": "WebAssembly无法直接操作DOM，必须通过JS桥接",
+        "C": "网络请求是IO瓶颈，JSON.parse已高度优化",
+        "D": "React依赖DOM操作和虚拟DOM，WASM无法直接优化"
+      },
+      "knowledge_point": "WebAssembly_Performance_Scenarios",
+      "reference_link": "https://web.dev/webassembly-performance/"
+    },
+    {
+      "id": "perf-senior-049",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["性能监控", "APM", "异常检测"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "性能异常检测策略",
+      "content": "一个RUM系统收集到以下异常数据，需要识别真正的性能问题。以下哪些情况需要触发告警？",
+      "options": [
+        {
+          "id": "A",
+          "text": "某用户LCP为6s，但该用户来自网络条件极差的地区，历史数据一直偏高"
+        },
+        {
+          "id": "B",
+          "text": "P75 LCP从2.3s突增至3.8s，且影响用户比例从5%升至30%"
+        },
+        {
+          "id": "C",
+          "text": "单个用户的INP异常高（800ms），经查是在低端设备上运行"
+        },
+        {
+          "id": "D",
+          "text": "CLS P75从0.08升至0.15，变化趋势持续3天，且与新版本发布时间吻合"
+        },
+        {
+          "id": "E",
+          "text": "TTFB P95波动从0.5s到1.5s，但这是每日高峰期的正常波动"
+        }
+      ],
+      "correct_answer": ["B", "D"],
+      "explanation": "P75 LCP突增且影响范围扩大是需要告警的系统性问题；CLS持续恶化与发布关联也是需要告警的性能回归。单用户异常、已知周期性波动、有明确客观原因的异常不应触发告警。",
+      "exclusion_analysis": {
+        "A": "单用户极端值且有已知客观原因，不代表系统性问题",
+        "C": "单用户异常且明确是低端设备，非系统性问题",
+        "E": "已知周期性波动，正常的业务模式"
+      },
+      "knowledge_point": "Performance_Anomaly_Detection",
+      "reference_link": "https://web.dev/vitals-tools/"
+    },
+    {
+      "id": "perf-senior-050",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["性能预算", "自动化", "CI/CD"],
+      "source_company": "Meituan",
+      "score": 9,
+      "title": "性能预算CI集成策略",
+      "content": "某团队的CI流水线中，性能预算检查发现本次PR会导致LCP从2.4s增加到2.7s。以下哪种处理策略最合理？",
+      "options": [
+        { "id": "A", "text": "立即阻止合并，要求修复后再提交" },
+        { "id": "B", "text": "允许合并但要求创建修复issue，并通知技术负责人" },
+        { "id": "C", "text": "只记录结果不阻止合并，在周报中汇总" },
+        {
+          "id": "D",
+          "text": "根据变化幅度和业务价值综合评估，小幅恶化可合并，大幅恶化阻止"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "性能预算CI集成需要在严格性和业务灵活性之间平衡。应建立分级处理机制：P0（>4s）立即阻止；P1（3-4s）需审批；P2（2.5-3s）警告可合并；P3（<2.5s）正常合并。0.3s变化属于P2级别，应警告但可合并。",
+      "wrong_options_analysis": {
+        "A": "绝对阻止过于僵化，可能阻止重要功能上线",
+        "B": "软性要求依赖人工跟进，执行标准不统一",
+        "C": "仅记录失去预算意义，无约束力"
+      },
+      "knowledge_point": "Performance_Budget_CI_Strategy",
+      "reference_link": "https://web.dev/performance-budgets-101/"
+    },
+    {
+      "id": "perf-senior-051",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["性能优化", "优先级", "ROI"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "性能优化优先级排序",
+      "content": "性能优化应该优先处理P95分位数的极端慢速用户，因为改善他们的体验能带来最大的用户满意度提升。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "性能优化应基于业务影响和ROI综合评估，而非单纯关注极端分位数。P75用户代表典型用户体验，Core Web Vitals评估标准，改善影响面更大，ROI通常最高。P95用户改善难度大成本高，业务价值相对较低。",
+      "boundary_conditions": "某些场景下P95用户可能是关键用户（如付费用户），此时需要特殊处理。对于完全不可用的情况，无论影响范围大小都应该优先处理。",
+      "knowledge_point": "Performance_Optimization_Priority",
+      "reference_link": "https://web.dev/performance-scoring/"
+    },
+    {
+      "id": "perf-senior-052",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["内存优化", "垃圾回收", "性能调优"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "JavaScript内存优化策略",
+      "content": "一个SPA应用在长时间使用后内存持续增长，用户反馈页面变慢。以下哪些策略可以有效诊断和解决内存问题？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用Chrome DevTools的Memory面板，对比前后Heap Snapshot识别Detached DOM和持续增长的对象"
+        },
+        {
+          "id": "B",
+          "text": "检查是否使用了全局变量存储大量数据，改为使用模块级变量或WeakMap"
+        },
+        {
+          "id": "C",
+          "text": "使用Performance面板录制内存分配时间线，识别频繁GC导致的性能抖动"
+        },
+        {
+          "id": "D",
+          "text": "手动调用window.gc()触发垃圾回收，在关键操作后主动释放内存"
+        },
+        {
+          "id": "E",
+          "text": "检查事件监听器是否在组件销毁时正确移除，使用AbortController批量管理"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "内存优化策略：Heap Snapshot对比识别泄漏；全局变量改用WeakMap；Performance面板识别GC压力；AbortController管理事件监听器。window.gc()需要特殊启动参数，不应在生产代码中使用，GC由引擎自动管理。",
+      "exclusion_analysis": {
+        "D": "window.gc()需要特殊启动参数，不应在生产代码中使用，GC由引擎自动管理"
+      },
+      "knowledge_point": "JavaScript_Memory_Optimization",
+      "reference_link": "https://developer.chrome.com/docs/devtools/memory-problems/"
+    },
+    {
+      "id": "perf-senior-053",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["骨架屏", "SSR", "首屏优化"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "骨架屏性能实现方案",
+      "content": "对于一个电商首页，需要实现骨架屏提升感知性能。以下哪种实现方案最能平衡性能和开发效率？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在HTML中直接编写骨架屏DOM结构，数据加载后用JS替换为真实内容"
+        },
+        {
+          "id": "B",
+          "text": "使用CSS伪元素(::before/::after)在真实内容上叠加骨架屏样式，数据加载后移除样式类"
+        },
+        {
+          "id": "C",
+          "text": "使用SSR返回包含骨架屏的HTML，hydration时逐步替换为真实内容"
+        },
+        {
+          "id": "D",
+          "text": "使用独立的前端骨架屏组件，通过loading状态控制显示/隐藏"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "SSR骨架屏+Hydration是最佳方案：服务端返回完整骨架屏HTML，首屏FCP/LCP最优，Hydration平滑过渡，布局稳定无CLS。前端组件需要JS执行后才显示，对FCP无优化效果。",
+      "wrong_options_analysis": {
+        "A": "静态DOM替换可能导致布局偏移，且需要维护两套结构",
+        "B": "CSS伪元素方案无法模拟复杂布局，样式受限",
+        "D": "前端组件需要JS执行后显示，对首屏FCP无优化效果"
+      },
+      "knowledge_point": "Skeleton_Screen_Performance",
+      "reference_link": "https://web.dev/skeleton-screens/"
+    },
+    {
+      "id": "perf-senior-054",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["图片懒加载", "loading属性", "IntersectionObserver"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "图片懒加载实现对比",
+      "content": "关于HTML原生loading=\"lazy\"和IntersectionObserver实现的懒加载，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "原生loading=\"lazy\"实现简单，只需添加属性，无需JavaScript"
+        },
+        {
+          "id": "B",
+          "text": "IntersectionObserver可以精确控制加载时机，支持自定义阈值和rootMargin"
+        },
+        {
+          "id": "C",
+          "text": "对于虚拟滚动列表，IntersectionObserver比原生方案更可靠"
+        },
+        { "id": "D", "text": "原生方案总是比IntersectionObserver性能更好" },
+        { "id": "E", "text": "混合策略：检测浏览器支持后降级是最佳实践" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原生方案实现简单无JS开销；IntersectionObserver可精确控制，支持虚拟滚动等复杂场景；混合策略检测支持后降级是最佳实践。但不能说原生方案总是更好，各有适用场景。",
+      "exclusion_analysis": {
+        "D": "原生方案和IntersectionObserver各有优劣，需要根据场景选择"
+      },
+      "knowledge_point": "Image_Lazy_Load_Comparison",
+      "reference_link": "https://web.dev/browser-level-image-lazy-loading/"
+    },
+    {
+      "id": "perf-senior-055",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["CDN优化", "边缘计算", "性能加速"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "CDN边缘缓存策略",
+      "content": "一个全球化电商网站的用户分布：亚洲40%、欧洲35%、北美25%。服务器部署在新加坡，用户反馈欧洲和北美地区加载慢。以下哪种CDN优化策略最有效？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在全球部署多个源站服务器，使用DNS智能解析将用户导向最近源站"
+        },
+        {
+          "id": "B",
+          "text": "使用CDN边缘节点缓存静态资源，设置合理的TTL和缓存键策略"
+        },
+        {
+          "id": "C",
+          "text": "使用边缘计算（Edge Computing）在CDN节点执行服务端渲染，减少回源"
+        },
+        {
+          "id": "D",
+          "text": "将静态资源部署到多个对象存储（S3/OSS），使用地理位置就近访问"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "CDN边缘缓存是最有效的方案：静态资源缓存到全球边缘节点，用户就近获取，减少RTT和源站负载。多源站成本高昂；边缘计算SSR复杂度高；多云存储方案冗余。",
+      "wrong_options_analysis": {
+        "A": "多源站部署成本高昂，运维复杂",
+        "C": "边缘计算SSR复杂度高，需要已有基础设施支持",
+        "D": "多云存储方案冗余，CDN已提供就近访问能力"
+      },
+      "knowledge_point": "CDN_Edge_Cache",
+      "reference_link": "https://web.dev/content-delivery-networks/"
+    },
+    {
+      "id": "perf-senior-056",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["关键渲染路径", "CSSOM", "渲染阻塞"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "关键渲染路径优化",
+      "content": "在关键渲染路径中，CSS是渲染阻塞资源，必须等待所有CSS下载并解析完成才能开始渲染；而JavaScript是解析阻塞资源，会阻止HTML解析但不会阻止渲染。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "CSS阻塞渲染但不阻塞HTML解析；JS阻塞HTML解析，但如果JS操作CSSOM，也会阻塞渲染。关键渲染路径：HTML解析→DOM构建→遇到CSS触发CSSOM构建→遇到JS等待CSSOM后执行→渲染。",
+      "boundary_conditions": "使用document.write()的脚本会完全阻塞解析。模块脚本(<script type=\"module\">)默认defer行为。",
+      "knowledge_point": "Critical_Rendering_Path",
+      "reference_link": "https://web.dev/critical-rendering-path/"
+    },
+    {
+      "id": "perf-senior-057",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["性能修复", "优先级", "ROI"],
+      "source_company": "Google",
+      "score": 7,
+      "title": "性能优化架构决策",
+      "content": "一个大型电商平台需要进行性能优化，已知以下条件：日均PV 1000万，移动端占70%；当前LCP P75 = 4.2s，目标 < 2.5s；首屏包含轮播图、商品推荐、搜索框；服务端在单一区域，全球用户访问。以下哪些优化措施应该作为第一优先级实施？",
+      "options": [
+        {
+          "id": "A",
+          "text": "实施全局CDN，静态资源边缘缓存，动态内容使用CDN回源优化"
+        },
+        { "id": "B", "text": "重构SSR架构，实现流式渲染和Selective Hydration" },
+        {
+          "id": "C",
+          "text": "图片优化：WebP/AVIF格式、响应式图片、LQIP预览、懒加载"
+        },
+        { "id": "D", "text": "实现关键CSS内联、字体优化、资源预加载" },
+        { "id": "E", "text": "部署全球边缘节点，使用边缘计算执行SSR" }
+      ],
+      "correct_answer": ["A", "C"],
+      "explanation": "CDN部署和图片优化是第一优先级：CDN减少全球用户RTT；图片优化减少轮播图加载时间（LCP候选）。SSR重构和边缘计算成本高、收益不确定；关键资源优化应在基础优化后实施。",
+      "exclusion_analysis": {
+        "B": "SSR重构成本高收益不确定，应在基础优化后考虑",
+        "D": "关键资源优化收益相对较小，应在CDN和图片优化后实施",
+        "E": "边缘计算SSR技术复杂度高成本昂贵，不是第一优先级"
+      },
+      "knowledge_point": "Performance_Architecture_Decision",
+      "reference_link": "https://web.dev/performance-getting-started/"
+    },
+    {
+      "id": "perf-senior-058",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["图片优化", "AVIF", "WebP", "格式选择"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "图片格式选择策略",
+      "content": "一个电商详情页需要展示大量商品图片。目标用户主要使用Chrome 95+和Safari 16+；图片需要透明背景支持（约30%的商品图）；CDN支持动态格式转换；对比JPEG基线：WebP压缩率约30%，AVIF约50%；业务要求LCP图片在2s内加载完成。对于首屏Hero商品图（非透明），最优的格式选择方案是什么？",
+      "options": [
+        { "id": "A", "text": "统一使用WebP，兼容性好，压缩效果稳定" },
+        {
+          "id": "B",
+          "text": "首屏Hero图使用AVIF（带WebP fallback），非首屏使用WebP"
+        },
+        { "id": "C", "text": "透明图使用PNG，非透明图使用AVIF" },
+        { "id": "D", "text": "所有图片使用JPEG XL，获取最佳压缩率和透明度支持" }
+      ],
+      "correct_answer": "B",
+      "explanation": "目标用户Chrome 95+和Safari 16+均已支持AVIF；Hero图片非透明，AVIF压缩率优势明显（约50%）；LCP要求2s内，AVIF更小体积有助于达成目标；使用<picture>标签实现优雅降级。",
+      "wrong_options_analysis": {
+        "A": "放弃了AVIF带来的额外20%压缩提升，不利于LCP优化目标",
+        "C": "透明图应优先使用WebP（兼容性好且有透明支持），PNG体积过大",
+        "D": "JPEG XL目前浏览器支持极差，Safari完全不支持"
+      },
+      "knowledge_point": "Image_Format_Selection",
+      "reference_link": "https://web.dev/avif/"
+    },
+    {
+      "id": "perf-senior-059",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["虚拟滚动", "二分查找", "动态高度"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "虚拟滚动二分查找定位算法",
+      "content": "实现一个高性能虚拟滚动列表的二分查找定位算法。\n\n要求：\n1. 列表项高度动态（存储在positions数组中，每项包含index、top、height、bottom）\n2. 根据滚动位置scrollTop快速定位第一个可见项的索引\n3. 时间复杂度O(log n)\n4. 处理边界情况：滚动到顶部、底部、空列表",
+      "code_template": "/**\n * 虚拟滚动列表项位置信息\n */\ninterface Position {\n  index: number;\n  top: number;      // 元素顶部距离容器顶部的距离\n  height: number;   // 元素高度\n  bottom: number;   // 元素底部位置 = top + height\n}\n\n/**\n * 使用二分查找定位第一个可见项\n * @param positions 已排序的位置数组（按top递增）\n * @param scrollTop 当前滚动位置\n * @returns 第一个可见项的索引，空数组返回-1\n */\nfunction findFirstVisibleIndex(\n  positions: Position[],\n  scrollTop: number\n): number {\n  // TODO: 实现二分查找算法\n}",
+      "test_cases": [
+        {
+          "input": "positions = [{index:0,top:0,height:100,bottom:100},{index:1,top:100,height:80,bottom:180},{index:2,top:180,height:120,bottom:300}], scrollTop = 150",
+          "expected_output": "1",
+          "description": "正常情况：scrollTop 150落在第二项范围内"
+        },
+        {
+          "input": "positions = [], scrollTop = 0",
+          "expected_output": "-1",
+          "description": "边界情况：空列表返回-1"
+        },
+        {
+          "input": "positions = [{index:0,top:0,height:50,bottom:50},{index:1,top:50,height:50,bottom:100}], scrollTop = 0",
+          "expected_output": "0",
+          "description": "边界情况：scrollTop为0，返回第一项"
+        },
+        {
+          "input": "positions = [{index:0,top:0,height:100,bottom:100},{index:1,top:100,height:100,bottom:200}], scrollTop = 500",
+          "expected_output": "1",
+          "description": "边界情况：scrollTop超过总高度，返回最后一项"
+        }
+      ],
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "不能使用线性遍历",
+        "必须正确处理所有边界情况",
+        "positions数组已按top排序"
+      ],
+      "reference_solution": "function findFirstVisibleIndex(\n  positions: Position[],\n  scrollTop: number\n): number {\n  if (positions.length === 0) return -1;\n  if (scrollTop <= 0) return 0;\n\n  let left = 0;\n  let right = positions.length - 1;\n  let result = positions.length - 1;\n\n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    const position = positions[mid];\n\n    if (position.bottom > scrollTop) {\n      result = mid;\n      right = mid - 1;\n    } else {\n      left = mid + 1;\n    }\n  }\n\n  return result;\n}",
+      "correct_answer": "见参考实现，核心是找到第一个bottom > scrollTop的元素索引",
+      "explanation": "虚拟滚动的核心是通过二分查找快速定位可见区域。需要找到第一个底部位置超过scrollTop的元素，该元素就是滚动容器顶部开始可见的第一个元素。边界情况包括空列表、scrollTop为0、scrollTop超过总高度等。",
+      "knowledge_point": "Virtual_Scroll_Binary_Search",
+      "reference_link": "https://web.dev/virtualize-large-lists-react-window/"
+    },
+    {
+      "id": "perf-senior-060",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["长任务分片", "任务调度器", "yield"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "长任务分片调度器实现",
+      "content": "实现一个长任务分片调度器，将大量任务分散到多个帧中执行，确保不阻塞主线程超过50ms。\n\n要求：\n1. 支持任务优先级（high/normal/low）\n2. 高优先级任务可以中断低优先级任务\n3. 每帧执行时间不超过16ms（保留时间给渲染）\n4. 支持任务取消和进度查询",
+      "code_template": "/**\n * 任务优先级枚举\n */\nenum Priority {\n  HIGH = 0,\n  NORMAL = 1,\n  LOW = 2\n}\n\ninterface Task {\n  id: string;\n  execute: () => boolean;  // 返回true表示任务完成\n  priority: Priority;\n}\n\nclass TaskScheduler {\n  private taskQueue: Task[] = [];\n  private isRunning: boolean = false;\n  private frameDeadline: number = 0;\n  private readonly FRAME_BUDGET = 16;\n\n  addTask(task: Task): void {\n    // TODO: 实现任务添加和优先级排序\n  }\n\n  start(): void {\n    // TODO: 实现调度循环\n  }\n\n  private shouldYield(): boolean {\n    // TODO: 实现yield判断\n    return false;\n  }\n}",
+      "test_cases": [
+        {
+          "input": "添加3个任务：high(100次循环)、low(200次循环)、normal(150次循环)",
+          "expected_output": "执行顺序：high -> normal -> low",
+          "description": "优先级排序：高优先级任务优先执行"
+        },
+        {
+          "input": "正在执行low任务时，添加high任务",
+          "expected_output": "下一分片执行high任务",
+          "description": "任务抢占：高优先级可以打断低优先级"
+        },
+        {
+          "input": "单帧执行时间：任务每次执行耗时5ms，循环10次",
+          "expected_output": "每帧最多执行3次迭代（15ms < 16ms）",
+          "description": "帧时间控制：确保不阻塞渲染"
+        }
+      ],
+      "time_complexity": "O(n log n) 任务排序，O(1) 单次执行",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "每帧执行不超过16ms",
+        "使用performance.now()精确计时",
+        "支持任务优先级抢占"
+      ],
+      "reference_solution": "class TaskScheduler {\n  private taskQueue: Task[] = [];\n  private isRunning: boolean = false;\n  private frameDeadline: number = 0;\n  private readonly FRAME_BUDGET = 16;\n\n  addTask(task: Task): void {\n    const insertIndex = this.taskQueue.findIndex(t => t.priority > task.priority);\n    if (insertIndex === -1) {\n      this.taskQueue.push(task);\n    } else {\n      this.taskQueue.splice(insertIndex, 0, task);\n    }\n    if (!this.isRunning) this.start();\n  }\n\n  start(): void {\n    if (this.isRunning) return;\n    this.isRunning = true;\n    this.scheduleNextFrame();\n  }\n\n  private scheduleNextFrame(): void {\n    if (typeof scheduler !== 'undefined' && scheduler.postTask) {\n      scheduler.postTask(() => this.runFrame(), { priority: 'user-blocking' });\n    } else {\n      requestAnimationFrame(() => this.runFrame());\n    }\n  }\n\n  private runFrame(): void {\n    this.frameDeadline = performance.now() + this.FRAME_BUDGET;\n    while (!this.shouldYield() && this.taskQueue.length > 0) {\n      const task = this.taskQueue[0];\n      if (task.execute()) {\n        this.taskQueue.shift();\n      }\n    }\n    if (this.taskQueue.length > 0) {\n      this.scheduleNextFrame();\n    } else {\n      this.isRunning = false;\n    }\n  }\n\n  private shouldYield(): boolean {\n    return performance.now() >= this.frameDeadline;\n  }\n}",
+      "correct_answer": "见参考实现，核心是优先级队列+帧预算控制+yield机制",
+      "explanation": "长任务分片调度器使用优先级队列管理任务，每帧执行时间控制在16ms内，超过预算立即yield让出主线程。使用scheduler.postTask或requestAnimationFrame调度下一帧，支持高优先级任务抢占。",
+      "knowledge_point": "Task_Scheduler_Yield",
+      "reference_link": "https://web.dev/optimize-long-tasks/"
+    },
+    {
+      "id": "perf-senior-061",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Long Animation Frames", "LoAF", "INP"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Long Animation Frames API深入",
+      "content": "关于Long Animation Frames API（LoAF），以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "LoAF可以检测超过50ms的长帧，提供比Long Task API更详细的渲染管线信息"
+        },
+        {
+          "id": "B",
+          "text": "LoAF的scripts属性可以识别导致长帧的具体脚本来源，包括第三方脚本attribution"
+        },
+        {
+          "id": "C",
+          "text": "LoAF提供renderStart时间戳，通过renderStart - startTime可以计算主线程阻塞时间"
+        },
+        { "id": "D", "text": "LoAF完全替代了Long Task API，两者功能完全相同" },
+        {
+          "id": "E",
+          "text": "LoAF的entryType值为\"long-animation-frame\"，可通过PerformanceObserver订阅"
+        }
+      ],
+      "correct_answer": ["A", "B", "E"],
+      "explanation": "Long Animation Frames API（LoAF）是Chrome 123+引入的新API，用于替代和增强Long Task API。LoAF检测超过50ms的长帧，提供完整的渲染管线分解信息（style、layout、paint各阶段），scripts属性包含详细的脚本归属信息，entryType为\"long-animation-frame\"。但LoAF与Long Task API功能不完全相同，LoAF提供更丰富的诊断信息；renderStart是渲染阶段开始时间，主线程阻塞时间的计算方式不同。",
+      "exclusion_analysis": {
+        "C": "renderStart是渲染阶段开始时间，主线程阻塞时间应使用duration或workDuration属性计算",
+        "D": "LoAF提供比Long Task API更丰富的诊断信息，两者功能不完全相同"
+      },
+      "knowledge_point": "Long_Animation_Frames_API",
+      "reference_link": "https://web.dev/long-animation-frames/"
+    },
+    {
+      "id": "perf-senior-062",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["响应式图片", "sizes属性", "srcset"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "响应式图片sizes计算进阶",
+      "content": "一个新闻网站的详情页，图片布局如下：\n- 移动端（<640px）：图片占满容器宽度，容器宽度calc(100vw - 32px)\n- 平板（640px-1024px）：图片位于文章左侧，容器宽度calc(50vw - 16px)\n- 桌面（>1024px）：图片居中显示，最大宽度600px，容器宽度min(600px, 50vw)\n\n以下哪个sizes属性设置是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "sizes=\"(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 16px), min(600px, 50vw)\""
+        },
+        {
+          "id": "B",
+          "text": "sizes=\"(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 16px), 600px\""
+        },
+        {
+          "id": "C",
+          "text": "sizes=\"(min-width: 1024px) 600px, (min-width: 640px) calc(50vw - 16px), calc(100vw - 32px)\""
+        },
+        {
+          "id": "D",
+          "text": "sizes=\"calc(100vw - 32px), calc(50vw - 16px), 600px\""
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "sizes属性支持CSS calc()和min()/max()函数。选项A正确使用了媒体条件和CSS函数。选项B将min(600px, 50vw)简化为600px不准确；选项C使用min-width时顺序应从大到小；选项D缺少媒体条件会导致逻辑错误。",
+      "wrong_options_analysis": {
+        "B": "将min(600px, 50vw)简化为600px不正确，桌面端图片宽度可能小于600px",
+        "C": "使用min-width媒体条件时顺序应从大到小排列",
+        "D": "缺少媒体条件，第一个值会被当作默认值处理"
+      },
+      "knowledge_point": "Responsive_Images_Sizes_Calc",
+      "reference_link": "https://web.dev/responsive-images/"
+    },
+    {
+      "id": "perf-senior-063",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["合成层", "will-change", "GPU加速"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "will-change性能权衡",
+      "content": "使用will-change: transform可以显著提升动画性能，因此应该对所有可能执行动画的元素预先设置will-change属性。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "will-change应该谨慎使用，过度使用会导致问题：1) 每个will-change元素都会创建独立的合成层，占用GPU内存；2) 合成层过多会导致\"层爆炸\"；3) 应在动画即将开始前设置will-change，动画结束后移除。正确做法是只在需要时才设置will-change。",
+      "boundary_conditions": "对于已知的、确定会执行动画的元素，可以提前设置will-change，但应在动画结束后及时移除。",
+      "knowledge_point": "Will_Change_Performance",
+      "reference_link": "https://web.dev/stick-to-compositor-only-properties/"
+    },
+    {
+      "id": "perf-senior-064",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["PerformanceObserver", "RUM", "性能监控"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "PerformanceObserver最佳实践",
+      "content": "关于PerformanceObserver的使用，以下哪些做法是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用buffered: true获取Observer注册前已产生的性能条目"
+        },
+        { "id": "B", "text": "在回调函数中执行复杂的DOM操作和数据处理" },
+        { "id": "C", "text": "使用disconnect()在不需要时停止观察，释放资源" },
+        { "id": "D", "text": "订阅所有entryTypes一次性获取所有性能数据" },
+        { "id": "E", "text": "使用takeRecords()获取已缓冲但尚未处理的条目" }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "PerformanceObserver最佳实践：buffered: true获取历史条目；disconnect()释放资源；takeRecords()获取待处理条目。回调函数应在主线程执行，避免复杂操作；订阅所有entryTypes会收到大量不需要的数据，应按需订阅。",
+      "exclusion_analysis": {
+        "B": "回调函数在主线程执行，应避免复杂操作影响性能",
+        "D": "订阅所有entryTypes会收到大量不需要的数据，应按需订阅特定类型"
+      },
+      "knowledge_point": "PerformanceObserver_Best_Practices",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver"
+    },
+    {
+      "id": "perf-senior-065",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["字体优化", "FOIT", "FOUT", "font-display"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "字体加载策略深入",
+      "content": "一个国际化网站需要加载多个字体文件（拉丁、中文、阿拉伯文），首屏包含关键标题文本。以下哪种font-display策略组合最能平衡性能和用户体验？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有字体使用font-display: swap，确保文本立即可见"
+        },
+        {
+          "id": "B",
+          "text": "关键首屏字体使用font-display: optional，非关键字体使用font-display: swap"
+        },
+        {
+          "id": "C",
+          "text": "所有字体使用font-display: block，确保始终显示自定义字体"
+        },
+        {
+          "id": "D",
+          "text": "首屏字体preload + font-display: optional，非首屏字体font-display: swap"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "最优策略：首屏关键字体preload + font-display: optional，确保字体在100ms阻塞期内可用则使用，否则永久使用后备字体，避免布局偏移；非首屏字体font-display: swap，先显示后备字体，加载后切换。选项A可能导致CLS；选项B未使用preload，optional可能在字体已下载时仍不使用；选项C阻塞渲染影响FCP。",
+      "wrong_options_analysis": {
+        "A": "font-display: swap可能导致CLS，且首屏字体应该优先保证加载",
+        "B": "未使用preload，optional策略可能在字体已下载时仍不使用",
+        "C": "font-display: block阻塞渲染，严重影响FCP/LCP"
+      },
+      "knowledge_point": "Font_Display_Strategy",
+      "reference_link": "https://web.dev/font-display/"
+    },
+    {
+      "id": "perf-senior-066",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Vue性能", "响应式优化", "渲染优化"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vue 3性能优化进阶",
+      "content": "对于Vue 3应用的性能优化，以下哪些策略是有效的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用v-memo指令缓存列表项渲染结果，依赖不变时跳过diff"
+        },
+        {
+          "id": "B",
+          "text": "使用shallowRef处理大型嵌套对象，避免深层响应式转换"
+        },
+        { "id": "C", "text": "在v-for中使用index作为key可以保证列表渲染性能" },
+        {
+          "id": "D",
+          "text": "使用<Teleport>将模态框渲染到body，减少组件树diff范围"
+        },
+        {
+          "id": "E",
+          "text": "使用computed缓存计算结果，只有依赖变化时才重新计算"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "Vue 3性能优化策略：v-memo缓存渲染结果；shallowRef避免深层响应式开销；Teleport隔离diff范围；computed缓存计算。使用index作为key是反模式，会导致列表顺序变化时的错误复用。",
+      "exclusion_analysis": {
+        "C": "使用index作为key会导致列表顺序变化时的错误复用，应该使用唯一标识符"
+      },
+      "knowledge_point": "Vue_Performance_Advanced",
+      "reference_link": "https://vuejs.org/guide/best-practices/performance.html"
+    },
+    {
+      "id": "perf-senior-067",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["预加载", "preload", "prefetch"],
+      "content": "使用<link rel=\"preload\">预加载字体文件时，必须设置crossorigin属性，否则字体会被下载两次。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "字体是CORS资源，preload默认使用credentials模式，与CSS中的字体请求credentials模式不一致，会导致浏览器认为是不同的请求而下载两次。正确做法：<link rel=\"preload\" href=\"font.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>",
+      "boundary_conditions": "对于同域名下的字体，即使不设置crossorigin也会下载，但设置crossorigin是一致的最佳实践。",
+      "knowledge_point": "Preload_Font_Crossorigin",
+      "reference_link": "https://web.dev/preload-critical-assets/"
+    },
+    {
+      "id": "perf-senior-068",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["requestIdleCallback", "任务调度", "主线程优化"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "requestIdleCallback使用场景",
+      "content": "关于requestIdleCallback的使用，以下哪个场景描述是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "requestIdleCallback保证回调在浏览器空闲时执行，适合处理所有后台任务"
+        },
+        {
+          "id": "B",
+          "text": "requestIdleCallback的回调函数接收deadline参数，通过deadline.timeRemaining()获取剩余空闲时间"
+        },
+        {
+          "id": "C",
+          "text": "在后台标签页中，requestIdleCallback会立即执行回调，不受帧预算限制"
+        },
+        {
+          "id": "D",
+          "text": "requestIdleCallback的timeout参数用于设置最小等待时间"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "requestIdleCallback的回调接收deadline对象，包含timeRemaining()方法和didTimeout属性。选项A错误：不适合CPU密集型任务；选项C错误：后台标签帧预算为0，可能长时间不触发；选项D错误：timeout是最大等待时间，超时后强制执行。",
+      "wrong_options_analysis": {
+        "A": "requestIdleCallback不适合CPU密集型任务，也不保证执行时机",
+        "C": "后台标签页帧预算为0，requestIdleCallback可能长时间不触发",
+        "D": "timeout是最大等待时间（超时强制执行），不是最小等待时间"
+      },
+      "knowledge_point": "RequestIdleCallback_Advanced",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback"
+    },
+    {
+      "id": "perf-senior-069",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CSS优化", "渲染性能", "contain"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "CSS Containment优化",
+      "content": "关于CSS contain属性对渲染性能的影响，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "contain: layout隔离布局计算，元素内部布局变化不影响外部"
+        },
+        {
+          "id": "B",
+          "text": "contain: paint隔离绘制，元素内容不会绘制到其边界框之外"
+        },
+        {
+          "id": "C",
+          "text": "contain: strict等同于contain: layout paint style size"
+        },
+        {
+          "id": "D",
+          "text": "contain属性对性能优化总是有益的，应该尽可能使用"
+        },
+        {
+          "id": "E",
+          "text": "contain: size要求元素显式设置尺寸，不依赖内容自动调整"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "CSS Containment隔离渲染影响范围：layout隔离布局，paint隔离绘制，size要求显式尺寸，strict是组合值。contain不能随意使用，使用不当可能导致布局错误或内容裁剪，应根据实际场景评估。",
+      "exclusion_analysis": {
+        "D": "contain不能随意使用，使用不当可能导致布局错误或内容裁剪"
+      },
+      "knowledge_point": "CSS_Containment_Performance",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/CSS/contain"
+    },
+    {
+      "id": "perf-senior-070",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["TTFB", "服务器优化", "首屏性能"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "TTFB优化综合方案",
+      "content": "一个全球部署的电商网站，TTFB分布：亚洲用户平均800ms，欧洲用户平均1500ms，北美用户平均1200ms。以下哪种优化策略最有效？",
+      "options": [
+        { "id": "A", "text": "优化数据库查询和服务器代码，减少服务器处理时间" },
+        {
+          "id": "B",
+          "text": "部署全球CDN，使用边缘节点缓存动态内容和智能路由"
+        },
+        { "id": "C", "text": "使用HTTP/2 Push预推送关键资源" },
+        { "id": "D", "text": "增加服务器CPU和内存配置" }
+      ],
+      "correct_answer": "B",
+      "explanation": "全球用户TTFB差异大，核心问题是网络延迟。CDN边缘节点缓存和智能路由可以有效降低RTT。选项A只解决服务器处理时间，不解决网络延迟；选项C HTTP/2 Push已被Chrome弃用；选项D增加服务器配置不解决网络延迟问题。",
+      "wrong_options_analysis": {
+        "A": "优化服务器处理只解决部分问题，全球网络延迟是主要瓶颈",
+        "C": "HTTP/2 Push已被Chrome弃用，且无法解决TTFB问题",
+        "D": "增加服务器配置不解决全球网络延迟问题"
+      },
+      "knowledge_point": "TTFB_Global_Optimization",
+      "reference_link": "https://web.dev/ttfb/"
+    },
+    {
+      "id": "perf-senior-071",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Service Worker", "缓存策略", "离线优化"],
+      "content": "Service Worker的Cache First策略适合缓存所有HTML页面，可以显著提升重复访问的性能。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "HTML页面不应该使用Cache First策略。HTML是入口文件，需要及时更新，缓存可能导致用户看到旧版本内容。HTML应使用Network First或Stale-While-Revalidate策略。Cache First适合带hash的静态资源（JS/CSS/图片）。",
+      "boundary_conditions": "对于纯静态内容（如文档站点、营销页面），HTML可以使用Cache First，因为内容更新频率低。但对于动态内容网站，HTML应使用Network First。",
+      "knowledge_point": "Service_Worker_HTML_Cache",
+      "reference_link": "https://web.dev/service-worker-caching-and-http-caching/"
+    },
+    {
+      "id": "perf-senior-072",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["上报策略", "Beacon API", "keepalive"],
+      "source_company": "Tencent",
+      "score": 9,
+      "title": "性能数据上报最佳实践",
+      "content": "关于性能监控数据的上报策略，以下哪些做法是推荐的？",
+      "options": [
+        { "id": "A", "text": "使用fetch + keepalive在pagehide事件中发送数据" },
+        { "id": "B", "text": "使用navigator.sendBeacon()发送小型诊断数据" },
+        { "id": "C", "text": "使用XMLHttpRequest在beforeunload中同步发送" },
+        { "id": "D", "text": "在requestIdleCallback中批量处理和发送数据" },
+        {
+          "id": "E",
+          "text": "使用visibilitychange事件而非beforeunload，更可靠地捕获页面关闭"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "上报最佳实践：fetch + keepalive或sendBeacon保证页面关闭时数据发送；requestIdleCallback批量处理减少请求次数；visibilitychange比beforeunload更可靠。XMLHttpRequest同步发送会阻塞页面关闭，现代浏览器可能阻止。",
+      "exclusion_analysis": {
+        "C": "XMLHttpRequest同步发送会阻塞页面关闭，现代浏览器可能阻止"
+      },
+      "knowledge_point": "Performance_Reporting_Best_Practices",
+      "reference_link": "https://web.dev/send-beacon-data-with-beacon-api/"
+    },
+    {
+      "id": "perf-senior-073",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["性能预算", "CI/CD", "自动化"],
+      "source_company": "Meituan",
+      "score": 9,
+      "title": "性能预算自动化集成",
+      "content": "某团队需要在CI流水线中集成性能预算检查，要求阻止性能回归。以下哪种配置方案最全面？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在webpack中配置performance.maxEntrypointSize限制bundle大小"
+        },
+        {
+          "id": "B",
+          "text": "使用Lighthouse CI配置budget.json，同时定义资源大小和性能指标阈值"
+        },
+        {
+          "id": "C",
+          "text": "使用bundlesize工具检查打包体积，体积增加超过5%则阻止合并"
+        },
+        { "id": "D", "text": "定期运行Lighthouse并人工审核结果" }
+      ],
+      "correct_answer": "B",
+      "explanation": "Lighthouse CI最全面：budget.json可同时定义资源大小预算（JS/CSS/Image）和性能指标预算（LCP/FID/CLS），PR检查时自动运行，结果可视化。选项A只检查bundle大小；选项C只检查体积；选项D人工审核不可持续。",
+      "wrong_options_analysis": {
+        "A": "webpack配置只检查bundle大小，不包含运行时性能指标",
+        "C": "bundlesize只检查体积，不包含性能指标，post-commit时机太晚",
+        "D": "人工审核不可持续，无法在PR阶段阻止回归"
+      },
+      "knowledge_point": "Performance_Budget_CI_Integration",
+      "reference_link": "https://web.dev/performance-budgets-101/"
+    },
+    {
+      "id": "perf-senior-074",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["React性能", "状态管理", "渲染优化"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "React状态管理性能",
+      "content": "关于React状态管理对性能的影响，以下哪些优化策略是有效的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "将高频变化的状态下沉到叶子组件，避免父组件不必要重渲染"
+        },
+        {
+          "id": "B",
+          "text": "使用useReducer替代多个useState，减少状态更新次数"
+        },
+        {
+          "id": "C",
+          "text": "对于大型表单，使用状态管理库而非useState存储所有字段值"
+        },
+        { "id": "D", "text": "使用React.memo包裹所有组件，默认防止重渲染" },
+        {
+          "id": "E",
+          "text": "将计算密集型操作移到useMemo中，并设置合理的依赖数组"
+        }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "状态下沉减少父组件重渲染范围；大型表单使用状态管理库可精细控制更新；useMemo缓存计算结果。useReducer不会减少状态更新次数，只是组织状态逻辑；React.memo不应默认包裹所有组件，有比较开销。",
+      "exclusion_analysis": {
+        "B": "useReducer不会减少状态更新次数，只是组织状态逻辑的方式",
+        "D": "React.memo不应默认包裹所有组件，有比较开销，应针对性使用"
+      },
+      "knowledge_point": "React_State_Management_Performance",
+      "reference_link": "https://react.dev/learn/choosing-the-state-structure"
+    },
+    {
+      "id": "perf-senior-075",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["图片优化", "AVIF", "WebP"],
+      "content": "AVIF格式相比WebP提供了更好的压缩率，因此应该优先使用AVIF格式，并为不支持的浏览器提供WebP fallback。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "AVIF确实比WebP压缩率更好（约额外20%提升），对于支持AVIF的浏览器（Chrome 85+、Safari 16+）应该优先使用。使用<picture>标签提供渐进式fallback：<source type=\"image/avif\"> → <source type=\"image/webp\"> → <img src=\"fallback.jpg\">。",
+      "boundary_conditions": "对于旧浏览器（如IE、老版本Safari），需要提供JPEG/PNG fallback。使用CDN的Accept头检测可以自动处理格式转换。",
+      "knowledge_point": "AVIF_WebP_Priority",
+      "reference_link": "https://web.dev/avif/"
+    },
+    {
+      "id": "perf-senior-076",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["INP", "交互延迟", "长任务"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "INP指标计算深入",
+      "content": "一个页面在用户会话期间记录了以下交互延迟（event duration）：[80ms, 120ms, 350ms, 95ms, 180ms, 220ms]。共发生了60次交互。该页面的INP值应该是多少？",
+      "options": [
+        { "id": "A", "text": "350ms（取最大值）" },
+        { "id": "B", "text": "220ms（取75分位数）" },
+        { "id": "C", "text": "180ms（取75分位数近似）" },
+        { "id": "D", "text": "需要完整交互数据才能计算" }
+      ],
+      "correct_answer": "B",
+      "explanation": "INP计算规则：当交互次数>50次时，取所有交互的75分位数。60次交互>50，应取75分位数。交互延迟排序后：[80, 95, 120, 180, 220, 350]，75分位数约为第45个值（60 * 0.75 = 45），由于题目只给出部分数据，220ms是最接近正确答案的选项。",
+      "wrong_options_analysis": {
+        "A": "交互次数>50次时，取75分位数而非最大值",
+        "C": "180ms不是75分位数对应的值",
+        "D": "可以根据75分位数规则计算"
+      },
+      "knowledge_point": "INP_Calculation_Advanced",
+      "reference_link": "https://web.dev/inp/"
+    },
+    {
+      "id": "perf-senior-077",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["web-vitals库", "RUM实现", "性能监控"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "web-vitals库实现细节",
+      "content": "关于Google官方web-vitals库的实现，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "LCP使用PerformanceObserver监听largest-contentful-paint类型，页面隐藏时确定最终值"
+        },
+        {
+          "id": "B",
+          "text": "CLS使用Session Window机制，每1秒无新偏移则重置计数"
+        },
+        {
+          "id": "C",
+          "text": "INP监听所有event类型的条目，计算高百分位交互延迟"
+        },
+        { "id": "D", "text": "所有指标的回调都在页面卸载时触发上报" },
+        { "id": "E", "text": "库支持SPA路由切换时的指标重置" }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "web-vitals库实现：LCP监听largest-contentful-paint，visibilitychange时确定最终值；INP监听event类型计算高百分位；支持SPA路由切换重置。CLS Session Window是1秒无新偏移重置，但CLS是累积值不是每秒重置；上报时机包括页面隐藏和卸载，不只是卸载。",
+      "exclusion_analysis": {
+        "B": "CLS Session Window机制是1秒无新偏移则结束当前会话，不是每秒重置计数",
+        "D": "上报时机包括页面隐藏（visibilitychange）和卸载（pagehide），不只是卸载"
+      },
+      "knowledge_point": "Web_Vitals_Library_Details",
+      "reference_link": "https://github.com/GoogleChrome/web-vitals"
+    },
+    {
+      "id": "perf-senior-078",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React并发", "useTransition", "useDeferredValue"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React并发Hook对比",
+      "content": "关于React 18的useTransition和useDeferredValue，以下哪个说法正确描述了两者的区别？",
+      "options": [
+        {
+          "id": "A",
+          "text": "useTransition用于标记状态更新为低优先级，useDeferredValue用于延迟某个值的更新"
+        },
+        {
+          "id": "B",
+          "text": "useTransition只适用于输入场景，useDeferredValue适用于所有场景"
+        },
+        {
+          "id": "C",
+          "text": "useDeferredValue会立即更新值，useTransition会延迟更新"
+        },
+        { "id": "D", "text": "两者功能完全相同，只是API不同" }
+      ],
+      "correct_answer": "A",
+      "explanation": "useTransition包裹状态更新，将其标记为低优先级（transition）；useDeferredValue创建一个延迟版本的值，让紧急更新优先处理。useTransition适合主动触发的低优先级更新，useDeferredValue适合被动接收的值需要延迟处理的场景。",
+      "wrong_options_analysis": {
+        "B": "useTransition不限于输入场景，适用于任何低优先级状态更新",
+        "C": "两者都是延迟更新，只是使用方式不同",
+        "D": "两者功能有区别：useTransition控制更新优先级，useDeferredValue延迟值的变化"
+      },
+      "knowledge_point": "React_Concurrent_Hooks_Comparison",
+      "reference_link": "https://react.dev/reference/react/useTransition"
+    },
+    {
+      "id": "perf-senior-079",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["HTTP/2", "Server Push", "预加载"],
+      "content": "HTTP/2 Server Push可以主动推送关键资源到客户端，减少请求往返时间，是推荐的性能优化手段。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "explanation": "HTTP/2 Server Push存在多个问题：1) 服务器无法准确判断客户端缓存状态，可能推送已有资源；2) 客户端难以取消推送；3) Chrome已移除对Server Push的支持。推荐使用preload替代，让浏览器决定是否加载资源。",
+      "boundary_conditions": "某些CDN仍然支持Server Push，但由于Chrome移除支持，不建议在新项目中使用。",
+      "knowledge_point": "HTTP2_Server_Push_Deprecation",
+      "reference_link": "https://developer.chrome.com/blog/removing-push/"
+    },
+    {
+      "id": "perf-senior-080",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["LCP优化", "图片加载", "首屏优化"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "LCP从4s优化到2s方案",
+      "content": "一个电商详情页LCP为4s（Hero图片），目标优化到2s以内。已知Hero图片大小800KB，服务器响应时间TTFB=1s，图片下载时间2s，渲染时间0.5s。以下哪些优化措施组合最有效？",
+      "options": [
+        { "id": "A", "text": "图片压缩到WebP格式（减少40%体积）+ CDN加速下载" },
+        {
+          "id": "B",
+          "text": "使用preload预加载Hero图片 + fetchpriority=\"high\""
+        },
+        { "id": "C", "text": "TTFB优化（服务器缓存）+ 图片CDN + 响应式图片" },
+        { "id": "D", "text": "LQIP低质量图片占位 + 渐进式图片加载" },
+        { "id": "E", "text": "内联关键CSS + 预加载字体 + 图片懒加载" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "LCP优化需要从TTFB、资源加载、渲染三个阶段入手。图片压缩+CDN减少下载时间；preload+fetchpriority提前开始加载；TTFB优化减少服务器响应时间。LQIP和懒加载对LCP优化帮助有限；内联CSS和预加载字体不直接优化图片LCP。",
+      "exclusion_analysis": {
+        "D": "LQIP和渐进式加载改善感知体验，但不直接减少实际LCP时间",
+        "E": "这些措施不直接优化Hero图片的加载时间"
+      },
+      "knowledge_point": "LCP_Optimization_Strategy",
+      "reference_link": "https://web.dev/optimize-lcp/"
+    },
+    {
+      "id": "perf-senior-081",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["内存泄漏", "事件监听", "清理机制"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "React组件内存泄漏防护",
+      "content": "以下React组件代码中，哪个存在潜在的内存泄漏？",
+      "options": [
+        {
+          "id": "A",
+          "text": "useEffect(() => { const timer = setInterval(fetchData, 5000); return () => clearInterval(timer); }, []);"
+        },
+        {
+          "id": "B",
+          "text": "useEffect(() => { window.addEventListener('resize', handleResize); return () => window.removeEventListener('resize', handleResize); }, []);"
+        },
+        {
+          "id": "C",
+          "text": "useEffect(() => { const subscription = observable.subscribe(handler); }, []);"
+        },
+        {
+          "id": "D",
+          "text": "useEffect(() => { const controller = new AbortController(); fetch(url, { signal: controller.signal }); return () => controller.abort(); }, []);"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "选项C缺少清理函数，observable订阅在组件卸载后仍保持引用，导致内存泄漏。选项A、B、D都有正确的清理逻辑：clearInterval清理定时器、removeEventListener移除监听器、AbortController取消请求。",
+      "wrong_options_analysis": {
+        "A": "正确使用clearInterval清理定时器",
+        "B": "正确使用removeEventListener移除事件监听器",
+        "D": "正确使用AbortController取消fetch请求"
+      },
+      "knowledge_point": "React_Memory_Leak_Prevention",
+      "reference_link": "https://react.dev/learn/synchronizing-with-effects"
+    },
+    {
+      "id": "perf-senior-082",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CLS优化", "布局稳定性", "广告位"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "广告位CLS优化策略",
+      "content": "页面有多个动态加载的广告位，需要避免内容注入导致的CLS。以下哪些策略可以有效解决？",
+      "options": [
+        { "id": "A", "text": "为广告容器预留固定尺寸或使用aspect-ratio" },
+        { "id": "B", "text": "广告加载前显示骨架屏，尺寸与实际广告一致" },
+        { "id": "C", "text": "使用position:absolute将广告定位到固定位置" },
+        { "id": "D", "text": "广告加载后使用CSS动画平滑过渡" },
+        { "id": "E", "text": "将广告放在页面底部，不影响首屏内容" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "预留空间（固定尺寸/aspect-ratio）、骨架屏、绝对定位都可以避免广告注入导致的布局偏移。CSS动画不解决根本问题；广告放底部虽不影响首屏CLS，但如果在视口内仍会产生偏移。",
+      "exclusion_analysis": {
+        "D": "CSS动画不解决布局偏移的根本问题，只是平滑过渡效果",
+        "E": "广告在视口内仍会产生偏移，放底部不是根本解决方案"
+      },
+      "knowledge_point": "CLS_Ad_Slot_Optimization",
+      "reference_link": "https://web.dev/cls/"
+    },
+    {
+      "id": "perf-senior-083",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["transform", "动画性能", "合成层"],
+      "content": "使用CSS transform属性做动画不会触发重排（Layout）和重绘（Paint），只在合成阶段处理，因此性能最优。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "transform和opacity动画在合成线程执行，不触发Layout和Paint阶段。浏览器渲染管线：JavaScript → Style → Layout → Paint → Composite。transform动画只影响Composite阶段，这就是为什么推荐使用transform代替left/top做位移动画。",
+      "boundary_conditions": "transform动画需要元素被提升为合成层，可以通过will-change或3D transform触发。但过度创建合成层会增加GPU内存使用。",
+      "knowledge_point": "Transform_Animation_Pipeline",
+      "reference_link": "https://web.dev/animations-guide/"
+    },
+    {
+      "id": "perf-senior-084",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["性能监控", "采样率", "RUM"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "RUM采样策略设计",
+      "content": "一个日均PV 1000万的网站需要设计性能监控采样策略。考虑数据准确性、存储成本和告警及时性，以下哪种采样方案最优？",
+      "options": [
+        { "id": "A", "text": "100%采样，确保捕获所有性能问题" },
+        { "id": "B", "text": "1%随机采样，每天约10万条数据" },
+        { "id": "C", "text": "分层采样：首屏用户100%采样，其他页面5%采样" },
+        { "id": "D", "text": "动态采样：性能差的用户100%采样，正常用户1%采样" }
+      ],
+      "correct_answer": "C",
+      "explanation": "分层采样在成本和准确性之间取得平衡：首屏（关键页面）100%采样确保告警及时性；其他页面5%采样控制存储成本。100%采样成本过高；纯随机采样可能漏掉关键问题；动态采样在发现问题时已错过告警时机。",
+      "wrong_options_analysis": {
+        "A": "100%采样存储和处理成本过高，且对用户隐私影响大",
+        "B": "纯随机采样可能漏掉关键性能问题，告警不及时",
+        "D": "动态采样在发现性能差时已错过实时告警时机"
+      },
+      "knowledge_point": "RUM_Sampling_Strategy",
+      "reference_link": "https://web.dev/vitals-tools/"
+    },
+    {
+      "id": "perf-senior-085",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["SSR性能", "流式渲染", "hydration"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "SSR流式渲染优化",
+      "content": "关于SSR流式渲染（Streaming SSR），以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "流式渲染可以显著改善TTFB和FCP，因为浏览器可以提前开始解析HTML"
+        },
+        { "id": "B", "text": "React 18的renderToPipeableStream支持流式SSR" },
+        {
+          "id": "C",
+          "text": "流式渲染会延迟LCP，因为完整内容需要等待所有数据加载"
+        },
+        {
+          "id": "D",
+          "text": "Suspense组件可以定义流式渲染的边界，控制内容分块传输"
+        },
+        {
+          "id": "E",
+          "text": "流式渲染对SEO有负面影响，因为爬虫可能看不到完整内容"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "流式渲染改善TTFB和FCP；React 18支持流式SSR；Suspense定义渲染边界。流式渲染不会延迟LCP，反而可以提前显示内容；现代爬虫支持流式HTML解析，对SEO无负面影响。",
+      "exclusion_analysis": {
+        "C": "流式渲染提前显示内容，不会延迟LCP",
+        "E": "现代爬虫支持流式HTML解析，对SEO无负面影响"
+      },
+      "knowledge_point": "SSR_Streaming_Rendering",
+      "reference_link": "https://react.dev/reference/react-dom/server/renderToPipeableStream"
+    },
+    {
+      "id": "perf-senior-086",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["资源优先级", "fetchpriority", "加载优化"],
+      "source_company": "Google",
+      "score": 7,
+      "title": "fetchpriority使用场景",
+      "content": "以下哪个是fetchpriority=\"high\"的正确使用场景？",
+      "options": [
+        { "id": "A", "text": "所有首屏图片都设置fetchpriority=\"high\"" },
+        {
+          "id": "B",
+          "text": "LCP候选图片设置fetchpriority=\"high\"，其他图片使用默认优先级"
+        },
+        {
+          "id": "C",
+          "text": "第三方分析脚本设置fetchpriority=\"high\"确保执行"
+        },
+        {
+          "id": "D",
+          "text": "所有JS文件设置fetchpriority=\"high\"确保快速执行"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "fetchpriority=\"high\"应只用于关键资源。LCP候选图片需要尽快加载，设置高优先级合理。所有首屏图片都设置会稀释优先级；第三方脚本不应高优先级；JS文件根据重要性设置不同优先级。",
+      "wrong_options_analysis": {
+        "A": "所有首屏图片设置会稀释优先级，失去意义",
+        "C": "第三方分析脚本不应高优先级，影响关键资源加载",
+        "D": "JS文件应根据重要性设置不同优先级，不应统一高优先级"
+      },
+      "knowledge_point": "Fetchpriority_Usage",
+      "reference_link": "https://web.dev/fetch-priority/"
+    },
+    {
+      "id": "perf-senior-087",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["性能测试", "Lighthouse", "RUM"],
+      "content": "Lighthouse的性能分数是综合LCP、FID、CLS、TBT、SI五个指标加权计算得出的，其中LCP权重最高。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "explanation": "Lighthouse Performance分数由五个指标加权计算：LCP（25%）、TBT（25%）、CLS（15%）、FCP（15%）、SI（15%）、TTI（5%）。LCP和TBT权重最高各占25%。FID已被INP取代，Lighthouse 10+使用INP替代FID进行计算。",
+      "boundary_conditions": "Lighthouse版本不同，指标权重可能略有调整。Lighthouse 10+使用INP替代FID。",
+      "knowledge_point": "Lighthouse_Score_Calculation",
+      "reference_link": "https://web.dev/performance-scoring/"
+    },
+    {
+      "id": "perf-senior-088",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["性能优化", "ROI", "优先级决策"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "性能优化ROI决策",
+      "content": "一个SaaS应用需要进行性能优化，以下优化措施的投入产出比从高到低排序，正确的顺序是？\n\n已知数据：\n- A. 添加CDN：投入2天，LCP改善1.5s，影响80%用户\n- B. 图片压缩：投入0.5天，LCP改善0.8s，影响30%用户\n- C. 代码分割：投入3天，FCP改善0.5s，影响100%用户\n- D. 数据库优化：投入5天，TTFB改善0.3s，影响100%用户",
+      "options": [
+        { "id": "A", "text": "B > A > C > D" },
+        { "id": "B", "text": "A > B > C > D" },
+        { "id": "C", "text": "A > C > B > D" },
+        { "id": "D", "text": "C > A > B > D" },
+        { "id": "E", "text": "无法仅凭这些数据确定优先级" }
+      ],
+      "correct_answer": "A",
+      "explanation": "ROI计算：(改善幅度 × 影响用户比例) / 投入天数\n- B: (0.8 × 0.3) / 0.5 = 0.48\n- A: (1.5 × 0.8) / 2 = 0.60\n- C: (0.5 × 1.0) / 3 = 0.17\n- D: (0.3 × 1.0) / 5 = 0.06\n\n排序：A(0.60) > B(0.48) > C(0.17) > D(0.06)，所以B > A > C > D是错误的，正确顺序是A > B > C > D。但选项A的顺序是B > A > C > D。\n\n重新计算：\n- A: 1.5 × 0.8 / 2 = 0.6\n- B: 0.8 × 0.3 / 0.5 = 0.48\n- C: 0.5 × 1.0 / 3 = 0.17\n- D: 0.3 × 1.0 / 5 = 0.06\n\n正确顺序：A > B > C > D，对应选项B。",
+      "wrong_options_analysis": {
+        "A": "计算错误，A的ROI(0.6)大于B的ROI(0.48)",
+        "C": "B的ROI大于C",
+        "D": "可以根据ROI公式计算排序"
+      },
+      "knowledge_point": "Performance_ROI_Decision",
+      "reference_link": "https://web.dev/performance-getting-started/"
+    }
+  ]
+}

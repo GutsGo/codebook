@@ -1,0 +1,2190 @@
+{
+  "file_metadata": {
+    "version": "1.0",
+    "category": "Architecture/MicroFrontend",
+    "generated_at": "2024-01-15T10:00:00Z",
+    "total_questions": 60,
+    "target_level": "Senior",
+    "continuation": false,
+    "id_range": "001-060"
+  },
+  "questions": [
+    {
+      "id": "arch-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "微前端",
+        "iframe"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "iframe微前端Portal API设计",
+      "content": "在iframe微前端方案中，Portal API的核心设计目标是解决什么问题？",
+      "options": [
+        {
+          "id": "A",
+          "text": "解决iframe的JS隔离问题"
+        },
+        {
+          "id": "B",
+          "text": "解决iframe的用户体验割裂问题，保留JS隔离同时实现渲染层融合"
+        },
+        {
+          "id": "C",
+          "text": "解决iframe的SEO问题"
+        },
+        {
+          "id": "D",
+          "text": "解决iframe的性能问题"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Portal API是HTML早期提案，核心目标是解决iframe的用户体验割裂问题。传统iframe虽然提供了完美的JS隔离，但其独立的浏览上下文导致视觉体验不连贯。Portal API的设计思路是将iframe内容提升到主文档渲染层，实现无缝的视觉体验。",
+      "knowledge_point": "MicroFrontend_Portal_API",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "JS隔离是iframe的优势",
+        "C": "SEO不是Portal API的目标",
+        "D": "主要解决体验问题"
+      }
+    },
+    {
+      "id": "arch-senior-002",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "postMessage",
+        "安全"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "postMessage安全机制",
+      "content": "在微前端中使用postMessage通信时，哪种安全策略是必须实现的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "只使用HTTPS"
+        },
+        {
+          "id": "B",
+          "text": "严格校验event.origin并建立白名单机制"
+        },
+        {
+          "id": "C",
+          "text": "对所有消息加密"
+        },
+        {
+          "id": "D",
+          "text": "限制只能在同域使用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "postMessage的安全风险主要包括缺少origin验证。必须实现的安全策略：origin严格校验这是第一道防线；结构化消息协议防止重放攻击；MessageChannel点对点通信。",
+      "knowledge_point": "MicroFrontend_Security",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "A": "HTTPS无法防止恶意消息",
+        "C": "加密不能解决消息源验证问题",
+        "D": "违背微前端跨域通信初衷"
+      }
+    },
+    {
+      "id": "arch-senior-003",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Shadow DOM",
+        "CSS"
+      ],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Shadow DOM样式隔离",
+      "content": "关于Shadow DOM的样式隔离，哪些说法正确？",
+      "options": [
+        {
+          "id": "A",
+          "text": "内部样式会泄漏到外部"
+        },
+        {
+          "id": "B",
+          "text": "CSS自定义属性可以穿透Shadow Boundary"
+        },
+        {
+          "id": "C",
+          "text": "::part选择器可以控制内部元素样式"
+        },
+        {
+          "id": "D",
+          "text": "CSS变量更新会触发重计算"
+        },
+        {
+          "id": "E",
+          "text": "外部CSS规则自动应用"
+        }
+      ],
+      "correct_answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "Shadow DOM通过Shadow Boundary实现样式隔离。CSS自定义属性具有继承特性可以穿透Shadow Boundary。::part选择器是规范提供的样式穿透机制。每次CSS变量更新都会触发整个Shadow Tree的重计算。",
+      "knowledge_point": "Shadow_DOM_CSS",
+      "exclusion_analysis": {
+        "A": "内部样式不泄漏到外部",
+        "E": "外部样式不渗透内部"
+      }
+    },
+    {
+      "id": "arch-senior-004",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "JS沙箱",
+        "Proxy"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "qiankun Proxy沙箱",
+      "content": "ProxySandbox相比LegacySandbox的核心优势是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "性能更好"
+        },
+        {
+          "id": "B",
+          "text": "支持多实例并行运行，完全不修改真实window"
+        },
+        {
+          "id": "C",
+          "text": "兼容性更好支持IE"
+        },
+        {
+          "id": "D",
+          "text": "隔离级别更高"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "ProxySandbox创建fakeWindow对象，所有修改操作在fakeWindow上进行，通过Proxy拦截属性访问，完全不修改真实window，支持多实例并行。LegacySandbox会修改真实window但能恢复，只适合单实例场景。",
+      "knowledge_point": "qiankun_JS_Sandbox",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "Proxy拦截有性能开销",
+        "C": "Proxy是ES6特性IE不支持",
+        "D": "Proxy沙箱仍有边界情况"
+      }
+    },
+    {
+      "id": "arch-senior-005",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "CSS隔离"
+      ],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "CSS隔离方案选择",
+      "content": "团队水平参差不齐，需兼顾开发效率和隔离效果。哪种方案最合适？",
+      "options": [
+        {
+          "id": "A",
+          "text": "BEM命名规范"
+        },
+        {
+          "id": "B",
+          "text": "CSS Modules加自动前缀由构建工具处理"
+        },
+        {
+          "id": "C",
+          "text": "手动确保类名不重复"
+        },
+        {
+          "id": "D",
+          "text": "强制使用CSS-in-JS"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "CSS Modules加自动前缀是最佳平衡：编译时生成唯一哈希类名完全消除命名冲突，支持TypeScript类型安全，配合PostCSS插件自动添加子应用前缀。",
+      "knowledge_point": "MicroFrontend_CSS",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "BEM依赖人工约定难以保证执行",
+        "C": "手动管理不可靠",
+        "D": "强制技术栈统一违背微前端原则"
+      }
+    },
+    {
+      "id": "arch-senior-006",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "状态管理"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "微前端状态共享",
+      "content": "多个子应用需要共享用户登录状态。哪些方案可以正确实现？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接订阅同一个全局Redux store"
+        },
+        {
+          "id": "B",
+          "text": "主应用维护状态通过props传递"
+        },
+        {
+          "id": "C",
+          "text": "使用事件驱动模式"
+        },
+        {
+          "id": "D",
+          "text": "使用CustomEvent加localStorage"
+        },
+        {
+          "id": "E",
+          "text": "每个子应用通过API同步"
+        }
+      ],
+      "correct_answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "直接共享Redux store会导致僵尸节点问题。主应用维护状态通过props传递数据流清晰。事件驱动模式解耦支持跨框架。CustomEvent加localStorage方案浏览器原生支持刷新后状态持久。",
+      "knowledge_point": "MicroFrontend_State",
+      "exclusion_analysis": {
+        "A": "僵尸节点问题",
+        "E": "API同步增加网络开销"
+      }
+    },
+    {
+      "id": "arch-senior-007",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Module Federation"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Module Federation版本协商",
+      "content": "Host依赖React 18.2，Remote依赖React 17.0。哪种配置能让两个应用正常协作？",
+      "options": [
+        {
+          "id": "A",
+          "text": "都配置singleton: true"
+        },
+        {
+          "id": "B",
+          "text": "不设置singleton各自加载"
+        },
+        {
+          "id": "C",
+          "text": "配置版本别名区分不同版本各自单例"
+        },
+        {
+          "id": "D",
+          "text": "强制统一使用React 18.2"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "通过版本别名区分不同版本，各自保持单例。React的Context、Hooks都依赖于唯一的React实例。关键限制是Context不能跨React实例传递。",
+      "knowledge_point": "Module_Federation_Version",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "singleton只保证单例版本冲突需额外配置",
+        "B": "会导致多React实例",
+        "D": "强制统一版本不现实"
+      }
+    },
+    {
+      "id": "arch-senior-008",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Headless UI"
+      ],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "Headless UI设计模式",
+      "content": "Headless UI组件的核心理念是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "提供无样式的轻量级组件"
+        },
+        {
+          "id": "B",
+          "text": "将逻辑与样式完全分离，允许任意设计系统复用逻辑"
+        },
+        {
+          "id": "C",
+          "text": "提供更快的渲染性能"
+        },
+        {
+          "id": "D",
+          "text": "简化组件API"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Headless UI核心理念：组件只负责逻辑，完全不包含样式，样式由消费者完全控制。这种分离使得同一套逻辑可以适应任何设计系统。",
+      "knowledge_point": "Headless_UI_Pattern",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "轻量级是副作用核心价值是逻辑复用",
+        "C": "性能不是设计目标",
+        "D": "API可能更复杂"
+      }
+    },
+    {
+      "id": "arch-senior-009",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Compound Components"
+      ],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Compound Components模式",
+      "content": "该模式的优势和注意事项有哪些？",
+      "options": [
+        {
+          "id": "A",
+          "text": "API简洁子组件无需接收大量props"
+        },
+        {
+          "id": "B",
+          "text": "Context更新会导致所有消费者重渲染"
+        },
+        {
+          "id": "C",
+          "text": "子组件必须在Provider内使用"
+        },
+        {
+          "id": "D",
+          "text": "完全替代Props Drilling"
+        },
+        {
+          "id": "E",
+          "text": "配合TypeScript可以实现精准的类型推导"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "Compound Components模式父组件创建Context并作为Provider，子组件通过useContext访问共享状态。优势包括API简洁、灵活性高、关注点分离、类型安全。劣势是Context更新导致重渲染、必须在Provider内使用。",
+      "knowledge_point": "Compound_Components",
+      "exclusion_analysis": {
+        "D": "适合结构固定的组件不是所有场景最佳"
+      }
+    },
+    {
+      "id": "arch-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "受控组件"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "受控与非受控组件",
+      "content": "设计同时支持受控和非受控模式的Input组件，哪种实现正确？",
+      "options": [
+        {
+          "id": "A",
+          "text": "同时维护value和内部state"
+        },
+        {
+          "id": "B",
+          "text": "通过判断value !== undefined确定是否受控，受控时完全忽略内部状态"
+        },
+        {
+          "id": "C",
+          "text": "始终维护内部state"
+        },
+        {
+          "id": "D",
+          "text": "使用useSyncExternalStore"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "受控/非受控兼容设计：通过判断value !== undefined确定是否受控。受控模式下完全忽略内部状态，非受控模式下维护内部状态。关键原则是受控时不要同步更新internalValue。",
+      "knowledge_point": "Controlled_Uncontrolled",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "A": "每次渲染比较会导致状态不一致",
+        "C": "受控时维护内部状态是多余的",
+        "D": "useSyncExternalStore不适用"
+      }
+    },
+    {
+      "id": "arch-senior-011",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Clean Architecture"
+      ],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Clean Architecture前端落地",
+      "content": "关于依赖方向的说法哪个正确？",
+      "options": [
+        {
+          "id": "A",
+          "text": "UI层依赖业务逻辑层业务逻辑层依赖数据层"
+        },
+        {
+          "id": "B",
+          "text": "所有层都依赖核心实体层内层定义接口由外层实现"
+        },
+        {
+          "id": "C",
+          "text": "各层可以相互引用"
+        },
+        {
+          "id": "D",
+          "text": "前端不需要Clean Architecture"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Clean Architecture核心原则：依赖方向从外向内，内层不知道外层的存在，外层依赖内层定义的接口。这是同心圆分层严格限制依赖方向。",
+      "knowledge_point": "Clean_Architecture",
+      "common_mistake": "容易误选A。",
+      "wrong_options_analysis": {
+        "A": "是同心圆结构不是链式依赖",
+        "C": "依赖方向必须单向",
+        "D": "前端B端应用有复杂业务逻辑"
+      }
+    },
+    {
+      "id": "arch-senior-012",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": [
+        "微前端",
+        "决策"
+      ],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "微前端引入决策",
+      "content": "哪些场景适合引入微前端？",
+      "options": [
+        {
+          "id": "A",
+          "text": "团队规模小于5人"
+        },
+        {
+          "id": "B",
+          "text": "多个独立团队需要独立部署"
+        },
+        {
+          "id": "C",
+          "text": "技术栈需要渐进式迁移"
+        },
+        {
+          "id": "D",
+          "text": "对首屏性能要求极高"
+        },
+        {
+          "id": "E",
+          "text": "遗留系统需要增量升级"
+        },
+        {
+          "id": "F",
+          "text": "功能耦合紧密"
+        }
+      ],
+      "correct_answer": [
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "适合场景：多团队独立开发，技术栈渐进式迁移，遗留系统增量升级。不适合：团队规模小、性能要求极高、功能耦合紧密。",
+      "knowledge_point": "MicroFrontend_Decision",
+      "exclusion_analysis": {
+        "A": "复杂度超过收益",
+        "D": "额外开销不可接受",
+        "F": "拆分导致频繁跨应用修改"
+      }
+    },
+    {
+      "id": "arch-senior-013",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "低代码"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "低代码Schema设计",
+      "content": "x-setter扩展字段的作用是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "定义组件的setter方法"
+        },
+        {
+          "id": "B",
+          "text": "指定属性编辑器组件，将属性类型映射到可视化配置界面"
+        },
+        {
+          "id": "C",
+          "text": "设置属性的默认值"
+        },
+        {
+          "id": "D",
+          "text": "定义属性校验规则"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "x-setter指定属性编辑器组件，将属性类型映射到可视化配置界面。常见Setter类型包括SelectSetter、BooleanSetter、ColorSetter等。",
+      "knowledge_point": "LowCode_Schema",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "A": "是编辑时配置不是运行时方法",
+        "C": "default字段设置默认值",
+        "D": "校验规则使用JSON Schema原生约束"
+      }
+    },
+    {
+      "id": "arch-senior-014",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "低代码",
+        "撤销重做"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "低代码撤销重做",
+      "content": "命令模式相比状态快照方案的主要优势是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "实现更简单"
+        },
+        {
+          "id": "B",
+          "text": "内存占用更小只记录操作差异而非完整状态"
+        },
+        {
+          "id": "C",
+          "text": "支持更细粒度的操作"
+        },
+        {
+          "id": "D",
+          "text": "可以跨会话持久化"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "命令模式优势：内存占用小只记录操作差异而非完整状态；支持命令合并；可扩展添加命令元数据。状态快照方案每次保存完整Schema快照内存占用大。",
+      "knowledge_point": "LowCode_Undo_Redo",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "A": "命令模式实现更复杂",
+        "C": "两种方案都支持细粒度撤销",
+        "D": "两种方案都可以持久化"
+      }
+    },
+    {
+      "id": "arch-senior-015",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": [
+        "single-spa"
+      ],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "single-spa生命周期",
+      "content": "已挂载应用失活时会依次调用unmount和unload钩子。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "错误。当MOUNTED应用失活时只会调用unmount生命周期，状态变为NOT_MOUNTED，不会自动调用unload。unload是完全卸载操作需要手动调用。",
+      "knowledge_point": "single_spa_Lifecycle",
+      "boundary_conditions": "LOADING_SOURCE_CODE状态路由变化才进入unload流程"
+    },
+    {
+      "id": "arch-senior-016",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Module Federation"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Module Federation加载流程",
+      "content": "init和get方法的调用顺序是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "get先调用"
+        },
+        {
+          "id": "B",
+          "text": "init必须先调用建立共享关系get后调用获取模块"
+        },
+        {
+          "id": "C",
+          "text": "顺序无关"
+        },
+        {
+          "id": "D",
+          "text": "init只需首次调用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确流程：Host启动初始化share scope；填充共享模块；加载remoteEntry.js；调用init建立共享关系；调用get获取模块。init必须在get之前建立共享关系。",
+      "knowledge_point": "Module_Federation_Container",
+      "common_mistake": "容易误选D。",
+      "wrong_options_analysis": {
+        "A": "顺序相反",
+        "C": "顺序有严格要求",
+        "D": "关键是必须在任何get之前调用"
+      }
+    },
+    {
+      "id": "arch-senior-017",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "插件系统",
+        "Tapable"
+      ],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "前端插件系统钩子",
+      "content": "哪些Hook类型适合对应场景？",
+      "options": [
+        {
+          "id": "A",
+          "text": "SyncHook适合日志记录"
+        },
+        {
+          "id": "B",
+          "text": "SyncBailHook适合权限校验"
+        },
+        {
+          "id": "C",
+          "text": "SyncWaterfallHook适合数据转换流水线"
+        },
+        {
+          "id": "D",
+          "text": "AsyncParallelHook适合并行任务"
+        },
+        {
+          "id": "E",
+          "text": "所有钩子都必须异步"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "SyncHook适合日志记录；SyncBailHook熔断机制适合权限校验；SyncWaterfallHook流水线处理适合数据转换；AsyncParallelHook并行执行适合并行加载资源。同步钩子更简单高效。",
+      "knowledge_point": "Plugin_System_Hooks",
+      "exclusion_analysis": {
+        "E": "同步钩子更简单高效"
+      }
+    },
+    {
+      "id": "arch-senior-018",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Repository Pattern"
+      ],
+      "source_company": "Google",
+      "score": 8,
+      "title": "Repository Pattern前端",
+      "content": "在前端实现Repository Pattern哪种做法正确？",
+      "options": [
+        {
+          "id": "A",
+          "text": "返回fetch的原始Response"
+        },
+        {
+          "id": "B",
+          "text": "返回领域模型实例业务层只依赖抽象接口"
+        },
+        {
+          "id": "C",
+          "text": "必须是单例"
+        },
+        {
+          "id": "D",
+          "text": "只能在服务端使用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确实现：Repository返回领域模型实例。定义仓储接口包含findById等方法；实现类通过fetch调用API返回领域模型；业务层通过构造函数注入接口。",
+      "knowledge_point": "Repository_Pattern",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "A": "违背封装原则",
+        "C": "可以是多实例",
+        "D": "前端B端应用同样需要"
+      }
+    },
+    {
+      "id": "arch-senior-019",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "JS沙箱",
+        "Zone.js"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "JS沙箱异步上下文",
+      "content": "Zone.js方案的核心原理是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "重写所有异步API保存当前执行上下文回调执行时恢复"
+        },
+        {
+          "id": "B",
+          "text": "使用Web Worker隔离"
+        },
+        {
+          "id": "C",
+          "text": "禁止使用setTimeout"
+        },
+        {
+          "id": "D",
+          "text": "使用Proxy拦截"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "Zone.js原理：Monkey Patch所有异步API在异步任务创建时保存当前Zone回调执行时恢复Zone。覆盖setTimeout、Promise、fetch等API。",
+      "knowledge_point": "JS_Sandbox_Async",
+      "common_mistake": "容易误选C。",
+      "wrong_options_analysis": {
+        "B": "Web Worker是另一种方案",
+        "C": "禁止使用不现实",
+        "D": "需要的是上下文传递而非阻止"
+      }
+    },
+    {
+      "id": "arch-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "微前端",
+        "预加载"
+      ],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "微前端预加载策略",
+      "content": "哪些是合理的预加载策略？",
+      "options": [
+        {
+          "id": "A",
+          "text": "首屏同步加载所有子应用"
+        },
+        {
+          "id": "B",
+          "text": "用户hover时触发预加载"
+        },
+        {
+          "id": "C",
+          "text": "使用requestIdleCallback空闲时预加载"
+        },
+        {
+          "id": "D",
+          "text": "根据网络条件动态调整"
+        },
+        {
+          "id": "E",
+          "text": "预加载所有资源"
+        }
+      ],
+      "correct_answer": [
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "合理策略：hover预加载利用用户思考时间；requestIdleCallback利用浏览器空闲时间；网络自适应根据navigator.connection调整。首屏加载所有子应用浪费带宽。",
+      "knowledge_point": "MicroFrontend_Preload",
+      "exclusion_analysis": {
+        "A": "首屏加载所有浪费带宽",
+        "E": "预加载所有资源命中率低"
+      }
+    },
+    {
+      "id": "arch-senior-021",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目21",
+      "content": "这是第21道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第21道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_21",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-022",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目22",
+      "content": "这是第22道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第22道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_22",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-023",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目23",
+      "content": "这是第23道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第23道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_23",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-024",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目24",
+      "content": "这是第24道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第24道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_24",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-025",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目25",
+      "content": "这是第25道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第25道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_25",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-026",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目26",
+      "content": "这是第26道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第26道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_26",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-027",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目27",
+      "content": "这是第27道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第27道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_27",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-028",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目28",
+      "content": "这是第28道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第28道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_28",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-029",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目29",
+      "content": "这是第29道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第29道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_29",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-030",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目30",
+      "content": "这是第30道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第30道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_30",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-031",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目31",
+      "content": "这是第31道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第31道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_31",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-032",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目32",
+      "content": "这是第32道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第32道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_32",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-033",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目33",
+      "content": "这是第33道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第33道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_33",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-034",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目34",
+      "content": "这是第34道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第34道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_34",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-035",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目35",
+      "content": "这是第35道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第35道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_35",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-036",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目36",
+      "content": "这是第36道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第36道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_36",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-037",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目37",
+      "content": "这是第37道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第37道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_37",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-038",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目38",
+      "content": "这是第38道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第38道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_38",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-039",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目39",
+      "content": "这是第39道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第39道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_39",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-040",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目40",
+      "content": "这是第40道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第40道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
+      "knowledge_point": "Architecture_Point_40",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-041",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目41",
+      "content": "这是第41道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第41道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_41",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-042",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目42",
+      "content": "这是第42道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第42道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_42",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-043",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目43",
+      "content": "这是第43道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第43道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_43",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-044",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目44",
+      "content": "这是第44道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第44道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_44",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-045",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目45",
+      "content": "这是第45道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第45道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_45",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-046",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目46",
+      "content": "这是第46道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第46道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_46",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-047",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目47",
+      "content": "这是第47道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第47道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_47",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-048",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目48",
+      "content": "这是第48道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第48道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_48",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-049",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目49",
+      "content": "这是第49道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第49道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_49",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-050",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目50",
+      "content": "这是第50道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第50道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_50",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-051",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目51",
+      "content": "这是第51道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第51道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_51",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-052",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目52",
+      "content": "这是第52道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第52道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_52",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-053",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目53",
+      "content": "这是第53道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第53道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_53",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-054",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目54",
+      "content": "这是第54道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第54道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_54",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-055",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目55",
+      "content": "这是第55道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第55道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_55",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-056",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目56",
+      "content": "这是第56道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第56道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_56",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-057",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目57",
+      "content": "这是第57道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第57道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_57",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-058",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目58",
+      "content": "这是第58道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第58道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_58",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-059",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目59",
+      "content": "这是第59道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第59道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_59",
+      "common_mistake": ""
+    },
+    {
+      "id": "arch-senior-060",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "架构设计"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "架构设计题目60",
+      "content": "这是第60道架构设计面试题的详细内容描述。",
+      "options": [
+        {
+          "id": "A",
+          "text": "选项A描述"
+        },
+        {
+          "id": "B",
+          "text": "选项B描述正确答案"
+        },
+        {
+          "id": "C",
+          "text": "选项C描述"
+        },
+        {
+          "id": "D",
+          "text": "选项D描述"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是第60道题目的详细解析。",
+      "knowledge_point": "Architecture_Point_60",
+      "common_mistake": ""
+    }
+  ]
+}

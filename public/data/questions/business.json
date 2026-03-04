@@ -1,0 +1,4029 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "Business Architecture & Best Practices",
+    "generated_at": "2023-10-27T10:00:00.000Z",
+    "total_questions": 30,
+    "target_level": "Senior",
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
+  },
+  "questions": [
+    {
+      "id": "arch-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["DDD", "Architecture", "Domain Modeling"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "DDD 聚合根识别原则",
+      "content": "在领域驱动设计（DDD）的前端落地中，识别聚合根（Aggregate Root）是关键步骤。以下关于聚合根识别的描述，哪项最符合最佳实践？",
+      "options": [
+        {
+          "id": "A",
+          "text": "聚合根应该是数据量最大的实体，以便集中管理状态"
+        },
+        {
+          "id": "B",
+          "text": "聚合根是外部对象访问聚合内其他对象的唯一入口，保证事务一致性边界"
+        },
+        {
+          "id": "C",
+          "text": "聚合根必须对应数据库中的一张表，便于 ORM 映射"
+        },
+        {
+          "id": "D",
+          "text": "聚合根应该包含所有业务逻辑，避免服务层代码"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：聚合根是聚合模式中唯一可被外部引用的对象，它维护了聚合内的不变性条件（Invariants）。正确选型：B 选项准确描述了聚合根的核心职责——作为唯一入口并维护一致性边界。错误选型：A 错在数据量不是标准；C 错在 DDD 是领域模型，不应受持久化细节束缚；D 错在聚合根应聚焦核心业务规则，而非所有逻辑。工程实践：在前端状态管理（如 Redux/Store）中，聚合根可对应 Slice 的根 State，确保状态变更的原子性。",
+      "common_mistake": "误认为聚合根就是最大的对象或数据库表映射",
+      "knowledge_point": "DDD_Aggregate_Root"
+    },
+    {
+      "id": "arch-senior-002",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Large File", "Upload", "Performance"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "大文件分片上传策略",
+      "content": "针对 GB 级别的大文件上传，为了保证传输效率和断点续传能力，分片大小（Chunk Size）的最佳设定策略是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "固定为 1MB，便于服务器统一处理"
+        },
+        {
+          "id": "B",
+          "text": "固定为 100MB，减少请求次数"
+        },
+        {
+          "id": "C",
+          "text": "根据网络状况动态调整，通常 2-5MB，兼顾并发与失败重试成本"
+        },
+        {
+          "id": "D",
+          "text": "由用户手动选择分片大小"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：分片上传核心在于平衡并发度、失败重试成本和服务器合并压力。正确选型：C 选项符合工程实践，2-5MB 是业界通用值，既能利用多连接并发，又能在弱网重试时减少流量浪费。错误选型：A 太小导致请求过多，HTTP 头开销大；B 太大导致单次失败重试成本过高；D 用户体验差。工程实践：结合网络速度探测（Network Information API）动态调整分片大小，配合 MD5 秒传机制。",
+      "common_mistake": "认为分片越大越好或越小越好，忽略网络波动",
+      "knowledge_point": "Upload_Chunking_Strategy"
+    },
+    {
+      "id": "arch-senior-003",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Flash Sale", "Concurrency", "Architecture"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "秒杀架构前端限流",
+      "content": "在高并发秒杀场景下，前端架构为了防止无效流量打垮后端，首要采取的防御措施是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在前端进行用户资格校验，隐藏购买按钮"
+        },
+        {
+          "id": "B",
+          "text": "按钮点击后禁用，并结合本地令牌桶限流，请求携带动态 Token"
+        },
+        {
+          "id": "C",
+          "text": "使用 WebSocket 全量推送库存数据到前端"
+        },
+        {
+          "id": "D",
+          "text": "增加前端服务器负载均衡"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：前端限流的核心是减少无效请求到达后端，同时防止用户重复提交。正确选型：B 选项结合了交互层禁用和逻辑层限流，且动态 Token 防刷。错误选型：A 前端校验不可信，易被绕过；C 全量推送库存会暴露数据且带宽压力大；D 前端服务器负载均衡不解决客户端发起的请求洪水。工程实践：配合后端 Redis 预减库存，前端采用静态资源 CDN 化，动静分离。",
+      "common_mistake": "过度依赖前端校验安全性，忽略防刷机制",
+      "knowledge_point": "FlashSale_Frontend_Limit"
+    },
+    {
+      "id": "arch-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Collaborative Editing", "OT", "CRDT"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "协同编辑算法选型",
+      "content": "在实现类似 Google Docs 的多人协同编辑功能时，关于 OT（Operational Transformation）与 CRDT（Conflict-free Replicated Data Types）的选择，以下说法正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "CRDT 必须依赖中心服务器转换操作，OT 可以完全去中心化"
+        },
+        {
+          "id": "B",
+          "text": "OT 算法实现相对简单，适合文档结构简单场景；CRDT 数学保证一致性，适合复杂数据结构"
+        },
+        {
+          "id": "C",
+          "text": "OT 和 CRDT 在任何场景下性能完全一致"
+        },
+        {
+          "id": "D",
+          "text": "前端只能使用 OT，CRDT 必须运行在服务端"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：OT 依赖服务器进行操作转换保证顺序，CRDT 基于数学结构保证最终一致性。正确选型：B 选项客观描述了两者特点，OT 成熟但服务器压力大，CRDT 去中心化潜力大但内存占用高。错误选型：A 说反了；C 性能取决于实现和数据规模；D CRDT 可在前端运行。工程实践：目前主流协同文档（如飞书）多采用 OT 变种，新兴项目尝试 Yjs (CRDT)。",
+      "common_mistake": "混淆 OT 与 CRDT 的中心化依赖特性",
+      "knowledge_point": "Collab_OT_vs_CRDT"
+    },
+    {
+      "id": "arch-senior-005",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Virtual List", "Performance", "Rendering"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "长列表渲染引擎优化",
+      "content": "面对几十万条数据的长列表渲染，除了虚拟滚动（Virtual Scrolling）外，以下哪项优化手段对 FPS 提升最显著？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 CSS Grid 代替 Flex 布局"
+        },
+        {
+          "id": "B",
+          "text": "将列表项组件化为 React/Vue 组件，利用框架优化"
+        },
+        {
+          "id": "C",
+          "text": "使用 documentFragment 批量插入 DOM，并限制 DOM 节点总数，配合时间分片（Time Slicing）"
+        },
+        {
+          "id": "D",
+          "text": "增加浏览器缓存策略"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：长列表性能瓶颈在于 DOM 操作耗时和主线程阻塞。正确选型：C 选项直接针对 DOM 操作开销和主线程阻塞，时间分片避免长任务。错误选型：A 布局方式影响较小；B 组件化反而可能增加虚拟 DOM 开销；D 缓存不解决渲染性能。工程实践：结合 requestIdleCallback 或 requestAnimationFrame 进行渲染调度，非可视区域使用占位符。",
+      "common_mistake": "过度依赖框架优化，忽略原生 DOM 操作成本",
+      "knowledge_point": "VirtualList_DOM_Optimization"
+    },
+    {
+      "id": "arch-senior-006",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["BFF", "Architecture", "API"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "BFF 层核心职责",
+      "content": "在 Backend For Frontend (BFF) 架构演进中，BFF 层最核心的职责边界是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "替代后端完成所有数据库 CRUD 操作"
+        },
+        {
+          "id": "B",
+          "text": "负责协议转换、数据聚合、裁剪，适配特定前端端点需求"
+        },
+        {
+          "id": "C",
+          "text": "作为静态资源服务器托管 HTML/CSS"
+        },
+        {
+          "id": "D",
+          "text": "处理所有业务逻辑校验，后端仅提供数据存取"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：BFF 旨在解决通用后端接口与特定前端需求不匹配的问题。正确选型：B 选项准确描述了 BFF 的聚合与适配职能。错误选型：A 侵入后端领域；C 是 CDN 职责；D 业务逻辑校验应在核心后端保证安全性。工程实践：BFF 通常使用 Node.js，利用 GraphQL 或 tRPC 实现灵活的数据获取，注意避免 BFF 变得过于臃肿。",
+      "common_mistake": "将 BFF 视为业务逻辑层，导致后端逻辑泄露",
+      "knowledge_point": "BFF_Responsibility"
+    },
+    {
+      "id": "arch-senior-007",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["IM", "WebSocket", "Reconnection"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "IM 重连机制设计",
+      "content": "即时通讯（IM）应用在弱网环境下断开连接，重连策略应采用？",
+      "options": [
+        {
+          "id": "A",
+          "text": "立即无限次重试，直到连接成功"
+        },
+        {
+          "id": "B",
+          "text": "固定间隔 5 秒重试一次"
+        },
+        {
+          "id": "C",
+          "text": "指数退避算法（Exponential Backoff），并加入随机抖动（Jitter）"
+        },
+        {
+          "id": "D",
+          "text": "仅在网络状态变更事件触发时重试"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：重连需避免雪崩效应和对服务器的冲击。正确选型：C 选项是标准分布式系统重连策略，指数退避减少压力，随机抖动避免并发冲突。错误选型：A 会打垮服务器；B 固定间隔可能在网络恢复瞬间造成并发高峰；D 可能漏掉网络恢复时机。工程实践：设置最大重试上限，结合心跳检测（Heartbeat）判断连接存活。",
+      "common_mistake": "忽略重连频率控制，导致服务器压力过大",
+      "knowledge_point": "IM_Reconnection_Strategy"
+    },
+    {
+      "id": "arch-senior-008",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Complex Form", "State Management", "Performance"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "复杂表单联动架构",
+      "content": "在拥有数百个字段的复杂表单中，实现字段间联动（如 A 变化影响 B 的显隐/校验），最佳状态管理方案是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有字段放入一个全局 Store，任何变化触发全量更新"
+        },
+        {
+          "id": "B",
+          "text": "使用基于依赖收集的反应式系统（如 Vue Reactivity 或 MobX），细粒度更新"
+        },
+        {
+          "id": "C",
+          "text": "每个字段独立维护状态，通过 props 传递回调"
+        },
+        {
+          "id": "D",
+          "text": "使用 localStorage 存储表单状态"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：复杂表单性能瓶颈在于无效渲染。正确选型：B 选项利用依赖收集实现细粒度更新，避免无关组件重渲染。错误选型：A 全量更新性能差；C 状态提升困难，联动逻辑分散；D 不适合运行时状态管理。工程实践：结合 Formily 等 schema 驱动方案，将联动逻辑配置化，减少硬编码。",
+      "common_mistake": "使用粗粒度状态管理导致输入卡顿",
+      "knowledge_point": "Form_Reactive_System"
+    },
+    {
+      "id": "arch-senior-009",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Micro Frontend", "Communication", "Architecture"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "微前端通信机制",
+      "content": "在 qiankun 或 micro-app 等微前端架构中，主子应用之间通信最推荐的方式是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接操作对方 DOM 节点"
+        },
+        {
+          "id": "B",
+          "text": "使用 Global Window 对象挂载共享数据"
+        },
+        {
+          "id": "C",
+          "text": "通过自定义事件（CustomEvent）或框架提供的 Props/GlobalState 机制"
+        },
+        {
+          "id": "D",
+          "text": "通过 localStorage 轮询监听"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：微前端核心是隔离，通信需解耦。正确选型：C 选项符合松耦合原则，事件总线或受控 Props 是标准做法。错误选型：A 破坏隔离性；B 污染全局空间，易冲突；D 性能差且非实时。工程实践：推荐使用状态管理库（如 Redux）实例共享或 CustomEvent，避免直接依赖全局变量。",
+      "common_mistake": "过度依赖全局变量导致应用间耦合严重",
+      "knowledge_point": "MicroFrontend_Communication"
+    },
+    {
+      "id": "arch-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Error Tracking", "Monitoring", "Architecture"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "前端异常监控架构",
+      "content": "构建企业级前端异常监控体系，除了捕获 runtime 错误外，还必须包含？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅记录错误堆栈信息"
+        },
+        {
+          "id": "B",
+          "text": "资源加载错误、Promise 拒绝、HTTP 状态码异常及用户行为回溯（Breadcrumbs）"
+        },
+        {
+          "id": "C",
+          "text": "实时监控用户屏幕截图"
+        },
+        {
+          "id": "D",
+          "text": "强制上报所有 console.log 日志"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：完整监控需覆盖所有失败路径及上下文。正确选型：B 选项涵盖了资源、异步、网络及行为上下文，利于复现问题。错误选型：A 信息不足；C 隐私风险高且成本高；D 日志噪音大。工程实践：结合 SourceMap 还原堆栈，使用 SDK 自动采集用户点击路径，注意数据脱敏。",
+      "common_mistake": "忽略资源加载错误和异步错误捕获",
+      "knowledge_point": "Error_Monitoring_Comprehensive"
+    },
+    {
+      "id": "arch-senior-011",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "XSS", "Architecture"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "前端 XSS 防御架构",
+      "content": "在架构层面防御 XSS 攻击，最有效的根本措施是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "前端使用正则过滤所有输入"
+        },
+        {
+          "id": "B",
+          "text": "开启 CSP（Content Security Policy）并配合后端输出编码"
+        },
+        {
+          "id": "C",
+          "text": "禁用所有 JavaScript 执行"
+        },
+        {
+          "id": "D",
+          "text": "使用 HTTPS 协议"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：XSS 本质是恶意脚本执行。正确选型：B 选项 CSP 是浏览器级白名单机制，配合后端编码是纵深防御。错误选型：A 正则易被绕过；C 不可行；D 防窃听不防注入。工程实践：配置 strict-dynamic CSP，使用框架自动转义功能（如 React JSX），避免 dangerouslySetInnerHTML。",
+      "common_mistake": "仅依赖前端过滤，忽略后端编码和 CSP",
+      "knowledge_point": "Security_CSP_Architecture"
+    },
+    {
+      "id": "arch-senior-012",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "Performance", "Architecture"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "SSR  hydration 优化",
+      "content": "服务端渲染（SSR）应用中，解决 hydration 不匹配（Mismatch）导致性能损耗的最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "禁用客户端 JavaScript，仅使用 HTML"
+        },
+        {
+          "id": "B",
+          "text": "确保服务端与客户端渲染逻辑纯函数化，避免使用时间/随机数，并使用 suppressHydrationWarning 处理已知差异"
+        },
+        {
+          "id": "C",
+          "text": "每次加载都强制重新渲染整个页面"
+        },
+        {
+          "id": "D",
+          "text": "将 SSR 改为 CSR"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Hydration 要求 DOM 结构完全一致。正确选型：B 选项从源头保证一致性，并处理 unavoidable 差异。错误选型：A 丧失交互；C 浪费性能；D 放弃 SSR 优势。工程实践：避免在 render 阶段使用 Date.now() 或 Math.random，时间相关逻辑放 useEffect。",
+      "common_mistake": "在服务端渲染代码中包含非确定性逻辑",
+      "knowledge_point": "SSR_Hydration_Match"
+    },
+    {
+      "id": "arch-senior-013",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["DDD", "Architecture", "Design"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "前端 DDD 分层架构要素",
+      "content": "在前端实施领域驱动设计（DDD）时，以下哪些分层是推荐的核心架构要素？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "用户接口层（UI Components）"
+        },
+        {
+          "id": "B",
+          "text": "应用层（Use Cases/Services）"
+        },
+        {
+          "id": "C",
+          "text": "领域层（Entities/Value Objects）"
+        },
+        {
+          "id": "D",
+          "text": "基础设施层（API Adapters/Storage）"
+        },
+        {
+          "id": "E",
+          "text": "数据库物理模型层（SQL Tables）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：DDD 强调关注点分离。正确选型：A/B/C/D 对应标准 DDD 四层架构在前端的映射。错误选型：E 属于后端持久化细节，前端不应直接依赖物理表结构。工程实践：使用 Clean Architecture 或 Hexagonal Architecture 组织代码，领域层不依赖框架。",
+      "common_mistake": "将基础设施细节泄露到领域层",
+      "knowledge_point": "DDD_Layered_Architecture",
+      "exclusion_analysis": {
+        "E": "前端不应直接依赖数据库物理模型，应通过 Repository 抽象"
+      }
+    },
+    {
+      "id": "arch-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Large File", "Upload", "Security"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "大文件上传安全与完整性",
+      "content": "实现大文件上传功能时，为确保文件安全与完整性，必须实施哪些措施？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "前端计算文件 MD5/SHA1 用于秒传和完整性校验"
+        },
+        {
+          "id": "B",
+          "text": "分片上传完成后，服务端合并并再次校验哈希"
+        },
+        {
+          "id": "C",
+          "text": "上传接口必须携带身份认证 Token，并校验文件类型 MIME"
+        },
+        {
+          "id": "D",
+          "text": "允许用户上传任意扩展名的文件，由后端处理"
+        },
+        {
+          "id": "E",
+          "text": "使用 HTTPS 传输防止中间人篡改"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：文件上传需防篡改、防伪造、防窃取。正确选型：A/B 保证完整性，C/E 保证安全性。错误选型：D 允许任意扩展名存在严重安全风险（如上传 exe/sh）。工程实践：前端校验 MIME 和扩展名，后端二次校验文件头魔数（Magic Number）。",
+      "common_mistake": "仅依赖前端扩展名校验，忽略文件头检查",
+      "knowledge_point": "Upload_Security_Integrity",
+      "exclusion_analysis": {
+        "D": "允许任意扩展名会导致恶意脚本上传风险"
+      }
+    },
+    {
+      "id": "arch-senior-015",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Performance", "Rendering", "Optimization"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "首屏性能优化核心指标",
+      "content": "针对复杂业务系统的首屏性能优化，以下哪些指标是 Core Web Vitals 关注的关键？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "LCP (Largest Contentful Paint)"
+        },
+        {
+          "id": "B",
+          "text": "FID (First Input Delay) 或 INP (Interaction to Next Paint)"
+        },
+        {
+          "id": "C",
+          "text": "CLS (Cumulative Layout Shift)"
+        },
+        {
+          "id": "D",
+          "text": "TTFB (Time To First Byte)"
+        },
+        {
+          "id": "E",
+          "text": "FPS (Frames Per Second) 全程平均值"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：Core Web Vitals 是 Google 定义的用户体验核心指标。正确选型：A/B/C 是三大核心，D 是网络层关键指标。错误选型：E 虽重要但不是 Core Web Vitals 标准定义。工程实践：优化 LCP 需 preload 关键资源，优化 CLS 需预留空间，优化 INP 需减少主线程阻塞。",
+      "common_mistake": "仅关注加载时间，忽略交互延迟和布局偏移",
+      "knowledge_point": "Core_Web_Vitals",
+      "exclusion_analysis": {
+        "E": "FPS 是动画流畅度指标，非 Core Web Vitals 核心定义"
+      }
+    },
+    {
+      "id": "arch-senior-016",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["State Management", "Architecture", "Pattern"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "前端状态管理选型原则",
+      "content": "在设计大型应用状态管理架构时，以下哪些场景适合引入全局状态管理（如 Redux/Zustand）？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "多个不相关组件需要共享同一份数据"
+        },
+        {
+          "id": "B",
+          "text": "数据需要在页面刷新后持久化"
+        },
+        {
+          "id": "C",
+          "text": "简单的父子组件传值"
+        },
+        {
+          "id": "D",
+          "text": "复杂的状态流转逻辑需要时间旅行调试"
+        },
+        {
+          "id": "E",
+          "text": "所有组件的所有数据"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：全局状态有成本，应按需使用。正确选型：A/B/D 是全局状态的典型适用场景。错误选型：C 用 Props 即可；E 会导致性能浪费和耦合。工程实践：优先使用 Context 或组件组合，仅在必要时引入外部 Store，避免过度设计。",
+      "common_mistake": "将所有数据放入全局 Store，导致更新频繁",
+      "knowledge_point": "State_Management_Pattern",
+      "exclusion_analysis": {
+        "C": "父子传值使用 Props 更简单直接",
+        "E": "全局状态应有边界，非所有数据都需全局化"
+      }
+    },
+    {
+      "id": "arch-senior-017",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Cache", "Performance", "Strategy"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "前端缓存策略组合",
+      "content": "为了最大化利用浏览器缓存提升加载速度，以下哪些 HTTP 缓存策略组合是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "静态资源使用 Cache-Control: max-age=31536000 配合文件名 Hash"
+        },
+        {
+          "id": "B",
+          "text": "HTML 文件使用 no-cache 强制协商"
+        },
+        {
+          "id": "C",
+          "text": "API 接口数据默认使用 no-store"
+        },
+        {
+          "id": "D",
+          "text": "使用 Service Worker 拦截请求实现离线缓存"
+        },
+        {
+          "id": "E",
+          "text": "所有资源都设置为永久缓存"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：缓存需平衡实时性与性能。正确选型：A 强缓存静态资源，B 确保 HTML 最新从而更新引用，D 提供离线能力。错误选型：C 部分读多写少接口可缓存；E 会导致内容无法更新。工程实践：构建时生成 Hash 文件名，HTML 不缓存，静态资源强缓存。",
+      "common_mistake": "HTML 文件强缓存导致新版本无法生效",
+      "knowledge_point": "HTTP_Cache_Strategy",
+      "exclusion_analysis": {
+        "C": "部分 GET 接口可设置短期缓存",
+        "E": "动态内容不可永久缓存"
+      }
+    },
+    {
+      "id": "arch-senior-018",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "Engineering", "Quality"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端测试金字塔实践",
+      "content": "在构建高可靠性前端工程体系时，关于测试策略的描述，哪些是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "单元测试（Unit Test）应覆盖核心工具函数和复杂逻辑"
+        },
+        {
+          "id": "B",
+          "text": "端到端测试（E2E）应覆盖关键用户旅程"
+        },
+        {
+          "id": "C",
+          "text": "所有 UI 组件都必须进行像素级快照测试"
+        },
+        {
+          "id": "D",
+          "text": "集成测试用于验证模块间交互"
+        },
+        {
+          "id": "E",
+          "text": "测试代码不需要维护，随便写写"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：测试金字塔强调底层多顶层少。正确选型：A/B/D 符合金字塔结构。错误选型：C 快照测试维护成本高，不宜全量；E 测试代码也是代码，需维护。工程实践：核心逻辑单元测试，关键流程 E2E（如 Cypress/Playwright），避免过度测试 UI 细节。",
+      "common_mistake": "过度依赖 E2E 测试导致运行缓慢，或忽略单元测试",
+      "knowledge_point": "Testing_Pyramid",
+      "exclusion_analysis": {
+        "C": "快照测试适合稳定组件，全量使用维护成本过高",
+        "E": "测试代码需保证质量和可维护性"
+      }
+    },
+    {
+      "id": "arch-senior-019",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["WebAssembly", "Performance", "Compute"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "WebAssembly 适用场景",
+      "content": "在以下哪些场景中，引入 WebAssembly (Wasm) 能带来显著的性能提升？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "复杂的图像/视频处理算法"
+        },
+        {
+          "id": "B",
+          "text": "加密解密运算"
+        },
+        {
+          "id": "C",
+          "text": "简单的 DOM 操作"
+        },
+        {
+          "id": "D",
+          "text": "游戏引擎物理计算"
+        },
+        {
+          "id": "E",
+          "text": "表单数据验证"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：Wasm 擅长 CPU 密集型计算，不擅长 DOM 操作。正确选型：A/B/D 均为计算密集型。错误选型：C/E 涉及大量 DOM 或逻辑简单，JS 足够且交互更方便。工程实践：使用 Rust/C++ 编写核心算法编译为 Wasm，通过 JS 调用，注意内存拷贝开销。",
+      "common_mistake": "在 DOM 操作频繁场景使用 Wasm，反而性能下降",
+      "knowledge_point": "Wasm_Use_Cases",
+      "exclusion_analysis": {
+        "C": "DOM 操作 JS 更高效，Wasm 操作 DOM 需桥接",
+        "E": "简单逻辑 JS 执行速度足够，无需 Wasm  overhead"
+      }
+    },
+    {
+      "id": "arch-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Engineering", "DevOps"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "前端自动化部署流程",
+      "content": "构建高效的前端 CI/CD 流水线，以下哪些环节是不可或缺的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "代码提交触发 Lint 和 Type Check"
+        },
+        {
+          "id": "B",
+          "text": "自动化测试运行（Unit/E2E）"
+        },
+        {
+          "id": "C",
+          "text": "构建产物上传至 CDN 或对象存储"
+        },
+        {
+          "id": "D",
+          "text": "自动回滚机制"
+        },
+        {
+          "id": "E",
+          "text": "人工手动打包上传 FTP"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：自动化旨在减少人为错误，提高效率。正确选型：A/B/C/D 构成了完整的自动化闭环。错误选型：E 是传统手工方式，易出错且效率低。工程实践：结合 Git Hooks 预检查，CI 服务器构建，CD 自动发布，配合灰度发布策略。",
+      "common_mistake": "忽略自动化测试或回滚机制，导致线上故障恢复慢",
+      "knowledge_point": "CICD_Pipeline",
+      "exclusion_analysis": {
+        "E": "手动上传违背自动化原则，易出错"
+      }
+    },
+    {
+      "id": "arch-senior-021",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "CSRF", "Auth"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "前端认证与安全机制",
+      "content": "在设计前后端分离的认证体系时，以下哪些措施有助于防止 CSRF 和 XSS 攻击？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 SameSite=Strict 的 Cookie"
+        },
+        {
+          "id": "B",
+          "text": "敏感操作要求二次验证或 CSRF Token"
+        },
+        {
+          "id": "C",
+          "text": "Token 存储在 localStorage 中方便获取"
+        },
+        {
+          "id": "D",
+          "text": "实施内容安全策略 CSP"
+        },
+        {
+          "id": "E",
+          "text": "所有接口强制 HTTPS"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "原理机制：认证安全需多层防御。正确选型：A 防 CSRF，B 防 CSRF，D 防 XSS，E 防窃听。错误选型：C localStorage 易受 XSS 攻击读取 Token，推荐 HttpOnly Cookie。工程实践：优先使用 HttpOnly Cookie 存储 Refresh Token，Access Token 可内存存储，配合 CSRF Token。",
+      "common_mistake": "将 Access Token 存入 localStorage 导致 XSS 窃取风险",
+      "knowledge_point": "Auth_Security_Best_Practice",
+      "exclusion_analysis": {
+        "C": "localStorage 无法防御 XSS 脚本读取，不安全"
+      }
+    },
+    {
+      "id": "arch-senior-022",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["React", "Performance", "Hook"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "useEffect 依赖项管理",
+      "content": "在 React 中，useEffect 的依赖数组可以为空，表示该 effect 仅在组件挂载和卸载时运行。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：空依赖数组确实等同于 componentDidMount/componentWillUnmount 生命周期。但需注意闭包陷阱，若 effect 内部使用了 state 但未加入依赖，可能读取到旧值。",
+      "explanation": "原理机制：useEffect 依赖数组决定执行时机。正确选型：空数组 [] 表示仅运行一次（挂载）。错误选型：若选错误则误解了 Hook 生命周期。工程实践：严格使用 eslint-plugin-react-hooks 检查依赖项，避免遗漏导致状态不同步。",
+      "common_mistake": "忽略闭包陷阱，随意留空依赖数组",
+      "knowledge_point": "React_UseEffect_Dep"
+    },
+    {
+      "id": "arch-senior-023",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Browser", "Event Loop", "Performance"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "微任务与宏任务执行顺序",
+      "content": "在浏览器事件循环中，Promise 的 then 回调（微任务）总是在 setTimeout（宏任务）之前执行，无论它们是如何被调度的。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：同一轮事件循环中，微任务队列清空后才会执行宏任务。但若 Promise 是在 setTimeout 回调中创建的，则该 Promise 会在下一轮宏任务之后的微任务中执行。题目描述的是调度后的执行优先级，通常理解为同一 tick 内。严谨来说，当前宏任务结束后，先清空微任务，再取下一个宏任务。",
+      "explanation": "原理机制：Event Loop 机制规定微任务优先级高于宏任务。正确选型：A 符合规范。错误选型：B 误解了事件循环顺序。工程实践：利用微任务实现批量 DOM 更新后的回调，避免频繁重排。注意微任务过多会导致宏任务饥饿。",
+      "common_mistake": "混淆不同轮次的事件循环顺序",
+      "knowledge_point": "Event_Loop_Micro_Macro"
+    },
+    {
+      "id": "arch-senior-024",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["CSS", "Layout", "Performance"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "CSS 属性与重排重绘",
+      "content": "修改元素的 transform 和 opacity 属性通常会触发 GPU 加速，不会引起重排（Reflow）和重绘（Repaint）。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：这两个属性属于 Compositor-Only 属性。但在某些极端浏览器版本或特定上下文（如包含 iframe）可能退化。通常视为正确。",
+      "explanation": "原理机制：浏览器渲染管线中，transform/opacity 可在合成层处理。正确选型：A 符合性能优化最佳实践。错误选型：B 忽略了 GPU 加速机制。工程实践：动画优先使用 transform/opacity，避免修改 top/left/width 等触发重排的属性。",
+      "common_mistake": "认为所有 CSS 变更都会重排",
+      "knowledge_point": "CSS_GPU_Acceleration"
+    },
+    {
+      "id": "arch-senior-025",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["TypeScript", "Type System", "Architecture"],
+      "source_company": "Microsoft",
+      "score": 5,
+      "title": "TypeScript 类型擦除",
+      "content": "TypeScript 的类型系统仅在编译期存在，运行时会完全擦除，因此无法在运行时直接通过 instanceof 判断泛型类型。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：泛型信息确实被擦除。但 class 类型在运行时有构造函数存在，可判断类实例，不可判断泛型参数。题目特指泛型类型。",
+      "explanation": "原理机制：TS 是 JS 的超集，类型不 emit 到 JS 代码。正确选型：A 准确描述了类型擦除特性。错误选型：B 误解了 TS 编译原理。工程实践：若需运行时类型检查，需使用 zod/class-validator 等库，或保留类型字段。",
+      "common_mistake": "试图在运行时获取泛型具体类型",
+      "knowledge_point": "TS_Type_Erasure"
+    },
+    {
+      "id": "arch-senior-026",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["HTTP", "Protocol", "Performance"],
+      "source_company": "Cloudflare",
+      "score": 5,
+      "title": "HTTP/2 多路复用",
+      "content": "HTTP/2 协议通过多路复用（Multiplexing）解决了 HTTP/1.1 的队头阻塞问题，因此前端不再需要域名分片（Domain Sharding）。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：HTTP/2 确实解决了应用层队头阻塞。但在 TCP 层仍可能存在阻塞。总体而言，HTTP/2 下域名分片通常不再推荐，甚至有害。",
+      "explanation": "原理机制：HTTP/2 允许单连接多请求并行。正确选型：A 符合现代网络优化原则。错误选型：B 仍沿用 HTTP/1.1 优化策略。工程实践：启用 HTTP/2 后，合并请求，减少域名数量，利用服务器推送（Server Push）需谨慎。",
+      "common_mistake": "在 HTTP/2 环境下继续使用域名分片",
+      "knowledge_point": "HTTP2_Multiplexing"
+    },
+    {
+      "id": "arch-senior-027",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Rate Limiter", "Engineering"],
+      "source_company": "Google",
+      "score": 20,
+      "title": "前端令牌桶限流器实现",
+      "content": "实现一个令牌桶（Token Bucket）算法类，用于限制异步请求的并发速率。要求支持动态调整速率，并处理突发流量。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class TokenBucket {\n  constructor(capacity: number, refillRate: number) {}\n  \n  // 获取令牌，若不足则等待\n  async acquire(): Promise<void> {}\n  \n  // 动态调整速率\n  updateRate(newRate: number): void {}\n}",
+      "test_cases": [
+        {
+          "input": "capacity=5, rate=1/s, 连续请求 10 次",
+          "expected_output": "前 5 次立即执行，后 5 次按 1s 间隔执行",
+          "description": "测试桶容量和限流效果"
+        },
+        {
+          "input": "updateRate 后请求",
+          "expected_output": "请求间隔随新速率变化",
+          "description": "测试动态调整"
+        },
+        {
+          "input": "并发调用 acquire",
+          "expected_output": "按顺序排队执行，无超发",
+          "description": "测试并发安全性"
+        }
+      ],
+      "time_complexity": "O(1) for acquire (average)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：令牌桶以固定速率生成令牌，请求消耗令牌。正确选型：需维护当前令牌数、最后更新时间、队列。错误选型：仅用计数器无法处理突发。工程实践：用于 API 限流、动画帧控制。注意定时器精度问题，可使用 requestAnimationFrame 或 Date.now 计算。",
+      "common_mistake": "忽略时间流逝计算，仅简单计数",
+      "knowledge_point": "Algo_Token_Bucket"
+    },
+    {
+      "id": "arch-senior-028",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "LRU", "Cache"],
+      "source_company": "Amazon",
+      "score": 20,
+      "title": "前端资源 LRU 缓存管理",
+      "content": "实现一个 LRU（Least Recently Used）缓存类，用于管理前端内存中的大对象（如图片 Blob），超出容量时自动淘汰最久未使用的项。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class LRUCache<K, V> {\n  constructor(capacity: number) {}\n  get(key: K): V | undefined {}\n  put(key: K, value: V): void {}\n}",
+      "test_cases": [
+        {
+          "input": "put 超出 capacity 数量的元素",
+          "expected_output": "最早放入且未访问的元素被删除",
+          "description": "测试淘汰机制"
+        },
+        {
+          "input": "get 访问某个元素",
+          "expected_output": "该元素变为最新，不被淘汰",
+          "description": "测试活跃度更新"
+        },
+        {
+          "input": "capacity=0",
+          "expected_output": "不存储任何元素",
+          "description": "测试边界条件"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(capacity)",
+      "explanation": "原理机制：LRU 需结合 HashMap 和双向链表实现 O(1) 操作。正确选型：Map 存 key-node，链表存顺序。错误选型：仅用数组查找效率低。工程实践：用于管理 IndexedDB 缓存或内存对象 URL，防止内存泄漏。",
+      "common_mistake": "使用数组查找导致 O(n) 复杂度",
+      "knowledge_point": "Algo_LRU_Cache"
+    },
+    {
+      "id": "arch-senior-029",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Diff", "Virtual List"],
+      "source_company": "Meta",
+      "score": 20,
+      "title": "虚拟列表位置计算算法",
+      "content": "在变高虚拟列表中，实现一个方法，根据滚动条位置计算当前应渲染的起始索引和结束索引。已知每个 item 高度动态变化。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Item {\n  height: number;\n  id: string;\n}\n\nclass VirtualListCalculator {\n  constructor(items: Item[], containerHeight: number) {}\n  \n  // 根据 scrollTop 返回渲染范围\n  getRenderRange(scrollTop: number): { start: number; end: number } {}\n}",
+      "test_cases": [
+        {
+          "input": "scrollTop=0",
+          "expected_output": "start=0, end=可视区能容纳的数量",
+          "description": "测试顶部边界"
+        },
+        {
+          "input": "scrollTop=最大值",
+          "expected_output": "start=最后几个，end=总长度",
+          "description": "测试底部边界"
+        },
+        {
+          "input": "item 高度不一致",
+          "expected_output": "准确计算累积高度偏移",
+          "description": "测试变高逻辑"
+        }
+      ],
+      "time_complexity": "O(log n) using binary search on heights",
+      "space_complexity": "O(n) for storing heights",
+      "explanation": "原理机制：需维护高度前缀和数组，通过二分查找定位 scrollTop 对应的索引。正确选型：前缀和 + 二分。错误选型：线性遍历性能差。工程实践：React Window 等库的核心逻辑，注意动态高度测量后的更新策略。",
+      "common_mistake": "使用线性遍历查找位置，长列表性能差",
+      "knowledge_point": "Algo_Virtual_List_Calc"
+    },
+    {
+      "id": "arch-senior-030",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Request Control", "Concurrency"],
+      "source_company": "Alibaba",
+      "score": 20,
+      "title": "并发请求控制器",
+      "content": "实现一个请求控制器，限制同时进行的异步请求数量不超过 max 个，超出部分需排队等待，支持超时取消。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class RequestController {\n  constructor(max: number) {}\n  \n  addRequest<T>(promiseFactory: () => Promise<T>, timeout?: number): Promise<T> {}\n}",
+      "test_cases": [
+        {
+          "input": "添加 10 个请求，max=3",
+          "expected_output": "同时最多 3 个进行中，其余排队",
+          "description": "测试并发限制"
+        },
+        {
+          "input": "某个请求超时",
+          "expected_output": "该请求 reject，不影响其他请求",
+          "description": "测试超时处理"
+        },
+        {
+          "input": "请求完成",
+          "expected_output": "队列中下一个请求自动开始",
+          "description": "测试队列调度"
+        }
+      ],
+      "time_complexity": "O(1) for queue operations",
+      "space_complexity": "O(n) for queue",
+      "explanation": "原理机制：维护一个运行计数器和一个等待队列。正确选型：Promise 链式调用控制并发。错误选型：直接 Promise.all 无限制。工程实践：用于图片加载、API 批量请求，防止浏览器连接数耗尽。",
+      "common_mistake": "忽略错误处理导致队列卡死",
+      "knowledge_point": "Algo_Concurrency_Control"
+    },
+    {
+      "id": "arch-senior-031",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["State Machine", "Architecture", "XState"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "状态机在复杂交互中的应用",
+      "content": "在处理复杂业务流程（如订单状态流转、向导式表单）时，引入有限状态机（FSM）架构的主要优势是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "减少代码行数，提高开发速度"
+        },
+        {
+          "id": "B",
+          "text": "消除非法状态组合，确保状态流转的可预测性与可测试性"
+        },
+        {
+          "id": "C",
+          "text": "自动优化渲染性能，减少重渲染"
+        },
+        {
+          "id": "D",
+          "text": "替代后端状态管理，实现完全前端化"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：状态机通过定义明确的状态集合和转换规则，从数学上排除了非法状态。正确选型：B 选项准确描述了 FSM 的核心价值——确定性与可维护性。错误选型：A 代码量可能增加（定义状态）；C 状态机本身不优化渲染，需配合框架；D 后端状态仍需同步。工程实践：使用 XState 等库可视化状态图，便于产品与开发对齐逻辑，避免 if-else 嵌套地狱。",
+      "common_mistake": "认为状态机会增加复杂度而拒绝使用，导致逻辑漏洞",
+      "knowledge_point": "Architecture_FSM_Benefit"
+    },
+    {
+      "id": "arch-senior-032",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "Micro Frontend", "Webpack"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "模块联邦运行时依赖",
+      "content": "在使用 Webpack 5 Module Federation 构建微前端时，关于共享依赖（Shared Dependencies）的描述，正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有依赖必须版本完全一致，否则无法加载"
+        },
+        {
+          "id": "B",
+          "text": "支持版本范围匹配，运行时优先加载宿主应用提供的共享单例"
+        },
+        {
+          "id": "C",
+          "text": "子应用必须打包所有依赖，不能共享"
+        },
+        {
+          "id": "D",
+          "text": "共享依赖会自动处理 CSS 冲突"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Module Federation 通过运行时动态链接实现依赖共享。正确选型：B 选项描述了 singleton 机制和 semver 匹配策略。错误选型：A 过于严格，支持范围匹配；C 违背联邦初衷；D CSS 冲突需通过 CSS Modules 或 Shadow DOM 解决。工程实践：配置 shared 字段时指定 singleton: true 防止多实例 React/Vue，注意版本兼容性。",
+      "common_mistake": "忽略 singleton 配置导致框架多实例运行时错误",
+      "knowledge_point": "Module_Federation_Shared"
+    },
+    {
+      "id": "arch-senior-033",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Web Worker", "Performance", "Concurrency"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Web Worker 通信机制",
+      "content": "主线程与 Web Worker 之间通信，性能最优且支持复杂数据结构的方式是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "postMessage 配合结构化克隆算法"
+        },
+        {
+          "id": "B",
+          "text": "直接访问 Worker 全局变量"
+        },
+        {
+          "id": "C",
+          "text": "通过 localStorage 轮询"
+        },
+        {
+          "id": "D",
+          "text": "使用 XMLHttpRequest 同步请求"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：Worker 与主线程隔离，只能通过消息通信。正确选型：A 选项是标准 API，结构化克隆支持大部分对象。错误选型：B 无法跨线程访问；C 性能差且同步；D 阻塞主线程。工程实践：大数据传输可使用 Transferable Objects（如 ArrayBuffer）避免拷贝，提升性能。注意 Worker 内无法操作 DOM。",
+      "common_mistake": "试图在 Worker 中操作 DOM 或忽略数据传输拷贝开销",
+      "knowledge_point": "Web_Worker_Communication"
+    },
+    {
+      "id": "arch-senior-034",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Service Worker", "PWA", "Cache"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "Service Worker 生命周期管理",
+      "content": "关于 Service Worker 的生命周期与更新机制，以下哪些描述是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "SW 脚本更新时，会立即接管当前页面"
+        },
+        {
+          "id": "B",
+          "text": "新 SW 安装后处于 waiting 状态，直到旧 SW 控制的页面关闭"
+        },
+        {
+          "id": "C",
+          "text": "可以通过 skipWaiting() 强制激活新 SW"
+        },
+        {
+          "id": "D",
+          "text": "SW 拦截请求必须在 install 阶段完成"
+        },
+        {
+          "id": "E",
+          "text": "SW 必须通过 HTTPS 协议注册（localhost 除外）"
+        }
+      ],
+      "correct_answer": ["B", "C", "E"],
+      "explanation": "原理机制：SW 设计旨在保证稳定性，避免更新中断用户。正确选型：B/C/E 符合 SW 规范。错误选型：A 更新需等待激活；D 拦截在 fetch 阶段。工程实践：更新策略需配合用户提示（Toast），避免静默更新导致资源版本不一致。注意清除旧缓存策略。",
+      "common_mistake": "强制 skipWaiting 导致页面资源加载 404",
+      "knowledge_point": "Service_Worker_Lifecycle",
+      "exclusion_analysis": {
+        "A": "新 SW 需等待激活，不会立即接管",
+        "D": "请求拦截主要在 fetch 事件监听中"
+      }
+    },
+    {
+      "id": "arch-senior-035",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Memory Leak", "Performance", "Debug"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "前端内存泄漏常见场景",
+      "content": "在单页应用（SPA）长期运行中，以下哪些操作容易导致内存泄漏？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "全局变量引用大对象未清理"
+        },
+        {
+          "id": "B",
+          "text": "定时器（setInterval）未在组件卸载时清除"
+        },
+        {
+          "id": "C",
+          "text": "DOM 元素移除后，事件监听器未解绑"
+        },
+        {
+          "id": "D",
+          "text": "使用 const 声明变量"
+        },
+        {
+          "id": "E",
+          "text": "闭包引用了外部大对象且长期存活"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：GC 基于引用计数或标记清除，意外引用阻止回收。正确选型：A/B/C/E 均制造了意外引用链。错误选型：D const 仅是声明方式，不影响 GC。工程实践：使用 Chrome DevTools Memory 面板拍摄堆快照，对比 Detached DOM 树，定位泄漏源。",
+      "common_mistake": "忽略事件总线或第三方库内部监听器的清理",
+      "knowledge_point": "Memory_Leak_Patterns",
+      "exclusion_analysis": {
+        "D": "const 声明本身不导致泄漏，关键在引用关系"
+      }
+    },
+    {
+      "id": "arch-senior-036",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["i18n", "Architecture", "Internationalization"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "国际化架构设计",
+      "content": "在设计支持多语言的国际化（i18n）架构时，关于翻译资源加载策略，最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "将所有语言包打包进主 bundle"
+        },
+        {
+          "id": "B",
+          "text": "按需加载当前语言包，并设置长期缓存"
+        },
+        {
+          "id": "C",
+          "text": "每次请求都从服务器获取最新翻译"
+        },
+        {
+          "id": "D",
+          "text": "硬编码在组件内部，便于维护"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：i18n 资源应作为静态资产按需加载。正确选型：B 选项平衡了首屏体积与缓存效率。错误选型：A 增加初始包体积；C 增加网络请求延迟；D 违背代码与数据分离原则。工程实践：使用 react-i18next 等库，配合 CDN 分发语言包，版本化文件名以便缓存更新。",
+      "common_mistake": "将所有语言包打入主包，导致初始加载缓慢",
+      "knowledge_point": "i18n_Resource_Loading"
+    },
+    {
+      "id": "arch-senior-037",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Design System", "Token", "Architecture"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "设计系统 Token 管理",
+      "content": "构建企业级 Design System 时，Design Token 的管理应包含哪些要素？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "颜色、间距、字体等原子值定义"
+        },
+        {
+          "id": "B",
+          "text": "支持多主题（暗黑模式）动态切换"
+        },
+        {
+          "id": "C",
+          "text": "与平台无关的 JSON 格式存储"
+        },
+        {
+          "id": "D",
+          "text": "直接硬编码在 CSS 文件中"
+        },
+        {
+          "id": "E",
+          "text": "自动化转换工具生成各平台代码（CSS/JS/iOS）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：Design Token 是设计决策的代码化表示。正确选型：A/B/C/E 体现了 Token 的核心价值——单一来源、多端复用。错误选型：D 违背 Token 抽象原则。工程实践：使用 Style Dictionary 等工具，将 JSON Token 转换为 CSS Variables 或 JS 对象，实现主题无缝切换。",
+      "common_mistake": "将 Token 视为普通 CSS 变量，忽略多端转换能力",
+      "knowledge_point": "Design_System_Token",
+      "exclusion_analysis": {
+        "D": "硬编码 CSS 无法实现动态主题和多端同步"
+      }
+    },
+    {
+      "id": "arch-senior-038",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Monorepo", "Engineering", "Tooling"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Monorepo 架构优势",
+      "content": "在大型前端项目中采用 Monorepo（如 Turborepo/Nx）架构，主要解决的核心问题是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "减少代码仓库数量，便于权限管理"
+        },
+        {
+          "id": "B",
+          "text": "共享依赖、原子化提交、跨项目代码复用"
+        },
+        {
+          "id": "C",
+          "text": "强制所有项目使用相同的技术栈"
+        },
+        {
+          "id": "D",
+          "text": "提高 Git 克隆速度"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Monorepo 将多个项目集中在一个仓库。正确选型：B 选项准确描述了依赖提升、原子性变更和复用优势。错误选型：A 权限管理更复杂；C 可混合技术栈；D 仓库变大克隆变慢。工程实践：配合 pnpm workspace 避免依赖幽灵，使用缓存加速构建。",
+      "common_mistake": "忽略依赖管理工具配置，导致依赖版本冲突",
+      "knowledge_point": "Monorepo_Benefits"
+    },
+    {
+      "id": "arch-senior-039",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Build", "Tree Shaking", "Webpack"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Tree Shaking 生效条件",
+      "content": "只要使用 ES6 Module 语法（import/export），Webpack 就一定能自动进行 Tree Shaking 移除未使用代码。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件：还需满足 package.json 中 sideEffects: false 或配置正确，且代码无副作用。若模块有副作用（如 polyfill 注入），则不会被移除。",
+      "explanation": "原理机制：Tree Shaking 依赖静态分析且需标记无副作用。正确选型：B 选项指出仅语法不够。错误选型：A 忽略了副作用配置。工程实践：检查第三方库是否标记 sideEffects，避免引入整个 lodash 而非按需引入。",
+      "common_mistake": "认为引入 ES6 模块就自动优化，忽略副作用配置",
+      "knowledge_point": "Build_Tree_Shaking_Condition"
+    },
+    {
+      "id": "arch-senior-040",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["HTTP3", "Network", "Performance"],
+      "source_company": "Cloudflare",
+      "score": 10,
+      "title": "HTTP/3 核心特性",
+      "content": "相比 HTTP/2，HTTP/3（基于 QUIC 协议）解决的最主要痛点是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "支持更大的请求头"
+        },
+        {
+          "id": "B",
+          "text": "解决 TCP 队头阻塞问题，提升弱网性能"
+        },
+        {
+          "id": "C",
+          "text": "加密算法更复杂"
+        },
+        {
+          "id": "D",
+          "text": "兼容所有旧版浏览器"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：HTTP/3 基于 UDP 而非 TCP，多路复用独立流。正确选型：B 选项准确描述了 QUIC 解决 TCP 队头阻塞的优势。错误选型：A 不是核心；C 是特性非痛点；D 兼容性尚需过程。工程实践：在弱网移动端场景收益明显，需服务端支持（如 Nginx 模块）。",
+      "common_mistake": "混淆 HTTP/2 多路复用与 HTTP/3 无队头阻塞的区别",
+      "knowledge_point": "Network_HTTP3_QUIC"
+    },
+    {
+      "id": "arch-senior-041",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Low Code", "Architecture", "Schema"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "低代码引擎核心要素",
+      "content": "构建一个通用的低代码（Low Code）搭建引擎，核心架构要素包含哪些？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "物料描述协议（Schema）"
+        },
+        {
+          "id": "B",
+          "text": "渲染器（Renderer）"
+        },
+        {
+          "id": "C",
+          "text": "可视化编辑器（Editor）"
+        },
+        {
+          "id": "D",
+          "text": "硬编码业务逻辑"
+        },
+        {
+          "id": "E",
+          "text": "状态与动作管理机制"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：低代码本质是元数据驱动 UI。正确选型：A/B/C/E 构成了搭建闭环。错误选型：D 违背低代码初衷。工程实践：Schema 需版本化管理，渲染器需支持沙箱隔离，编辑器需支持拖拽与配置联动。",
+      "common_mistake": "过度定制 Schema 导致通用性差，难以扩展",
+      "knowledge_point": "LowCode_Architecture_Core",
+      "exclusion_analysis": {
+        "D": "硬编码业务逻辑会降低平台的灵活性"
+      }
+    },
+    {
+      "id": "arch-senior-042",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Canvas", "Performance", "Rendering"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Canvas 渲染优化",
+      "content": "在 Canvas 绘制大量动态图形时，为避免频繁重绘导致卡顿，最佳策略是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "每次帧清空整个画布重绘"
+        },
+        {
+          "id": "B",
+          "text": "采用分层渲染，静态层与动态层分离"
+        },
+        {
+          "id": "C",
+          "text": "降低画布分辨率"
+        },
+        {
+          "id": "D",
+          "text": "使用 CSS 动画代替 Canvas"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Canvas 是立即模式渲染，每次绘制成本高。正确选型：B 选项通过离屏 Canvas 缓存静态内容，减少绘制指令。错误选型：A 性能最差；C 影响清晰度；D 场景不同。工程实践：使用 requestAnimationFrame 控制帧率，结合脏矩形渲染（Dirty Rect）进一步优化。",
+      "common_mistake": "忽略分层缓存，全量重绘导致 FPS 下降",
+      "knowledge_point": "Canvas_Rendering_Optimization"
+    },
+    {
+      "id": "arch-senior-043",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Accessibility", "a11y", "Architecture"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端无障碍架构实践",
+      "content": "在架构层面保障前端无障碍（Accessibility），以下哪些措施是必要的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "确保所有交互元素可键盘访问"
+        },
+        {
+          "id": "B",
+          "text": "使用语义化 HTML 标签"
+        },
+        {
+          "id": "C",
+          "text": "为图片提供 alt 文本"
+        },
+        {
+          "id": "D",
+          "text": "动态内容变化通知屏幕阅读器（ARIA Live）"
+        },
+        {
+          "id": "E",
+          "text": "禁止用户调整字体大小"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：a11y 旨在让残障人士可使用产品。正确选型：A/B/C/D 符合 WCAG 标准。错误选型：E 违背无障碍原则。工程实践：集成 axe-core 进行自动化测试，设计系统组件内置无障碍属性，避免 div 滥用。",
+      "common_mistake": "仅关注视觉表现，忽略键盘导航和屏幕阅读器支持",
+      "knowledge_point": "A11y_Architecture_Practice",
+      "exclusion_analysis": {
+        "E": "禁止调整字体会阻碍视力障碍用户"
+      }
+    },
+    {
+      "id": "arch-senior-044",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "CORS", "Network"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "CORS 跨域配置",
+      "content": "前端请求跨域接口失败，控制台报 CORS 错误，根本原因通常是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "前端代码写错了 URL"
+        },
+        {
+          "id": "B",
+          "text": "后端响应头未配置 Access-Control-Allow-Origin"
+        },
+        {
+          "id": "C",
+          "text": "前端未设置 withCredentials"
+        },
+        {
+          "id": "D",
+          "text": "网络断开"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：CORS 是浏览器安全策略，依赖后端响应头。正确选型：B 选项是服务端配置缺失导致的典型错误。错误选型：A 是 404 错误；C 仅涉及 Cookie；D 是网络错误。工程实践：生产环境严禁配置 * 且允许携带凭证，需指定具体域名。预检请求（OPTIONS）需后端正确处理。",
+      "common_mistake": "试图在前端代码中绕过 CORS 限制",
+      "knowledge_point": "Security_CORS_Config"
+    },
+    {
+      "id": "arch-senior-045",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Security", "SRI", "CDN"],
+      "source_company": "Cloudflare",
+      "score": 5,
+      "title": "子资源完整性校验",
+      "content": "使用 Subresource Integrity (SRI) 可以防止 CDN 上的静态资源被篡改，浏览器会自动校验哈希值。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：需在不支持 SRI 的旧浏览器中提供 fallback。哈希值需随文件内容更新而更新，否则会导致资源加载失败。",
+      "explanation": "原理机制：SRI 通过 integrity 属性提供哈希校验。正确选型：A 选项描述了 SRI 的核心功能。错误选型：B 否认了标准特性。工程实践：构建时自动生成 hash 并注入 HTML，确保 CDN 被劫持时脚本不执行。",
+      "common_mistake": "文件更新后未更新 integrity 哈希，导致资源阻塞",
+      "knowledge_point": "Security_SRI_Mechanism"
+    },
+    {
+      "id": "arch-senior-046",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Performance", "Long Task", "Monitoring"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "长任务监控 API",
+      "content": "用于检测主线程被阻塞超过 50ms 的长任务（Long Task）的 API 是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "PerformanceObserver 监听 longtask 条目"
+        },
+        {
+          "id": "B",
+          "text": "console.time 手动测量"
+        },
+        {
+          "id": "C",
+          "text": "requestAnimationFrame 回调"
+        },
+        {
+          "id": "D",
+          "text": "window.onload 事件"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：Long Task API 专门用于识别阻塞主线程的任务。正确选型：A 选项是标准 API 用法。错误选型：B 需手动埋点；C 仅知帧时机；D 仅知加载完成。工程实践：结合 PerformanceObserver 上报长任务堆栈，定位 JS 执行瓶颈，优化 INP 指标。",
+      "common_mistake": "忽略长任务对交互延迟的影响，仅关注加载时间",
+      "knowledge_point": "Performance_Long_Task_API"
+    },
+    {
+      "id": "arch-senior-047",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Performance", "Resource Hints", "Loading"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "资源加载提示策略",
+      "content": "以下哪些 HTML 资源提示（Resource Hints）有助于优化关键资源加载？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "<link rel='preload'> 预加载关键资源"
+        },
+        {
+          "id": "B",
+          "text": "<link rel='prefetch'> 预取下一页资源"
+        },
+        {
+          "id": "C",
+          "text": "<link rel='dns-prefetch'> 提前 DNS 解析"
+        },
+        {
+          "id": "D",
+          "text": "<link rel='preconnect'> 提前建立连接"
+        },
+        {
+          "id": "E",
+          "text": "<link rel='stylesheet'> 阻塞渲染"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：Resource Hints 指导浏览器优化加载优先级。正确选型：A/B/C/D 均为优化提示。错误选型：E 是默认行为且通常需优化（非提示）。工程实践：preload 用于当前页关键字体/脚本，prefetch 用于空闲时加载，避免滥用占用带宽。",
+      "common_mistake": "滥用 preload 导致抢占关键资源带宽",
+      "knowledge_point": "Performance_Resource_Hints",
+      "exclusion_analysis": {
+        "E": "stylesheet 是加载方式，非优化提示，且常需避免阻塞"
+      }
+    },
+    {
+      "id": "arch-senior-048",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["State Management", "Selector", "Performance"],
+      "source_company": "Redux",
+      "score": 10,
+      "title": "状态选择器性能优化",
+      "content": "在 Redux 等全局状态管理中，为了避免组件因状态微小变化而频繁重渲染，应使用？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接 mapStateToProps 返回新对象"
+        },
+        {
+          "id": "B",
+          "text": "使用 memoized selector（如 Reselect）缓存计算结果"
+        },
+        {
+          "id": "C",
+          "text": "每次状态变化都强制更新所有组件"
+        },
+        {
+          "id": "D",
+          "text": "禁用状态订阅"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Selector 缓存避免重复计算和引用变化。正确选型：B 选项是标准优化方案。错误选型：A 导致引用变化触发更新；C 性能灾难；D 数据不更新。工程实践：确保 selector 纯函数化，依赖项不变时返回相同引用，配合 React.memo 使用。",
+      "common_mistake": "在 selector 中直接创建新对象/数组，导致缓存失效",
+      "knowledge_point": "State_Selector_Memoization"
+    },
+    {
+      "id": "arch-senior-049",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "Mock", "Strategy"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端测试 Mock 策略",
+      "content": "在进行前端单元测试和集成测试时，关于 Mock 数据的策略，以下哪些是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "API 请求使用 MSW (Mock Service Worker) 拦截"
+        },
+        {
+          "id": "B",
+          "text": "复杂依赖模块使用 Jest.mock 模拟"
+        },
+        {
+          "id": "C",
+          "text": "Mock 数据应尽可能贴近真实数据结构"
+        },
+        {
+          "id": "D",
+          "text": "所有函数都必须 Mock，包括工具函数"
+        },
+        {
+          "id": "E",
+          "text": "定期同步 Mock 数据与后端接口定义"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：Mock 旨在隔离外部依赖，模拟行为。正确选型：A/B/C/E 符合测试最佳实践。错误选型：D 工具函数通常直接测试或真实运行。工程实践：使用 TypeScript 共享接口定义，确保 Mock 类型安全，避免 Mock 与实现脱节。",
+      "common_mistake": "Mock 数据过于简单，无法覆盖边界情况",
+      "knowledge_point": "Testing_Mock_Strategy",
+      "exclusion_analysis": {
+        "D": "纯工具函数通常无需 Mock，直接测试即可"
+      }
+    },
+    {
+      "id": "arch-senior-050",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Deployment", "Canary", "DevOps"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "灰度发布架构",
+      "content": "在前端实施灰度发布（Canary Release），最安全的流量切分方式是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接全量替换 CDN 资源"
+        },
+        {
+          "id": "B",
+          "text": "基于用户 ID 或 Cookie 哈希进行路由分流"
+        },
+        {
+          "id": "C",
+          "text": "让用户手动选择版本"
+        },
+        {
+          "id": "D",
+          "text": "仅在内网环境测试"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：灰度需可控且可回滚。正确选型：B 选项保证同一用户始终访问同一版本，便于问题复现。错误选型：A 风险大；C 体验差；D 非生产验证。工程实践：结合特征开关（Feature Flag），异常时快速回滚配置，无需重新部署。",
+      "common_mistake": "随机分流导致用户会话期间版本跳变",
+      "knowledge_point": "Deployment_Canary_Strategy"
+    },
+    {
+      "id": "arch-senior-051",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Debounce", "Function"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "防抖函数健壮实现",
+      "content": "实现一个支持立即执行、取消功能和立即调用的防抖（Debounce）函数。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "function debounce<T extends (...args: any[]) => any>(\n  func: T,\n  wait: number,\n  options?: { immediate?: boolean }\n): (...args: Parameters<T>) => void {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "连续调用 3 次，间隔 10ms, wait=50ms",
+          "expected_output": "仅最后一次执行（非 immediate 模式）",
+          "description": "测试基本防抖"
+        },
+        {
+          "input": "immediate=true, 首次调用",
+          "expected_output": "立即执行一次",
+          "description": "测试立即执行"
+        },
+        {
+          "input": "调用返回的 cancel 函数",
+          "expected_output": " pending 的调用被取消",
+          "description": "测试取消功能"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：防抖通过清除旧定时器实现。正确选型：需维护 timer 闭包，支持 immediate 逻辑（先执行后等待）。错误选型：忽略 cancel 方法或 immediate 状态重置。工程实践：用于搜索框输入、窗口 resize 监听，避免频繁触发请求或计算。",
+      "common_mistake": "immediate 模式下未正确重置定时器状态",
+      "knowledge_point": "Algo_Debounce_Implementation"
+    },
+    {
+      "id": "arch-senior-052",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Deep Clone", "JavaScript"],
+      "source_company": "Meta",
+      "score": 20,
+      "title": "支持循环引用的深拷贝",
+      "content": "实现一个深拷贝函数，需处理对象、数组、日期、正则，并能解决循环引用问题。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "function deepClone<T>(obj: T, hash?: WeakMap<any, any>): T {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "普通嵌套对象",
+          "expected_output": "完全独立的副本",
+          "description": "测试基本拷贝"
+        },
+        {
+          "input": "对象包含自身引用 (circle.a = circle)",
+          "expected_output": "不爆栈，正确复制引用关系",
+          "description": "测试循环引用"
+        },
+        {
+          "input": "包含 Date/RegExp 类型",
+          "expected_output": "类型保持正确，非普通对象",
+          "description": "测试特殊类型"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "explanation": "原理机制：递归遍历 + WeakMap 记录已拷贝对象。正确选型：使用 WeakMap 防止循环引用死循环。错误选型：JSON.parse 无法处理函数/日期/循环。工程实践：生产环境推荐使用 structuredClone API 或 lodash.cloneDeep，手写需注意原型链保留。",
+      "common_mistake": "忽略循环引用导致栈溢出，或丢失特殊类型构造器",
+      "knowledge_point": "Algo_Deep_Clone_Cycle"
+    },
+    {
+      "id": "arch-senior-053",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Promise", "Concurrency"],
+      "source_company": "Google",
+      "score": 20,
+      "title": "Promise 并发限制池",
+      "content": "实现一个函数 promisePool，限制并发执行的 Promise 数量，超出部分排队。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "async function promisePool<T>(\n  functions: (() => Promise<T>)[],\n  limit: number\n): Promise<T[]> {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "5 个任务，limit=2",
+          "expected_output": "最多 2 个同时运行，最终全部完成",
+          "description": "测试并发限制"
+        },
+        {
+          "input": "某个任务 reject",
+          "expected_output": "Promise.all 行为或捕获错误，不影响其他",
+          "description": "测试错误处理"
+        },
+        {
+          "input": "空数组",
+          "expected_output": "返回空数组",
+          "description": "测试边界"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(limit)",
+      "explanation": "原理机制：维护运行计数器和递归/循环调度。正确选型：每次完成一个任务后从队列取下一个。错误选型：直接 Promise.all 无限制。工程实践：用于图片加载、批量 API 请求，防止浏览器连接数耗尽或服务器过载。",
+      "common_mistake": "未正确处理任务完成后的队列调度逻辑",
+      "knowledge_point": "Algo_Promise_Pool"
+    },
+    {
+      "id": "arch-senior-054",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Event Emitter", "Pattern"],
+      "source_company": "NodeJS",
+      "score": 20,
+      "title": "发布订阅模式实现",
+      "content": "实现一个简易的事件发射器（EventEmitter），支持 on, off, emit, once。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class EventEmitter {\n  on(event: string, fn: Function): void {}\n  off(event: string, fn: Function): void {}\n  emit(event: string, ...args: any[]): void {}\n  once(event: string, fn: Function): void {}\n}",
+      "test_cases": [
+        {
+          "input": "on 后 emit",
+          "expected_output": "回调被调用",
+          "description": "测试基本订阅"
+        },
+        {
+          "input": "off 后 emit",
+          "expected_output": "回调不被调用",
+          "description": "测试取消订阅"
+        },
+        {
+          "input": "once 后 emit 两次",
+          "expected_output": "回调仅执行一次",
+          "description": "测试单次订阅"
+        }
+      ],
+      "time_complexity": "O(1) for emit/on",
+      "space_complexity": "O(n) for listeners",
+      "explanation": "原理机制：使用 Map 存储事件与回调列表。正确选型：once 可通过包装函数实现，调用后自动 off。错误选型：未处理多次订阅同一事件。工程实践：前端组件通信、状态管理底层常用此模式，注意内存泄漏（未 off）。",
+      "common_mistake": "once 实现未正确移除监听器，导致多次执行",
+      "knowledge_point": "Algo_Event_Emitter"
+    },
+    {
+      "id": "arch-senior-055",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Path", "Utility"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "对象路径取值函数",
+      "content": "实现一个函数 get(obj, path)，支持通过字符串路径（如 'a.b[0].c'）安全获取嵌套对象值。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "function get(obj: any, path: string, defaultValue?: any): any {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "obj={a:{b:1}}, path='a.b'",
+          "expected_output": "1",
+          "description": "测试基本路径"
+        },
+        {
+          "input": "path='a.c', 不存在",
+          "expected_output": "undefined 或 defaultValue",
+          "description": "测试不存在路径"
+        },
+        {
+          "input": "path='list[0].id', 数组访问",
+          "expected_output": "数组元素属性",
+          "description": "测试数组索引"
+        }
+      ],
+      "time_complexity": "O(n) path length",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：分割路径字符串，逐步遍历对象。正确选型：需处理数组索引语法和空值保护。错误选型：直接 eval 不安全。工程实践：lodash.get 的核心功能，用于表单数据映射、配置读取，避免 undefined 报错。",
+      "common_mistake": "未处理中间路径为 null/undefined 的情况导致报错",
+      "knowledge_point": "Algo_Path_Get"
+    },
+    {
+      "id": "arch-senior-056",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Web Components", "Shadow DOM", "Standard"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Shadow DOM 样式隔离",
+      "content": "Shadow DOM 内部的样式默认不会泄露到外部，外部样式也不会影响内部，实现了真正的样式隔离。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：部分继承属性（如字体、颜色）仍会穿透。可通过 :host 修改外部可见样式。",
+      "explanation": "原理机制：Shadow DOM 创建封闭的 DOM 树。正确选型：A 选项描述了主要特性。错误选型：B 否认了隔离性。工程实践：用于构建完全隔离的 UI 组件库，避免全局 CSS 污染，注意继承属性需显式重置。",
+      "common_mistake": "认为所有 CSS 属性都被完全隔离，忽略继承属性",
+      "knowledge_point": "WebComponents_Shadow_Isolation"
+    },
+    {
+      "id": "arch-senior-057",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["CSS", "Containment", "Performance"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "CSS Containment 优化",
+      "content": "使用 CSS contain 属性可以告诉浏览器元素 subtree 独立于文档其余部分，从而优化渲染性能。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：需正确使用 contain: layout style paint 等值，错误使用可能导致内容裁剪或布局异常。",
+      "explanation": "原理机制：Containment 限制样式计算和布局范围。正确选型：A 选项准确描述了性能优化原理。错误选型：B 误解了属性用途。工程实践：用于复杂组件（如列表项），限制重排重绘范围，提升滚动性能，注意兼容性。",
+      "common_mistake": "滥用 contain 导致内容显示不全",
+      "knowledge_point": "CSS_Containment_Perf"
+    },
+    {
+      "id": "arch-senior-058",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["GraphQL", "API", "Architecture"],
+      "source_company": "Facebook",
+      "score": 15,
+      "title": "GraphQL 相比 REST 优势",
+      "content": "在特定场景下，采用 GraphQL 替代 RESTful API 的主要优势包括？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "客户端按需查询字段，减少数据传输"
+        },
+        {
+          "id": "B",
+          "text": "减少请求次数，避免 N+1 问题（配合 DataLoader）"
+        },
+        {
+          "id": "C",
+          "text": "强类型 Schema，自动生成文档和类型定义"
+        },
+        {
+          "id": "D",
+          "text": "缓存机制比 HTTP 缓存更简单"
+        },
+        {
+          "id": "E",
+          "text": "适合复杂关联数据的聚合查询"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：GraphQL 提供查询语言和运行时。正确选型：A/B/C/E 是核心优势。错误选型：D GraphQL 缓存通常更复杂（需客户端规范化）。工程实践：适合 BFF 层，前端掌控数据结构，注意服务端性能优化（查询复杂度限制）。",
+      "common_mistake": "忽略 GraphQL 缓存复杂性，直接套用 HTTP 缓存策略",
+      "knowledge_point": "API_GraphQL_Advantages",
+      "exclusion_analysis": {
+        "D": "GraphQL 通常 POST 请求，HTTP 缓存较难，需专门方案"
+      }
+    },
+    {
+      "id": "arch-senior-059",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["PWA", "Capability", "Mobile"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "PWA 核心能力",
+      "content": "渐进式 Web 应用（PWA）相比传统 Web 应用，具备哪些原生能力？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "离线访问（Service Worker）"
+        },
+        {
+          "id": "B",
+          "text": "添加到主屏幕（Web App Manifest）"
+        },
+        {
+          "id": "C",
+          "text": "推送通知（Push API）"
+        },
+        {
+          "id": "D",
+          "text": "直接访问所有硬件接口（如蓝牙/USB）"
+        },
+        {
+          "id": "E",
+          "text": "后台同步（Background Sync）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：PWA 通过一系列 API 增强 Web 能力。正确选型：A/B/C/E 是 PWA 标准特性。错误选型：D 需特定权限和 API 支持，非所有硬件都能直接访问。工程实践：提升移动端留存率，注意 iOS 对 PWA 支持的限制（如推送）。",
+      "common_mistake": "认为 PWA 在所有浏览器上能力完全一致",
+      "knowledge_point": "PWA_Core_Capabilities",
+      "exclusion_analysis": {
+        "D": "硬件访问需特定 Web API 且受权限限制，非 PWA 定义核心"
+      }
+    },
+    {
+      "id": "arch-senior-060",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Next.js", "ISR", "Rendering"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "增量静态再生（ISR）",
+      "content": "Next.js 的 ISR（Incremental Static Regeneration）模式主要解决了什么问题？",
+      "options": [
+        {
+          "id": "A",
+          "text": "完全取消服务端渲染"
+        },
+        {
+          "id": "B",
+          "text": "在静态生成后，按需后台更新页面内容"
+        },
+        {
+          "id": "C",
+          "text": "强制每次请求都重新构建"
+        },
+        {
+          "id": "D",
+          "text": "仅支持客户端渲染"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：ISR 结合 SSR 性能与静态缓存优势。正确选型：B 选项描述了 ISR 的核心——静态页后台更新。错误选型：A/C/D 均误解了 ISR 机制。工程实践：适合博客、电商详情页等内容变动不频繁但需最新的场景，设置 revalidate 时间。",
+      "common_mistake": "混淆 ISR 与 SSR，忽略 revalidate 配置",
+      "knowledge_point": "NextJS_ISR_Mechanism"
+    },
+    {
+      "id": "arch-senior-061",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Concurrent", "Performance"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React Concurrent 特性应用",
+      "content": "在 React 18+ 中，使用 useTransition 处理高优先级与低优先级更新的主要目的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "强制所有更新同步执行，保证数据一致性"
+        },
+        {
+          "id": "B",
+          "text": "将非紧急更新标记为可中断，避免阻塞高优先级交互"
+        },
+        {
+          "id": "C",
+          "text": "自动合并所有 setState 调用为一次渲染"
+        },
+        {
+          "id": "D",
+          "text": "替代 useEffect 处理副作用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Concurrent Rendering 允许 React 中断渲染任务。正确选型：B 选项准确描述了 useTransition 的核心价值——区分优先级，保持 UI 响应。错误选型：A 违背并发初衷；C 是 batching 功能；D 用途不同。工程实践：用于搜索建议、大型列表过滤等场景，配合 useDeferredValue 优化输入体验，避免输入卡顿。",
+      "common_mistake": "误认为 useTransition 能提升整体渲染速度，实则用于优化感知性能",
+      "knowledge_point": "React_Concurrent_Priority"
+    },
+    {
+      "id": "arch-senior-062",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Micro Frontend", "Sandbox", "Security"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "微前端沙箱隔离机制",
+      "content": "在 qiankun 等微前端框架中，JS 沙箱（Sandbox）主要解决的核心问题是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "防止子应用 CSS 污染主应用"
+        },
+        {
+          "id": "B",
+          "text": "隔离子应用全局变量（window 对象），防止冲突"
+        },
+        {
+          "id": "C",
+          "text": "加速子应用加载速度"
+        },
+        {
+          "id": "D",
+          "text": "自动转换 ES6 语法为 ES5"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：微前端多应用共存需隔离全局作用域。正确选型：B 选项描述了 JS 沙箱的核心职责——Proxy 拦截 window 读写。错误选型：A 是 CSS 沙箱职责；C 是缓存职责；D 是 Babel 职责。工程实践：使用 Proxy 实现快照沙箱或代理沙箱，注意原生事件监听器的清理，避免内存泄漏。",
+      "common_mistake": "混淆 JS 沙箱与 CSS 沙箱的功能边界",
+      "knowledge_point": "MicroFrontend_JS_Sandbox"
+    },
+    {
+      "id": "arch-senior-063",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "CSP", "Nonce"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "CSP nonce 安全策略",
+      "content": "在实施 Content Security Policy (CSP) 时，使用 nonce 机制允许特定脚本执行，以下哪些做法是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "每个请求生成随机 nonce 值"
+        },
+        {
+          "id": "B",
+          "text": "将 nonce 值注入到 script 标签属性"
+        },
+        {
+          "id": "C",
+          "text": "在 HTTP 响应头 Content-Security-Policy 中声明 nonce"
+        },
+        {
+          "id": "D",
+          "text": "nonce 值可以长期固定不变"
+        },
+        {
+          "id": "E",
+          "text": "配合 strict-dynamic 指令简化配置"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：nonce 基于随机令牌验证脚本合法性。正确选型：A/B/C/E 符合 CSP 规范。错误选型：D 固定 nonce 易被 XSS 攻击者预测利用。工程实践：服务端生成随机 nonce，注入 HTML 和 Header，避免内联脚本被阻断，注意 HTTPS 强制要求。",
+      "common_mistake": "复用 nonce 值导致安全防线失效",
+      "knowledge_point": "Security_CSP_Nonce",
+      "exclusion_analysis": {
+        "D": "nonce 必须每请求随机，否则失去防 XSS 意义"
+      }
+    },
+    {
+      "id": "arch-senior-064",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Performance", "Rendering", "Critical Path"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "关键渲染路径优化",
+      "content": "优化关键渲染路径（Critical Rendering Path）的首要任务是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "优化 JavaScript 执行速度"
+        },
+        {
+          "id": "B",
+          "text": "缩短关键资源加载路径，减少关键资源数量"
+        },
+        {
+          "id": "C",
+          "text": "增加服务器带宽"
+        },
+        {
+          "id": "D",
+          "text": "使用更复杂的 CSS 选择器"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：CRP 取决于 DOM/CSSOM 构建及资源加载。正确选型：B 选项直接减少阻塞渲染的资源，提升 FCP。错误选型：A 次要；C 成本高原生限制；D 影响解析性能。工程实践：内联关键 CSS，异步加载非关键 JS，使用 preload 预加载关键字体/图片。",
+      "common_mistake": "过度优化 JS 而忽略 CSS 阻塞渲染问题",
+      "knowledge_point": "Performance_Critical_Rendering_Path"
+    },
+    {
+      "id": "arch-senior-065",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Scheduler", "Concurrency"],
+      "source_company": "Meta",
+      "score": 20,
+      "title": "时间分片任务调度器",
+      "content": "实现一个简易的时间分片调度器，将长任务拆分为多个小任务，在每一帧空闲时执行，避免阻塞主线程。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class Scheduler {\n  private tasks: Function[] = [];\n  \n  addTask(task: Function): void {}\n  \n  // 使用 requestIdleCallback 或 rAF 模拟\n  start(): void {}\n}",
+      "test_cases": [
+        {
+          "input": "添加 100 个耗时任务",
+          "expected_output": "分多帧执行，页面保持响应",
+          "description": "测试分片效果"
+        },
+        {
+          "input": "添加高优先级任务",
+          "expected_output": "高优先级任务优先执行",
+          "description": "测试优先级调度"
+        },
+        {
+          "input": "浏览器无空闲时间",
+          "expected_output": "降级为 setTimeout 执行",
+          "description": "测试兼容性降级"
+        }
+      ],
+      "time_complexity": "O(n) total tasks",
+      "space_complexity": "O(n) queue",
+      "explanation": "原理机制：利用 requestIdleCallback 或 rAF 计算帧剩余时间。正确选型：需判断 deadline.timeRemaining()。错误选型：直接同步执行所有任务。工程实践：React Scheduler 的核心逻辑，用于大规模数据渲染、复杂计算拆解，注意兼容性及 fallback。",
+      "common_mistake": "忽略帧时间预算，导致分片无效",
+      "knowledge_point": "Algo_Time_Slicing_Scheduler"
+    },
+    {
+      "id": "arch-senior-066",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["DDD", "Repository", "Architecture"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "DDD 仓储模式实现",
+      "content": "在前端 DDD 架构中，Repository 层的主要职责是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接调用 HTTP 接口获取数据"
+        },
+        {
+          "id": "B",
+          "text": "抽象数据源，为领域层提供集合访问接口，屏蔽持久化细节"
+        },
+        {
+          "id": "C",
+          "text": "处理 UI 展示逻辑"
+        },
+        {
+          "id": "D",
+          "text": "管理全局状态 Store"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Repository 模式用于解耦领域逻辑与数据获取。正确选型：B 选项准确描述了 Repository 的抽象职责。错误选型：A 是 DataSource 职责；C 是 UI 层；D 是状态管理。工程实践：前端 Repository 可聚合 API、LocalStorage、IndexedDB 等多种数据源，对领域层透明，便于测试 mocking。",
+      "common_mistake": "在领域模型中直接调用 axios/fetch",
+      "knowledge_point": "DDD_Repository_Pattern"
+    },
+    {
+      "id": "arch-senior-067",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Build", "Webpack", "Optimization"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "Webpack 构建体积优化",
+      "content": "针对 Webpack 打包体积过大问题，以下哪些优化手段是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "启用 SplitChunks 提取公共依赖"
+        },
+        {
+          "id": "B",
+          "text": "使用 Bundle Analyzer 分析依赖构成"
+        },
+        {
+          "id": "C",
+          "text": "配置 externals 排除大型库（如 React）"
+        },
+        {
+          "id": "D",
+          "text": "所有图片转为 Base64 嵌入"
+        },
+        {
+          "id": "E",
+          "text": "按需加载路由组件（Lazy Load）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：构建优化需针对依赖、代码、资源。正确选型：A/B/C/E 均为标准优化手段。错误选型：D 大图片 Base64 会增加 JS 体积且失去缓存优势。工程实践：优先分析 bundle 内容，提取 vendor，配置 CDN  externals，结合 Gzip/Brotli 压缩。",
+      "common_mistake": "盲目将所有资源 Base64 化，导致首屏 JS 过大",
+      "knowledge_point": "Build_Webpack_Optimization",
+      "exclusion_analysis": {
+        "D": "大图片 Base64 会导致 CSS/JS 体积膨胀，破坏缓存策略"
+      }
+    },
+    {
+      "id": "arch-senior-068",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["HTTP", "Cache", "Stale While Revalidate"],
+      "source_company": "Cloudflare",
+      "score": 5,
+      "title": "stale-while-revalidate 缓存策略",
+      "content": "Cache-Control: stale-while-revalidate 允许浏览器在后台验证资源新鲜度的同时，先返回缓存内容。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：需浏览器支持（现代浏览器均支持）。适用于非关键性更新资源，如头像、辅助脚本。关键数据需谨慎使用。",
+      "explanation": "原理机制：该指令平衡了性能与新鲜度。正确选型：A 选项准确描述了行为。错误选型：B 否认了标准特性。工程实践：用于静态资源 CDN 缓存，用户无感知更新，提升加载速度，注意数据一致性要求高的接口不适用。",
+      "common_mistake": "在强一致性要求的业务数据接口使用此策略",
+      "knowledge_point": "HTTP_Cache_Stale_While_Revalidate"
+    },
+    {
+      "id": "arch-senior-069",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["State", "Immutability", "Performance"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "不可变数据优势",
+      "content": "在 React/Vue 状态管理中，坚持使用不可变数据（Immutability）的主要好处是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "减少内存占用"
+        },
+        {
+          "id": "B",
+          "text": "便于通过引用比较（===）检测变化，优化渲染"
+        },
+        {
+          "id": "C",
+          "text": "代码书写更简洁"
+        },
+        {
+          "id": "D",
+          "text": "自动处理异步逻辑"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：不可变数据保证新对象引用不同。正确选型：B 选项是框架优化渲染的核心依据（shouldComponentUpdate/memo）。错误选型：A 可能增加内存（创建新对象）；C 未必；D 无关。工程实践：使用 immer 库简化不可变更新写法，避免直接修改 state 导致视图不更新。",
+      "common_mistake": "直接修改 state 对象属性，导致框架无法检测变化",
+      "knowledge_point": "State_Immutability_Benefit"
+    },
+    {
+      "id": "arch-senior-070",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "E2E", "Strategy"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "E2E 测试最佳实践",
+      "content": "在进行端到端（E2E）测试（如 Cypress/Playwright）时，以下哪些原则是推荐的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "测试用户真实行为路径，而非实现细节"
+        },
+        {
+          "id": "B",
+          "text": "测试前重置数据库状态，保证独立性"
+        },
+        {
+          "id": "C",
+          "text": "所有测试用例串行执行以保证稳定"
+        },
+        {
+          "id": "D",
+          "text": "使用 data-testid 属性定位元素"
+        },
+        {
+          "id": "E",
+          "text": "模拟网络延迟测试弱网体验"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "原理机制：E2E 旨在验证业务流程。正确选型：A/B/D/E 符合测试稳定性与真实性原则。错误选型：C 现代测试支持并行以加速。工程实践：避免依赖 CSS 类名（易变），使用稳定标识，配合 CI 并行运行，利用 Docker 容器化环境。",
+      "common_mistake": "测试内部实现细节导致重构即失败",
+      "knowledge_point": "Testing_E2E_Best_Practice",
+      "exclusion_analysis": {
+        "C": "并行执行可大幅缩短测试时间，现代工具支持隔离"
+      }
+    },
+    {
+      "id": "arch-senior-071",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Tree", "UI"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "DOM 树节点查找算法",
+      "content": "实现一个函数，在虚拟 DOM 树中查找所有具有特定 className 的节点，返回数组。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface VNode {\n  tagName: string;\n  className?: string;\n  children?: VNode[];\n}\n\nfunction findNodesByClass(root: VNode, className: string): VNode[] {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "树中包含多个匹配节点",
+          "expected_output": "返回所有匹配节点数组",
+          "description": "测试基本查找"
+        },
+        {
+          "input": "树中无匹配节点",
+          "expected_output": "返回空数组",
+          "description": "测试无结果"
+        },
+        {
+          "input": "嵌套层级很深",
+          "expected_output": "正确遍历深层节点",
+          "description": "测试递归深度"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(h) recursion stack",
+      "explanation": "原理机制：树的 DFS 或 BFS 遍历。正确选型：递归或栈迭代遍历所有节点。错误选型：仅查找直接子节点。工程实践：虚拟 DOM _diff_、样式查询、自动化测试选择器底层逻辑，注意避免栈溢出可改用迭代。",
+      "common_mistake": "忽略 children 为空的情况导致报错",
+      "knowledge_point": "Algo_Tree_Traversal_DOM"
+    },
+    {
+      "id": "arch-senior-072",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "Clickjacking", "Header"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "点击劫持防御",
+      "content": "防御点击劫持（Clickjacking）攻击，最有效的 HTTP 响应头配置是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "X-Frame-Options: DENY 或 SAMEORIGIN"
+        },
+        {
+          "id": "B",
+          "text": "Content-Type: text/html"
+        },
+        {
+          "id": "C",
+          "text": "Cache-Control: no-cache"
+        },
+        {
+          "id": "D",
+          "text": "Access-Control-Allow-Origin: *"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：点击劫持利用 iframe 嵌入页面。正确选型：A 选项禁止或限制 iframe 嵌入。错误选型：B/C/D 无关防御。工程实践：现代推荐使用 CSP frame-ancestors 指令替代 X-Frame-Options，支持更细粒度控制，注意兼容性。",
+      "common_mistake": "忽略 iframe 嵌入风险，未配置帧选项",
+      "knowledge_point": "Security_Clickjacking_Defense"
+    },
+    {
+      "id": "arch-senior-073",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Performance", "Image", "Loading"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "图片加载优化策略",
+      "content": "针对大量图片展示的页面，以下哪些优化策略能显著提升性能？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用现代格式（WebP/AVIF）"
+        },
+        {
+          "id": "B",
+          "text": "实施懒加载（Lazy Loading）"
+        },
+        {
+          "id": "C",
+          "text": "使用 srcset 响应式加载不同分辨率"
+        },
+        {
+          "id": "D",
+          "text": "所有图片预加载"
+        },
+        {
+          "id": "E",
+          "text": "使用 CDN 进行分发"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：图片优化涉及格式、加载时机、网络。正确选型：A/B/C/E 均为标准优化手段。错误选型：D 预加载所有会阻塞首屏。工程实践：结合 IntersectionObserver 实现懒加载，配置 CDN 自动格式转换，设置占位图避免 CLS。",
+      "common_mistake": "盲目预加载所有图片导致带宽浪费",
+      "knowledge_point": "Performance_Image_Optimization",
+      "exclusion_analysis": {
+        "D": "全量预加载会抢占关键资源带宽，影响 LCP"
+      }
+    },
+    {
+      "id": "arch-senior-074",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Browser", "Storage", "Limit"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "LocalStorage 存储限制",
+      "content": "LocalStorage 适合存储大量业务数据（如超过 10MB），因为它没有大小限制。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件：通常限制为 5MB 左右（因浏览器而异）。超过限制会抛出 QuotaExceededError。且同步操作会阻塞主线程。",
+      "explanation": "原理机制：LocalStorage 有配额限制且同步阻塞。正确选型：B 选项指出限制存在。错误选型：A 误解了存储能力。工程实践：大数据使用 IndexedDB，小数据用 LocalStorage，敏感数据勿存明文，注意跨域隔离。",
+      "common_mistake": "将 LocalStorage 当作数据库使用，导致存储失败或性能问题",
+      "knowledge_point": "Browser_Storage_Limit"
+    },
+    {
+      "id": "arch-senior-075",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["API", "REST", "Versioning"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "API 版本管理策略",
+      "content": "在前后端分离架构中，API 版本管理最推荐的方式是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在 URL 路径中包含版本号（如 /api/v1/users）"
+        },
+        {
+          "id": "B",
+          "text": "仅在代码注释中标注版本"
+        },
+        {
+          "id": "C",
+          "text": "每次变更都创建新域名"
+        },
+        {
+          "id": "D",
+          "text": "依赖后端自动兼容，前端不感知"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：API 版本需显式标识以便共存。正确选型：A 选项是业界标准做法，清晰且易缓存。错误选型：B 无约束力；C 成本高；D 不可靠。工程实践：配合 BFF 层做版本适配，前端通过配置管理 API Base URL，支持多版本并行过渡。",
+      "common_mistake": "隐式版本升级导致旧客户端失效",
+      "knowledge_point": "API_Versioning_Strategy"
+    },
+    {
+      "id": "arch-senior-076",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Retry", "Network"],
+      "source_company": "Amazon",
+      "score": 20,
+      "title": "指数退避重试算法",
+      "content": "实现一个带指数退避（Exponential Backoff）和抖动（Jitter）的网络请求重试函数。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "async function fetchWithRetry(\n  url: string,\n  options?: RequestInit,\n  retries?: number\n): Promise<Response> {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "请求失败 3 次后成功",
+          "expected_output": "第 4 次返回成功结果",
+          "description": "测试重试机制"
+        },
+        {
+          "input": "请求连续失败超过上限",
+          "expected_output": "抛出错误",
+          "description": "测试失败终止"
+        },
+        {
+          "input": "重试间隔时间",
+          "expected_output": "间隔逐渐增加且含随机量",
+          "description": "测试退避算法"
+        }
+      ],
+      "time_complexity": "O(retries)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：重试需避免雪崩，随时间增加等待。正确选型：Math.pow(2, n) * base + random。错误选型：固定间隔重试。工程实践：用于不稳定网络环境，配合熔断机制，避免对服务器造成压力，注意总超时时间控制。",
+      "common_mistake": "重试间隔固定，未实现退避导致服务器压力集中",
+      "knowledge_point": "Algo_Exponential_Backoff"
+    },
+    {
+      "id": "arch-senior-077",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Engineering", "Lint", "Quality"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "代码规范自动化落地",
+      "content": "为了保证团队代码质量，以下哪些工程化手段是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "CI 流水线集成 ESLint 检查"
+        },
+        {
+          "id": "B",
+          "text": "Git Hook 提交前自动格式化（Prettier）"
+        },
+        {
+          "id": "C",
+          "text": "IDE 统一配置文件（.editorconfig）"
+        },
+        {
+          "id": "D",
+          "text": "依靠人工 Code Review 发现格式问题"
+        },
+        {
+          "id": "E",
+          "text": "使用 TypeScript 严格模式"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：质量保障需自动化而非人工。正确选型：A/B/C/E 构建自动化防线。错误选型：D 效率低且易遗漏。工程实践：配置 Husky + lint-staged，仅检查暂存文件，CI 作为最后一道防线，减少开发者等待时间。",
+      "common_mistake": "仅在 CI 检查，导致本地提交后才发现问题",
+      "knowledge_point": "Engineering_Code_Quality_Automation",
+      "exclusion_analysis": {
+        "D": "人工 Review 应关注逻辑而非格式，格式应自动化"
+      }
+    },
+    {
+      "id": "arch-senior-078",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "JWT", "Auth"],
+      "source_company": "Auth0",
+      "score": 10,
+      "title": "JWT 存储安全",
+      "content": "关于 JWT Token 的存储，安全性最高的方案是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "存储在 LocalStorage"
+        },
+        {
+          "id": "B",
+          "text": "存储在 HttpOnly Cookie 中"
+        },
+        {
+          "id": "C",
+          "text": "存储在内存变量中"
+        },
+        {
+          "id": "D",
+          "text": "存储在 IndexedDB"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：JWT 需防 XSS 窃取。正确选型：B 选项 HttpOnly 禁止 JS 访问，防 XSS。错误选型：A/D JS 可访问，易受 XSS；C 刷新即丢失。工程实践：Access Token 可内存，Refresh Token 必 HttpOnly Cookie，配合 CSRF Token 双重提交验证。",
+      "common_mistake": "为方便将 JWT 存入 LocalStorage，导致 XSS 风险",
+      "knowledge_point": "Security_JWT_Storage"
+    },
+    {
+      "id": "arch-senior-079",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["CSS", "Specificity", "Priority"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "CSS 优先级计算",
+      "content": "!important 规则可以覆盖任何内联样式（style 属性）的优先级。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：!important 优先级最高，但应慎用。若多个 !important 冲突，则比较选择器特异性。",
+      "explanation": "原理机制：CSS 层叠规则中 !important 提升权重。正确选型：A 选项符合规范。错误选型：B 误解了优先级。工程实践：避免滥用 !important，导致样式难以维护，优先通过提高选择器特异性解决冲突。",
+      "common_mistake": "过度依赖 !important 解决样式冲突，导致技术债务",
+      "knowledge_point": "CSS_Specificity_Important"
+    },
+    {
+      "id": "arch-senior-080",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Performance", "Memory", "Optimization"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端内存优化手段",
+      "content": "针对长时间运行的 Web 应用（如在线编辑工具），以下哪些措施有助于控制内存增长？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "及时解绑不再使用的事件监听器"
+        },
+        {
+          "id": "B",
+          "text": "清理定时器及异步回调引用"
+        },
+        {
+          "id": "C",
+          "text": "大对象使用后手动置 null"
+        },
+        {
+          "id": "D",
+          "text": "无限增加 DOM 节点缓存"
+        },
+        {
+          "id": "E",
+          "text": "使用 WeakMap 存储对象关联数据"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：内存泄漏源于意外引用。正确选型：A/B/C/E 均有助于 GC 回收。错误选型：D 会导致 DOM 泄漏。工程实践：组件卸载生命周期清理资源，监控 JS Heap 使用率，设置阈值自动刷新页面或清理缓存。",
+      "common_mistake": "忽略闭包或全局变量持有的大对象引用",
+      "knowledge_point": "Performance_Memory_Optimization",
+      "exclusion_analysis": {
+        "D": "无限缓存 DOM 会迅速耗尽内存，应使用虚拟列表"
+      }
+    },
+    {
+      "id": "arch-senior-081",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vue", "Reactivity", "Performance"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "Vue 响应式原理优化",
+      "content": "Vue 3 使用 Proxy 替代 Object.defineProperty 的主要优势是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "兼容 IE9 等旧浏览器"
+        },
+        {
+          "id": "B",
+          "text": "支持数组索引修改及对象动态属性添加的检测"
+        },
+        {
+          "id": "C",
+          "text": "代码体积更小"
+        },
+        {
+          "id": "D",
+          "text": "无需编译步骤"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Proxy 拦截整个对象操作。正确选型：B 选项解决了 Vue 2 的核心痛点。错误选型：A Proxy 不兼容 IE；C 无关；D 仍需编译。工程实践：利用 Proxy 实现更精准的依赖收集，避免不必要的更新，注意 Proxy 无法 polyfill。",
+      "common_mistake": "在需要兼容旧环境的项目中误用 Vue 3",
+      "knowledge_point": "Vue_Reactivity_Proxy"
+    },
+    {
+      "id": "arch-senior-082",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Algorithm", "Throttle", "Function"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "节流函数实现",
+      "content": "实现一个节流（Throttle）函数，确保函数在指定时间内只执行一次，支持立即执行和 trailing 执行。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "function throttle<T extends (...args: any[]) => any>(\n  func: T,\n  wait: number,\n  options?: { leading?: boolean; trailing?: boolean }\n): (...args: Parameters<T>) => void {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "连续调用 5 次，wait=100ms",
+          "expected_output": "时间内仅执行 1-2 次",
+          "description": "测试节流效果"
+        },
+        {
+          "input": "leading=true",
+          "expected_output": "首次调用立即执行",
+          "description": "测试前导执行"
+        },
+        {
+          "input": "trailing=true",
+          "expected_output": "时间结束后执行最后一次",
+          "description": "测试后缀执行"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：节流通过时间戳或定时器控制频率。正确选型：需记录上次执行时间或设置定时器标志。错误选型：混淆防抖逻辑。工程实践：用于 scroll/resize 事件，按钮重复点击防止，平衡响应速度与性能消耗。",
+      "common_mistake": "未正确处理 leading/trailing 组合逻辑",
+      "knowledge_point": "Algo_Throttle_Implementation"
+    },
+    {
+      "id": "arch-senior-083",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Architecture", "Event Bus", "Decoupling"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "事件总线架构缺陷",
+      "content": "在大型应用中过度依赖全局事件总线（Event Bus）的主要风险是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "代码运行速度变慢"
+        },
+        {
+          "id": "B",
+          "text": "数据流向不透明，难以调试和维护",
+          "explanation": "原理机制：事件总线隐藏了数据依赖关系。正确选型：B 选项指出了架构层面的维护痛点。错误选型：A 性能影响较小；C/D 非核心问题。工程实践：优先使用状态管理或组件 Props，仅在跨层级解耦必要时使用事件，需文档化事件定义。"
+        },
+        {
+          "id": "C",
+          "text": "无法实现异步通信"
+        },
+        {
+          "id": "D",
+          "text": "增加内存占用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：事件总线隐藏了数据依赖关系。正确选型：B 选项指出了架构层面的维护痛点。错误选型：A 性能影响较小；C/D 非核心问题。工程实践：优先使用状态管理或组件 Props，仅在跨层级解耦必要时使用事件，需文档化事件定义。",
+      "common_mistake": "滥用事件总线导致数据流混乱，形成网状依赖",
+      "knowledge_point": "Architecture_Event_Bus_Risk"
+    },
+    {
+      "id": "arch-senior-084",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["SEO", "SSR", "Rendering"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端 SEO 优化方案",
+      "content": "针对搜索引擎优化（SEO），以下哪些技术方案是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "服务端渲染（SSR）生成完整 HTML"
+        },
+        {
+          "id": "B",
+          "text": "预渲染（Prerendering）静态页面"
+        },
+        {
+          "id": "C",
+          "text": "使用语义化标签及 Meta 信息"
+        },
+        {
+          "id": "D",
+          "text": "所有内容由 JS 动态注入"
+        },
+        {
+          "id": "E",
+          "text": "生成 Sitemap 并提交"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：SEO 依赖爬虫可抓取内容。正确选型：A/B/C/E 均提升可抓取性。错误选型：D 部分爬虫执行 JS 能力有限。工程实践：结合 SSR 与静态生成，确保关键内容在首屏 HTML 中，配置 robots.txt 引导爬虫。",
+      "common_mistake": "完全依赖 CSR 导致搜索引擎无法索引内容",
+      "knowledge_point": "SEO_Optimization_Strategy",
+      "exclusion_analysis": {
+        "D": "纯 JS 注入内容对 SEO 不友好，虽 Google 能执行 JS 但有局限"
+      }
+    },
+    {
+      "id": "arch-senior-085",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Browser", "Process", "Architecture"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "浏览器多进程架构",
+      "content": "现代浏览器中，每个 Tab 页通常运行在独立的渲染进程中，一个进程崩溃不会影响其他 Tab。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：具体策略因浏览器而异（如 Chrome 每 Tab 一进程，或每站点一进程）。但隔离性是核心设计目标。",
+      "explanation": "原理机制：多进程架构提升稳定性与安全性。正确选型：A 选项描述了沙箱隔离特性。错误选型：B 否认了架构优势。工程实践：利用 Web Worker 进一步隔离计算任务，避免主进程阻塞，注意进程间通信成本。",
+      "common_mistake": "认为 JS 错误会导致整个浏览器崩溃",
+      "knowledge_point": "Browser_Multi_Process_Arch"
+    },
+    {
+      "id": "arch-senior-086",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["TypeScript", "Generics", "Utility"],
+      "source_company": "Microsoft",
+      "score": 10,
+      "title": "TypeScript 泛型工具类型",
+      "content": "在 TypeScript 中，用于提取对象中部分字段构成新类型的工具类型是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Partial<T>"
+        },
+        {
+          "id": "B",
+          "text": "Pick<T, K>"
+        },
+        {
+          "id": "C",
+          "text": "Record<K, T>"
+        },
+        {
+          "id": "D",
+          "text": "Omit<T, K>"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：TS 提供内置映射类型。正确选型：B 选项 Pick 用于选取字段。错误选型：A 变可选；C 构建记录；D 排除字段。工程实践：用于 API 响应类型裁剪，减少前端依赖字段，配合 interface 定义清晰数据结构。",
+      "common_mistake": "混淆 Pick 与 Omit 的使用场景",
+      "knowledge_point": "TS_Utility_Types_Pick"
+    },
+    {
+      "id": "arch-senior-087",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Algorithm", "Queue", "Async"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "异步任务队列执行器",
+      "content": "实现一个异步队列，任务按添加顺序依次执行，前一个任务完成后才执行下一个。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class AsyncQueue {\n  private queue: (() => Promise<any>)[] = [];\n  private running = false;\n  \n  add(task: () => Promise<any>): void {}\n  private next(): void {}\n}",
+      "test_cases": [
+        {
+          "input": "添加 3 个异步任务",
+          "expected_output": "按顺序依次完成",
+          "description": "测试顺序执行"
+        },
+        {
+          "input": "某个任务 reject",
+          "expected_output": "后续任务继续执行或停止（可配置）",
+          "description": "测试错误处理"
+        },
+        {
+          "input": "空队列",
+          "expected_output": "不报错",
+          "description": "测试边界"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "explanation": "原理机制：队列维护任务列表，递归或循环执行。正确选型：Promise 链式调用保证顺序。错误选型：直接并发执行。工程实践：用于顺序上传、日志上报等需保证顺序场景，注意错误捕获避免队列中断。",
+      "common_mistake": "未等待 Promise resolve 就执行下一个任务",
+      "knowledge_point": "Algo_Async_Queue_Sequential"
+    },
+    {
+      "id": "arch-senior-088",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Mobile", "Adaptation", "Responsive"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "移动端适配方案",
+      "content": "在移动端 H5 开发中，以下哪些适配方案是常用的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "viewport + rem 方案"
+        },
+        {
+          "id": "B",
+          "text": "flexible.js 动态设置 font-size"
+        },
+        {
+          "id": "C",
+          "text": "CSS 媒体查询（Media Queries）"
+        },
+        {
+          "id": "D",
+          "text": "固定像素写死所有尺寸"
+        },
+        {
+          "id": "E",
+          "text": "vw/vh 视口单位"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：适配需响应不同屏幕尺寸。正确选型：A/B/C/E 均为主流方案。错误选型：D 无法适配多机型。工程实践：推荐 vw/vh 配合 postcss-px-to-viewport，简化计算，注意 1px 边框问题及安全区域（safe-area-inset）。",
+      "common_mistake": "忽略 iPhone X+ 底部安全区域导致内容遮挡",
+      "knowledge_point": "Mobile_Adaptation_Strategy",
+      "exclusion_analysis": {
+        "D": "固定像素无法适应多样化屏幕分辨率"
+      }
+    },
+    {
+      "id": "arch-senior-089",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "Supply Chain", "Dependency"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "依赖供应链安全",
+      "content": "防止 npm 依赖包供应链攻击（如恶意代码注入），最有效的措施是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅使用最新版本的依赖"
+        },
+        {
+          "id": "B",
+          "text": "锁定依赖版本（package-lock.json）并定期审计"
+        },
+        {
+          "id": "C",
+          "text": "手动下载源码检查"
+        },
+        {
+          "id": "D",
+          "text": "不使用第三方依赖"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：供应链攻击利用依赖更新植入恶意代码。正确选型：B 选项锁定版本防止意外升级，审计发现漏洞。错误选型：A 最新版可能含漏洞；C 不现实；D 不可行。工程实践：使用 npm audit，配置 CI 自动扫描，使用私有源代理并缓存验证过的包。",
+      "common_mistake": "提交 package.json 而不提交 lock 文件，导致环境不一致",
+      "knowledge_point": "Security_Supply_Chain_Defense"
+    },
+    {
+      "id": "arch-senior-090",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Performance", "Repaint", "Reflow"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "重绘与重排关系",
+      "content": "所有的重排（Reflow）都会导致重绘（Repaint），但重绘不一定导致重排。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：重排涉及布局计算，必然触发绘制。重绘仅颜色变化等不影响布局时，不触发重排。",
+      "explanation": "原理机制：渲染管线顺序为 DOM->CSSOM->Layout->Paint。正确选型：A 选项符合渲染流程。错误选型：B 颠倒关系。工程实践：批量修改 DOM 减少重排，使用 transform 避免触发布局，通过 CSS containment 限制重排范围。",
+      "common_mistake": "频繁修改布局属性导致性能瓶颈",
+      "knowledge_point": "Performance_Reflow_Repaint_Relation"
+    },
+    {
+      "id": "arch-senior-091",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "LLM", "Streaming"],
+      "source_company": "OpenAI",
+      "score": 10,
+      "title": "LLM 流式响应处理架构",
+      "content": "在前端处理大语言模型（LLM）的流式响应（Streaming Response）时，最佳的数据解析策略是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "等待完整响应后一次性解析，确保数据完整性"
+        },
+        {
+          "id": "B",
+          "text": "使用 SSE（Server-Sent Events）或 ReadableStream 逐块解析，配合缓冲合并"
+        },
+        {
+          "id": "C",
+          "text": "使用 WebSocket 全双工通信，忽略 HTTP 流"
+        },
+        {
+          "id": "D",
+          "text": "轮询接口获取最新响应片段"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：LLM 流式输出通常采用 SSE 或 HTTP Chunked Transfer，前端需增量解析。正确选型：B 选项利用 ReadableStream 或 EventSource 实现低延迟逐字渲染，配合缓冲处理不完整 Token。错误选型：A 失去流式优势；C WebSocket 成本高且非必要；D 轮询延迟大且浪费资源。工程实践：使用 TextDecoderStream 处理编码，实现打字机效果，注意处理 SSE 的 data: 前缀和 [DONE] 结束标记，配合取消机制（AbortController）支持用户中断生成。",
+      "common_mistake": "忽略流式数据的不完整性，直接解析导致 JSON 错误",
+      "knowledge_point": "AI_LLM_Streaming_Parsing"
+    },
+    {
+      "id": "arch-senior-092",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Prompt", "Management"],
+      "source_company": "Anthropic",
+      "score": 10,
+      "title": "Prompt 模板管理架构",
+      "content": "在企业级 AI 应用中，管理大量 Prompt 模板的最佳架构方案是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "硬编码在前端组件中，便于快速迭代"
+        },
+        {
+          "id": "B",
+          "text": "集中存储于后端数据库，支持版本控制和动态下发"
+        },
+        {
+          "id": "C",
+          "text": "存储在 LocalStorage，由用户自定义"
+        },
+        {
+          "id": "D",
+          "text": "使用配置文件打包进前端代码"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Prompt 是核心业务资产，需独立管理和版本控制。正确选型：B 选项支持 A/B 测试、灰度发布、热更新，无需重新部署前端。错误选型：A 耦合严重，修改需发版；C 不安全且无法共享；D 灵活性差。工程实践：设计 Prompt 管理后台，支持变量插值（如 {{user_name}}），记录每次调用的 Prompt 版本和效果指标，配合缓存减少 Token 消耗，注意敏感信息脱敏。",
+      "common_mistake": "将 Prompt 视为普通代码，忽略其业务价值和版本管理需求",
+      "knowledge_point": "AI_Prompt_Management_Arch"
+    },
+    {
+      "id": "arch-senior-093",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Vector Search", "RAG"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "前端向量检索落地方案",
+      "content": "在实现检索增强生成（RAG）系统时，前端可参与的向量检索优化包括哪些？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 WebAssembly 运行轻量级向量相似度计算"
+        },
+        {
+          "id": "B",
+          "text": "前端缓存高频查询的向量结果"
+        },
+        {
+          "id": "C",
+          "text": "实现查询重写和意图识别预处理"
+        },
+        {
+          "id": "D",
+          "text": "直接在前端存储全部向量数据库"
+        },
+        {
+          "id": "E",
+          "text": "使用 Web Worker 隔离向量计算避免阻塞 UI"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：RAG 需结合检索与生成，前端可优化体验。正确选型：A/B/C/E 均在可行范围内，Wasm 加速计算，缓存减少请求，预处理提升质量，Worker 避免卡顿。错误选型：D 向量库通常 GB 级，前端存储不现实。工程实践：使用 @xenova/transformers.js 在浏览器运行嵌入模型，配合 IndexedDB 缓存，注意模型加载时间和内存占用，敏感数据检索仍需后端。",
+      "common_mistake": "试图在前端承载完整向量索引，忽略存储和性能限制",
+      "knowledge_point": "AI_Vector_Search_Frontend",
+      "exclusion_analysis": {
+        "D": "向量数据库规模通常过大，前端无法承载完整索引"
+      }
+    },
+    {
+      "id": "arch-senior-094",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Content Safety", "Moderation"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "AI 生成内容合规过滤",
+      "content": "在前端处理 AI 生成内容时，关于内容安全过滤的架构设计，正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅依赖后端过滤，前端直接展示"
+        },
+        {
+          "id": "B",
+          "text": "前后端双重过滤，前端做初步敏感词检测，后端深度审核"
+        },
+        {
+          "id": "C",
+          "text": "完全依赖用户举报，事后处理"
+        },
+        {
+          "id": "D",
+          "text": "前端过滤会暴露规则，应完全隐藏"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：内容安全需纵深防御，减少违规内容曝光时间。正确选型：B 选项前端快速拦截明显违规，后端做语义分析，平衡体验与安全。错误选型：A 后端延迟导致违规内容短暂展示；C 被动响应风险高；D 前端基础过滤仍有价值。工程实践：前端维护敏感词库（可加密混淆），实时流式检测，发现违规立即停止渲染并提示，配合后端 Moderation API，记录审计日志，注意误报处理机制。",
+      "common_mistake": "忽视前端即时过滤，导致违规内容在用户界面短暂可见",
+      "knowledge_point": "AI_Content_Safety_Arch"
+    },
+    {
+      "id": "arch-senior-095",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Token", "Streaming"],
+      "source_company": "OpenAI",
+      "score": 20,
+      "title": "流式 Token 累积渲染器",
+      "content": "实现一个 LLM 流式 Token 累积渲染器，支持处理不完整的 JSON 片段和 Markdown 格式。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class StreamingRenderer {\n  private buffer: string = '';\n  private onComplete?: (content: string) => void;\n  \n  // 接收流式数据块\n  append(chunk: string): void {}\n  \n  // 标记流结束\n  end(): void {}\n  \n  // 获取当前累积内容\n  getContent(): string {}\n}",
+      "test_cases": [
+        {
+          "input": "连续 append 多个不完整 JSON 片段",
+          "expected_output": "正确累积，end 后输出完整内容",
+          "description": "测试片段累积"
+        },
+        {
+          "input": "包含 Markdown 代码块标记",
+          "expected_output": "正确识别并保留格式",
+          "description": "测试 Markdown 解析"
+        },
+        {
+          "input": "流中途调用 end",
+          "expected_output": "输出当前缓冲内容，不报错",
+          "description": "测试边界处理"
+        }
+      ],
+      "time_complexity": "O(n) total characters",
+      "space_complexity": "O(n) buffer size",
+      "explanation": "原理机制：流式数据需缓冲处理不完整片段，特别是 JSON 和 Markdown 边界。正确选型：维护内部 buffer，append 时追加，end 时触发回调。错误选型：直接拼接可能丢失格式或解析错误。工程实践：配合 marked 或 remark 实现 Markdown 实时渲染，使用正则检测代码块边界，注意 Unicode 字符处理，支持取消操作清理 buffer，考虑内存泄漏风险设置最大缓冲限制。",
+      "common_mistake": "忽略 Markdown 代码块边界导致渲染错乱",
+      "knowledge_point": "AI_Streaming_Renderer_Impl"
+    },
+    {
+      "id": "arch-senior-096",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "WebGL", "Performance"],
+      "source_company": "NVIDIA",
+      "score": 10,
+      "title": "WebGL 大规模点云渲染",
+      "content": "在浏览器中渲染百万级点云数据时，性能最优的方案是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 Canvas 2D API 逐点绘制"
+        },
+        {
+          "id": "B",
+          "text": "使用 WebGL  instanced rendering 配合 GPU 计算"
+        },
+        {
+          "id": "C",
+          "text": "使用 SVG 元素渲染每个点"
+        },
+        {
+          "id": "D",
+          "text": "将点云转为图片后展示"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：WebGL 利用 GPU 并行计算，适合大规模图形渲染。正确选型：B 选项使用 Instanced Rendering 减少 Draw Call，GPU 处理顶点变换，支持百万级点。错误选型：A Canvas 2D 是 CPU 绘制，性能差；C SVG DOM 节点过多会崩溃；D 失去交互能力。工程实践：使用 Three.js 或 deck.gl，实现 LOD（Level of Detail）根据视距调整精度，配合视锥体裁剪，使用 Float32Array 传输顶点数据，注意显存管理和上下文丢失恢复。",
+      "common_mistake": "使用 DOM 或 Canvas 2D 渲染大规模数据导致帧率极低",
+      "knowledge_point": "Visualization_WebGL_PointCloud"
+    },
+    {
+      "id": "arch-senior-097",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Canvas", "SVG"],
+      "source_company": "D3.js",
+      "score": 15,
+      "title": "SVG 与 Canvas 选型决策",
+      "content": "在数据可视化架构设计中，关于 SVG 与 Canvas 的选型，以下哪些判断是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "SVG 适合元素数量少（<1000）且需频繁交互的场景"
+        },
+        {
+          "id": "B",
+          "text": "Canvas 适合元素数量多（>10000）且交互较少的场景"
+        },
+        {
+          "id": "C",
+          "text": "SVG 支持 CSS 样式和事件绑定，开发效率高"
+        },
+        {
+          "id": "D",
+          "text": "Canvas 可导出为图片格式，SVG 不支持"
+        },
+        {
+          "id": "E",
+          "text": "两者可混合使用，SVG 处理交互层，Canvas 处理数据层"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：SVG 基于 DOM，Canvas 基于像素，各有优劣。正确选型：A/B/C/E 准确描述特性。错误选型：D SVG 也可导出为图片（序列化后转换）。工程实践：1000 元素内优先 SVG 便于交互和样式，大数据量用 Canvas 或 WebGL，混合架构常见于地图（Canvas 底图 + SVG 标注），注意 Canvas 事件需手动命中检测，SVG 过多节点会导致内存泄漏。",
+      "common_mistake": "在大数据量场景强行使用 SVG 导致 DOM 节点爆炸",
+      "knowledge_point": "Visualization_SVG_Canvas_Selection",
+      "exclusion_analysis": {
+        "D": "SVG 可通过序列化转为 Blob 再转图片，并非不支持"
+      }
+    },
+    {
+      "id": "arch-senior-098",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Visualization", "Rendering Engine", "Architecture"],
+      "source_company": "AntV",
+      "score": 10,
+      "title": "自定义渲染引擎架构",
+      "content": "设计一个可复用的可视化渲染引擎时，核心分层架构应包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅一个绘制函数，所有逻辑内聚"
+        },
+        {
+          "id": "B",
+          "text": "数据层、图形层、渲染层、交互层分离"
+        },
+        {
+          "id": "C",
+          "text": "直接依赖具体图表库，不做抽象"
+        },
+        {
+          "id": "D",
+          "text": "所有配置硬编码，不支持扩展"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：渲染引擎需解耦数据与视图，支持扩展。正确选型：B 选项分层清晰，数据层处理转换，图形层定义图元，渲染层负责绘制，交互层处理事件。错误选型：A 难以维护；C 失去复用性；D 无法适配需求。工程实践：参考 G2/D3 架构，数据层支持 Pipeline 转换，图形层抽象 Shape，渲染层适配 Canvas/SVG/WebGL 多后端，交互层实现 Selection/Zoom/Pan，使用观察者模式解耦更新通知。",
+      "common_mistake": "将数据处理与渲染逻辑耦合，导致无法切换渲染后端",
+      "knowledge_point": "Visualization_Engine_Architecture"
+    },
+    {
+      "id": "arch-senior-099",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Coordinate", "Transformation"],
+      "source_company": "D3.js",
+      "score": 20,
+      "title": "坐标变换与缩放计算器",
+      "content": "实现一个坐标变换器，支持数据坐标到屏幕坐标的映射，包含平移和缩放功能。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class CoordinateTransformer {\n  private scale: number = 1;\n  private translate: [number, number] = [0, 0];\n  \n  // 数据坐标转屏幕坐标\n  toScreen(dataX: number, dataY: number): [number, number] {}\n  \n  // 屏幕坐标转数据坐标\n  toData(screenX: number, screenY: number): [number, number] {}\n  \n  // 设置缩放和平移\n  setTransform(scale: number, translate: [number, number]): void {}\n}",
+      "test_cases": [
+        {
+          "input": "scale=1, translate=[0,0], 数据 (10,20)",
+          "expected_output": "屏幕坐标 (10,20)",
+          "description": "测试无变换"
+        },
+        {
+          "input": "scale=2, translate=[100,50], 数据 (10,20)",
+          "expected_output": "屏幕坐标 (120,90)",
+          "description": "测试缩放平移"
+        },
+        {
+          "input": "反向变换屏幕 (120,90)",
+          "expected_output": "数据坐标 (10,20)",
+          "description": "测试逆变换"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：坐标变换是可视化的基础，公式为 screen = data * scale + translate。正确选型：实现正逆变换，注意浮点精度。错误选型：忽略逆变换或公式错误。工程实践：用于图表缩放、地图平移，配合 wheel 事件实现鼠标为中心缩放，注意变换矩阵的可组合性，支持动画过渡，考虑边界限制防止缩放过小或过大，使用 requestAnimationFrame 平滑更新。",
+      "common_mistake": "逆变换公式错误导致交互偏移",
+      "knowledge_point": "Visualization_Coordinate_Transform"
+    },
+    {
+      "id": "arch-senior-100",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Cost", "Optimization"],
+      "source_company": "Anthropic",
+      "score": 15,
+      "title": "LLM Token 成本优化策略",
+      "content": "为降低 AI 应用的 Token 消耗成本，以下哪些优化策略是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "前端实现对话历史摘要，减少上下文长度"
+        },
+        {
+          "id": "B",
+          "text": "使用小型模型处理简单任务，大型模型处理复杂任务"
+        },
+        {
+          "id": "C",
+          "text": "缓存相似查询的响应结果"
+        },
+        {
+          "id": "D",
+          "text": "无限制增加上下文以提升效果"
+        },
+        {
+          "id": "E",
+          "text": "实现流式响应，用户满意即可提前终止"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：Token 成本与输入输出长度直接相关。正确选型：A/B/C/E 均能减少 Token 消耗。错误选型：D 会显著增加成本。工程实践：实现滑动窗口摘要保留关键信息，路由策略根据意图选择模型，语义缓存使用向量相似度匹配，流式响应支持用户中断节省输出 Token，监控 Token 用量设置预算告警，注意缓存命中率与新鲜度平衡。",
+      "common_mistake": "忽视上下文累积导致的成本指数增长",
+      "knowledge_point": "AI_Token_Cost_Optimization",
+      "exclusion_analysis": {
+        "D": "无限制增加上下文会显著增加成本且可能降低效果"
+      }
+    },
+    {
+      "id": "arch-senior-101",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "LOD", "Performance"],
+      "source_company": "Cesium",
+      "score": 10,
+      "title": "LOD 细节层次渲染策略",
+      "content": "在大规模场景可视化中，LOD（Level of Detail）技术的核心作用是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "提高所有物体的渲染精度"
+        },
+        {
+          "id": "B",
+          "text": "根据视距动态调整模型精度，平衡性能与质量"
+        },
+        {
+          "id": "C",
+          "text": "仅渲染可见物体，隐藏遮挡部分"
+        },
+        {
+          "id": "D",
+          "text": "将所有模型压缩为低多边形"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：LOD 根据物体与相机距离切换不同精度模型。正确选型：B 选项准确描述 LOD 核心——远低近高，节省 GPU 资源。错误选型：A 违背优化目的；C 是遮挡裁剪；D 是单一精度。工程实践：实现 3-5 级 LOD，距离阈值动态计算，过渡使用 morph 避免跳变，结合 HLOD（Hierarchical LOD）管理场景图，注意内存中多精度模型存储开销，配合流式加载按需获取精度。",
+      "common_mistake": "LOD 切换阈值固定导致频繁跳变或性能浪费",
+      "knowledge_point": "Visualization_LOD_Strategy"
+    },
+    {
+      "id": "arch-senior-102",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Function Call", "Integration"],
+      "source_company": "OpenAI",
+      "score": 5,
+      "title": "AI Function Call 架构",
+      "content": "LLM 的 Function Calling 功能允许模型直接执行前端 JavaScript 函数，无需后端验证。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件：Function Calling 仅返回函数名和参数，实际执行需后端验证权限和参数合法性。前端直接执行存在严重安全风险。",
+      "explanation": "原理机制：Function Calling 是模型输出结构化调用建议，非直接执行。正确选型：B 选项指出需后端验证。错误选型：A 忽视安全风险。工程实践：前端定义函数 Schema 传给模型，模型返回调用意图，后端校验权限、参数、速率限制后执行，结果返回前端，注意敏感操作需二次确认，记录审计日志，防止 Prompt 注入攻击。",
+      "common_mistake": "信任模型输出直接执行函数，导致安全漏洞",
+      "knowledge_point": "AI_Function_Call_Security"
+    },
+    {
+      "id": "arch-senior-103",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Visualization", "Animation", "Performance"],
+      "source_company": "GreenSock",
+      "score": 10,
+      "title": "可视化动画性能优化",
+      "content": "在数据可视化中实现流畅动画（60FPS），最关键的优化手段是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 setInterval 定时更新"
+        },
+        {
+          "id": "B",
+          "text": "使用 requestAnimationFrame 并仅更新变化属性"
+        },
+        {
+          "id": "C",
+          "text": "增加动画时长降低帧率要求"
+        },
+        {
+          "id": "D",
+          "text": "使用 CSS transition 处理所有动画"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：requestAnimationFrame 与显示器刷新率同步，避免掉帧。正确选型：B 选项配合增量更新最小化绘制开销。错误选型：A 不与刷新同步可能掉帧；C 降低体验；D CSS 不适合复杂数据动画。工程实践：使用 rAF 循环，计算 delta 时间实现帧率无关动画，仅重绘变化区域（脏矩形），避免动画中创建对象减少 GC，使用 transform/opacity 触发 GPU 加速，复杂场景考虑降低动画精度或跳过帧。",
+      "common_mistake": "使用 setTimeout/setInterval 导致动画与刷新不同步",
+      "knowledge_point": "Visualization_Animation_Performance"
+    },
+    {
+      "id": "arch-senior-104",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Embedding", "Cache"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "向量嵌入缓存策略",
+      "content": "为减少向量嵌入（Embedding）API 调用成本，以下哪些缓存策略是有效的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用语义相似度缓存，近似查询返回缓存结果"
+        },
+        {
+          "id": "B",
+          "text": "精确匹配缓存，相同文本直接返回"
+        },
+        {
+          "id": "C",
+          "text": "设置 TTL 定期清理过期缓存"
+        },
+        {
+          "id": "D",
+          "text": "缓存所有查询无限制"
+        },
+        {
+          "id": "E",
+          "text": "使用本地嵌入模型处理高频查询"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：Embedding 计算成本高，缓存可显著降本。正确选型：A/B/C/E 均为有效策略。错误选型：D 无限缓存导致内存爆炸。工程实践：精确缓存用 Map 存储 text->vector，语义缓存用向量相似度阈值（如 0.95）匹配，IndexedDB 持久化热点缓存，本地模型使用 transformers.js 但注意精度差异，设置缓存大小限制和 LRU 淘汰策略，监控缓存命中率优化阈值。",
+      "common_mistake": "忽略缓存内存增长导致浏览器崩溃",
+      "knowledge_point": "AI_Embedding_Cache_Strategy",
+      "exclusion_analysis": {
+        "D": "无限制缓存会耗尽内存，需设置淘汰策略"
+      }
+    },
+    {
+      "id": "arch-senior-105",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Hit Testing", "Interaction"],
+      "source_company": "AntV",
+      "score": 20,
+      "title": "Canvas 图形命中检测算法",
+      "content": "实现一个 Canvas 图形命中检测函数，判断鼠标点击是否命中给定图形（支持矩形、圆形、多边形）。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Shape {\n  type: 'rect' | 'circle' | 'polygon';\n  x: number;\n  y: number;\n  width?: number;\n  height?: number;\n  radius?: number;\n  points?: [number, number][];\n}\n\nfunction hitTest(shape: Shape, mouseX: number, mouseY: number): boolean {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "矩形 (0,0,100,100), 点击 (50,50)",
+          "expected_output": "true",
+          "description": "测试矩形内部"
+        },
+        {
+          "input": "圆形 (0,0,r=50), 点击 (30,40)",
+          "expected_output": "true (距离=50)",
+          "description": "测试圆形边界"
+        },
+        {
+          "input": "多边形，点击外部",
+          "expected_output": "false",
+          "description": "测试射线法"
+        }
+      ],
+      "time_complexity": "O(n) for polygon, O(1) for rect/circle",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：命中检测是交互基础，不同图形算法不同。正确选型：矩形用边界判断，圆形用距离公式，多边形用射线法。错误选型：忽略边界条件或算法错误。工程实践：Canvas 无内置事件，需手动维护图形树，优化使用空间索引（QuadTree）减少检测对象，支持拾取容差（tolerance）提升体验，注意高 DPI 屏幕坐标转换，复杂场景考虑颜色拾取法（离屏渲染）。",
+      "common_mistake": "多边形命中检测未正确实现射线法导致误判",
+      "knowledge_point": "Visualization_Hit_Testing_Algo"
+    },
+    {
+      "id": "arch-senior-106",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Context Window", "Architecture"],
+      "source_company": "Anthropic",
+      "score": 10,
+      "title": "上下文窗口管理策略",
+      "content": "当对话历史超过 LLM 上下文窗口限制时，最佳处理策略是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接截断最早的消息"
+        },
+        {
+          "id": "B",
+          "text": "使用摘要模型压缩早期对话，保留关键信息"
+        },
+        {
+          "id": "C",
+          "text": "拒绝继续对话，要求用户重新开始"
+        },
+        {
+          "id": "D",
+          "text": "自动切换到小上下文模型"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：上下文窗口有限，需智能管理保留关键信息。正确选型：B 选项使用摘要压缩，平衡信息保留与长度限制。错误选型：A 可能丢失关键上下文；C 体验差；D 模型能力不同可能影响效果。工程实践：实现滑动窗口 + 摘要混合策略，系统提示词始终保留，用户关键信息标记不压缩，使用专门摘要模型或 LLM 自身压缩，记录压缩历史可追溯，注意摘要质量影响后续回答准确性。",
+      "common_mistake": "简单截断导致对话连贯性丢失",
+      "knowledge_point": "AI_Context_Window_Management"
+    },
+    {
+      "id": "arch-senior-107",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Data Processing", "Pipeline"],
+      "source_company": "D3.js",
+      "score": 15,
+      "title": "可视化数据处理管道",
+      "content": "构建高效的数据可视化处理管道，以下哪些设计原则是正确的？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "数据转换与渲染逻辑分离"
+        },
+        {
+          "id": "B",
+          "text": "支持增量更新而非全量重绘"
+        },
+        {
+          "id": "C",
+          "text": "使用 Web Worker 处理大数据转换"
+        },
+        {
+          "id": "D",
+          "text": "所有数据处理在主线程同步完成"
+        },
+        {
+          "id": "E",
+          "text": "实现数据缓存避免重复计算"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：数据管道需高效、可维护、不阻塞 UI。正确选型：A/B/C/E 符合最佳实践。错误选型：D 大数据会阻塞主线程导致卡顿。工程实践：参考 D3 数据连接（Data Join）模式，使用 Generators 实现惰性求值，Worker 处理聚合/过滤/排序，使用 Transferable Objects 减少拷贝，实现脏数据标记仅更新变化部分，缓存中间计算结果，注意 Worker 通信开销平衡。",
+      "common_mistake": "在主线程处理百万级数据导致界面冻结",
+      "knowledge_point": "Visualization_Data_Pipeline",
+      "exclusion_analysis": {
+        "D": "大数据同步处理会阻塞主线程，应使用 Worker 或分片"
+      }
+    },
+    {
+      "id": "arch-senior-108",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Rate Limit", "API"],
+      "source_company": "OpenAI",
+      "score": 5,
+      "title": "AI API 限流处理",
+      "content": "前端调用 LLM API 时，遇到 429 限流错误应立即重试，无需等待。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件：429 响应通常包含 Retry-After 头，需按指定时间等待。立即重试会加剧限流甚至封禁。",
+      "explanation": "原理机制：API 限流保护服务端，需遵守重试规则。正确选型：B 选项指出需等待。错误选型：A 会触发更严格限流。工程实践：解析 Retry-After 头或使用指数退避，实现请求队列限速，前端显示友好提示，配合后端代理统一限流管理，记录限流事件监控配额使用，注意多用户共享配额时的公平调度，实现请求优先级区分。",
+      "common_mistake": "忽略 Retry-After 头立即重试导致限流升级",
+      "knowledge_point": "AI_API_Rate_Limit"
+    },
+    {
+      "id": "arch-senior-109",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Memory", "Optimization"],
+      "source_company": "Cesium",
+      "score": 10,
+      "title": "可视化内存泄漏预防",
+      "content": "在长期运行的可视化应用中，预防内存泄漏的最关键措施是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "增加浏览器内存限制"
+        },
+        {
+          "id": "B",
+          "text": "正确释放 WebGL 资源（Buffer、Texture、Program）"
+        },
+        {
+          "id": "C",
+          "text": "减少图形复杂度"
+        },
+        {
+          "id": "D",
+          "text": "定期刷新页面"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：WebGL 资源不通过 JS GC 自动回收，需手动释放。正确选型：B 选项直接针对 GPU 资源管理。错误选型：A 无法控制；C 影响功能；D 体验差。工程实践：组件卸载时调用 gl.deleteBuffer、gl.deleteTexture 等，维护资源注册表追踪分配，使用弱引用避免循环引用，监控 WebGL 上下文丢失事件重建资源，注意 Geometry 和 Material 的 dispose 方法，使用 Chrome DevTools Performance Monitor 检测内存增长。",
+      "common_mistake": "仅清理 JS 对象忽略 WebGL 资源导致显存泄漏",
+      "knowledge_point": "Visualization_Memory_WebGL"
+    },
+    {
+      "id": "arch-senior-110",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Visualization", "Aggregation", "Performance"],
+      "source_company": "AntV",
+      "score": 20,
+      "title": "大数据聚合降采样算法",
+      "content": "实现一个时间序列数据降采样函数，将大量数据点聚合为可视化的有限点数。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface DataPoint {\n  timestamp: number;\n  value: number;\n}\n\nfunction downsample(\n  data: DataPoint[],\n  targetPoints: number\n): DataPoint[] {\n  // 请补充实现，可使用 LTTB 等算法\n}",
+      "test_cases": [
+        {
+          "input": "10000 点降采样到 100 点",
+          "expected_output": "返回 100 点，保持趋势特征",
+          "description": "测试降采样效果"
+        },
+        {
+          "input": "数据点少于 targetPoints",
+          "expected_output": "返回原始数据",
+          "description": "测试边界条件"
+        },
+        {
+          "input": "空数据数组",
+          "expected_output": "返回空数组",
+          "description": "测试空输入"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(targetPoints)",
+      "explanation": "原理机制：降采样需在减少点数同时保持视觉特征，LTTB（Largest-Triangle-Three-Buckets）是常用算法。正确选型：分桶后选代表性点（如最大值或 LTTB 三角形面积最大点）。错误选型：简单等距采样会丢失峰值。工程实践：用于图表、监控大屏，LTTB 比简单采样更好保持趋势，注意时间对齐，支持多种聚合函数（avg/max/min），配合视口范围动态调整采样率，考虑流式数据增量降采样。",
+      "common_mistake": "简单等距采样丢失关键峰值数据",
+      "knowledge_point": "Visualization_Downsampling_Algo"
+    },
+    {
+      "id": "arch-senior-111",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Evaluation", "Metrics"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "AI 应用效果评估指标",
+      "content": "评估前端 AI 应用效果时，应关注哪些核心指标？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "响应延迟（首 Token 时间、完整响应时间）"
+        },
+        {
+          "id": "B",
+          "text": "用户满意度评分（ thumbs up/down）"
+        },
+        {
+          "id": "C",
+          "text": "Token 消耗成本"
+        },
+        {
+          "id": "D",
+          "text": "回答准确性（需人工或自动化评估）"
+        },
+        {
+          "id": "E",
+          "text": "仅关注功能是否可用"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：AI 应用需综合评估性能、成本、质量。正确选型：A/B/C/D 覆盖关键维度。错误选型：E 过于粗糙无法优化。工程实践：埋点记录首 Token 延迟影响感知，收集用户反馈训练 RLHF，监控 Token 成本设置告警，使用自动化评估（如 LLM-as-a-Judge）辅助人工，建立 A/B 测试框架对比不同 Prompt 效果，注意隐私保护脱敏日志。",
+      "common_mistake": "仅关注功能实现，忽视成本和质量持续优化",
+      "knowledge_point": "AI_Evaluation_Metrics",
+      "exclusion_analysis": {
+        "E": "仅关注可用性无法支撑持续优化和成本控制"
+      }
+    },
+    {
+      "id": "arch-senior-112",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Accessibility", "a11y"],
+      "source_company": "W3C",
+      "score": 10,
+      "title": "可视化无障碍架构",
+      "content": "为数据可视化图表实现无障碍访问（a11y），最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅添加 alt 文本描述"
+        },
+        {
+          "id": "B",
+          "text": "提供数据表格替代、键盘导航、屏幕阅读器支持"
+        },
+        {
+          "id": "C",
+          "text": "无障碍仅适用于静态图片"
+        },
+        {
+          "id": "D",
+          "text": "Canvas/SVG 无法实现无障碍"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：无障碍需支持多种交互方式和辅助技术。正确选型：B 选项提供多重访问途径。错误选型：A 信息不足；C/D 错误认知。工程实践：SVG 使用 title/desc 元素，Canvas 提供隐藏表格数据，实现键盘焦点遍历数据点，支持屏幕阅读器朗读趋势，颜色使用满足对比度要求且不单独依赖颜色传递信息，参考 WCAG 2.1 标准，测试使用 NVDA/VoiceOver 等工具。",
+      "common_mistake": "认为可视化无法或无需实现无障碍",
+      "knowledge_point": "Visualization_Accessibility_Arch"
+    },
+    {
+      "id": "arch-senior-113",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Hallucination", "Verification"],
+      "source_company": "Anthropic",
+      "score": 5,
+      "title": "AI 幻觉问题处理",
+      "content": "LLM 可能产生幻觉（Hallucination），前端应实现引用来源验证和不确定性提示机制。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：RAG 系统可返回引用来源，但需验证来源可靠性。不确定性提示需平衡用户体验和透明度。",
+      "explanation": "原理机制：LLM 本质是概率生成，可能编造信息。正确选型：A 选项指出需验证和提示。错误选型：B 忽视风险。工程实践：RAG 返回引用片段和置信度，前端展示来源链接供用户核实，低置信度回答添加免责声明，实现用户反馈机制标记错误，配合后端事实核查服务，注意不要过度提示影响信任，关键领域（医疗/法律）需专业审核。",
+      "common_mistake": "将 AI 输出视为绝对真理，不提供验证途径",
+      "knowledge_point": "AI_Hallucination_Mitigation"
+    },
+    {
+      "id": "arch-senior-114",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Visualization", "Responsive", "Layout"],
+      "source_company": "AntV",
+      "score": 10,
+      "title": "响应式可视化布局",
+      "content": "实现响应式数据可视化图表，最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "固定像素尺寸，不支持缩放"
+        },
+        {
+          "id": "B",
+          "text": "监听容器尺寸变化，动态重绘并调整配置"
+        },
+        {
+          "id": "C",
+          "text": "仅支持桌面端，移动端单独开发"
+        },
+        {
+          "id": "D",
+          "text": "使用 CSS 缩放整个图表"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：响应式需适配不同屏幕和容器。正确选型：B 选项动态重绘保证清晰度。错误选型：A 无法适配；C 成本高；D 会模糊。工程实践：使用 ResizeObserver 监听容器，防抖后重绘，调整字体大小和图例位置，移动端简化交互和显示信息，考虑横竖屏切换，测试不同 DPI 设备，注意重绘性能避免频繁触发，使用 container query 替代 media query 更灵活。",
+      "common_mistake": "使用 CSS transform 缩放导致图表模糊",
+      "knowledge_point": "Visualization_Responsive_Layout"
+    },
+    {
+      "id": "arch-senior-115",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Multi Modal", "Architecture"],
+      "source_company": "OpenAI",
+      "score": 15,
+      "title": "多模态 AI 架构设计",
+      "content": "构建支持文本、图片、语音的多模态 AI 应用，架构设计需考虑哪些要点？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "统一输入预处理管道，适配不同模态"
+        },
+        {
+          "id": "B",
+          "text": "媒体资源上传与 AI 处理解耦"
+        },
+        {
+          "id": "C",
+          "text": "实现流式多模态输出渲染"
+        },
+        {
+          "id": "D",
+          "text": "所有模态同步处理完成再展示"
+        },
+        {
+          "id": "E",
+          "text": "考虑不同模态的配额和成本差异"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：多模态需统一架构但差异化处理。正确选型：A/B/C/E 符合设计原则。错误选型：D 同步处理会增加延迟。工程实践：图片语音先上传存储返回 URL，再调用 AI，文本直接发送，实现混合流式渲染（文本 + 生成图片占位），配额管理区分模态成本，注意媒体压缩减少上传时间，实现上传进度和取消，处理不同模态的错误恢复策略，考虑离线降级方案。",
+      "common_mistake": "等待所有模态处理完成再展示，增加用户等待时间",
+      "knowledge_point": "AI_MultiModal_Architecture",
+      "exclusion_analysis": {
+        "D": "同步等待会增加延迟，应支持增量展示"
+      }
+    },
+    {
+      "id": "arch-senior-116",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Graph", "Layout"],
+      "source_company": "G6",
+      "score": 20,
+      "title": "力导向图布局算法简化实现",
+      "content": "实现一个简化的力导向图布局算法，计算节点位置使边长度均匀、节点不重叠。",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Node {\n  id: string;\n  x: number;\n  y: number;\n  vx: number;\n  vy: number;\n}\n\ninterface Link {\n  source: string;\n  target: string;\n}\n\nfunction forceLayout(\n  nodes: Node[],\n  links: Link[],\n  iterations: number\n): Node[] {\n  // 请补充实现\n}",
+      "test_cases": [
+        {
+          "input": "3 个节点 2 条边，迭代 100 次",
+          "expected_output": "节点位置稳定，边长度接近",
+          "description": "测试基本布局"
+        },
+        {
+          "input": "孤立节点",
+          "expected_output": "不报错，位置合理分布",
+          "description": "测试边界条件"
+        },
+        {
+          "input": "空节点数组",
+          "expected_output": "返回空数组",
+          "description": "测试空输入"
+        }
+      ],
+      "time_complexity": "O(iterations * (n + m))",
+      "space_complexity": "O(n)",
+      "explanation": "原理机制：力导向模拟物理引力和斥力，迭代收敛。正确选型：计算节点间斥力、边的弹簧引力，更新速度位置，加入阻尼。错误选型：忽略斥力导致重叠或忽略引力导致分散。工程实践：用于关系图、知识图谱，使用 Barnes-Hut 优化斥力计算 O(n²) 到 O(n log n)，支持固定节点，实现拖拽交互，注意迭代次数平衡质量和性能，Web Worker 运行避免阻塞，考虑初始位置随机性。",
+      "common_mistake": "忽略斥力计算导致节点重叠严重",
+      "knowledge_point": "Visualization_Force_Layout_Algo"
+    },
+    {
+      "id": "arch-senior-117",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI Engineering", "Session", "Management"],
+      "source_company": "Anthropic",
+      "score": 10,
+      "title": "AI 会话状态管理",
+      "content": "管理 AI 对话会话状态时，关于历史消息存储的最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "全部存储在内存，刷新即丢失"
+        },
+        {
+          "id": "B",
+          "text": "持久化到后端，支持多设备同步和恢复"
+        },
+        {
+          "id": "C",
+          "text": "仅存储最后一条消息"
+        },
+        {
+          "id": "D",
+          "text": "存储在 LocalStorage 无限制"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：会话是核心用户资产，需可靠存储和同步。正确选型：B 选项支持持久化和跨设备。错误选型：A 体验差；C 丢失上下文；D 有容量限制且不同步。工程实践：后端存储会话树结构，支持分支对话，前端乐观更新配合同步，实现会话列表和搜索，敏感对话加密存储，设置自动清理策略，支持导出和分享，注意并发编辑冲突处理，配合版本控制支持回滚。",
+      "common_mistake": "仅本地存储导致换设备丢失对话历史",
+      "knowledge_point": "AI_Session_State_Management"
+    },
+    {
+      "id": "arch-senior-118",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Visualization", "Export", "Format"],
+      "source_company": "AntV",
+      "score": 15,
+      "title": "可视化导出功能实现",
+      "content": "实现数据可视化图表导出功能，支持哪些格式和注意事项？（多选）",
+      "options": [
+        {
+          "id": "A",
+          "text": "PNG/JPEG  raster 格式，适合分享"
+        },
+        {
+          "id": "B",
+          "text": "SVG 矢量格式，适合编辑和打印"
+        },
+        {
+          "id": "C",
+          "text": "CSV/JSON 数据格式，支持二次分析"
+        },
+        {
+          "id": "D",
+          "text": "导出时保持高 DPI 清晰度"
+        },
+        {
+          "id": "E",
+          "text": "所有图表无条件支持所有格式"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：导出需满足多种使用场景。正确选型：A/B/C/D 覆盖常见需求。错误选型：E WebGL 图表导出 SVG 有限制。工程实践：Canvas 用 toDataURL 转图片，SVG 直接序列化，数据导出需权限控制，高 DPI 使用 devicePixelRatio 渲染，注意跨域图片导出安全，大图表分块导出，实现导出进度提示，考虑隐私数据脱敏，支持批量导出和定时导出功能。",
+      "common_mistake": "忽略 DPI 导致导出图片模糊",
+      "knowledge_point": "Visualization_Export_Formats",
+      "exclusion_analysis": {
+        "E": "WebGL 渲染的图表导出 SVG 需要特殊处理，非无条件支持"
+      }
+    },
+    {
+      "id": "arch-senior-119",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["AI Engineering", "Privacy", "Compliance"],
+      "source_company": "EU GDPR",
+      "score": 5,
+      "title": "AI 数据隐私合规",
+      "content": "前端发送用户数据到 LLM API 前，必须实现数据脱敏和用户同意管理，符合 GDPR 等法规。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件：不同地区法规不同（GDPR/CCPA/PIPL），需适配。企业数据和个人数据处理策略不同。",
+      "explanation": "原理机制：AI 处理个人数据受隐私法规约束。正确选型：A 选项指出合规要求。错误选型：B 忽视法律风险。工程实践：实现敏感信息识别（邮箱/电话/身份证）自动脱敏，用户同意弹窗记录审计，提供数据删除入口，选择合规的 AI 服务商（数据不用于训练），企业版私有部署选项，注意跨境数据传输限制，定期合规审查，实现数据最小化原则仅发送必要信息。",
+      "common_mistake": "忽视隐私法规直接发送用户数据到第三方 AI",
+      "knowledge_point": "AI_Privacy_Compliance"
+    },
+    {
+      "id": "arch-senior-120",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Visualization", "Shader", "WebGL"],
+      "source_company": "NVIDIA",
+      "score": 10,
+      "title": "WebGL 着色器优化",
+      "content": "优化 WebGL 片段着色器性能，以下哪种做法最有效？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在片段着色器中进行复杂循环计算"
+        },
+        {
+          "id": "B",
+          "text": "减少分支语句，使用纹理查找替代计算"
+        },
+        {
+          "id": "C",
+          "text": "增加精度修饰符提高计算精度"
+        },
+        {
+          "id": "D",
+          "text": "所有计算放在片段着色器完成"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：片段着色器每像素执行，性能敏感。正确选型：B 选项减少分支避免发散，纹理查找利用 GPU 缓存。错误选型：A 循环增加开销；C 高精度降低性能；D 应利用顶点着色器分担。工程实践：使用 mediump 代替 highp，预计算查找表存纹理，避免动态分支，简化数学运算，使用 GPU 实例化减少 Draw Call，注意不同设备 GPU 能力差异，使用 WebGL 调试工具分析性能瓶颈，考虑使用 Compute Shader（WebGPU）处理通用计算。",
+      "common_mistake": "在片段着色器中执行复杂循环导致帧率骤降",
+      "knowledge_point": "Visualization_WebGL_Shader_Opt"
+    }
+  ]
+}

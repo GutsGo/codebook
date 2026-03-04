@@ -1,0 +1,1700 @@
+{
+  "file_metadata": {
+    "version": "2.0.0",
+    "category": "Engineering",
+    "generated_at": "2025-01-15T10:00:00Z",
+    "total_questions": 50,
+    "target_level": "Senior",
+    "continuation": false,
+    "id_range": "001-050"
+  },
+  "questions": [
+    {
+      "id": "engineer-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Tapable", "Plugin", "事件流"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Tapable钩子类型选择",
+      "content": "在开发Webpack插件时，需要在emit阶段执行异步文件写入操作。以下哪种钩子注册方式是正确的？\\n\\n场景：插件需要在生成最终产物前，异步读取外部配置并注入到compilation.assets中。",
+      "options": [
+        {
+          "id": "A",
+          "text": "compiler.hooks.emit.tap('MyPlugin', (compilation) => { fs.readFile('config.json', (err, data) => { compilation.assets['config.json'] = { source: () => data }; }); })"
+        },
+        {
+          "id": "B",
+          "text": "compiler.hooks.emit.tapAsync('MyPlugin', (compilation, callback) => { fs.readFile('config.json', (err, data) => { compilation.assets['config.json'] = { source: () => data }; callback(); }); })"
+        },
+        {
+          "id": "C",
+          "text": "compiler.hooks.emit.tapPromise('MyPlugin', (compilation) => { return fs.promises.readFile('config.json').then(data => { compilation.assets['config.json'] = { source: () => data }; }); })"
+        },
+        {
+          "id": "D",
+          "text": "compiler.hooks.afterEmit.tap('MyPlugin', (compilation) => { compilation.assets['config.json'] = { source: () => fs.readFileSync('config.json') }; })"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "正确答案是C。emit是一个AsyncSeriesHook异步串行钩子，支持tapAsync和tapPromise两种异步注册方式。选项C使用tapPromise正确返回Promise，Webpack会等待Promise resolve后才继续执行后续钩子。\\n\\n选项A使用同步的tap方法，但内部执行异步操作，Webpack不会等待异步完成就继续执行，导致文件可能还未写入就进入下一阶段，产物丢失。选项B虽然使用tapAsync，但需要深入理解callback机制，相比之下tapPromise更符合现代异步编程习惯。选项D使用afterEmit钩子，此时assets已经写入磁盘，修改compilation.assets不会生效。\\n\\n工程实践建议：对于异步操作优先使用tapPromise，代码更简洁；确保所有异步路径都有正确的resolve/reject或callback调用；在watch模式下注意清理副作用避免内存泄漏。",
+      "knowledge_point": "Webpack_Tapable_AsyncHook",
+      "common_mistake": "混淆同步钩子和异步钩子的注册方式，在同步钩子上使用tapAsync/tapPromise会报错，在异步钩子上使用tap但执行异步操作会导致构建不完整。",
+      "reference_link": "https://webpack.js.org/api/compiler-hooks/#emit",
+      "wrong_options_analysis": {
+        "B": "虽然语法正确，但tapPromise更符合现代Promise风格，且错误处理更直观",
+        "D": "afterEmit在文件写入后触发，修改assets无效，且同步读取会阻塞主线程"
+      }
+    },
+    {
+      "id": "engineer-senior-002",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Tree Shaking", "sideEffects", "ESM"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Tree Shaking失效排查",
+      "content": "某UI组件库配置了package.json的sideEffects: false，但在业务项目中构建后发现未使用的组件代码仍然存在。以下哪项最可能是根本原因？\\n\\n组件库目录结构：\\n- dist/index.js (CommonJS)\\n- dist/index.esm.js (ESM)\\n- package.json (main: dist/index.js, module: dist/index.esm.js)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Webpack版本过低，不支持sideEffects配置"
+        },
+        {
+          "id": "B",
+          "text": "业务项目的resolve.mainFields配置为['main', 'module']，导致优先加载CommonJS版本"
+        },
+        {
+          "id": "C",
+          "text": "组件库使用了export * from './components'的聚合导出语法"
+        },
+        {
+          "id": "D",
+          "text": "业务代码使用了import * as Components from 'ui-lib'的命名空间导入"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。Tree Shaking依赖于ESM的静态分析能力，CommonJS的require是动态的，无法静态确定哪些导出被使用。当resolve.mainFields配置为['main', 'module']时，Webpack优先使用main字段指向的dist/index.js（CommonJS版本），导致Tree Shaking完全失效。\\n\\n虽然选项D的命名空间导入会影响usedExports分析，但只要加载的是ESM版本，Webpack仍可进行SideEffects优化和部分Tree Shaking。选项C的聚合导出在ESM模式下可以正常分析。选项A中sideEffects从Webpack 4开始支持，版本问题不太可能。\\n\\n工程实践建议：消费端应配置resolve.mainFields: ['module', 'main']优先使用ESM版本；库开发者应在package.json的exports字段明确指定各环境入口；使用webpack-bundle-analyzer验证Tree Shaking效果。",
+      "knowledge_point": "Webpack_TreeShaking_ESM",
+      "common_mistake": "只关注sideEffects配置，忽略了实际加载的模块格式对Tree Shaking的决定性影响。",
+      "reference_link": "https://webpack.js.org/guides/tree-shaking/"
+    },
+    {
+      "id": "engineer-senior-003",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "SplitChunks", "代码分割", "性能优化"],
+      "source_company": "Meituan",
+      "score": 12,
+      "title": "SplitChunks配置策略",
+      "content": "在一个多入口的Web应用中，需要优化代码分割策略以减少重复代码。以下哪些SplitChunks配置策略是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "设置chunks: 'all'，同时分割同步和异步加载的模块"
+        },
+        {
+          "id": "B",
+          "text": "为react/react-dom单独配置cacheGroup，设置priority: 40和enforce: true"
+        },
+        {
+          "id": "C",
+          "text": "设置minSize: 0以提取所有公共模块，最大化代码复用"
+        },
+        {
+          "id": "D",
+          "text": "为大型第三方库（如antd）单独配置cacheGroup，避免与基础库混合"
+        },
+        {
+          "id": "E",
+          "text": "使用name属性为每个cacheGroup指定固定的chunk名称"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "正确答案是A、B、D。chunks: 'all'是最推荐的配置，确保同步和异步模块都能参与代码分割，最大化公共代码提取。为react/react-dom单独配置高优先级cacheGroup可以确保这些基础库稳定缓存，配合enforce: true跳过minSize限制。为大型UI库单独分组可以避免其频繁变化影响基础库的缓存命中率。\\n\\n选项C设置minSize: 0会产生大量小chunk，增加HTTP请求数量，反而降低性能。HTTP/1.1环境下并行请求受限，HTTP/2虽无此限制但过多的请求仍增加开销。选项E为cacheGroup指定固定name会导致不同入口的公共模块被强制合并，可能造成重复代码或加载不需要的模块。推荐使用name: false让Webpack自动命名，或使用函数动态生成name。\\n\\n工程实践建议：设置合理的minSize（通常20KB-30KB）；使用priority控制cacheGroup优先级；配置reuseExistingChunk: true复用已存在的chunk；使用maxSize进一步拆分超大chunk。",
+      "knowledge_point": "Webpack_SplitChunks_Optimization",
+      "exclusion_analysis": {
+        "C": "minSize: 0产生过多小chunk，增加HTTP请求开销，20KB以下模块不值得单独请求",
+        "E": "固定name可能导致不同入口的公共模块强制合并，产生重复或无用代码"
+      }
+    },
+    {
+      "id": "engineer-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Module Federation", "微前端", "共享依赖"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Module Federation版本冲突",
+      "content": "在Module Federation架构中，Shell应用和子应用A分别使用react@17和react@18，配置如下：\\n\\nShell: shared: { react: { singleton: true, eager: true } }\\n子应用A: shared: { react: { singleton: true, requiredVersion: '^18.0.0' } }\\n\\n启动后发现子应用A加载失败，控制台输出版本不匹配警告。以下哪种解决方案最合理？",
+      "options": [
+        {
+          "id": "A",
+          "text": "将Shell的react版本升级到18.0.0，统一版本"
+        },
+        {
+          "id": "B",
+          "text": "在子应用A中设置strictVersion: false，允许版本宽松匹配"
+        },
+        {
+          "id": "C",
+          "text": "移除Shell的eager: true配置，让两个应用各自加载自己的react版本"
+        },
+        {
+          "id": "D",
+          "text": "使用remotes配置的shareScope指定不同的共享作用域，隔离版本"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。在singleton模式下，所有应用必须共享同一个react实例，版本不匹配时会触发警告或错误。设置strictVersion: false允许子应用接受Shell提供的react@17版本，虽然功能上可能存在微小差异，但React 17到18的破坏性变更很少，大部分场景可以正常工作。\\n\\n选项A统一版本是最彻底的方案，但需要协调多个团队，升级成本高且可能引入新的兼容性问题。选项C移除eager会导致Shell在加载远程模块前需要等待共享依赖初始化，可能产生竞态条件，且singleton模式下版本冲突依然存在。选项D使用不同shareScope会完全隔离依赖，破坏singleton语义，导致多个react实例共存，context失效。\\n\\n工程实践建议：Module Federation架构中应由Shell统一管理核心依赖版本；使用requiredVersion: deps.react引用package.json中的版本；对于破坏性更新严格版本，对于兼容性更新宽松版本；定期同步各应用的核心依赖版本。",
+      "knowledge_point": "Webpack_ModuleFederation_SharedDeps",
+      "common_mistake": "忽略singleton的语义，期望不同版本共存，或低估版本不匹配的运行时影响。",
+      "reference_link": "https://webpack.js.org/concepts/module-federation/"
+    },
+    {
+      "id": "engineer-senior-005",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Webpack", "持久化缓存", "contenthash"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "Webpack缓存配置判断",
+      "content": "判断以下说法是否正确：\\n\\n在Webpack 5中配置cache: { type: 'filesystem' }后，即使修改了babel-loader的配置选项，Webpack也会自动检测到变化并使缓存失效。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B（错误）。Webpack 5的filesystem cache默认只检测源文件内容、webpack配置文件本身以及内置依赖的变化。loader配置选项的修改不会被自动检测，需要通过buildDependencies显式声明。\\n\\n例如，修改babel.config.js中的presets或plugins后，缓存不会失效，Webpack仍会使用旧的编译结果，导致运行时错误难以排查。正确的做法是配置buildDependencies: { config: [__filename, 'babel.config.js'] }，将所有影响编译结果的配置文件纳入缓存依赖。\\n\\n工程实践建议：将webpack.config.js、babel.config.js、tsconfig.json、.browserslistrc等配置文件加入buildDependencies；在CI环境中设置独立的缓存目录；升级依赖后手动清理缓存或配置lockfile依赖。",
+      "knowledge_point": "Webpack_Cache_BuildDependencies",
+      "boundary_conditions": "如果loader配置写在webpack.config.js内部而非外部文件，修改config内的loader选项会使缓存失效，因为__filename默认在buildDependencies中。",
+      "reference_link": "https://webpack.js.org/configuration/cache/"
+    },
+    {
+      "id": "engineer-senior-006",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "预构建", "esbuild", "依赖优化"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vite预构建原理",
+      "content": "Vite在开发模式下首次启动时需要对依赖进行预构建。以下关于预构建的描述，哪项是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "预构建仅将CommonJS模块转换为ESM格式，不影响ESM格式的依赖"
+        },
+        {
+          "id": "B",
+          "text": "预构建将所有node_modules中的依赖打包到单个文件，减少HTTP请求"
+        },
+        {
+          "id": "C",
+          "text": "预构建使用esbuild将依赖转换为ESM并存储在node_modules/.vite/deps目录"
+        },
+        {
+          "id": "D",
+          "text": "预构建在每次修改源码后都会重新执行，确保依赖是最新的"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "正确答案是C。Vite的预构建流程使用esbuild处理依赖：将裸导入（bare import）转换为相对路径、将CommonJS/UMD转换为ESM格式、将多个小模块合并以减少请求。结果存储在node_modules/.vite/deps目录，通过_metadata.json记录依赖快照用于缓存校验。\\n\\n选项A错误，预构建不仅处理CJS转换，还包括裸导入路径重写和模块合并。即使是ESM格式的大型依赖，也可能被合并以减少请求。选项B错误，预构建是按依赖分组而非全部合并到单个文件，不同依赖生成独立的预构建产物。选项D错误，预构建结果会被缓存，只有当package.json、lockfile或vite.config.js变化时才重新执行。\\n\\n工程实践建议：使用optimizeDeps.include显式声明动态导入的依赖；开发中安装新依赖后可能需要手动清除缓存或使用--force参数；大型monorepo可配置cacheDir到共享目录。",
+      "knowledge_point": "Vite_Prebundle_esbuild",
+      "common_mistake": "混淆预构建的目的，认为只是为了转换CJS，忽略了路径重写和请求优化的重要性。",
+      "reference_link": "https://vitejs.dev/guide/dep-pre-bundling.html"
+    },
+    {
+      "id": "engineer-senior-007",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "HMR", "热更新", "模块依赖图"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Vite HMR边界传播",
+      "content": "在Vite开发模式下，修改了一个被多个组件引用的工具函数文件。以下哪些情况下会触发完整页面刷新（full reload）而非热更新？",
+      "options": [
+        {
+          "id": "A",
+          "text": "工具函数文件使用了export default导出"
+        },
+        {
+          "id": "B",
+          "text": "所有引用该工具函数的组件都调用了import.meta.hot.accept()"
+        },
+        {
+          "id": "C",
+          "text": "工具函数文件本身调用了import.meta.hot.decline()"
+        },
+        {
+          "id": "D",
+          "text": "引用链路中的某个父组件没有设置accept边界"
+        },
+        {
+          "id": "E",
+          "text": "工具函数文件被main.ts直接导入"
+        }
+      ],
+      "correct_answer": ["C", "D", "E"],
+      "explanation": "正确答案是C、D、E。Vite的HMR传播机制是从修改的文件向上查找importers，直到遇到accept边界或到达入口文件。\\n\\n选项C中import.meta.hot.decline()明确拒绝热更新，会导致full reload。选项D中如果向上传播路径上没有accept边界，会一直传播到入口触发full reload。选项E中如果工具函数被main.ts直接导入且main.ts没有accept边界，会触发full reload。\\n\\n选项A不影响HMR，export default和export const都支持热更新。选项B如果所有引用组件都有accept边界，HMR会在各组件边界停止，不会full reload。\\n\\n工程实践建议：在组件级别设置accept边界；使用dispose清理副作用（定时器、事件监听）；避免循环依赖；Vue的<script setup>和Pinia store已内置HMR支持。",
+      "knowledge_point": "Vite_HMR_AcceptBoundary",
+      "exclusion_analysis": {
+        "A": "导出方式不影响HMR传播，ESM的静态导出都可以被热更新",
+        "B": "所有引用组件都有accept边界时，HMR会在各边界停止，执行回调更新"
+      }
+    },
+    {
+      "id": "engineer-senior-008",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "Rollup", "插件", "构建差异"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "Vite开发生产差异",
+      "content": "某项目在Vite开发模式下运行正常，但生产构建后出现TypeError: Cannot read properties of undefined。以下哪项最可能是根本原因？",
+      "options": [
+        {
+          "id": "A",
+          "text": "开发模式使用esbuild，Tree Shaking策略与生产模式的Rollup不同"
+        },
+        {
+          "id": "B",
+          "text": "开发模式下CSS注入style标签，生产模式提取为独立文件"
+        },
+        {
+          "id": "C",
+          "text": "生产模式启用了压缩，导致变量名变化"
+        },
+        {
+          "id": "D",
+          "text": "所有选项都可能 contribute to 该问题"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。Vite开发模式使用esbuild处理TS/JSX，不进行Tree Shaking；生产模式使用Rollup进行完整打包和Tree Shaking。如果代码存在副作用依赖（如类属性初始化依赖其他模块的导出），Rollup的更激进的Tree Shaking可能删除被误判为无用的代码。\\n\\n典型场景：某个模块通过副作用初始化全局变量，但未正确标记sideEffects，Rollup删除整个模块导致运行时错误。或使用动态属性访问obj[dynamicKey]，esbuild保留完整对象，Rollup的usedExports分析认为未使用而删除。\\n\\n选项B的CSS差异主要影响样式加载顺序，不会导致TypeError。选项C的变量名变化通常不影响功能，除非使用了Function.prototype.name进行类型判断。\\n\\n工程实践建议：在package.json正确配置sideEffects；使用resolve.conditions统一开发生产解析策略；避免动态属性访问导入的模块；使用build.minify: false调试生产构建问题。",
+      "knowledge_point": "Vite_DevProd_Parity",
+      "common_mistake": "忽略esbuild和Rollup在Tree Shaking策略上的根本差异，仅在开发环境测试。",
+      "reference_link": "https://vitejs.dev/guide/why.html"
+    },
+    {
+      "id": "engineer-senior-009",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Babel", "AST", "Visitor模式", "插件开发"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Babel Visitor钩子执行",
+      "content": "在Babel插件开发中，对于以下代码，Identifier钩子的执行顺序是什么？\\n\\nconst x = 1;\\n\\n插件配置：\\n{\\n  Identifier(path) { console.log('enter:', path.node.name); },\\n  Identifier: { enter(path) { console.log('enter2:', path.node.name); }, exit(path) { console.log('exit:', path.node.name); } }\\n}",
+      "options": [
+        {
+          "id": "A",
+          "text": "enter: x → enter2: x → exit: x"
+        },
+        {
+          "id": "B",
+          "text": "enter2: x → enter: x → exit: x"
+        },
+        {
+          "id": "C",
+          "text": "enter: x → enter2: x （exit不会执行因为直接函数和对象形式冲突）"
+        },
+        {
+          "id": "D",
+          "text": "代码报错，不能同时使用函数和对象形式定义同一节点类型的钩子"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。当同时使用函数形式和对象形式定义同一节点类型的钩子时，Babel会将函数形式视为enter钩子的简写，然后将两个enter钩子合并执行。执行顺序：函数形式的enter → 对象形式的enter → 对象形式的exit。\\n\\n实际执行流程：1) Identifier函数被识别为enter钩子，先执行；2) Identifier.enter随后执行；3) 子节点遍历完成后，执行Identifier.exit。输出为：enter: x → enter2: x → exit: x。\\n\\n这种混写方式虽然有效，但不推荐在生产代码中使用，容易造成混淆。推荐统一使用对象形式：{ enter() {}, exit() {} }。\\n\\n工程实践建议：避免同时使用函数和对象形式定义钩子；enter钩子用于前置处理（如收集信息），exit钩子用于后置处理（如替换节点）；使用path.skip()控制遍历深度。",
+      "knowledge_point": "Babel_Visitor_EnterExit",
+      "common_mistake": "认为函数形式会覆盖对象形式，或两种形式不能共存。",
+      "reference_link": "https://babeljs.io/docs/en/babel-traverse"
+    },
+    {
+      "id": "engineer-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Babel", "polyfill", "preset-env", "browserslist"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "polyfill注入策略选择",
+      "content": "某项目需要在IE11上运行，配置了@babel/preset-env和useBuiltIns: 'usage'。但发现Promise在IE11上报错未定义。以下哪项是最佳解决方案？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在入口文件顶部添加import 'core-js/stable'"
+        },
+        {
+          "id": "B",
+          "text": "配置useBuiltIns: 'entry'并确保corejs版本正确"
+        },
+        {
+          "id": "C",
+          "text": "检查并添加optimizeDeps.include: ['core-js/modules/es.promise.js']"
+        },
+        {
+          "id": "D",
+          "text": "usage模式下Promise应被自动注入，检查browserslist配置是否正确指定IE11"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。useBuiltIns: 'usage'模式下，Babel会根据实际使用的ES特性按需注入polyfill，前提是browserslist正确配置了目标环境。如果browserslist未指定IE11或配置被覆盖，Babel会认为目标环境支持Promise而不注入polyfill。\\n\\n选项A和B改为entry模式可以解决问题，但会注入所有IE11需要的polyfill，增加包体积，不如usage精确。选项C是针对Vite的配置，不是Babel层面的问题。\\n\\n正确做法：在package.json或.browserslistrc中配置：\\\"browserslist\\\": [\\\"> 0.5%\\\", \\\"IE 11\\\"]，或在preset-env的targets中显式指定{ ie: '11' }。\\n\\n工程实践建议：使用browserslist配置统一管理目标环境；确保core-js版本与babel配置一致；第三方库使用的polyfill可能需要手动补充。",
+      "knowledge_point": "Babel_Polyfill_Usage",
+      "common_mistake": "忽略browserslist配置对polyfill注入的决定性影响，直接修改注入策略。",
+      "reference_link": "https://babeljs.io/docs/en/babel-preset-env"
+    },
+    {
+      "id": "engineer-senior-011",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["SWC", "esbuild", "编译器", "性能"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "SWC与esbuild对比",
+      "content": "在选择前端编译工具时，以下关于SWC和esbuild的描述，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "两者都比Babel快100倍以上，esbuild通常略快于SWC"
+        },
+        {
+          "id": "B",
+          "text": "SWC暴露完整AST，支持类似Babel的自定义插件开发"
+        },
+        {
+          "id": "C",
+          "text": "esbuild支持将装饰器转换为2022-03标准格式"
+        },
+        {
+          "id": "D",
+          "text": "SWC使用Rust编写，esbuild使用Go编写，都利用多核并行"
+        },
+        {
+          "id": "E",
+          "text": "esbuild适合用于打包和压缩，SWC更适合代码转换场景"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。SWC和esbuild都通过原生语言（Rust/Go）实现多核并行，性能比Babel快100倍以上。esbuild不生成完整AST，直接从token流输出代码，因此略快。SWC暴露完整AST，支持WASM插件开发自定义转换。esbuild定位为打包工具，转换能力有限；SWC定位为编译工具，适合复杂的代码转换场景。\\n\\n选项C错误，esbuild对装饰器的支持有限，主要是legacy模式，不支持2022-03标准。如需标准装饰器转换，应使用SWC或Babel。\\n\\n工程实践建议：纯打包场景选择esbuild（Vite生产模式）；需要AST转换选择SWC或Babel；TypeScript类型检查仍需tsc --noEmit；大型项目可组合使用（SWC转换 + esbuild打包）。",
+      "knowledge_point": "Compiler_SWC_esbuild",
+      "exclusion_analysis": {
+        "C": "esbuild对装饰器支持有限，主要是legacy模式，不支持2022-03标准格式"
+      }
+    },
+    {
+      "id": "engineer-senior-012",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["pnpm", "幽灵依赖", "依赖管理", "monorepo"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "pnpm幽灵依赖问题",
+      "content": "从npm迁移到pnpm后，项目报错Cannot find module 'lodash'，但package.json中确实声明了lodash依赖。最可能的原因是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "pnpm的安装命令与npm不同，需要重新运行pnpm install"
+        },
+        {
+          "id": "B",
+          "text": "项目代码中import的lodash路径与其他包的lodash冲突，需要配置alias"
+        },
+        {
+          "id": "C",
+          "text": "该import语句来自一个依赖包，而这个依赖包未正确声明lodash为dependency"
+        },
+        {
+          "id": "D",
+          "text": "pnpm使用符号链接结构，lodash未被提升到顶层node_modules"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "正确答案是C。这是典型的幽灵依赖（phantom dependency）问题暴露。在npm/yarn的扁平化node_modules中，包A依赖lodash但未声明，包B依赖包A，结果包B可以访问lodash（幽灵依赖）。迁移到pnpm后，严格的依赖隔离阻止了这种访问，暴露了包A的依赖声明缺失问题。\\n\\n选项A不正确，错误信息表明lodash被import但找不到，不是安装问题。选项B的路径冲突不太可能。选项D部分正确但不是根本原因，pnpm确实使用符号链接，但已声明的依赖是可访问的。\\n\\n解决方案：找到缺失依赖声明的包（通常是某个依赖库），在其package.json中添加lodash依赖，或使用pnpm的patch功能修复。临时解决方案是使用pnpm.overrides强制版本。\\n\\n工程实践建议：使用pnpm import命令检测缺失依赖；配置shamefully-hoist=true作为过渡方案；逐步修复后移除shamefully-hoist。",
+      "knowledge_point": "pnpm_PhantomDependency",
+      "common_mistake": "将幽灵依赖暴露误认为是pnpm的bug，而非npm遗留的技术债务。",
+      "reference_link": "https://pnpm.io/motivation#phantom-dependencies"
+    },
+    {
+      "id": "engineer-senior-013",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Turborepo", "缓存", "增量构建", "monorepo"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Turborepo缓存失效",
+      "content": "在Turborepo管理的monorepo中，修改了环境变量BUILD_ENV后重新构建，发现构建产物未反映新的环境变量值。以下哪项配置可以解决这个问题？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在turbo.json的pipeline.build中添加env: ['BUILD_ENV']"
+        },
+        {
+          "id": "B",
+          "text": "使用turbo run build --force跳过缓存"
+        },
+        {
+          "id": "C",
+          "text": "配置globalEnv: ['BUILD_ENV']在根配置中"
+        },
+        {
+          "id": "D",
+          "text": "以上任一方案均可解决"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。三种方案都能解决缓存失效问题：\\n\\n选项A在pipeline任务级别添加env配置，该环境变量变化时对应任务的缓存失效。适合环境变量仅影响特定任务的场景。\\n\\n选项B使用--force参数跳过所有缓存，强制重新执行。适合临时调试或一次性场景，但每次都会执行完整构建，不适合常态化。\\n\\n选项C在全局配置globalEnv中声明，环境变量变化时所有任务的缓存失效。适合影响全局构建的环境变量。\\n\\n推荐方案：对于只影响特定任务的环境变量使用选项A；对于影响多个任务的全局变量使用选项C；调试时临时使用选项B。\\n\\n工程实践建议：所有影响构建输出的环境变量都应显式声明；使用globalDependencies声明全局依赖文件（如.env）；远程缓存团队共享时确保环境变量一致。",
+      "knowledge_point": "Turborepo_Cache_Invalidation",
+      "reference_link": "https://turbo.build/repo/docs/core-concepts/caching"
+    },
+    {
+      "id": "engineer-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Changeset", "版本管理", "monorepo", "发布流程"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "Changeset版本计算",
+      "content": "在monorepo中使用Changeset管理版本发布。同一个包在一个release周期内有以下changeset记录：\\n- major: API重构，不兼容旧版本\\n- minor: 新增功能\\n- patch: 修复bug\\n\\n执行changeset version后，该包的版本将如何变化？",
+      "options": [
+        {
+          "id": "A",
+          "text": "版本号增加major（如1.0.0→2.0.0），忽略minor和patch"
+        },
+        {
+          "id": "B",
+          "text": "版本号增加major+minor+patch（如1.0.0→2.1.1）"
+        },
+        {
+          "id": "C",
+          "text": "生成三个版本：2.0.0、2.1.0、2.1.1"
+        },
+        {
+          "id": "D",
+          "text": "所有changeset合并后取最高级别，版本只增加一次"
+        },
+        {
+          "id": "E",
+          "text": "CHANGELOG会包含所有changeset的描述信息"
+        }
+      ],
+      "correct_answer": ["A", "D", "E"],
+      "explanation": "正确答案是A、D、E。Changeset的版本计算规则是：对于同一个包的多个changeset，取最高级别。有major则升级major，否则检查minor，最后是patch。版本只增加一次，不会累加。但CHANGELOG会包含所有changeset的描述信息。\\n\\n选项B错误，不会累加版本号。选项C错误，不会生成多个版本，changeset version是一次性处理所有待发布的变更。\\n\\n版本升级示例：当前1.2.3 → 执行version → 升级为2.0.0（因为有major变更）。CHANGELOG内容包含：API重构描述、新增功能描述、修复bug描述。\\n\\n工程实践建议：发布前检查changeset类型是否正确；使用linked配置同步关联包版本；配置changelog生成器关联PR和作者。",
+      "knowledge_point": "Changeset_Version_Calculation",
+      "exclusion_analysis": {
+        "B": "版本号不会累加，取最高级别后只增加一次",
+        "C": "changeset version是批量处理，不会生成多个版本"
+      }
+    },
+    {
+      "id": "engineer-senior-015",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Docker", "多阶段构建", "层缓存", "镜像优化"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "Docker构建缓存优化",
+      "content": "以下Dockerfile用于构建Next.js应用，哪项优化对缓存命中率提升最大？\\n\\nFROM node:18\\nWORKDIR /app\\nCOPY . .\\nRUN npm install\\nRUN npm run build\\nCMD [\\\"npm\\\", \\\"start\\\"]",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用node:18-alpine基础镜像减小体积"
+        },
+        {
+          "id": "B",
+          "text": "先COPY package*.json，RUN npm install，再COPY . ."
+        },
+        {
+          "id": "C",
+          "text": "将RUN npm install和RUN npm run build合并为一条命令"
+        },
+        {
+          "id": "D",
+          "text": "使用多阶段构建分离构建环境和运行环境"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。Docker按指令分层，一旦某层缓存失效，后续所有层都失效。原始Dockerfile先COPY . .复制全部源码，再执行npm install。任何源码变化都会导致COPY层失效，进而npm install层也失效，每次都要重新安装依赖。\\n\\n优化后：先COPY package*.json只复制依赖描述文件，执行npm install。此时依赖层只受package.json变化影响。然后再COPY . .复制源码，源码变化不影响依赖层缓存。\\n\\n选项A减小镜像体积但不影响缓存。选项C合并命令减少层数，但源码变化仍会导致依赖重装。选项D多阶段构建减小运行镜像体积，但不解决构建缓存问题。\\n\\n工程实践建议：利用.dockerignore排除不必要文件；使用BuildKit的缓存挂载加速包管理器；多阶段构建中每个阶段都要考虑缓存顺序。",
+      "knowledge_point": "Docker_LayerCache",
+      "common_mistake": "只关注镜像体积优化，忽略了构建缓存对CI效率的影响。",
+      "reference_link": "https://docs.docker.com/build/cache/"
+    },
+    {
+      "id": "engineer-senior-016",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["GitLab CI", "artifacts", "cache", "流水线"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "GitLab CI artifacts与cache判断",
+      "content": "判断以下说法是否正确：\\n\\n在GitLab CI中，artifacts用于跨阶段传递产物，cache用于加速同一作业的多次执行。两者存储位置不同，artifacts存储在GitLab服务器，cache存储在Runner或分布式存储。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A（正确）。GitLab CI中artifacts和cache有本质区别：\\n\\nartifacts是作业产物，用于跨阶段传递。例如build阶段生成dist目录，配置为artifacts后，deploy阶段可以访问。artifacts存储在GitLab服务器，有存储配额限制（默认项目级别限制），支持过期时间配置。artifacts可以被下载存档。\\n\\ncache是依赖缓存，用于加速同一作业的多次执行。例如缓存node_modules避免每次安装。cache存储在Runner本地或配置的分布式存储（如S3）。cache不传递给其他作业，仅在同一job的不同执行间共享。\\n\\n最佳实践：使用cache缓存依赖（node_modules、.pnpm-store），使用artifacts传递构建产物（dist、coverage）。配置cache key基于lockfile哈希确保依赖版本一致。",
+      "knowledge_point": "GitLabCI_Artifacts_Cache",
+      "boundary_conditions": "artifacts可以跨stage传递，但使用needs DAG时只在显式依赖的job间传递。cache可以跨job共享（使用相同key），但需要确保Runner配置支持。",
+      "reference_link": "https://docs.gitlab.com/ee/ci/caching/"
+    },
+    {
+      "id": "engineer-senior-017",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Lighthouse CI", "性能监控", "budget.json", "CI/CD"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "Lighthouse CI性能门禁",
+      "content": "配置Lighthouse CI作为性能门禁，发现CI环境中LCP（Largest Contentful Paint）指标总是比生产环境高500ms以上。最可能的原因和解决方案是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "CI网络环境不同，应配置throttlingMethod: 'simulate'"
+        },
+        {
+          "id": "B",
+          "text": "Lighthouse版本不一致，应确保CI和生产使用相同版本"
+        },
+        {
+          "id": "C",
+          "text": "页面资源加载慢，应增大budget.json中的LCP阈值"
+        },
+        {
+          "id": "D",
+          "text": "CI服务器CPU性能差，应使用preset: 'desktop'降低性能要求"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。CI环境的网络条件和硬件配置与生产环境差异大，直接测试的结果不反映真实用户体验。配置throttlingMethod: 'simulate'使用Lighthouse的模拟节流，基于CPU/网络配置计算理论性能，而非实际测量。这样CI环境差异不影响结果一致性。\\n\\n选项B版本不一致通常影响功能而非性能数值一致性。选项C增大阈值掩盖问题而非解决测试环境差异。选项D使用desktop preset只是降低性能压力，没有解决环境差异的根本问题。\\n\\n工程实践建议：CI使用simulate模式保证结果一致性；生产监控使用RUM（Real User Monitoring）获取真实数据；配置assertions时考虑波动范围，使用median-run策略。",
+      "knowledge_point": "LighthouseCI_Throttling",
+      "common_mistake": "期望CI测试结果与生产完全一致，忽略了环境差异对性能指标的影响。",
+      "reference_link": "https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/configuration.md"
+    },
+    {
+      "id": "engineer-senior-018",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["SourceMap", "安全", "生产环境", "错误追踪"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "SourceMap安全策略",
+      "content": "关于生产环境SourceMap配置，以下哪些实践是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用hidden-source-map生成.map文件但不添加sourceMappingURL注释"
+        },
+        {
+          "id": "B",
+          "text": "构建后使用sentry-cli上传SourceMap到错误追踪服务"
+        },
+        {
+          "id": "C",
+          "text": "将.map文件部署到CDN，通过URL参数控制访问"
+        },
+        {
+          "id": "D",
+          "text": "使用nosources-source-map仅保留行列映射，不包含源码内容"
+        },
+        {
+          "id": "E",
+          "text": "在CI中添加构建后步骤删除所有.map文件"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。生产环境SourceMap安全策略的核心是：不让.map文件暴露给最终用户，同时保留错误追踪能力。\\n\\n选项A使用hidden-source-map生成.map文件但不添加注释引用，用户无法自动发现.map文件。选项B将SourceMap上传到Sentry等错误追踪服务，服务端存储并用于还原压缩后的错误堆栈。选项D使用nosources-source-map可以进一步保护源码内容。选项E在构建后删除.map文件，确保即使hidden模式也不会泄露。\\n\\n选项C将.map部署到CDN风险较高，即使URL控制也可能被猜测或泄露。\\n\\n工程实践建议：构建流程：生成SourceMap → 上传到Sentry → 删除本地.map文件；验证上传成功后再部署；定期轮换Sentry token。",
+      "knowledge_point": "SourceMap_Security",
+      "exclusion_analysis": {
+        "C": "将.map部署到CDN存在泄露风险，即使有访问控制也可能被绕过"
+      }
+    },
+    {
+      "id": "engineer-senior-019",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Loader", "pitching", "执行顺序"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Loader pitch阶段应用",
+      "content": "style-loader的pitch方法返回了一段JavaScript代码。这段代码的执行时机和作用是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在css-loader之前执行，将CSS注入为style标签"
+        },
+        {
+          "id": "B",
+          "text": "在所有loader执行完毕后执行，处理CSS HMR"
+        },
+        {
+          "id": "C",
+          "text": "替代css-loader的处理，直接返回处理好的CSS字符串"
+        },
+        {
+          "id": "D",
+          "text": "在pitch阶段注入runtime代码，跳过css-loader的正常处理阶段"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。style-loader的pitch方法返回的代码会在pitch阶段被注入，这段代码包含import语句用于加载css-loader处理后的CSS，以及runtime代码用于将CSS注入为style标签。由于pitch返回了非undefined值，后续loader（css-loader等）的normal阶段被跳过。\\n\\n实际流程：style-loader.pitch返回代码 → css-loader.normal被跳过 → style-loader.normal收到css-loader.pitch的结果（或原始请求）。style-loader通过pitch巧妙地控制了CSS的加载和注入时机。\\n\\n选项A不准确，pitch返回值的作用是注入代码并跳过后续normal阶段。选项B错误，pitch是前置执行而非后置。选项C错误，css-loader仍会执行pitch阶段，只是normal阶段被跳过。\\n\\n工程实践建议：理解pitch阻断机制对开发复杂loader至关重要；pitch适合处理依赖注入和运行时代码注入。",
+      "knowledge_point": "Webpack_Loader_Pitch",
+      "common_mistake": "混淆pitch和normal阶段的执行顺序，不理解pitch返回值的阻断作用。",
+      "reference_link": "https://webpack.js.org/api/loaders/#pitching-loader"
+    },
+    {
+      "id": "engineer-senior-020",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Plugin", "compiler", "compilation"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Plugin开发钩子选择",
+      "content": "开发一个Webpack插件需要在构建完成后生成依赖关系图报告。应该选择哪个钩子？",
+      "options": [
+        {
+          "id": "A",
+          "text": "compiler.hooks.done，构建完成后触发"
+        },
+        {
+          "id": "B",
+          "text": "compiler.hooks.emit，生成产物前可以修改assets"
+        },
+        {
+          "id": "C",
+          "text": "compilation.hooks.afterOptimizeTree，优化后模块树完整"
+        },
+        {
+          "id": "D",
+          "text": "compilation.hooks.processAssets，处理assets时可以添加新文件"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。要生成依赖关系图报告，需要访问完整的模块信息和chunks，同时能够将报告作为assets输出。emit钩子在生成产物前触发，此时compilation.modules和compilation.chunks都已完整，且可以通过compilation.assets添加新文件。\\n\\n选项A的done钩子在构建完成后触发，但此时assets已写入磁盘，无法添加报告文件，只能通过文件系统API单独写入。选项C的afterOptimizeTree在优化阶段触发，模块信息完整但无法添加assets。选项D的processAssets用于处理已有assets，适合修改而非添加。\\n\\n工程实践建议：需要修改/添加assets使用emit；仅需读取信息生成外部报告使用done；需要在优化前收集信息使用make或buildModule。",
+      "knowledge_point": "Webpack_Plugin_Hooks",
+      "common_mistake": "混淆compiler和compilation钩子的作用范围，选择错误的时机。",
+      "reference_link": "https://webpack.js.org/api/compiler-hooks/"
+    },
+    {
+      "id": "engineer-senior-021",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "长期缓存", "contenthash", "chunkIds"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Webpack长期缓存策略",
+      "content": "为了实现Webpack产物的长期缓存，以下哪些配置是必要的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "output.filename: '[name].[contenthash:8].js'"
+        },
+        {
+          "id": "B",
+          "text": "optimization.moduleIds: 'deterministic'"
+        },
+        {
+          "id": "C",
+          "text": "optimization.runtimeChunk: 'single'"
+        },
+        {
+          "id": "D",
+          "text": "optimization.chunkIds: 'natural'"
+        },
+        {
+          "id": "E",
+          "text": "使用SplitChunks分离稳定的vendor依赖"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "正确答案是A、B、C、E。长期缓存的核心是确保文件内容变化时哈希变化，内容不变时哈希不变。\\n\\n选项A使用contenthash基于内容生成哈希，是长期缓存的基础。选项B使用deterministic模块ID，确保相同模块路径始终生成相同ID，避免模块顺序变化导致的缓存失效。选项C将runtime代码提取为独立chunk，避免业务代码变化影响runtime。选项E分离vendor依赖，业务代码变化不影响基础库缓存。\\n\\n选项D错误，natural使用数字ID，模块顺序变化则ID变化，导致chunk哈希变化，不利于缓存。应使用deterministic或named（开发环境）。\\n\\n工程实践建议：生产环境必须配置moduleIds: 'deterministic'和chunkIds: 'deterministic'；runtimeChunk分离webpack运行时；splitChunks分离第三方依赖。",
+      "knowledge_point": "Webpack_LongTermCache",
+      "exclusion_analysis": {
+        "D": "natural使用递增数字ID，模块顺序变化会导致ID变化，不利于长期缓存"
+      }
+    },
+    {
+      "id": "engineer-senior-022",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "CSS", "PostCSS", "CSS Modules"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "Vite CSS Modules配置",
+      "content": "在Vite项目中，CSS Modules生成的类名在开发环境和生产环境格式不一致，导致快照测试失败。如何统一类名格式？",
+      "options": [
+        {
+          "id": "A",
+          "text": "配置css.modules.generateScopedName为固定格式"
+        },
+        {
+          "id": "B",
+          "text": "在生产构建时禁用CSS Modules哈希"
+        },
+        {
+          "id": "C",
+          "text": "修改所有CSS文件为非.module.css后缀，手动管理类名"
+        },
+        {
+          "id": "D",
+          "text": "使用jest-transform-css替换Vite的CSS处理"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。Vite默认在开发环境使用详细的类名格式（[name]__[local]__[hash]），生产环境使用短哈希。通过配置css.modules.generateScopedName可以统一两种环境的类名格式。\\n\\n配置示例：\\ncss: { modules: { generateScopedName: '[name]__[local]__[hash:base64:5]' } }\\n\\n这确保开发和生产环境使用相同的类名生成规则，快照测试可以正常工作。\\n\\n选项B禁用哈希可能导致类名冲突。选项C放弃CSS Modules的优势。选项D引入额外的复杂性，不解决根本问题。\\n\\n工程实践建议：测试环境中可以配置localsConvention统一类名导出格式；快照测试中避免硬编码类名，使用data-testid等属性定位。",
+      "knowledge_point": "Vite_CSSModules",
+      "common_mistake": "忽略开发和生产环境CSS Modules类名格式差异对测试的影响。",
+      "reference_link": "https://vitejs.dev/config/shared-options.html#css-modules"
+    },
+    {
+      "id": "engineer-senior-023",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "SSR", "hydration", "同构渲染"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "SSR hydration问题排查",
+      "content": "React SSR项目在开发环境正常，生产构建后出现hydration mismatch警告。以下哪项最可能是原因？",
+      "options": [
+        {
+          "id": "A",
+          "text": "服务端和客户端环境变量不一致"
+        },
+        {
+          "id": "B",
+          "text": "使用了Date.now()或Math.random()生成随机内容"
+        },
+        {
+          "id": "C",
+          "text": "组件中使用了window或document对象"
+        },
+        {
+          "id": "D",
+          "text": "以上都可能导致hydration mismatch"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。hydration mismatch的根本原因是服务端渲染的HTML与客户端首次渲染的虚拟DOM不一致。所有列出的情况都可能导致这个问题。\\n\\n选项A环境变量不一致会导致条件渲染结果不同。选项B随机值在服务端和客户端生成不同结果。选项C访问浏览器API在服务端报错或返回undefined。\\n\\n此外，还有其他常见原因：CSS-in-JS库的服务端样式提取问题、时间相关的条件渲染、依赖localStorage的状态初始化等。\\n\\n解决方案：使用useEffect处理客户端特定逻辑；确保服务端和客户端使用相同的初始状态；使用isBrowser判断环境；配置SSR外部化处理有问题的依赖。\\n\\n工程实践建议：开发环境启用React严格模式检测潜在问题；使用eslint-plugin-react-ssr检测不安全的模式。",
+      "knowledge_point": "Vite_SSR_Hydration",
+      "common_mistake": "仅排查单一原因，忽略了hydration mismatch的多因素特性。",
+      "reference_link": "https://react.dev/reference/react-dom/hydrate"
+    },
+    {
+      "id": "engineer-senior-024",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Babel", "AST", "代码转换", "binding"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Babel binding引用追踪",
+      "content": "在Babel插件中使用binding对象进行引用追踪时，以下哪些属性/方法是可用的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "binding.references：获取变量被引用的次数"
+        },
+        {
+          "id": "B",
+          "text": "binding.path：获取变量定义位置的Path对象"
+        },
+        {
+          "id": "C",
+          "text": "binding.remove()：删除该绑定及其所有引用"
+        },
+        {
+          "id": "D",
+          "text": "binding.constantViolations：记录变量被重新赋值的位置"
+        },
+        {
+          "id": "E",
+          "text": "binding.referencePaths：获取所有引用该变量的Path数组"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。binding对象存储在Scope中，记录标识符的绑定信息。\\n\\nbinding.references是引用计数，用于判断变量是否被使用。binding.path指向变量定义位置。binding.constantViolations记录变量被重新赋值的位置数组。binding.referencePaths是所有引用该变量的Path对象数组。\\n\\n选项C错误，binding没有remove()方法。要删除变量需要使用path.scope.removeBinding(name)或path.remove()删除定义节点。\\n\\n工程实践建议：使用binding.references判断变量是否被使用；使用referencePaths遍历所有引用进行替换；注意binding可能为null（全局变量或未声明变量）。",
+      "knowledge_point": "Babel_Binding_Tracking",
+      "exclusion_analysis": {
+        "C": "binding对象没有remove()方法，需使用path.scope.removeBinding(name)或path.remove()"
+      }
+    },
+    {
+      "id": "engineer-senior-025",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["pnpm", "workspace", "依赖链接", "版本管理"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "workspace协议发布",
+      "content": "monorepo中包A依赖包B，配置为\\\"@company/b\\\": \\\"workspace:*\\\"。当前B版本为1.2.0。发布包A时，依赖版本会如何转换？",
+      "options": [
+        {
+          "id": "A",
+          "text": "保持workspace:*不变，需要用户自行安装@company/b"
+        },
+        {
+          "id": "B",
+          "text": "转换为1.2.0（B的当前版本，无前缀）"
+        },
+        {
+          "id": "C",
+          "text": "转换为^1.2.0（兼容版本范围）"
+        },
+        {
+          "id": "D",
+          "text": "发布时提示错误，workspace协议不能出现在发布包中"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。workspace:*表示精确链接到当前工作区版本，发布时会转换为B的当前版本号，不带任何前缀。如果B当前是1.2.0，则发布后A的package.json中显示\\\"@company/b\\\": \\\"1.2.0\\\"。\\n\\n如果想转换为^1.2.0，应使用workspace:^。想转换为~1.2.0，应使用workspace:~。\\n\\n这种转换由包管理器（pnpm或yarn）在发布时自动处理，用户无需手动修改。\\n\\n工程实践建议：使用workspace:^保持语义化版本兼容；对于内部包使用workspace:*确保版本精确；发布前检查转换结果是否符合预期。",
+      "knowledge_point": "pnpm_Workspace_Protocol",
+      "common_mistake": "混淆workspace:*和workspace:^的发布转换结果。",
+      "reference_link": "https://pnpm.io/workspaces#workspace-protocol-workspace"
+    },
+    {
+      "id": "engineer-senior-026",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["monorepo", "增量构建", "依赖图", "缓存策略"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "增量构建依赖分析",
+      "content": "monorepo中包A依赖包B，包B依赖包C。修改了包C的源码，哪些包需要重新构建？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅包C需要重新构建"
+        },
+        {
+          "id": "B",
+          "text": "包B和包C需要重新构建"
+        },
+        {
+          "id": "C",
+          "text": "包A、包B、包C都需要重新构建"
+        },
+        {
+          "id": "D",
+          "text": "取决于包A和包B是否使用了包C的导出API"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "正确答案是C。增量构建需要考虑传递依赖的影响。包C修改后，包B依赖包C，需要重新构建以确认兼容性；包A依赖包B，包B重新构建后，包A也需要重新构建。\\n\\n虽然实际运行时可能不受影响（如果API未变化），但构建系统无法静态确定这一点，保守策略是重新构建所有传递依赖者。\\n\\nTurborepo等工具会自动分析依赖图并执行正确的构建顺序。优化方案是使用更细粒度的依赖分组，减少传递依赖链的长度。\\n\\n工程实践建议：设计合理的包依赖结构避免过深的依赖链；使用缓存哈希精确判断是否需要重建；将稳定的公共依赖放在依赖链底层。",
+      "knowledge_point": "Monorepo_IncrementalBuild",
+      "common_mistake": "只考虑直接依赖，忽略了传递依赖的重建需求。",
+      "reference_link": "https://turbo.build/repo/docs/core-concepts/monorepos"
+    },
+    {
+      "id": "engineer-senior-027",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["测试", "Vitest", "Jest", "CI"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "前端测试工具选型",
+      "content": "在Vite项目中选择测试框架时，关于Vitest和Jest的对比，以下哪些描述是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Vitest直接使用Vite配置，无需额外配置转换器"
+        },
+        {
+          "id": "B",
+          "text": "Jest生态更成熟，插件和工具链更丰富"
+        },
+        {
+          "id": "C",
+          "text": "Vitest不支持watch模式和HMR"
+        },
+        {
+          "id": "D",
+          "text": "两者API兼容，迁移成本低"
+        },
+        {
+          "id": "E",
+          "text": "Vitest的in-source testing支持在源文件中编写测试"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。Vitest专为Vite项目设计，复用Vite配置处理模块转换，启动更快。Jest生态成熟，preset和插件丰富。两者API兼容，expect、describe、it等函数用法一致，迁移成本低。Vitest支持in-source testing，在源文件中使用if (import.meta.vitest)块编写测试。\\n\\n选项C错误，Vitest完全支持watch模式，且提供更快的HMR体验。\\n\\n工程实践建议：Vite项目优先选择Vitest；传统Webpack项目可继续使用Jest；大型项目可考虑两者并存（不同配置）。",
+      "knowledge_point": "Testing_Vitest_Jest",
+      "exclusion_analysis": {
+        "C": "Vitest完全支持watch模式，且由于使用Vite配置，HMR体验更好"
+      }
+    },
+    {
+      "id": "engineer-senior-028",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "npm audit", "依赖审计", "CI"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "npm audit CI配置",
+      "content": "在CI中运行npm audit发现中等风险漏洞，但该漏洞对应的包已无维护，无安全版本可用。最佳处理方式是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "配置.npmrc的audit-level=high，跳过中等风险"
+        },
+        {
+          "id": "B",
+          "text": "使用overrides强制使用其他包替代"
+        },
+        {
+          "id": "C",
+          "text": "评估漏洞实际影响，若不影响项目则忽略"
+        },
+        {
+          "id": "D",
+          "text": "以上方案结合使用，优先评估影响再决定处理方式"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。安全漏洞处理需要综合评估：\\n\\n首先评估漏洞实际影响：漏洞是否影响项目使用的API？是否在运行时可被利用？是否仅在开发依赖中？\\n\\n然后根据影响决定处理方式：1) 配置audit-level跳过不影响的漏洞；2) 使用overrides强制版本（需测试兼容性）；3) 寻找替代包；4) 对于开发依赖，可接受一定风险。\\n\\n工程实践建议：定期运行npm audit；使用Snyk获取更详细的漏洞分析；为关键漏洞创建issue跟踪；考虑使用npm audit fix --force（谨慎）。",
+      "knowledge_point": "Security_npmAudit",
+      "common_mistake": "简单跳过或强制升级，未评估漏洞的实际影响范围。",
+      "reference_link": "https://docs.npmjs.com/cli/v8/commands/npm-audit"
+    },
+    {
+      "id": "engineer-senior-029",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["部署", "蓝绿部署", "回滚", "零停机"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "前端部署回滚策略",
+      "content": "前端应用采用CDN部署，需要实现快速回滚能力。以下哪种方案回滚速度最快？",
+      "options": [
+        {
+          "id": "A",
+          "text": "保留最近N个版本的构建产物，回滚时切换CDN路径指向旧版本"
+        },
+        {
+          "id": "B",
+          "text": "使用git revert回滚代码，重新构建部署"
+        },
+        {
+          "id": "C",
+          "text": "配置CDN多origin，回滚时切换origin地址"
+        },
+        {
+          "id": "D",
+          "text": "使用蓝绿部署，维护两套CDN环境切换"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。CDN部署的前端应用回滚速度取决于资源切换速度。保留历史版本的构建产物，回滚时只需修改HTML入口文件的资源引用或CDN路径配置，几秒钟即可完成。\\n\\n选项B重新构建需要数分钟，不适合紧急回滚。选项C切换origin涉及DNS缓存，需要等待TTL过期。选项D蓝绿部署需要维护双倍资源，且切换也需要时间。\\n\\n最佳实践：构建时生成版本化的资源路径（/v1.2.3/main.js）；HTML入口支持动态版本配置；CDN配置多个版本路径保留策略。\\n\\n工程实践建议：自动化保留最近10个版本；实现一键回滚脚本；回滚前验证旧版本兼容性；配置CDN边缘缓存失效策略。",
+      "knowledge_point": "Deployment_Rollback",
+      "common_mistake": "混淆代码回滚和部署回滚，忽略了前端CDN部署的特殊性。",
+      "reference_link": "https://web.dev/learn/pwa/architecture/"
+    },
+    {
+      "id": "engineer-senior-030",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Scope Hoisting", "模块合并", "ESM"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "Scope Hoisting限制判断",
+      "content": "判断以下说法是否正确：\\n\\nWebpack的Scope Hoisting可以将所有ESM模块合并到一个闭包作用域，从而减少函数声明开销。CommonJS模块和被多次引用的模块都无法被合并。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A（正确）。Scope Hoisting（ModuleConcatenationPlugin）的合并条件：\\n\\n1. 必须是ESM模块：CommonJS模块无法静态分析导出，不支持合并。\\n2. 模块引用次数有限制：被多个chunk引用的模块会保持独立，避免重复代码。\\n3. 无副作用依赖：模块不能有影响合并的副作用。\\n\\n合并后的代码在同一个闭包中执行，减少了每个模块的函数包裹开销，便于压缩工具进一步优化。\\n\\n工程实践建议：项目全面使用ESM语法；正确配置sideEffects；生产模式默认启用concatenateModules；开发模式禁用以保持调试体验。",
+      "knowledge_point": "Webpack_ScopeHoisting",
+      "boundary_conditions": "被多次引用的模块如果引用来自同一个chunk，仍可能被合并。跨chunk引用时会在各自的chunk中复制模块。",
+      "reference_link": "https://webpack.js.org/plugins/module-concatenation-plugin/"
+    },
+    {
+      "id": "engineer-senior-031",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["esbuild", "性能", "Go", "并行处理"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "esbuild性能原理",
+      "content": "esbuild比传统JavaScript打包工具快100倍以上，其核心性能优化策略是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用Go语言编写，利用多核CPU并行处理"
+        },
+        {
+          "id": "B",
+          "text": "不生成AST，直接从token流生成代码"
+        },
+        {
+          "id": "C",
+          "text": "使用Arena内存分配器，减少GC压力"
+        },
+        {
+          "id": "D",
+          "text": "以上所有因素共同作用"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。esbuild的性能优势来自多个层面的优化：\\n\\n1. Go语言原生支持多线程（goroutine），无需手动管理线程池，充分利用多核CPU并行处理文件。\\n\\n2. 不生成完整AST，解析器在扫描token时直接生成输出代码，避免了AST构建和遍历的开销。\\n\\n3. 使用Arena内存分配器，大块分配内存，减少频繁内存分配和垃圾回收的压力。\\n\\n此外还有手写的递归下降解析器（比Yacc/Bison生成的更快）、高效的数据结构（如并行哈希表）等优化。\\n\\n工程实践建议：理解esbuild的取舍（性能 vs 功能）；复杂转换场景结合SWC/Babel；生产环境使用Rollup获得更完善的Tree Shaking。",
+      "knowledge_point": "esbuild_Performance",
+      "common_mistake": "将性能优势归因于单一因素，忽略了多层面优化的综合效果。",
+      "reference_link": "https://esbuild.github.io/faq/"
+    },
+    {
+      "id": "engineer-senior-032",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AST", "jscodeshift", "代码重构", "批量修改"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "jscodeshift代码重构",
+      "content": "使用jscodeshift进行代码重构时，以下哪些做法是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用recast保持代码格式，减少不必要的diff"
+        },
+        {
+          "id": "B",
+          "text": "在transform函数中返回null表示无修改"
+        },
+        {
+          "id": "C",
+          "text": "使用--dry参数预览修改结果，验证后再执行"
+        },
+        {
+          "id": "D",
+          "text": "每次重构处理多种不同模式的代码变更"
+        },
+        {
+          "id": "E",
+          "text": "编写测试用例覆盖各种代码模式"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "正确答案是A、B、C、E。jscodeshift代码重构的最佳实践：\\n\\n选项A使用recast保持原始代码格式，只修改需要变更的部分，使diff更清晰，减少代码审查负担。选项B返回null表示文件无变化，jscodeshift会跳过该文件的写入。选项C使用--dry或--print参数预览结果，避免意外破坏代码。选项E编写测试覆盖各种代码模式（命名导入、默认导入、重命名等）。\\n\\n选项D不推荐，每个codemod应该专注单一变更，便于调试和回滚。多种变更应该拆分为多个codemod分步执行。\\n\\n工程实践建议：使用git创建分支执行重构；重构后运行完整测试套件；复杂重构分步骤执行验证。",
+      "knowledge_point": "AST_jscodeshift_Refactoring",
+      "exclusion_analysis": {
+        "D": "每个codemod应专注单一变更，便于调试、验证和回滚"
+      }
+    },
+    {
+      "id": "engineer-senior-033",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["装饰器", "TypeScript", "emitDecoratorMetadata", "DI"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "TypeScript装饰器元数据",
+      "content": "使用TypeScript的emitDecoratorMetadata选项时，以下哪个元数据会被自动注入？",
+      "options": [
+        {
+          "id": "A",
+          "text": "装饰器函数的参数类型"
+        },
+        {
+          "id": "B",
+          "text": "类属性的类型信息"
+        },
+        {
+          "id": "C",
+          "text": "方法的返回类型"
+        },
+        {
+          "id": "D",
+          "text": "以上都会被注入"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。TypeScript的emitDecoratorMetadata选项会在编译时为装饰器生成元数据注入代码，包括：\\n\\n1. 方法参数类型：通过Reflect.metadata('design:paramtypes', [Type1, Type2, ...])注入。\\n2. 方法返回类型：通过Reflect.metadata('design:returntype', ReturnType)注入。\\n3. 属性类型：通过Reflect.metadata('design:type', PropertyType)注入。\\n\\n这些元数据存储在Reflect.metadata中，可在运行时通过Reflect.getMetadata获取，是依赖注入框架（如InversifyJS、NestJS）实现自动依赖解析的基础。\\n\\n工程实践建议：需要元数据时确保tsconfig.json配置emitDecoratorMetadata: true；安装reflect-metadata包；注意生产环境元数据对包体积的影响。",
+      "knowledge_point": "TypeScript_Decorator_Metadata",
+      "common_mistake": "忽略需要reflect-metadata库支持才能在运行时访问元数据。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/decorators.html"
+    },
+    {
+      "id": "engineer-senior-034",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["npm", "yarn", "pnpm", "依赖解析"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "包管理器依赖解析",
+      "content": "在扁平化node_modules（npm/yarn v1）中，包A依赖lodash@^4.0.0，包B依赖lodash@^4.17.0。最终安装的lodash版本是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "两个版本都会安装，A使用4.0.0，B使用4.17.0"
+        },
+        {
+          "id": "B",
+          "text": "安装最高的兼容版本（如4.17.21），A和B都使用同一版本"
+        },
+        {
+          "id": "C",
+          "text": "安装第一个遇到的版本，取决于包的处理顺序"
+        },
+        {
+          "id": "D",
+          "text": "报错，版本冲突无法解决"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。npm v3+和yarn v1采用扁平化策略，对于兼容的版本范围，会安装最高兼容版本（根据semver规则，^4.0.0和^4.17.0都匹配4.x最新版）。\\n\\n实际流程：1) 解析所有依赖的版本范围；2) 找到满足所有范围的最高版本；3) 提升到顶层node_modules；4) A和B都引用顶层版本。\\n\\n如果版本不兼容（如A需要^3.0.0，B需要^4.0.0），则npm会嵌套安装不兼容的版本。\\n\\n工程实践建议：使用lockfile锁定精确版本；定期npm dedupe优化嵌套依赖；pnpm避免了扁平化的不确定性问题。",
+      "knowledge_point": "PackageManager_Resolution",
+      "common_mistake": "认为每个包会使用其声明的版本范围的最低版本。",
+      "reference_link": "https://docs.npmjs.com/cli/v8/configuring-npm/package-lock-json"
+    },
+    {
+      "id": "engineer-senior-035",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Docker", "前端部署", "镜像优化", "多阶段构建"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "前端Docker镜像优化",
+      "content": "优化前端应用的Docker镜像体积，以下哪些做法是有效的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用node:alpine或distroless镜像作为运行时基础镜像"
+        },
+        {
+          "id": "B",
+          "text": "多阶段构建，仅复制构建产物到运行镜像"
+        },
+        {
+          "id": "C",
+          "text": "合并多个RUN指令减少层数"
+        },
+        {
+          "id": "D",
+          "text": "在运行镜像中保留node_modules用于调试"
+        },
+        {
+          "id": "E",
+          "text": "使用.dockerignore排除node_modules和构建缓存"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "正确答案是A、B、C、E。前端Docker镜像优化策略：\\n\\n选项A使用alpine或distroless基础镜像，体积从数百MB降到几十MB甚至更小。选项B多阶段构建是核心优化手段，构建阶段使用完整node镜像，运行阶段仅包含静态文件和必要运行时。选项C合并RUN指令减少镜像层数，每层都有元数据开销。选项E使用.dockerignore排除不必要文件，避免它们被复制到构建上下文。\\n\\n选项D不推荐，生产镜像应最小化，调试应通过其他方式（如日志、监控）。\\n\\n工程实践建议：Next.js使用standalone输出模式；静态站点使用nginx或CDN而非node运行；镜像扫描检查安全漏洞。",
+      "knowledge_point": "Docker_Image_Optimization",
+      "exclusion_analysis": {
+        "D": "生产镜像应最小化，保留node_modules增加体积且不符合最小权限原则"
+      }
+    },
+    {
+      "id": "engineer-senior-036",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "环境变量", "define", "注入"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "Vite环境变量注入",
+      "content": "Vite项目中需要注入构建时的环境变量BUILD_TIME。以下哪种方式是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在.env文件中定义BUILD_TIME=2024-01-01"
+        },
+        {
+          "id": "B",
+          "text": "使用define: { 'import.meta.env.BUILD_TIME': JSON.stringify(new Date().toISOString()) }"
+        },
+        {
+          "id": "C",
+          "text": "使用VITE_BUILD_TIME环境变量，代码中通过import.meta.env.VITE_BUILD_TIME访问"
+        },
+        {
+          "id": "D",
+          "text": "B和C都可以，根据需求选择"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "正确答案是D。Vite提供两种方式注入环境变量：\\n\\n方式一（选项B）：使用define配置直接替换全局常量。适用于构建时动态生成的值（如BUILD_TIME、GIT_COMMIT）。在代码中通过import.meta.env.XXX访问。\\n\\n方式二（选项C）：使用VITE_前缀的环境变量，Vite会自动注入到import.meta.env中。适用于环境相关的配置（如API_URL、MODE）。\\n\\n选项A错误，Vite只暴露VITE_前缀的变量给客户端代码，BUILD_TIME会被忽略。\\n\\n工程实践建议：敏感信息不要注入到客户端；使用typescript类型扩展增强import.meta.env的类型提示。",
+      "knowledge_point": "Vite_Environment_Variables",
+      "common_mistake": "在.env中定义非VITE_前缀的变量期望在代码中访问。",
+      "reference_link": "https://vitejs.dev/guide/env-and-mode.html"
+    },
+    {
+      "id": "engineer-senior-037",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "externals", "CDN", "公共库"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Webpack externals配置",
+      "content": "将React通过CDN加载并在Webpack中使用externals配置。以下配置会导致什么问题？\\n\\nexternals: { react: 'React', 'react-dom': 'ReactDOM' }",
+      "options": [
+        {
+          "id": "A",
+          "text": "无问题，React会从CDN正确加载"
+        },
+        {
+          "id": "B",
+          "text": "如果HTML中React加载顺序不当，会导致ReactDOM is not defined"
+        },
+        {
+          "id": "C",
+          "text": "React无法被Tree Shake，会增加包体积"
+        },
+        {
+          "id": "D",
+          "text": "externals配置语法错误，应该使用数组格式"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。externals配置将react映射到全局变量React，但这是同步映射。如果HTML中React脚本加载在ReactDOM之后，或使用异步加载，ReactDOM执行时React还未定义，会报错。\\n\\n解决方案：1) 确保HTML中脚本加载顺序正确；2) 使用externalsType: 'script'配合异步加载；3) 使用defer确保执行顺序。\\n\\n配置示例：\\nexternals: { react: ['script https://cdn.example.com/react.js', 'React'] }\\n\\n工程实践建议：优先使用module federation或npm依赖管理公共库；CDN方案适合特殊场景（如多站点共享缓存）；测试环境模拟生产CDN加载顺序。",
+      "knowledge_point": "Webpack_Externals",
+      "common_mistake": "忽略脚本加载顺序对全局变量依赖的影响。",
+      "reference_link": "https://webpack.js.org/configuration/externals/"
+    },
+    {
+      "id": "engineer-senior-038",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Module Federation", "版本管理", "共享策略"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Module Federation共享策略",
+      "content": "在Module Federation架构中配置共享依赖，以下哪些配置策略是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Shell应用配置eager: true加载基础库，确保初始化顺序"
+        },
+        {
+          "id": "B",
+          "text": "所有应用配置singleton: true确保只有一个实例"
+        },
+        {
+          "id": "C",
+          "text": "使用requiredVersion: deps.react引用package.json中的版本"
+        },
+        {
+          "id": "D",
+          "text": "为不同版本的依赖配置不同的shareScope"
+        },
+        {
+          "id": "E",
+          "text": "所有共享依赖都使用strictVersion: true严格版本检查"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "正确答案是A、B、C。Module Federation共享策略最佳实践：\\n\\n选项A：Shell应用使用eager: true预加载基础库（react/react-dom），确保shared scope初始化完成后再加载子应用。选项B：singleton: true确保上下文相关库（如react）只有一个实例，避免context失效。选项C：使用requiredVersion: deps.react引用package.json版本，确保版本一致性。\\n\\n选项D不推荐，不同shareScope会隔离依赖，无法实现真正的共享。选项E过于严格，可能导致小版本差异就报错，推荐使用strictVersion: false配合版本策略。\\n\\n工程实践建议：Shell统一管理基础库版本；子应用singleton: true、eager: false；使用版本协调工具（如syncpack）同步monorepo中的版本。",
+      "knowledge_point": "ModuleFederation_SharedStrategy",
+      "exclusion_analysis": {
+        "D": "不同shareScope会隔离依赖，无法实现真正的共享，可能导致多个实例共存",
+        "E": "strictVersion: true过于严格，小版本差异可能导致报错，建议配合版本策略使用false"
+      }
+    },
+    {
+      "id": "engineer-senior-039",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Babel", "preset-env", "targets", "browserslist"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "@babel/preset-env优先级",
+      "content": "同时配置了.browserslistrc和@babel/preset-env的targets选项，哪个优先？",
+      "options": [
+        {
+          "id": "A",
+          "text": "browserslist配置优先"
+        },
+        {
+          "id": "B",
+          "text": "preset-env的targets优先"
+        },
+        {
+          "id": "C",
+          "text": "两者合并，取更严格的配置"
+        },
+        {
+          "id": "D",
+          "text": "报错，不能同时配置"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。当@babel/preset-env的targets选项显式配置时，会覆盖browserslist配置。只有当targets未配置时，preset-env才会读取browserslist配置。\\n\\n配置优先级（从高到低）：1) preset-env的targets选项；2) BABEL_ENV或NODE_ENV对应的browserslist环境；3) browserslist默认配置。\\n\\n这允许在特殊场景（如测试环境）覆盖默认的browserslist配置。\\n\\n工程实践建议：统一使用browserslist管理目标环境；仅在特殊需要时使用targets覆盖；确保polyfill策略与targets一致。",
+      "knowledge_point": "Babel_presetenv_Priority",
+      "common_mistake": "认为browserslist是全局配置必然优先，忽略了preset-env的覆盖行为。",
+      "reference_link": "https://babeljs.io/docs/en/babel-preset-env#targets"
+    },
+    {
+      "id": "engineer-senior-040",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["pnpm", "符号链接", "node_modules", "内容寻址"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "pnpm存储机制判断",
+      "content": "判断以下说法是否正确：\\n\\npnpm使用内容寻址存储，所有依赖的实际文件存储在node_modules/.pnpm目录，通过符号链接连接到各包的node_modules。这确保了磁盘上同一版本的依赖只有一份副本。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A（正确）。pnpm的存储机制：\\n\\n1. 所有依赖的实际文件存储在node_modules/.pnpm目录，按{name}@{version}/node_modules/{name}组织。\\n\\n2. 包的直接依赖在node_modules下创建符号链接指向.pnpm中的实际文件。\\n\\n3. 使用内容寻址：相同内容的文件硬链接到同一物理存储，即使不同包的不同版本也共享相同文件。\\n\\n这种设计的优势：1) 节省磁盘空间；2) 安装速度快（利用已存在的存储）；3) 依赖隔离，防止幽灵依赖。\\n\\n工程实践建议：理解.pnpm目录结构有助于调试；使用pnpm store prune清理未使用的存储；monorepo可共享store路径。",
+      "knowledge_point": "pnpm_ContentAddressedStorage",
+      "boundary_conditions": "硬链接在同一文件系统上有效，跨文件系统时会回退到复制。store可以配置到全局位置供多个项目共享。",
+      "reference_link": "https://pnpm.io/motivation#saving-disk-space"
+    },
+    {
+      "id": "engineer-senior-041",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Vite", "预构建", "optimizeDeps", "动态导入"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vite预构建排除",
+      "content": "Vite项目中使用动态import()导入一个模块，该模块依赖了第三方库。首次加载时该第三方库未被预构建，导致页面卡顿。如何解决？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在optimizeDeps.include中显式声明该第三方库"
+        },
+        {
+          "id": "B",
+          "text": "将动态import改为静态import"
+        },
+        {
+          "id": "C",
+          "text": "配置optimizeDeps.exclude排除该模块"
+        },
+        {
+          "id": "D",
+          "text": "使用server.fs.allow配置允许访问该库"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。Vite无法静态分析动态import()的依赖，因此不会自动预构建这些传递依赖。通过optimizeDeps.include显式声明需要预构建的依赖，可以解决这个问题。\\n\\n配置示例：\\noptimizeDeps: { include: ['dynamic-module > third-party-lib'] }\\n\\n使用>语法定义嵌套依赖关系。预构建后，动态加载时直接使用缓存，避免即时编译。\\n\\n选项B改变了代码结构，可能影响代码分割策略。选项C会排除预构建，使问题更严重。选项D与预构建无关，是文件系统访问权限配置。\\n\\n工程实践建议：在vite.config.ts中预声明所有动态依赖；使用pnpm便于追溯依赖树；首次开发时使用--force重新预构建。",
+      "knowledge_point": "Vite_Prebuild_DynamicImport",
+      "common_mistake": "忽略动态导入的依赖无法被静态分析预构建。",
+      "reference_link": "https://vitejs.dev/config/dep-optimization-options.html#optimizedeps-include"
+    },
+    {
+      "id": "engineer-senior-042",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Turborepo", "远程缓存", "团队协作", "CI"],
+      "source_company": "Vercel",
+      "score": 8,
+      "title": "Turborepo远程缓存",
+      "content": "配置Turborepo远程缓存时，以下哪些做法是推荐的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用TURBO_TOKEN环境变量进行认证"
+        },
+        {
+          "id": "B",
+          "text": "缓存键包含lockfile哈希，确保依赖一致"
+        },
+        {
+          "id": "C",
+          "text": "所有团队成员共享同一远程缓存实例"
+        },
+        {
+          "id": "D",
+          "text": "CI环境使用独立的缓存token"
+        },
+        {
+          "id": "E",
+          "text": "敏感信息不要存储在缓存输出中"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。Turborepo远程缓存配置最佳实践：\\n\\n选项A使用TURBO_TOKEN认证，避免在代码中暴露凭据。选项B确保缓存键包含lockfile哈希，依赖版本不一致时不会使用错误缓存。选项D为CI环境使用独立token便于管理和撤销。选项E敏感信息（如环境变量注入的值）不要出现在缓存输出中，否则其他用户恢复缓存会获取敏感信息。\\n\\n选项C不完全正确，虽然共享缓存是核心功能，但不同环境（开发/CI）可能需要不同的缓存策略，使用独立team或token更好管理。\\n\\n工程实践建议：定期轮换TURBO_TOKEN；监控缓存命中率和存储使用；配置合理的缓存保留策略。",
+      "knowledge_point": "Turborepo_RemoteCache",
+      "exclusion_analysis": {
+        "C": "虽然共享缓存是核心功能，但不同环境可能需要不同的缓存策略，使用独立team或token便于管理"
+      }
+    },
+    {
+      "id": "engineer-senior-043",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AST", "ESTree", "节点类型", "代码分析"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "AST节点类型识别",
+      "content": "对于代码obj.prop，其AST节点类型和关键属性是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "MemberExpression，object为Identifier(obj)，property为Identifier(prop)，computed为false"
+        },
+        {
+          "id": "B",
+          "text": "MemberExpression，object为StringLiteral(obj)，property为StringLiteral(prop)"
+        },
+        {
+          "id": "C",
+          "text": "ObjectExpression，properties包含Property节点"
+        },
+        {
+          "id": "D",
+          "text": "AssignmentExpression，left为MemberExpression"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。obj.prop是一个MemberExpression（成员表达式）。关键属性：\\n\\n- object: 表示对象部分，这里是Identifier节点，name为'obj'\\n- property: 表示属性部分，这里是Identifier节点，name为'prop'\\n- computed: 布尔值，false表示点号访问（obj.prop），true表示方括号访问（obj['prop']）\\n\\n如果是obj['prop']，则property为StringLiteral节点。如果是obj[dynamicKey]，则property为Identifier节点（变量名）。\\n\\n选项C的ObjectExpression是对象字面量{ a: 1 }。选项D的AssignmentExpression是赋值表达式。\\n\\n工程实践建议：使用AST Explorer工具可视化分析代码结构；理解computed属性对代码转换的影响。",
+      "knowledge_point": "AST_ESTree_MemberExpression",
+      "common_mistake": "混淆点号访问和方括号访问的AST结构差异。",
+      "reference_link": "https://github.com/estree/estree"
+    },
+    {
+      "id": "engineer-senior-044",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["GitLab CI", "DAG", "needs", "并行执行"],
+      "source_company": "GitLab",
+      "score": 8,
+      "title": "GitLab CI DAG配置",
+      "content": "以下GitLab CI配置中，lint和test作业的执行顺序是什么？\\n\\nstages: [verify, build]\\nlint: { stage: verify, script: [npm run lint] }\\ntest: { stage: verify, needs: [lint], script: [npm test] }\\nbuild: { stage: build, script: [npm run build] }",
+      "options": [
+        {
+          "id": "A",
+          "text": "lint和test并行执行，build在verify阶段完成后执行"
+        },
+        {
+          "id": "B",
+          "text": "lint先执行，test等待lint完成后执行，build在test完成后执行"
+        },
+        {
+          "id": "C",
+          "text": "lint先执行，test等待lint完成后执行，build在verify阶段完成后执行"
+        },
+        {
+          "id": "D",
+          "text": "lint和test串行执行，build无需等待直接执行"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "正确答案是C。GitLab CI的needs配置创建DAG依赖：\\n\\n1. verify阶段的lint作业首先执行\\n2. test作业通过needs: [lint]声明依赖，等待lint完成后执行\\n3. build作业在build阶段执行，需要等待整个verify阶段完成（包括lint和test）\\n\\n关键点：needs只控制作业间的依赖，不改变stage的阶段约束。build虽然在build阶段，但仍需等待前置stage完成。\\n\\n如果要让build不等待test，可以配置needs: [lint]，这样build会在lint完成后立即开始，无需等待test。\\n\\n工程实践建议：使用needs创建精细化依赖图；避免所有作业都依赖同一作业形成瓶颈；结合artifacts传递依赖产物。",
+      "knowledge_point": "GitLabCI_DAG_needs",
+      "common_mistake": "认为needs完全替代stage约束，忽略了阶段间仍有等待关系。",
+      "reference_link": "https://docs.gitlab.com/ee/ci/yaml/#needs"
+    },
+    {
+      "id": "engineer-senior-045",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "Resolver", "模块解析", "alias"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Webpack模块解析顺序",
+      "content": "Webpack解析import '@/components/Button'时，以下哪些配置会影响解析结果？",
+      "options": [
+        {
+          "id": "A",
+          "text": "resolve.alias配置'@': path.resolve(__dirname, 'src')"
+        },
+        {
+          "id": "B",
+          "text": "resolve.extensions配置['.tsx', '.ts', '.jsx', '.js']"
+        },
+        {
+          "id": "C",
+          "text": "resolve.modules配置['node_modules']"
+        },
+        {
+          "id": "D",
+          "text": "resolve.mainFields配置['module', 'main']"
+        },
+        {
+          "id": "E",
+          "text": "resolve.plugins中的TsconfigPathsPlugin"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "正确答案是A、B、C、E。Webpack模块解析流程：\\n\\n选项A：alias将@替换为src目录，是解析路径的第一步。选项B：extensions决定尝试哪些扩展名，Button会被尝试为Button.tsx、Button.ts等。选项C：modules决定在哪些目录搜索模块。选项E：TsconfigPathsPlugin将tsconfig.json的paths映射到Webpack resolve。\\n\\n选项D的mainFields影响node_modules中包的入口选择，不影响项目中@/components/Button的解析。\\n\\n解析顺序：alias → plugins(TsconfigPathsPlugin) → modules搜索 → extensions尝试 → 读取package.json的mainFields。\\n\\n工程实践建议：alias优先级最高，用于项目内部路径映射；extensions按使用频率排序减少尝试次数；避免过深的目录结构。",
+      "knowledge_point": "Webpack_Resolver",
+      "exclusion_analysis": {
+        "D": "mainFields影响node_modules中包的入口选择，不影响项目内部路径解析"
+      }
+    },
+    {
+      "id": "engineer-senior-046",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["包体积", "size-limit", "监控", "CI"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "size-limit配置问题",
+      "content": "size-limit配置如下，但实际gzip后体积为150KB，符合限制，CI却报错超限。原因是什么？\\n\\n[{ path: 'dist/bundle.js', limit: '200 KB' }]",
+      "options": [
+        {
+          "id": "A",
+          "text": "size-limit默认使用brotli压缩，比gzip更小"
+        },
+        {
+          "id": "B",
+          "text": "size-limit默认不压缩，测量的是原始文件大小"
+        },
+        {
+          "id": "C",
+          "text": "limit配置应为'200KB'而非'200 KB'"
+        },
+        {
+          "id": "D",
+          "text": "需要配置gzip: true启用gzip测量"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。size-limit默认不启用任何压缩，测量的是原始文件大小。如果实际文件原始大小超过200KB，即使gzip后符合限制，CI也会报错。\\n\\n解决方案：配置gzip: true或brotli: true启用压缩测量。\\n\\n配置示例：\\n[{ path: 'dist/bundle.js', limit: '200 KB', gzip: true }]\\n\\n这样size-limit会先gzip压缩再测量大小，与用户实际加载体验一致。\\n\\n工程实践建议：使用gzip测量网络传输大小；使用brotli测量更现代的压缩效果；结合webpack-bundle-analyzer分析组成。",
+      "knowledge_point": "SizeLimit_Configuration",
+      "common_mistake": "忽略size-limit默认不压缩，期望与浏览器行为一致。",
+      "reference_link": "https://github.com/ai/size-limit"
+    },
+    {
+      "id": "engineer-senior-047",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Changeset", "版本发布", "monorepo", "自动化"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "Changeset自动化发布判断",
+      "content": "判断以下说法是否正确：\\n\\n使用Changeset进行版本管理时，changeset version命令会自动更新所有包的版本号、更新依赖引用版本、生成CHANGELOG，并删除已处理的changeset文件。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A（正确）。changeset version命令执行以下操作：\\n\\n1. 读取.changeset目录中的所有变更文件\\n2. 根据变更类型计算每个包的新版本号\\n3. 更新package.json中的版本号\\n4. 更新包间的依赖引用版本（使用workspace协议的会同步更新）\\n5. 生成或更新CHANGELOG.md文件\\n6. 删除已处理的changeset文件\\n\\n这确保了版本更新的一致性和可追溯性。发布时使用changeset publish将包发布到npm。\\n\\n工程实践建议：在CI中自动化执行version和publish；使用GitHub Actions集成自动创建Release；linked包保持版本同步。",
+      "knowledge_point": "Changeset_Automation",
+      "boundary_conditions": "linked配置的包会同步升级版本号，即使没有变更。ignore配置的包不会被更新。",
+      "reference_link": "https://github.com/changesets/changesets"
+    },
+    {
+      "id": "engineer-senior-048",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Docker", "BuildKit", "缓存挂载", "构建优化"],
+      "source_company": "Docker",
+      "score": 8,
+      "title": "Docker BuildKit缓存挂载",
+      "content": "使用Docker BuildKit的缓存挂载优化npm install，以下哪个语法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "RUN --mount=type=cache,target=/root/.npm npm install"
+        },
+        {
+          "id": "B",
+          "text": "RUN --cache=/root/.npm npm install"
+        },
+        {
+          "id": "C",
+          "text": "VOLUME /root/.npm && RUN npm install"
+        },
+        {
+          "id": "D",
+          "text": "RUN npm install --cache=/root/.npm"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "正确答案是A。BuildKit的缓存挂载使用--mount=type=cache语法，将宿主机的缓存目录挂载到容器中，npm下载的包会持久化缓存，后续构建可复用。\\n\\n完整示例：\\n# syntax=docker/dockerfile:1\\nFROM node:18\\nWORKDIR /app\\nCOPY package*.json ./\\nRUN --mount=type=cache,target=/root/.npm npm ci\\nCOPY . .\\nRUN npm run build\\n\\n选项B的--cache语法不存在。选项C的VOLUME用于持久化存储，不是缓存优化。选项D只是指定npm缓存路径，但没有持久化跨构建。\\n\\n工程实践建议：使用BuildKit需要启用DOCKER_BUILDKIT=1或Docker 23.0+；不同包管理器使用不同缓存路径；pnpm使用store路径作为缓存。",
+      "knowledge_point": "Docker_BuildKit_Cache",
+      "common_mistake": "混淆VOLUME持久化和BuildKit缓存挂载的区别。",
+      "reference_link": "https://docs.docker.com/build/building/cache/#use-the-dedicated-run-cache"
+    },
+    {
+      "id": "engineer-senior-049",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Webpack", "懒编译", "LazyCompilation", "多入口"],
+      "source_company": "Webpack",
+      "score": 8,
+      "title": "Webpack懒编译配置",
+      "content": "Webpack的experiments.lazyCompilation适用于以下哪些场景？",
+      "options": [
+        {
+          "id": "A",
+          "text": "多入口应用，开发时只需调试单个入口"
+        },
+        {
+          "id": "B",
+          "text": "动态import较多的应用，减少初始编译时间"
+        },
+        {
+          "id": "C",
+          "text": "单入口小型项目"
+        },
+        {
+          "id": "D",
+          "text": "微前端开发，子应用独立启动"
+        },
+        {
+          "id": "E",
+          "text": "测试文件较多的项目，按需编译测试"
+        }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "正确答案是A、B、D、E。懒编译(Lazy Compilation)将入口和动态import模块的编译延迟到浏览器请求时，适用于：\\n\\n选项A：多入口应用，只编译当前访问的入口，大幅减少启动时间。选项B：动态import较多时，初始不编译动态模块。选项D：微前端开发，子应用独立启动。选项E：测试文件按需编译。\\n\\n选项C不适用，单入口小型项目的懒编译开销大于收益，首次访问会有编译延迟。\\n\\n工程实践建议：使用test配置排除关键入口；首次访问会有编译延迟，权衡启动速度和首次访问体验；与HMR配合使用。",
+      "knowledge_point": "Webpack_LazyCompilation",
+      "exclusion_analysis": {
+        "C": "单入口小型项目的懒编译开销大于收益，首次访问会有编译延迟"
+      }
+    },
+    {
+      "id": "engineer-senior-050",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["安全", "git-secrets", "敏感信息", "pre-commit"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "git-secrets防护机制",
+      "content": "配置git-secrets后，开发者尝试提交包含AWS密钥的代码，会发生什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "提交成功，但会发送警告邮件给管理员"
+        },
+        {
+          "id": "B",
+          "text": "提交被阻止，终端显示错误信息"
+        },
+        {
+          "id": "C",
+          "text": "提交成功，密钥被自动替换为占位符"
+        },
+        {
+          "id": "D",
+          "text": "提交成功，但GitHub会检测并阻止推送"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "正确答案是B。git-secrets通过pre-commit钩子在提交前扫描暂存区内容，匹配到敏感信息模式（如AWS密钥正则）时，阻止提交并显示错误信息。\\n\\n错误示例：\\nERROR: Matched one or more prohibited patterns\\nPossible sensitive data found: AWS_ACCESS_KEY=AKIA...\\n\\n开发者需要移除敏感信息或使用--no-verify跳过钩子（不推荐）。\\n\\n工程实践建议：结合husky统一管理git hooks；使用lint-staged只检查暂存文件；定期审计--no-verify的使用；配合GitHub Secret Scanning多层防护。",
+      "knowledge_point": "Security_git_secrets",
+      "common_mistake": "认为git-secrets会在远程阻止，忽略了它是本地pre-commit钩子。",
+      "reference_link": "https://github.com/awslabs/git-secrets"
+    }
+  ]
+}

@@ -1,0 +1,2145 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "React/Vue",
+    "generated_at": "2024-01-15T10:00:00Z",
+    "total_questions": 50,
+    "target_level": "Senior",
+    "continuation": false,
+    "next_batch_id": null,
+    "id_range": "001-050"
+  },
+  "questions": [
+    {
+      "id": "framework-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Fiber",
+        "双缓冲",
+        "架构设计"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Fiber双缓冲树切换时机",
+      "content": "React Fiber架构中，current树与workInProgress树的切换发生在哪个阶段？这个时机选择的核心原因是什么？\n\n请结合以下React渲染流程分析：\n1. render阶段（beginWork/completeWork）\n2. commit阶段（BeforeMutation/Mutation/Layout）",
+      "options": [
+        {
+          "id": "A",
+          "text": "在render阶段的completeWork完成后，此时DOM还未更新，可以安全切换"
+        },
+        {
+          "id": "B",
+          "text": "在commit阶段的Mutation子阶段完成后、Layout子阶段执行前，通过root.current = finishedWork实现原子性切换"
+        },
+        {
+          "id": "C",
+          "text": "在commit阶段全部完成后，确保所有副作用都已执行完毕再切换"
+        },
+        {
+          "id": "D",
+          "text": "在每次beginWork处理单个Fiber节点后就进行增量切换，实现渐进式更新"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "React Fiber双缓冲树的切换时机选择在commit阶段的Mutation子阶段之后、Layout子阶段之前，这是一个经过深思熟虑的设计决策。\n\n核心原理分析：\n\n1. 为什么不能在render阶段切换？\nrender阶段是可中断的，workInProgress树可能处于中间状态。如果在此时切换，用户可能看到不完整的UI。更重要的是，render阶段不会操作真实DOM，切换后的current树无法反映到屏幕上。\n\n2. 为什么不能在Mutation之前切换？\nMutation阶段负责执行真实的DOM操作（插入、更新、删除）。如果在Mutation之前切换，此时DOM还是旧状态，但current已经指向新树，会导致current与实际DOM不一致。\n\n3. 为什么必须在Layout之前切换？\nLayout阶段会执行useLayoutEffect、componentDidMount/Update等生命周期。这些生命周期中访问的fiber树必须是新树，因为此时DOM已完成更新，组件应该看到最新的状态。通过root.current = finishedWork实现原子性切换，确保所有生命周期执行时current指向正确。\n\n源码级细节：\n在ReactFiberWorkLoop.js的commitRootImpl函数中，切换代码位于Mutation之后、Layout之前。这个设计保证了Mutation阶段操作DOM时current仍指向旧树，Layout阶段执行时current已切换，生命周期中访问的是新状态。双缓冲机制确保用户永远不会看到中间状态的UI。",
+      "wrong_options_analysis": {
+        "A": "render阶段是可中断的，workInProgress可能处于中间状态，此时切换会暴露不完整的UI给用户",
+        "C": "如果等commit全部完成再切换，Layout阶段的生命周期将无法访问正确的新树状态",
+        "D": "Fiber树切换必须是原子的整体切换，不能增量切换，否则会破坏UI一致性"
+      },
+      "knowledge_point": "React_Fiber_Double_Buffering",
+      "common_mistake": "很多开发者误以为切换发生在commit结束后，实际上是在Mutation和Layout之间，这个时机对理解useLayoutEffect的行为至关重要。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js"
+    },
+    {
+      "id": "framework-senior-002",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Fiber",
+        "alternate指针",
+        "节点复用"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Fiber节点alternate指针机制",
+      "content": "在React Fiber架构中，alternate指针建立了current树与workInProgress树之间的双向关联。以下关于alternate指针的说法，哪个是正确的？\n\n考虑以下场景：\n- 首次渲染（mount）\n- 更新渲染（update）\n- 节点类型变化（如div变为span）",
+      "options": [
+        {
+          "id": "A",
+          "text": "alternate指针只在更新渲染时存在，首次渲染时所有Fiber节点的alternate都为null"
+        },
+        {
+          "id": "B",
+          "text": "alternate指针是双向的，即current.alternate === workInProgress且workInProgress.alternate === current，首次渲染时createWorkInProgress会创建这种关联"
+        },
+        {
+          "id": "C",
+          "text": "当节点类型变化时，旧的Fiber节点会被复用，其alternate指针指向新创建的Fiber节点"
+        },
+        {
+          "id": "D",
+          "text": "alternate指针是一个单向链表，从workInProgress指向current，方便回溯旧状态"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "alternate指针是React Fiber双缓冲机制的核心纽带，理解其工作机制对于深入掌握React架构至关重要。\n\nalternate指针的本质：\n\nalternate指针是双向关联，而非单向。这意味着：\n- current树上的每个Fiber节点通过alternate指向workInProgress树上的对应节点\n- workInProgress树上的每个Fiber节点通过alternate指向current树上的对应节点\n- 这形成了一个双向链表结构，允许React在两棵树之间快速切换\n\ncreateWorkInProgress源码分析：\n在createWorkInProgress函数中，如果workInProgress为null（首次渲染或节点未被复用），会创建新的Fiber节点，并建立双向关联：workInProgress.alternate = current; current.alternate = workInProgress;\n\n首次渲染vs更新渲染的差异：\n\n1. 首次渲染（mount）：\n   - current === null（root.current初始为空）\n   - 创建全新的Fiber树作为workInProgress\n   - commit时将workInProgress赋值给root.current\n   - 此时workInProgress.alternate === null\n   - 下次更新时，current.alternate用于创建或复用workInProgress\n\n2. 更新渲染（update）：\n   - current存在且有alternate指向之前的workInProgress\n   - 优先复用current.alternate作为新的workInProgress\n   - 复用可以保留memoizedState等信息\n\n节点类型变化的处理：\n当节点类型变化（如div变span）时，React不会复用旧节点。在reconcileSingleElement中，比较key和type，type不同则删除旧节点，创建新Fiber。新Fiber的alternate为null，因为它是一个全新的节点。\n\n工程实践启示：理解alternate机制有助于调试React渲染问题，在React DevTools中可以看到Fiber节点的alternate关联。节点复用策略影响性能，合理使用key可以帮助React正确复用节点。",
+      "knowledge_point": "React_Fiber_Alternate_Pointer",
+      "common_mistake": "容易误认为alternate只在更新时存在，实际上首次渲染的commit阶段也会建立双向关联，为下次更新做准备。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiber.js"
+    },
+    {
+      "id": "framework-senior-003",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Lanes",
+        "优先级模型",
+        "并发渲染"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "Lanes优先级模型设计原理",
+      "content": "React 18引入了Lanes模型作为新的优先级系统，替代了之前的expirationTime模型。以下关于Lanes模型的说法，哪些是正确的？\n\n背景：React需要处理多种类型的更新，包括用户输入、数据获取、过渡动画等，每种更新的紧急程度不同。",
+      "options": [
+        {
+          "id": "A",
+          "text": "Lanes使用31位的位掩码表示，每位代表一个优先级通道，支持O(1)的优先级合并和分离操作"
+        },
+        {
+          "id": "B",
+          "text": "SyncLane（同步优先级）用于用户输入等高优先级更新，TransitionLane用于useTransition标记的低优先级更新"
+        },
+        {
+          "id": "C",
+          "text": "Lanes模型通过数值大小比较优先级，数值越大优先级越高"
+        },
+        {
+          "id": "D",
+          "text": "当一个低优先级更新正在执行时被高优先级更新打断，低优先级更新会被完全丢弃，需要重新触发"
+        },
+        {
+          "id": "E",
+          "text": "Lanes模型支持多个优先级的更新同时存在于一棵Fiber树，通过fiber.lanes和fiber.childLanes记录"
+        },
+        {
+          "id": "F",
+          "text": "过期检测（starvation detection）机制可以防止低优先级更新被无限期饥饿"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "E",
+        "F"
+      ],
+      "explanation": "Lanes模型是React 18并发特性的基础设施，其设计体现了对复杂更新场景的深刻理解。\n\n选项A解析 - 位掩码设计：\n正确。Lanes使用31位二进制表示（第32位用于符号），每个bit代表一个独立的优先级通道。SyncLane = 1是最低位，优先级最高。位掩码的优势在于：mergeLanes(a, b) = a | b，O(1)合并优先级；intersectLanes(a, b) = a & b，O(1)取交集；includesSomeLane判断也是O(1)。\n\n选项B解析 - SyncLane与TransitionLane：\n正确。SyncLane（值为1）是最高优先级，用于离散输入事件（点击、按键等），必须同步执行不可中断。TransitionLane（16-31位）是过渡更新，通过startTransition或useDeferredValue标记，可中断可延迟。\n\n选项C解析 - 优先级比较规则：\n错误。Lanes不是通过数值大小比较优先级的！正确的比较方式是：优先级越高的Lane，其二进制表示中1的位置越靠右（低位）。SyncLane = 1，优先级最高，而非数值最大。\n\n选项D解析 - 打断与恢复机制：\n错误。低优先级更新被打断后，不会被丢弃！实际处理流程：高优先级更新创建新的workInProgress树，旧的workInProgress树被保留，高优先级渲染完成后，检查是否有待处理的lanes，如果存在则重新调度低优先级更新的渲染。\n\n选项E解析 - 多优先级共存：\n正确。一棵Fiber树可以同时存在多个优先级的更新。fiber.lanes记录该Fiber节点自身的待处理优先级，fiber.childLanes记录该子树中所有后代节点的待处理优先级。在render阶段，通过检查fiber.lanes & renderLanes决定是否处理该Fiber。\n\n选项F解析 - 饥饿检测：\n正确。为防止低优先级更新被持续的高优先级更新饿死，React实现了markStarvedLanesAsExpired函数，计算每个lane的过期时间，过期的lanes会被合并到root.expiredLanes，提升为同步优先级执行。",
+      "exclusion_analysis": {
+        "C": "不选原因：Lanes通过位运算而非数值大小比较优先级。优先级高的Lane数值反而可能更小（如SyncLane=1最高优先级）",
+        "D": "不选原因：低优先级更新被打断后会被保留，通过pendingLanes追踪，高优先级任务完成后会重新调度，不会丢弃"
+      },
+      "knowledge_point": "React_Lanes_Priority_Model",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberLane.js"
+    },
+    {
+      "id": "framework-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Scheduler",
+        "时间切片",
+        "MessageChannel"
+      ],
+      "source_company": "Google",
+      "score": 8,
+      "title": "Scheduler时间切片实现",
+      "content": "React的Scheduler模块使用MessageChannel实现时间切片，而非setTimeout或requestAnimationFrame。以下哪个选项最能解释这个设计选择的原因？",
+      "options": [
+        {
+          "id": "A",
+          "text": "MessageChannel的执行优先级介于宏任务和微任务之间，能够保证在UI渲染之前执行，同时不会阻塞用户交互"
+        },
+        {
+          "id": "B",
+          "text": "setTimeout存在最小4ms延迟限制，在密集调度场景下性能不足；MessageChannel作为宏任务没有这个限制，且执行时机更可控"
+        },
+        {
+          "id": "C",
+          "text": "requestAnimationFrame与屏幕刷新率绑定（通常60fps），无法在空闲时间执行任务；MessageChannel可以在任意时机调度"
+        },
+        {
+          "id": "D",
+          "text": "MessageChannel是React团队自己实现的API，可以精确控制任务执行顺序，而setTimeout是浏览器内置API"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "React Scheduler选择MessageChannel作为时间切片的核心调度机制，是经过深入权衡后的最优解。\n\n为什么不用setTimeout？\nsetTimeout有最小延迟限制，这是HTML规范规定的。在嵌套层级超过5层时，setTimeout最小延迟为4ms。这意味着密集调度时，实际延迟会累积。在React的并发场景中，可能需要每5ms就检查一次是否应该让出主线程。4ms的最小延迟会导致调度不够精确，影响响应性。\n\n为什么不用requestAnimationFrame？\nrequestAnimationFrame的执行时机与屏幕刷新绑定（通常每16.67ms一次）。这带来几个问题：1. 执行频率受刷新率限制；2. 在后台标签页会被暂停；3. 不适合非渲染相关的任务调度。\n\nMessageChannel的优势：\n1. 宏任务级别：在当前事件循环的所有微任务完成后执行；2. 无最小延迟：postMessage会立即将回调加入宏任务队列；3. 不阻塞渲染：浏览器可以在两次调度之间进行UI更新；4. 精度可控：可以根据deadline精确控制执行时长。\n\nMessageChannel实现核心代码：创建channel，port2.postMessage(null)调度任务，port1.onmessage执行performWorkUntilDeadline函数。在函数中检查shouldYield()，如果时间片耗尽则让出主线程，通过postMessage重新调度。\n\n降级处理方案：在非浏览器环境或MessageChannel不可用时，Scheduler会降级使用setTimeout。\n\n工程实践意义：理解时间切片机制有助于排查长任务导致的卡顿，可以通过performance.mark追踪调度时机，在Node.js环境中使用需要polyfill。",
+      "knowledge_point": "React_Scheduler_Time_Slicing",
+      "common_mistake": "容易混淆MessageChannel与requestAnimationFrame的执行时机。MessageChannel是宏任务，在微任务之后执行；rAF在渲染前执行。两者用途不同。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/scheduler/src/forks/Scheduler.js"
+    },
+    {
+      "id": "framework-senior-005",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "并发模式",
+        "useTransition",
+        "useDeferredValue"
+      ],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "useTransition与useDeferredValue等价性",
+      "content": "判断：useTransition和useDeferredValue本质上是等价的，它们都可以将状态更新标记为低优先级，只是API设计不同。useTransition适合主动触发的更新，useDeferredValue适合被动接收的值更新。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "这个说法是正确的。useTransition和useDeferredValue虽然API不同，但底层原理相同——都是将更新标记为Transition优先级。\n\nuseTransition的实现核心：通过修改ReactCurrentBatchConfig.transition，使得startTransition回调中触发的所有setState都被赋予TransitionLane优先级。返回的isPending在Transition开始时变为true，完成后变为false。\n\nuseDeferredValue的实现核心：当原始value变化时，不立即更新deferredValue，而是在useEffect中以Transition优先级更新。这保证了紧急更新（如用户输入）可以打断deferredValue的更新。\n\n两者的等价性证明：使用useTransition包裹setState和使用useDeferredValue延迟值，都能实现当用户快速输入时，旧的结果继续显示，直到新结果准备好。\n\nAPI设计差异的原因：\n\nuseTransition适用场景：用户主动触发的更新（点击按钮切换Tab），需要显示loading状态的场景，可以精确控制哪些更新是低优先级。\n\nuseDeferredValue适用场景：受控组件的延迟渲染（搜索框输入），第三方库传入的props无法控制更新时机，与React.memo配合实现细粒度的延迟更新。\n\n关键边界条件：\n- isPending状态只在Transition更新进行中为true\n- 如果高优先级更新持续触发，Transition更新可能被无限推迟\n- useDeferredValue内部使用useState，每次value变化都会触发Effect",
+      "boundary_conditions": "虽然两者底层原理相同，但存在细微差异：useTransition的isPending在Transition开始时立即变为true，而useDeferredValue没有提供pending状态，需要手动比较value === deferredValue来判断。此外，useTransition的startTransition可以包裹任意代码，而useDeferredValue只能延迟一个值。"
+    },
+    {
+      "id": "framework-senior-006",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "自动批处理",
+        "批处理机制",
+        "React 18"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "React 18自动批处理机制",
+      "content": "React 18引入了自动批处理（Automatic Batching）机制。以下关于React批处理的描述，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React 18中，setTimeout、Promise.then、原生DOM事件中的setState都会被自动批处理"
+        },
+        {
+          "id": "B",
+          "text": "React 17仅在React事件处理函数中进行批处理，在setTimeout等异步回调中不会批处理"
+        },
+        {
+          "id": "C",
+          "text": "flushSync可以强制同步执行更新并禁用批处理，适用于需要同步获取DOM测量值的场景"
+        },
+        {
+          "id": "D",
+          "text": "自动批处理通过executionContext位运算控制，当executionContext包含BatchedContext时进行批处理"
+        },
+        {
+          "id": "E",
+          "text": "ReactDOM.render（legacy模式）不支持自动批处理，必须使用createRoot（concurrent模式）才能启用"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "D"
+      ],
+      "explanation": "React的批处理机制经历了从手动到自动的演进，理解其工作原理对于性能优化至关重要。\n\n选项A解析 - React 18的全场景批处理：\n正确。React 18通过createRoot启用了全场景的自动批处理。在setTimeout、Promise.then、原生DOM事件中的多个setState都会被批处理，只触发一次重渲染。关键实现在于React不再依赖事件上下文来判断是否批处理，而是通过Scheduler统一调度更新。\n\n选项B解析 - React 17的批处理限制：\n正确。React 17的批处理仅限于React事件处理函数。在setTimeout、Promise.then、原生DOM事件中的setState不会批处理，每次setState都会触发重渲染。\n\n选项C解析 - flushSync的作用：\n错误。flushSync确实会强制同步执行，但它不会禁用批处理！flushSync回调中的多个setState仍然会被批处理，只是会立即同步执行而非延迟调度。flushSync的作用是强制立即执行所有待处理的更新。\n\n选项D解析 - executionContext机制：\n正确。React内部使用位运算管理执行上下文。当executionContext包含BatchedContext时，setState不会立即触发更新，而是将更新加入队列，等待flush。\n\n选项E解析 - legacy vs concurrent模式：\n错误。ReactDOM.render也支持自动批处理！区别在于：ReactDOM.render支持自动批处理但不支持并发特性（useTransition等），createRoot支持自动批处理和并发特性。",
+      "exclusion_analysis": {
+        "C": "不选原因：flushSync会强制同步执行更新，但不会禁用批处理。flushSync回调中的多个setState仍然会被批处理，只是会立即同步执行",
+        "E": "不选原因：React 18中ReactDOM.render也支持自动批处理。legacy模式和concurrent模式的区别在于是否支持并发特性，而非批处理能力"
+      },
+      "knowledge_point": "React_Automatic_Batching",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js"
+    },
+    {
+      "id": "framework-senior-007",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Hook",
+        "链表结构",
+        "Hook原理"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Hook链表存储结构",
+      "content": "React Hook在Fiber节点中以链表形式存储。以下代码展示了Hook的基本结构，请问fiber.memoizedState指向什么？\n\ntype Hook = {\n  memoizedState: any,\n  baseState: any,\n  baseQueue: Update | null,\n  queue: UpdateQueue | null,\n  next: Hook | null,\n};",
+      "options": [
+        {
+          "id": "A",
+          "text": "fiber.memoizedState指向该组件所有Hook组成的数组，通过索引访问对应的Hook"
+        },
+        {
+          "id": "B",
+          "text": "fiber.memoizedState指向第一个Hook节点，后续Hook通过next指针连接形成链表，按调用顺序遍历"
+        },
+        {
+          "id": "C",
+          "text": "fiber.memoizedState指向最后一个Hook节点，便于快速追加新的Hook"
+        },
+        {
+          "id": "D",
+          "text": "fiber.memoizedState指向一个Map结构，key为Hook名称，value为Hook状态"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "React Hook的链表存储结构是理解Hook工作原理的基础，也是Rules of Hooks的底层依据。\n\n链表结构详解：fiber.memoizedState指向第一个Hook节点，后续Hook通过next指针连接形成单向链表。每次组件渲染时，React按照Hook的调用顺序遍历这个链表。\n\n首次渲染（mount）：通过mountWorkInProgressHook创建新Hook，每个Hook通过next连接，fiber.memoizedState指向第一个Hook。如果是第一个Hook，则currentlyRenderingFiber.memoizedState = hook。\n\n更新渲染（update）：通过updateWorkInProgressHook遍历现有链表，按顺序复用对应位置的Hook。这要求Hook调用顺序必须保持一致。\n\n为什么是链表而非数组？\n1. 内存效率：链表不需要预分配连续内存，动态增长更灵活\n2. 历史原因：React团队在设计Hook时参考了Algebraic Effects的continuation概念\n3. 实现简洁：只需要维护一个next指针\n\nHook.memoizedState存储的内容：\n不同Hook的memoizedState存储不同内容：useState存储[state, dispatch]；useEffect存储{create, destroy, deps}；useRef存储{current: initialValue}；useMemo存储[value, deps]。\n\nRules of Hooks的底层依据：正因为Hook以链表按顺序存储，所以必须在组件顶层调用Hook，不能在条件语句中调用，必须保持Hook调用顺序一致。React通过比较currentHook索引检测顺序变化。\n\n工程实践意义：理解链表结构有助于调试Hook相关问题，可以在React DevTools中查看组件的Hook链表，ESLint的rules-of-hooks规则帮助避免顺序问题。",
+      "knowledge_point": "React_Hook_LinkedList_Structure",
+      "common_mistake": "容易误以为Hook存储在数组中，实际上是单向链表。理解这一点对于理解Rules of Hooks的必要性至关重要。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberHooks.js"
+    },
+    {
+      "id": "framework-senior-008",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Hook",
+        "闭包陷阱",
+        "useRef"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Hook闭包陷阱与解决方案",
+      "content": "以下代码存在\"闭包陷阱\"（Stale Closure）问题。请选择最准确的原因分析和解决方案：\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  \n  useEffect(() => {\n    const id = setInterval(() => {\n      console.log('Count:', count);\n    }, 1000);\n    return () => clearInterval(id);\n  }, []);\n  \n  return <button onClick={() => setCount(c => c + 1)}>Add</button>;\n}",
+      "options": [
+        {
+          "id": "A",
+          "text": "问题：useEffect依赖数组为空，导致count始终是初始值0。解决方案：将count加入依赖数组[count]，但会导致定时器频繁重建"
+        },
+        {
+          "id": "B",
+          "text": "问题：setInterval回调形成闭包，捕获了首次渲染时的count值。解决方案：使用useRef存储count的最新值，在回调中通过ref.current访问"
+        },
+        {
+          "id": "C",
+          "text": "问题：setCount使用函数式更新，但闭包仍捕获旧值。解决方案：使用useReducer替代useState，通过dispatch更新状态"
+        },
+        {
+          "id": "D",
+          "text": "A和B都是正确的分析和解决方案，取决于是否需要避免定时器重建"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "闭包陷阱是React Hook开发中最常见的问题之一，理解其本质和多种解决方案非常重要。\n\n问题本质分析：当useEffect的依赖数组为空时，effect回调只在组件挂载时执行一次。此时setInterval的回调函数形成闭包，捕获的是首次渲染时的count值（0）。后续count变化时，setInterval回调中的count仍然是旧的闭包值。\n\n解决方案一：添加依赖项。将count加入依赖数组，每次count变化都会重新执行effect，清除并重建定时器。优点是简单直接，符合React的心智模型；缺点是定时器频繁重建，可能有性能开销。适用于对定时器连续性要求不高的场景。\n\n解决方案二：使用useRef。创建countRef = useRef(count)，在effect中同步countRef.current = count，setInterval回调中访问countRef.current。优点是定时器不会重建，保持连续性。原理是useRef返回的对象在整个组件生命周期中保持同一引用，修改.current不会触发重渲染。\n\nuseRef为什么能解决闭包问题？useRef创建的对象存储在Hook的memoizedState中，在整个组件生命周期中保持同一引用。修改ref.current不会触发组件重渲染，因此不会受到闭包的影响。\n\n闭包陷阱的其他场景：\n1. 事件监听器中的闭包问题\n2. 异步操作完成后的闭包问题\n3. 自定义Hook封装时的回调处理\n\n最佳实践建议：需要定时器连续性时使用useRef方案；简单场景且无连续性要求时添加依赖项；封装自定义Hook时使用ref模式确保回调始终是最新的。",
+      "knowledge_point": "React_Hook_Closure_Trap",
+      "reference_link": "https://react.dev/learn/referencing-values-with-refs"
+    },
+    {
+      "id": "framework-senior-009",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "useEffect",
+        "useLayoutEffect",
+        "生命周期"
+      ],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "useEffect与useLayoutEffect执行时机",
+      "content": "关于useEffect和useLayoutEffect的执行时机和特性，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "useEffect在commit阶段的Layout子阶段之后异步执行，不阻塞浏览器绑定"
+        },
+        {
+          "id": "B",
+          "text": "useLayoutEffect在DOM变更完成后、浏览器绑定前同步执行，适合需要同步读取DOM布局的场景"
+        },
+        {
+          "id": "C",
+          "text": "useLayoutEffect的清理函数在DOM更新前执行，useEffect的清理函数在DOM更新后执行"
+        },
+        {
+          "id": "D",
+          "text": "在SSR场景下，useLayoutEffect会触发警告，推荐使用useEffect或useInsertionEffect替代"
+        },
+        {
+          "id": "E",
+          "text": "如果useLayoutEffect执行时间过长，会导致浏览器跳过该帧的渲染，造成掉帧"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "E"
+      ],
+      "explanation": "useEffect和useLayoutEffect的执行时机是React面试的高频考点，深入理解需要对Commit阶段有清晰的认识。\n\nCommit阶段三子阶段：BeforeMutation（读取DOM状态、调度useEffect）、Mutation（执行DOM操作）、Layout（执行useLayoutEffect、更新ref、执行componentDidMount/Update）、最后异步执行useEffect。\n\n选项A解析 - useEffect的异步执行：正确。useEffect在Layout阶段之后通过Scheduler异步调度执行，不阻塞浏览器绑定，执行时DOM已绑定到屏幕，可能与其他更新交错执行。\n\n选项B解析 - useLayoutEffect的同步执行：正确。useLayoutEffect在Layout阶段同步执行，执行时机特点：DOM已更新（Mutation完成）、浏览器尚未绑定、可以同步读取DOM布局信息、修改DOM不会触发闪烁。\n\n选项C解析 - 清理函数执行时机：错误。两个Hook的清理函数执行时机相同，都在下一次effect执行前。区别在于useLayoutEffect清理同步执行，useEffect清理异步执行，但都在BeforeMutation阶段。\n\n选项D解析 - SSR警告：错误。useLayoutEffect在SSR时会警告，但不是因为不能用，而是因为服务端没有DOM布局的概念。useInsertionEffect是专门为CSS-in-JS设计的，执行时机更早（DOM变更前），不是useLayoutEffect的替代品。\n\n选项E解析 - 长时间useLayoutEffect导致掉帧：正确。useLayoutEffect同步执行，会阻塞浏览器绑定。如果执行时间过长，总帧时间可能超过16.67ms，导致跳过该帧渲染。\n\nuseLayoutEffect适用场景：读取DOM布局（getBoundingClientRect）、动画初始化（在绑定前设置初始状态避免闪烁）、第三方DOM库集成。\n\n最佳实践：默认使用useEffect，需要同步读取DOM时使用useLayoutEffect，避免在useLayoutEffect中执行耗时操作，SSR时使用isomorphic模式处理。",
+      "exclusion_analysis": {
+        "C": "不选原因：清理函数的执行时机相同，都在下一次effect执行前。区别在于useLayoutEffect清理同步执行，useEffect清理异步执行，但都在BeforeMutation阶段",
+        "D": "不选原因：useInsertionEffect不是useLayoutEffect的SSR替代品，它是为CSS-in-JS设计的，执行时机在DOM变更前。正确的SSR处理是使用isomorphic pattern"
+      },
+      "knowledge_point": "React_Effect_Timing",
+      "reference_link": "https://react.dev/reference/react/useLayoutEffect"
+    },
+    {
+      "id": "framework-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Diff算法",
+        "单节点Diff",
+        "key"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "React单节点Diff策略",
+      "content": "在React的单节点Diff算法（reconcileSingleElement）中，当比较现有Fiber节点与新ReactElement时，以下哪个条件判断能正确描述节点复用的条件？",
+      "options": [
+        {
+          "id": "A",
+          "text": "key相同即可复用，因为key是React识别元素的唯一标识，type不同时会更新type"
+        },
+        {
+          "id": "B",
+          "text": "key和type都必须相同才能复用，因为不同type的组件可能有不同的状态结构"
+        },
+        {
+          "id": "C",
+          "text": "type相同即可复用，key只用于列表Diff，单节点比较不关心key"
+        },
+        {
+          "id": "D",
+          "text": "key相同且type相同，或者key不同但type相同且均为原生DOM元素时可以复用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "React的节点复用策略是Diff算法的核心，理解key和type的作用对于正确使用React至关重要。\n\nreconcileSingleElement源码分析：\n在reconcileSingleElement函数中，首先比较key，如果key相同则继续比较type。如果key和type都相同，则复用节点，保留状态。如果key相同但type不同，则删除现有节点及其兄弟节点，创建新节点。如果key不同，则删除当前节点，继续检查兄弟节点。\n\n为什么key和type都必须相同？\n\nkey的作用：标识元素的身份，区分列表中的兄弟节点。即使是单节点，React也检查key以确保正确复用。key不同意味着\"这是不同的元素\"。\n\ntype的作用：决定组件的类型和行为。不同type可能有完全不同的状态结构、生命周期。type不同意味着\"这是不同类型的组件\"。\n\n四种情况的完整分析：\n\n情况1：key相同、type相同 -> 复用节点，保留状态\n情况2：key相同、type不同 -> 删除旧节点，创建新节点\n情况3：key不同、type相同 -> 删除旧节点，创建新节点\n情况4：key不同、type不同 -> 删除旧节点，创建新节点\n\n实际场景分析：\n条件渲染场景中，如果key相同但type不同（如div和span切换），组件的状态会丢失。解决方案是使用不同的key，确保type变化时状态重置。\n\n常见误解澄清：\n\n误解1：\"单节点不需要key\" - 错误。即使是单节点，React也会检查key来决定是否复用。key默认为null，所以不指定key时，两个单节点key都是null，key比较结果为相同。\n\n误解2：\"type相同就会复用\" - 错误。如果key不同，即使type相同也不会复用。\n\n工程实践建议：使用数据的唯一ID作为key，避免使用索引作为key（除非列表是静态的），条件渲染时注意key和type对状态保留的影响。",
+      "knowledge_point": "React_Diff_Single_Node",
+      "common_mistake": "容易误认为key只用于列表Diff，实际上单节点也会检查key。另外，key相同但type不同时，不会复用而是删除重建。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactChildFiber.js"
+    },
+    {
+      "id": "framework-senior-011",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Diff算法",
+        "多节点Diff",
+        "key稳定性"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "React多节点Diff算法策略",
+      "content": "React的多节点Diff算法（reconcileChildrenArray）采用特定策略优化性能。以下关于该算法的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "采用两轮遍历策略：第一轮处理位置不变的更新节点，第二轮处理移动/新增/删除节点"
+        },
+        {
+          "id": "B",
+          "text": "lastPlacedIndex变量用于记录最后一个可复用节点的位置，当新节点位置小于lastPlacedIndex时需要移动"
+        },
+        {
+          "id": "C",
+          "text": "React选择了O(n)的算法而非最优的O(n log n)算法，是基于\"大部分操作不涉及位置移动\"的实际假设"
+        },
+        {
+          "id": "D",
+          "text": "使用数组索引作为key时，如果列表顺序倒置，所有节点都会被标记为移动，导致O(n)的DOM操作"
+        },
+        {
+          "id": "E",
+          "text": "当新旧子节点数量不同时，React会优先处理较短列表的长度，剩余节点直接新增或删除"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "React的多节点Diff算法是一个精巧的设计，在性能和实现复杂度之间取得了良好的平衡。\n\n选项A解析 - 两轮遍历策略：正确。React的Diff算法分为两轮。第一轮按顺序比较新旧节点，key匹配则复用，位置不变，key不匹配则立即结束第一轮。第二轮处理剩余节点，包括移动、新增和删除。\n\n选项B解析 - lastPlacedIndex机制：正确。lastPlacedIndex是判断节点是否需要移动的关键。如果节点旧位置 >= lastPlacedIndex，不移动；如果节点旧位置 < lastPlacedIndex，需要移动。lastPlacedIndex总是更新为当前节点的旧位置（如果不移动）。\n\n选项C解析 - O(n) vs O(n log n)：正确。React选择了O(n)的算法。理论最优算法（如Vue 3的LIS）时间复杂度O(n log n)，但实现复杂。React的设计决策基于实际场景：大部分列表操作是追加/删除，很少涉及中间位置移动；两轮遍历对于\"尾部操作\"场景非常高效；实现简单，代码可维护性高。\n\n选项D解析 - 索引作为key的问题：正确。使用数组索引作为key时，如果列表顺序倒置，所有节点都会被标记为移动。这是因为索引key会随着位置变化而变化，React无法正确识别节点身份。\n\n选项E解析 - 数量不同的处理：错误。React的处理顺序是先按位置匹配（第一轮），然后通过key匹配决定复用（第二轮）。并非简单地取较短列表长度。",
+      "exclusion_analysis": {
+        "E": "不选原因：React的处理顺序是先按位置匹配，然后通过key匹配来决定复用。并非简单地取较短列表长度，而是通过key匹配来决定哪些节点可以复用"
+      },
+      "knowledge_point": "React_Diff_Multiple_Nodes",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactChildFiber.js"
+    },
+    {
+      "id": "framework-senior-012",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Suspense",
+        "throw promise",
+        "并发渲染"
+      ],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "Suspense与throw promise机制",
+      "content": "当React组件在渲染过程中throw一个Promise时，Suspense如何捕获并处理？以下哪个选项最准确地描述了这个机制？",
+      "options": [
+        {
+          "id": "A",
+          "text": "throw的Promise被Error Boundary捕获，Suspense检查Promise状态后显示fallback"
+        },
+        {
+          "id": "B",
+          "text": "throw的Promise在ReactFiberThrow中被捕获，React向上查找最近的Suspense边界，将fallback渲染为子节点，并监听Promise的resolve"
+        },
+        {
+          "id": "C",
+          "text": "throw的Promise被全局handler捕获，React暂停当前渲染，等待Promise resolve后继续"
+        },
+        {
+          "id": "D",
+          "text": "throw的Promise被调度器捕获，Suspense组件监听Promise状态变化后触发重新渲染"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Suspense的throw promise机制是React实现异步渲染的核心技术，理解其工作原理对于掌握React并发特性至关重要。\n\nthrow promise的工作流程：\n\n1. 组件throw Promise：在resource.read()内部，如果数据未就绪，throw一个Promise。\n\n2. React捕获thrown value：在ReactFiberThrow.handleError中，检查thrown value是否为thenable（Promise-like）。如果是Promise，则查找最近的Suspense边界。\n\n3. 查找Suspense边界：通过fiber.return向上遍历，找到tag === SuspenseComponent的节点。\n\n4. 渲染fallback：找到Suspense边界后，标记ShouldCapture，渲染fallback作为子节点。\n\n5. 监听Promise resolve：通过attachPingListener添加then回调，Promise resolve后触发重新渲染。\n\n为什么不是Error Boundary？\nError Boundary专门用于捕获错误，不会捕获Promise。在handleError中，React明确区分了Error和thenable的处理逻辑。Error Boundary只处理Error类型。\n\n完整的渲染流程：\n用户触发更新 -> beginWork遍历组件 -> 组件执行时throw promise -> ReactFiberThrow.handleError捕获 -> 检测到是thenable -> 查找Suspense边界 -> 标记ShouldCapture -> 监听Promise -> 渲染fallback -> Promise resolve -> 触发重新渲染 -> 这次返回数据成功。\n\n并发模式下的特殊处理：\n使用useTransition时，isPending为true期间旧内容继续显示，新内容准备好后平滑过渡，避免了传统loading的闪烁问题。\n\n工程实践建议：使用Suspense时确保有合适的边界，配合useTransition实现平滑过渡，注意Error Boundary和Suspense的区别。",
+      "knowledge_point": "React_Suspense_Throw_Promise",
+      "common_mistake": "容易误认为Error Boundary会捕获Promise。实际上Error Boundary只捕获Error，Promise由Suspense专门处理。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberThrow.js"
+    },
+    {
+      "id": "framework-senior-013",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "Proxy",
+        "响应式",
+        "Reflect"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Vue 3 Proxy响应式实现",
+      "content": "Vue 3使用Proxy实现响应式系统，相比Vue 2的Object.defineProperty有显著优势。以下关于Vue 3 Proxy响应式的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Proxy可以拦截属性的添加和删除，而Object.defineProperty只能拦截已有属性的读写"
+        },
+        {
+          "id": "B",
+          "text": "使用Reflect.get(target, key, receiver)而非target[key]的原因是receiver确保this指向proxy对象，支持继承场景的正确响应式"
+        },
+        {
+          "id": "C",
+          "text": "Vue 3对数组的响应式处理通过重写数组方法实现，与Vue 2的实现方式相同"
+        },
+        {
+          "id": "D",
+          "text": "嵌套对象的代理采用懒初始化策略，只有访问嵌套对象时才创建代理，避免初始化时的性能开销"
+        },
+        {
+          "id": "E",
+          "text": "Proxy的handler需要实现get、set、has、deleteProperty、ownKeys等trap，以完整覆盖所有操作场景"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "explanation": "Vue 3的Proxy响应式系统是一个精心设计的架构，理解其细节对于深入掌握Vue至关重要。\n\n选项A解析 - Proxy vs defineProperty的能力差异：正确。Object.defineProperty只能拦截已有属性的读写，无法拦截属性添加和删除。Proxy可以拦截属性的添加（set trap）、删除（deleteProperty trap）、以及in操作符（has trap）和Object.keys（ownKeys trap）。\n\n选项B解析 - Reflect与receiver的作用：正确。在getter中使用Reflect.get(target, key, receiver)而非target[key]，是因为receiver确保this指向proxy对象。这在继承场景中特别重要，子对象访问继承的getter时，this应该指向子对象而非原始target。\n\n选项C解析 - 数组处理：错误。Vue 3对数组的处理与Vue 2有本质区别。Vue 2通过重写数组原型方法实现，Vue 3通过Proxy的get/set trap拦截数组操作，包括索引访问和length修改，无需重写方法。Vue 3只在特定方法（如push、pop等）中暂停依赖收集以避免无限循环。\n\n选项D解析 - 嵌套对象懒初始化：正确。在get trap中，如果返回值是对象，才递归调用reactive创建代理。这样只有在实际访问嵌套对象时才创建代理，避免初始化时对整个对象树进行代理，提升性能。\n\n选项E解析 - Proxy handler完整覆盖：正确。Vue 3的mutableHandlers实现了get、set、has、deleteProperty、ownKeys等trap，确保所有操作都能正确触发响应式。get/set用于属性读写，has用于in操作符，deleteProperty用于delete操作，ownKeys用于Object.keys等获取键列表的操作。",
+      "exclusion_analysis": {
+        "C": "不选原因：Vue 3对数组的处理与Vue 2有本质区别。Vue 2通过重写数组原型方法实现，Vue 3通过Proxy的get/set trap拦截数组操作，包括索引访问和length修改，无需重写方法"
+      },
+      "knowledge_point": "Vue_Proxy_Reactive",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/reactivity/src/baseHandlers.ts"
+    },
+    {
+      "id": "framework-senior-014",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "依赖收集",
+        "effect",
+        "响应式系统"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Vue 3依赖收集机制",
+      "content": "Vue 3的依赖收集系统使用targetMap、depsMap、dep三层结构。当响应式属性被访问时，依赖是如何被收集的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "每个响应式对象对应一个Map，每个属性对应一个Set，Set中存储所有依赖该属性的副作用函数（effect）"
+        },
+        {
+          "id": "B",
+          "text": "每个组件对应一个依赖集合，组件内所有响应式属性的访问都注册到该集合中"
+        },
+        {
+          "id": "C",
+          "text": "依赖收集发生在set操作时，将activeEffect添加到对应属性的依赖列表中"
+        },
+        {
+          "id": "D",
+          "text": "依赖收集是全局的，所有effect共享同一个Set，通过标记区分不同属性的依赖"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "Vue 3的依赖收集系统是其响应式的核心，理解其数据结构对于调试和性能优化非常重要。\n\n三层Map结构详解：\ntargetMap是WeakMap<object, Map<string | symbol, Set<ReactiveEffect>>>结构。每个target对应一个depsMap，每个key对应一个dep（Set<ReactiveEffect>）。\n\n依赖收集流程：\n\n1. 响应式属性被访问：在get trap中调用track函数\n2. track函数执行：获取或创建target对应的depsMap，获取或创建key对应的dep，将activeEffect加入dep\n\nactiveEffect的管理：\n在effect函数执行期间，设置全局变量activeEffect为当前effect。当响应式属性被访问时，track函数将activeEffect加入对应的dep。\n\n依赖触发流程：\n\n1. 响应式属性被修改：在set trap中调用trigger函数\n2. trigger函数执行：从targetMap获取对应的dep，遍历dep中的所有effect并执行\n\neffectScope的作用：\n组件级别的effect收集，组件卸载时自动调用scope.stop()清理所有effect，防止内存泄漏。\n\n完整流程：组件渲染 -> 创建renderEffect -> 设置activeEffect -> 执行render函数 -> 访问state.count -> get trap触发 -> track收集依赖 -> state.count变化 -> set trap触发 -> trigger执行依赖 -> 组件重新渲染。\n\n关键点：依赖收集发生在get操作（属性读取）时，而非set操作时。set操作触发的是依赖执行（trigger）。",
+      "knowledge_point": "Vue_Dependency_Collection",
+      "common_mistake": "容易误认为依赖收集发生在set操作时。实际上收集发生在get操作（属性读取）时，set操作触发的是依赖执行（trigger）。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/reactivity/src/effect.ts"
+    },
+    {
+      "id": "framework-senior-015",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "computed",
+        "缓存机制",
+        "dirty标志"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Vue 3 computed缓存机制",
+      "content": "Vue 3的computed通过dirty标志实现缓存。以下关于computed缓存机制的描述，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "computed在依赖变化时立即重新计算，然后返回新值"
+        },
+        {
+          "id": "B",
+          "text": "computed首次访问时计算并缓存结果，依赖变化时将dirty设为true，下次访问时重新计算"
+        },
+        {
+          "id": "C",
+          "text": "computed通过debounce实现缓存，在下一个事件循环中批量计算"
+        },
+        {
+          "id": "D",
+          "text": "computed每次访问都重新计算，但通过watcher去重避免重复执行"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Vue 3的computed缓存机制是\"懒计算\"的典型实现，理解其工作原理有助于正确使用computed。\n\nComputedRefImpl核心实现：\n\n1. _dirty标志：初始为true，计算完成后设为false\n2. effect：带有lazy标记，不立即执行\n3. scheduler：依赖变化时只设置_dirty = true，不重新计算\n4. get value()：检查_dirty，为true时才计算\n\n懒计算流程：\n\n初始状态：_dirty = true, _value = undefined\n\n第一次访问computed.value：检查_dirty === true -> 执行effect.run()计算 -> _value = 结果 -> _dirty = false -> 返回_value\n\n依赖变化：触发scheduler -> _dirty = true（不重新计算！） -> triggerRefValue通知computed的依赖者\n\n第二次访问computed.value：检查_dirty === true -> 重新计算\n\n与普通effect的区别：\n普通effect依赖变化立即执行；computed依赖变化只标记dirty，访问时才计算。这使得computed具有懒计算特性——如果依赖变化但从未被访问，则永远不会重新计算。\n\n性能优势：\n\n1. 依赖未变化时多次访问：只计算一次，后续返回缓存\n2. 依赖变化但未访问：只标记dirty，不计算\n3. 依赖多次连续变化：只计算一次（最后一次访问时）\n\nsetter的实现：computed也支持可写形式，通过传入{get, set}对象。set时调用setter函数，通常用于更新依赖的ref。\n\n常见误区：\n\n1. computed不会自动更新——必须在computed内访问响应式数据\n2. computed不应该有副作用——计算函数应该是纯函数\n3. computed依赖的是访问时追踪的响应式数据，而非声明时的数据",
+      "knowledge_point": "Vue_Computed_Caching",
+      "common_mistake": "容易误认为computed依赖变化时立即重新计算。实际上只是标记dirty，真正的计算延迟到下次访问时。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/reactivity/src/computed.ts"
+    },
+    {
+      "id": "framework-senior-016",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "PatchFlags",
+        "编译优化",
+        "Diff优化"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Vue 3 PatchFlags编译优化",
+      "content": "Vue 3的PatchFlags是编译时优化的核心机制。以下关于PatchFlags的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "PatchFlags使用位掩码表示，TEXT=1、CLASS=2、STYLE=4、PROPS=8、FULL_PROPS=16等，支持组合使用"
+        },
+        {
+          "id": "B",
+          "text": "TEXT标志表示节点有动态文本内容，Diff时只需检查textContent而无需比较属性"
+        },
+        {
+          "id": "C",
+          "text": "FULL_PROPS标志表示存在动态key的属性（如v-bind=\"obj\"），需要进行完整的props diff"
+        },
+        {
+          "id": "D",
+          "text": "PatchFlags.HOISTED = -1表示静态提升的节点，Diff时完全跳过"
+        },
+        {
+          "id": "E",
+          "text": "PatchFlags.BAIL = -2表示退出优化模式，退回到全量Diff"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "explanation": "Vue 3的PatchFlags是编译器生成的一种运行时优化标记，它通过位掩码告诉运行时Diff算法哪些部分是动态的，从而实现靶向更新。\n\n选项A解析 - 位掩码设计：\n正确。PatchFlags使用位掩码设计，每个标志是一个二进制位。TEXT=1（0b0001）、CLASS=2（0b0010）、STYLE=4（0b0100）、PROPS=8（0b1000）等。这种设计支持通过位运算组合多个标志，例如TEXT | CLASS = 3表示同时有动态文本和动态class。\n\n选项B解析 - TEXT标志：\n正确。当节点有动态文本内容时，编译器会标记TEXT标志。在patchElement中，如果patchFlag & TEXT为真，运行时只需更新textContent，无需比较其他属性。这大大减少了Diff开销。\n\n选项C解析 - FULL_PROPS标志：\n正确。当存在动态key的属性绑定时（如v-bind=\"obj\"或动态属性名），编译器无法确定哪些属性会变化，因此标记FULL_PROPS。运行时需要进行完整的props比较。\n\n选项D解析 - HOISTED标志：\n正确。HOISTED = -1是特殊标志，表示该节点被静态提升。静态节点在整个应用生命周期内不会变化，Diff时完全跳过，不会进入patch流程。\n\n选项E解析 - BAIL标志：\n正确。BAIL = -2表示退出优化模式。当编译器无法确定节点的动态性时（如使用v-html、ref等），会标记BAIL，运行时退回到传统的全量Diff算法。\n\n编译示例分析：\n\n模板：<div class=\"static\" :class=\"dynamicClass\">{{ text }}</div>\n\n编译后：\n_createElementVNode('div', {\n  class: _normalizeClass(['static', _ctx.dynamicClass])\n}, _toDisplayString(_ctx.text), PatchFlags.TEXT | PatchFlags.CLASS)\n\n运行时看到TEXT | CLASS标志，知道只需更新class和textContent。\n\nPatchFlags完整定义：\nexport const enum PatchFlags {\n  TEXT = 1,\n  CLASS = 2,\n  STYLE = 4,\n  PROPS = 8,\n  FULL_PROPS = 16,\n  HYDRATE_EVENTS = 32,\n  STABLE_FRAGMENT = 64,\n  KEYED_FRAGMENT = 128,\n  UNKEYED_FRAGMENT = 256,\n  NEED_PATCH = 512,\n  DYNAMIC_SLOTS = 1024,\n  HOISTED = -1,\n  BAIL = -2\n}\n\n工程实践意义：理解PatchFlags有助于编写更易优化的模板，避免不必要的FULL_PROPS和BAIL情况。",
+      "knowledge_point": "Vue_PatchFlags_Optimization",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/shared/src/patchFlags.ts"
+    },
+    {
+      "id": "framework-senior-017",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "Block Tree",
+        "动态子节点",
+        "编译优化"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vue 3 Block Tree机制",
+      "content": "Vue 3的Block Tree是如何收集动态子节点的？Block与普通VNode有什么本质区别？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Block是特殊的VNode，额外维护dynamicChildren数组，存储所有动态后代节点的扁平列表，Diff时直接遍历该数组而非整棵树"
+        },
+        {
+          "id": "B",
+          "text": "Block就是组件根节点，每个组件自动成为一个Block"
+        },
+        {
+          "id": "C",
+          "text": "Block只收集直接子节点中的动态节点，不递归收集后代节点"
+        },
+        {
+          "id": "D",
+          "text": "v-if、v-for会创建新的Block边界，因为它们的结构是动态的"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "Block Tree是Vue 3编译优化的关键机制，它将动态节点收集到扁平数组中，避免了传统Diff的树形递归遍历。\n\nBlock的本质：\n\nBlock是一个带有dynamicChildren属性的VNode。普通VNode的children是树形结构，Block的dynamicChildren是一个扁平数组，包含所有动态后代节点。\n\nBlock Tree的工作原理：\n\n1. 编译时收集：\n编译器在生成渲染代码时，遇到动态节点会将其加入当前Block的dynamicChildren数组。\n\n示例模板：\n<div>\n  <span>static</span>\n  <span>{{ dynamic }}</span>\n  <div :class=\"cls\">content</div>\n</div>\n\n编译概念（简化）：\nconst block = createBlock('div', null, [\n  createVNode('span', null, 'static'), // 静态，不收集\n  createVNode('span', null, dynamic, PatchFlags.TEXT), // 收集\n  createVNode('div', { class: cls }, 'content', PatchFlags.CLASS) // 收集\n])\nblock.dynamicChildren = [span动态节点, div动态节点]\n\n2. 运行时Diff：\n当Block更新时，直接遍历dynamicChildren数组进行Diff，跳过所有静态节点。这比递归遍历整棵树高效得多。\n\n为什么v-if和v-for创建新Block？\n\nv-if：条件分支是动态的，不同时刻可能渲染不同的内容。每个分支需要独立的Block来管理自己的动态节点。\n\nv-for：循环产生的每个项都需要独立的追踪，因此每个循环项创建一个Block。\n\nBlock Tree结构：\n\nParentBlock\n├── dynamicChildren: [动态节点1, 动态节点2, ...]\n├── ChildBlock1 (v-if=\"cond1\")\n│   └── dynamicChildren: [动态节点A, 动态节点B]\n└── ChildBlock2 (v-if=\"cond2\")\n    └── dynamicChildren: [动态节点C]\n\nBlock与普通VNode的区别：\n\n1. 普通VNode：children是完整子节点树，Diff需要递归遍历\n2. Block：dynamicChildren是动态节点的扁平列表，Diff直接遍历数组\n\n源码关键函数：\n\nfunction createBlock(type, props, children, patchFlag) {\n  const vnode = createVNode(type, props, children, patchFlag);\n  vnode.dynamicChildren = []; // 关键：动态子节点数组\n  return vnode;\n}\n\n// 编译时，动态节点被push到当前Block\nfunction createVNodeWithDynamicChildren(...) {\n  const vnode = createVNode(...);\n  if (currentBlock) {\n    currentBlock.dynamicChildren.push(vnode);\n  }\n  return vnode;\n}\n\n性能优势分析：\n\n假设一个组件有100个节点，只有3个是动态的。\n\n传统Diff：遍历100个节点\nBlock Diff：只遍历3个节点（dynamicChildren数组长度为3）\n\n这就是Vue 3相比Vue 2性能大幅提升的核心原因之一。",
+      "knowledge_point": "Vue_Block_Tree",
+      "common_mistake": "容易误认为Block只收集直接子节点。实际上Block递归收集所有动态后代节点，形成扁平列表。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/runtime-core/src/vnode.ts"
+    },
+    {
+      "id": "framework-senior-018",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "静态提升",
+        "HoistStatic",
+        "编译优化"
+      ],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Vue 3静态提升优化",
+      "content": "Vue 3的静态提升（HoistStatic）优化是什么？以下关于静态提升的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "静态节点在编译时提升到render函数外部，每次渲染复用同一个VNode引用"
+        },
+        {
+          "id": "B",
+          "text": "静态提升减少了VNode创建的开销，同时减少了GC压力"
+        },
+        {
+          "id": "C",
+          "text": "纯静态子树（所有后代都是静态的）会被整体提升，进一步优化性能"
+        },
+        {
+          "id": "D",
+          "text": "带有v-once指令的节点也会被静态提升，效果完全相同"
+        },
+        {
+          "id": "E",
+          "text": "静态提升的VNode在Diff时会被跳过，因为patchFlag为HOISTED"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "静态提升是Vue 3编译器的重要优化手段，它将静态节点提升到渲染函数外部，避免每次渲染重复创建。\n\n选项A解析 - 提升机制：\n正确。静态节点在编译时被提升到组件作用域顶层，生成的VNode存储在常量中。每次渲染直接复用该常量，而非重新创建VNode。\n\n编译前后对比：\n\n编译前模板：\n<div>\n  <span class=\"static\">hello</span>\n  <span>{{ dynamic }}</span>\n</div>\n\n编译后（简化）：\n// 静态提升\nconst _hoisted_1 = createElementVNode('span', { class: 'static' }, 'hello')\n\nfunction render() {\n  return createElementVNode('div', null, [\n    _hoisted_1, // 复用\n    createElementVNode('span', null, _ctx.dynamic, PatchFlags.TEXT)\n  ])\n}\n\n选项B解析 - 性能优势：\n正确。静态提升减少了VNode对象的创建次数。假设组件渲染1000次，没有静态提升时会创建1000个静态VNode，提升后只创建1个。这减少了内存分配和GC压力。\n\n选项C解析 - 静态子树提升：\n正确。如果一个节点的所有后代都是静态的，整个子树会被提升为单个VNode。这比单独提升每个节点更高效。\n\n示例：\n<div>\n  <ul>\n    <li>item 1</li>\n    <li>item 2</li>\n    <li>item 3</li>\n  </ul>\n</div>\n\n整个ul子树提升为一个VNode，Diff时完全跳过。\n\n选项D解析 - v-once与静态提升的区别：\n错误。v-once和静态提升有本质区别：\n\n1. 静态提升：编译时确定节点永不变化\n2. v-once：运行时确定节点只渲染一次，但可能包含动态内容\n\nv-once的节点会在首次渲染时缓存，后续渲染复用缓存。它可以包裹动态内容，但动态内容只在首次渲染时计算。\n\n选项E解析 - Diff跳过：\n正确。静态提升的VNode的patchFlag为HOISTED（-1）。在patchElement函数中，如果patchFlag为HOISTED，直接返回跳过Diff。\n\n源码实现：\n\nfunction patchElement(n1, n2, ...args) {\n  if (n2.patchFlag === PatchFlags.HOISTED) {\n    return; // 跳过静态节点\n  }\n  // 正常Diff流程...\n}\n\n静态提升的限制：\n\n以下情况不会被静态提升：\n1. 带有v-if、v-else的节点（结构是动态的）\n2. 带有v-for的节点（数量是动态的）\n3. 带有动态绑定的节点（内容是动态的）\n4. 内联事件处理函数（虽然函数引用可能不变，但编译器保守处理）\n\n工程实践意义：\n理解静态提升有助于编写更易优化的模板。将动态内容与静态内容分离，可以让编译器更好地识别可提升的节点。",
+      "exclusion_analysis": {
+        "D": "不选原因：v-once和静态提升有本质区别。静态提升是编译时优化，针对永不变化的静态内容。v-once是运行时缓存，可以包含动态内容但只计算一次"
+      },
+      "knowledge_point": "Vue_HoistStatic_Optimization",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/compiler-core/src/transforms/hoistStatic.ts"
+    },
+    {
+      "id": "framework-senior-019",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "SSR",
+        "Hydration",
+        "水合"
+      ],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "Vue 3 SSR水合机制",
+      "content": "Vue 3的SSR水合（Hydration）过程中，如何检测和报告Hydration Mismatch错误？以下哪个选项最准确地描述了这个机制？",
+      "options": [
+        {
+          "id": "A",
+          "text": "水合时对比服务端渲染的HTML与客户端生成的VNode，如果文本内容或属性值不同，报Hydration Mismatch警告并强制使用客户端结果"
+        },
+        {
+          "id": "B",
+          "text": "水合时如果发现不匹配，直接重新渲染整个组件树，不报警告"
+        },
+        {
+          "id": "C",
+          "text": "水合只检查DOM结构是否匹配，不检查文本内容和属性值"
+        },
+        {
+          "id": "D",
+          "text": "Hydration Mismatch错误会阻止应用运行，必须修复后才能继续"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "SSR水合是Vue将服务端渲染的静态HTML与客户端应用连接的过程，Hydration Mismatch检测是确保两端一致性的关键机制。\n\n水合流程详解：\n\n1. 服务端渲染（SSR）：\nrenderToString(app)生成完整HTML字符串，发送给客户端。\n\n2. 客户端水合：\nhydrate(app, container)遍历容器中的DOM节点，与客户端生成的VNode进行匹配。\n\nHydration Mismatch检测机制：\n\n在hydrateElement函数中，Vue进行以下检查：\n\n1. 标签名匹配：\nif (el.tagName.toLowerCase() !== vnode.type) {\n  handleMismatch(...);\n}\n\n2. 属性匹配：\n遍历vnode.props，检查el.getAttribute(key)是否与props[key]匹配。\n\n3. 文本内容匹配：\n对于文本节点，检查el.nodeValue是否与vnode.children匹配。\n\n不匹配时的处理：\n\nhandleMismatch函数的行为：\n1. 输出警告信息（开发模式）：\n   \"Hydration node mismatch...\"\n   详细说明服务端和客户端的差异\n\n2. 强制使用客户端结果：\n   删除不匹配的服务端DOM节点\n   创建新的DOM节点替换\n\n示例场景：\n\n场景1 - 时间相关不匹配：\n<template>\n  <div>{{ new Date().toISOString() }}</div>\n</template>\n\n服务端渲染时的时间和客户端水合时的时间不同，触发Mismatch警告。\n\n场景2 - 条件渲染依赖客户端API：\n<template>\n  <div>{{ typeof window }}</div>\n</template>\n\n服务端：'undefined'\n客户端：'object'\n触发Mismatch警告。\n\n解决方案：\n\n1. 使用onMounted确保只在客户端执行：\nconst clientTime = ref(null);\nonMounted(() => {\n  clientTime.value = new Date().toISOString();\n});\n\n2. 使用ClientOnly组件包裹客户端特有内容：\n<ClientOnly>\n  <div>{{ browserInfo }}</div>\n</ClientOnly>\n\n3. 使用v-if控制渲染时机：\n<div v-if=\"isMounted\">{{ clientData }}</div>\n\n水合的性能优化：\n\nVue 3引入了懒水合（Lazy Hydration）概念：\n\n1. 可见时水合：组件进入视口时才水合\n2. 交互时水合：用户交互时才水合\n3. 媒体查询水合：特定条件下水合\n\n这些优化可以显著减少首屏水合开销。\n\nHydration Mismatch的开发建议：\n\n1. 避免在模板中直接使用Date.now()、Math.random()\n2. 检查服务端和客户端环境差异\n3. 使用Vue DevTools SSR面板调试水合问题\n4. 在生产环境前修复所有Mismatch警告",
+      "knowledge_point": "Vue_SSR_Hydration",
+      "common_mistake": "容易误认为Hydration Mismatch会阻止应用运行。实际上它只报告警告并强制使用客户端结果，应用仍可继续运行。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/runtime-core/src/hydration.ts"
+    },
+    {
+      "id": "framework-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "React.memo",
+        "useMemo",
+        "性能优化"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "React.memo与useMemo差异分析",
+      "content": "React.memo和useMemo都是React的性能优化工具，但它们有本质区别。以下关于两者的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React.memo是高阶组件，缓存整个组件的渲染结果；useMemo是Hook，缓存计算值"
+        },
+        {
+          "id": "B",
+          "text": "React.memo默认浅比较props，可以自定义比较函数作为第二个参数"
+        },
+        {
+          "id": "C",
+          "text": "useMemo的依赖为空数组时，效果等同于useRef，都返回稳定的引用"
+        },
+        {
+          "id": "D",
+          "text": "React.memo包裹的组件内部如果使用了useCallback，useCallback的依赖数组可以省略"
+        },
+        {
+          "id": "E",
+          "text": "当props包含函数时，React.memo会失效，因为每次渲染函数引用都不同"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "E"
+      ],
+      "explanation": "React.memo和useMemo虽然都涉及缓存，但作用于不同层面，理解它们的区别对于正确进行性能优化至关重要。\n\n选项A解析 - 作用层面差异：\n正确。这是两者的本质区别：\n\nReact.memo：作用于组件层面，是一个高阶组件。它缓存整个组件的渲染结果，当props没有变化时跳过重渲染。\n\nuseMemo：作用于值层面，是一个Hook。它缓存计算结果，只有依赖变化时才重新计算。\n\n示例对比：\n// React.memo：缓存组件\nconst MemoComponent = React.memo(function MyComponent({ data }) {\n  return <div>{data.name}</div>;\n});\n\n// useMemo：缓存值\nconst expensiveValue = useMemo(() => {\n  return computeExpensiveValue(data);\n}, [data]);\n\n选项B解析 - React.memo的比较机制：\n正确。React.memo默认使用shallowEqual浅比较props。可以传入第二个参数自定义比较函数：\n\nconst MemoComponent = React.memo(\n  MyComponent,\n  (prevProps, nextProps) => {\n    // 返回true表示不需要重渲染\n    return prevProps.id === nextProps.id;\n  }\n);\n\n注意：自定义比较函数的返回值语义与shouldComponentUpdate相反。返回true表示相等（跳过渲染），false表示不等（需要渲染）。\n\n选项C解析 - useMemo与useRef的区别：\n错误。虽然两者都能返回稳定引用，但本质不同：\n\nuseMemo：\n- 依赖变化时重新计算\n- 空依赖数组时只计算一次\n- 用于缓存计算结果\n\nuseRef：\n- 不依赖任何值\n- 始终返回同一个对象\n- 用于存储可变值\n\n示例：\nconst value = useMemo(() => ({ count: 0 }), []);\nconst ref = useRef({ count: 0 });\n\n// value始终是初始创建的对象\n// ref.current可以被修改，且修改不触发重渲染\n\n选项D解析 - React.memo与useCallback的关系：\n错误。React.memo包裹的组件内部使用useCallback时，useCallback的依赖数组仍然需要正确声明。useCallback的依赖数组用于确保回调函数内部能访问到最新的状态，这与React.memo无关。\n\n选项E解析 - props包含函数时的问题：\n正确。这是React.memo最常见的陷阱。当父组件向子组件传递函数时，如果函数在父组件内部定义，每次渲染都会创建新的函数引用：\n\nfunction Parent() {\n  // 每次渲染创建新函数\n  const handleClick = () => { console.log('click'); };\n  return <MemoChild onClick={handleClick} />;\n}\n\n由于handleClick每次都是新引用，React.memo的浅比较会认为props变化，导致缓存失效。\n\n解决方案：配合useCallback使用\nfunction Parent() {\n  const handleClick = useCallback(() => {\n    console.log('click');\n  }, []);\n  return <MemoChild onClick={handleClick} />;\n}\n\nReact.memo失效的常见场景：\n\n1. 传递内联函数：onClick={() => {}}\n2. 传递内联对象：style={{ color: 'red' }}\n3. 传递内联数组：items={[1, 2, 3]}\n4. 传递React元素作为children\n\n解决方案：\n\n1. 函数使用useCallback\n2. 对象/数组使用useMemo或提取到组件外部\n3. 使用自定义比较函数",
+      "exclusion_analysis": {
+        "C": "不选原因：useMemo和useRef本质不同。useMemo用于缓存计算结果，依赖变化时重新计算；useRef用于存储可变值，不触发重渲染。空依赖数组的useMemo计算一次后不再变化，而ref.current可以随时修改",
+        "D": "不选原因：useCallback的依赖数组与React.memo无关。useCallback的依赖数组确保回调函数内部访问最新状态，这是Hook的通用规则，与是否使用React.memo无关"
+      },
+      "knowledge_point": "React_Memo_vs_UseMemo",
+      "reference_link": "https://react.dev/reference/react/memo"
+    },
+    {
+      "id": "framework-senior-021",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "keep-alive",
+        "LRU",
+        "缓存策略"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vue keep-alive缓存策略",
+      "content": "Vue的keep-alive组件使用LRU算法管理缓存。当缓存数量超过max属性时，如何决定淘汰哪个组件实例？",
+      "options": [
+        {
+          "id": "A",
+          "text": "淘汰最久未被访问的组件实例，通过维护keys数组按访问时间排序实现"
+        },
+        {
+          "id": "B",
+          "text": "淘汰最先缓存的组件实例，即先进先出（FIFO）策略"
+        },
+        {
+          "id": "C",
+          "text": "淘汰占用内存最大的组件实例"
+        },
+        {
+          "id": "D",
+          "text": "随机淘汰一个组件实例"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "keep-alive使用LRU（Least Recently Used）算法管理组件缓存，确保在有限的缓存空间内保留最可能再次使用的组件。\n\nLRU算法原理：\n\nLRU的核心思想是：如果数据最近被访问过，那么将来被访问的概率也更高。当缓存满时，淘汰最久未被访问的数据。\n\nkeep-alive的LRU实现：\n\n核心数据结构：\n1. cache: Map<string, VNode> - 存储缓存的VNode\n2. keys: Set<string> - 记录访问顺序\n\n源码关键实现：\n\n// 缓存组件\nfunction cacheComponent(key, vnode) {\n  cache.set(key, vnode);\n  keys.add(key);\n  \n  // 检查是否超过max\n  if (max && keys.size > max) {\n    // 淘汰最久未使用的\n    pruneCacheEntry(keys.values().next().value);\n  }\n}\n\n// 访问组件时更新顺序\nfunction accessComponent(key) {\n  keys.delete(key);  // 从当前位置删除\n  keys.add(key);     // 添加到末尾（最新）\n}\n\n// 淘汰缓存\nfunction pruneCacheEntry(key) {\n  const cached = cache.get(key);\n  if (cached) {\n    cache.delete(key);\n    keys.delete(key);\n    // 卸载组件实例\n    cached.component?.unmount();\n  }\n}\n\nLRU工作流程示例：\n\n假设max = 3，用户依次访问A、B、C、D、B：\n\n1. 访问A：cache = [A], keys = [A]\n2. 访问B：cache = [A, B], keys = [A, B]\n3. 访问C：cache = [A, B, C], keys = [A, B, C]\n4. 访问D：超过max，淘汰A\n   cache = [B, C, D], keys = [B, C, D]\n5. 访问B：B移到最新位置\n   keys = [C, D, B]\n\n如果此时访问E：淘汰C（最久未使用）\nkeys = [D, B, E]\n\ninclude/exclude属性的工作原理：\n\n这些属性控制哪些组件可以被缓存：\n\n1. 字符串匹配：include=\"ComponentA,ComponentB\"\n2. 正则表达式：include=/^Layout/\n3. 数组：include={['ComponentA', 'ComponentB']}\n\n匹配逻辑：\n\nfunction matches(pattern, name) {\n  if (typeof pattern === 'string') {\n    return pattern.split(',').includes(name);\n  }\n  if (pattern instanceof RegExp) {\n    return pattern.test(name);\n  }\n  if (Array.isArray(pattern)) {\n    return pattern.includes(name);\n  }\n  return false;\n}\n\n组件匹配include时才缓存，匹配exclude时不缓存。\n\nactivated/deactivated生命周期：\n\nkeep-alive包裹的组件有特殊的生命周期：\n\n- activated：组件被激活时调用（从缓存恢复或首次渲染）\n- deactivated：组件被停用时调用（切换到其他组件）\n\n这两个生命周期允许开发者在组件进入/离开缓存时执行逻辑。\n\n工程实践建议：\n\n1. 合理设置max值，避免内存占用过大\n2. 使用include/exclude精确控制缓存范围\n3. 在activated中刷新数据（如果需要）\n4. 在deactivated中清理定时器/事件监听",
+      "knowledge_point": "Vue_KeepAlive_LRU",
+      "common_mistake": "容易误以为keep-alive使用FIFO策略。实际上使用LRU，最近访问的组件会被保留，即使它不是最先缓存的。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/runtime-core/src/components/KeepAlive.ts"
+    },
+    {
+      "id": "framework-senior-022",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Vue",
+        "Diff算法",
+        "对比分析"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React与Vue Diff算法对比",
+      "content": "React和Vue的列表Diff算法采用了不同的策略。以下关于两者Diff算法的对比，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React采用单端比较（从左到右），Vue 2采用双端比较（四个指针同时比较）"
+        },
+        {
+          "id": "B",
+          "text": "Vue 3使用最长递增子序列（LIS）算法优化移动操作，比React的两轮遍历更优"
+        },
+        {
+          "id": "C",
+          "text": "React的lastPlacedIndex机制只能减少节点移动，无法完全避免不必要的移动"
+        },
+        {
+          "id": "D",
+          "text": "Vue的sameVnode判断需要key和type都相同，React的节点复用同样需要key和type匹配"
+        },
+        {
+          "id": "E",
+          "text": "React的O(n)算法在大部分场景下性能足够，选择简单实现而非最优算法是权衡结果"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "C",
+        "D",
+        "E"
+      ],
+      "explanation": "React和Vue的Diff算法各有特色，理解它们的差异有助于深入理解两个框架的设计哲学。\n\n选项A解析 - 比较策略差异：\n正确。两者的比较策略有本质区别：\n\nReact单端比较：\n- 只从左到右遍历\n- 第一轮处理位置不变的更新\n- 第二轮处理移动/新增/删除\n- 依赖lastPlacedIndex判断是否需要移动\n\nVue 2双端比较：\n- 四个指针：旧头、旧尾、新头、新尾\n- 同时从两端向中间比较\n- 减少移动次数，但实现复杂\n\nVue 3 LIS算法：\n- 先处理相同位置的节点\n- 对剩余节点使用最长递增子序列\n- 最小化移动操作\n\n选项B解析 - LIS算法的比较：\n错误。Vue 3的LIS算法时间复杂度O(n log n)，React的算法复杂度O(n)。LIS在移动密集场景更优，但简单场景（如尾部追加）React更快。不存在绝对的\"更优\"，只是适用场景不同。\n\n算法复杂度对比：\n- React：O(n)时间，但可能有多余移动\n- Vue 3：O(n log n)时间，移动次数最少\n\n选项C解析 - lastPlacedIndex的局限：\n正确。React的lastPlacedIndex机制只能判断节点是否需要移动到前面，无法计算最优移动顺序。\n\n示例：\n旧列表：[A, B, C, D]\n新列表：[D, A, B, C]\n\nReact处理D：lastPlacedIndex=0，D旧位置=3\nD旧位置 > lastPlacedIndex，不移动\nlastPlacedIndex更新为3\n\n处理A、B、C：旧位置都< lastPlacedIndex=3\n都需要移动到前面\n\n实际上只需要移动D到前面，React却移动了A、B、C。这就是lastPlacedIndex机制的局限。\n\n选项D解析 - sameVnode判断：\n正确。Vue的sameVnode判断：\nfunction sameVnode(n1, n2) {\n  return n1.key === n2.key && n1.type === n2.type;\n}\n\nReact的节点复用条件同样是key和type都匹配。两者的节点身份识别逻辑一致。\n\n选项E解析 - React的设计权衡：\n正确。React选择O(n)算法的原因：\n\n1. 实际场景分析：大部分列表操作是追加/删除，移动较少\n2. 实现简洁：代码可维护性高\n3. 边界情况少：更容易理解和调试\n\n这是典型的工程权衡：牺牲最坏情况性能换取实现简洁和常见情况性能。\n\n框架设计哲学差异：\n\nReact：\n- 运行时优化，编译时无特殊处理\n- 算法简单，心智负担低\n- 依赖开发者正确使用key\n\nVue：\n- 编译时+运行时优化\n- 算法复杂，性能更优\n- 模板编译提供额外信息\n\n性能对比结论：\n\n场景1 - 尾部追加：React更优（O(n) vs O(n log n)）\n场景2 - 头部插入：Vue更优（更少移动）\n场景3 - 随机移动：Vue更优（LIS最优）\n场景4 - 复杂列表：需具体分析\n\n工程实践意义：理解两者差异，在各自框架中正确使用key，避免不必要的Diff开销。",
+      "exclusion_analysis": {
+        "B": "不选原因：Vue 3的LIS算法时间复杂度O(n log n)，React算法复杂度O(n)。LIS在移动密集场景更优，但简单场景React更快。不存在绝对的\"更优\"，只是适用场景不同"
+      },
+      "knowledge_point": "React_Vue_Diff_Comparison",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/runtime-core/src/renderer.ts"
+    },
+    {
+      "id": "framework-senior-023",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Vue",
+        "响应式模型",
+        "Pull vs Push"
+      ],
+      "source_company": "Google",
+      "score": 8,
+      "title": "Pull-based vs Push-based响应式",
+      "content": "React的Pull-based响应式模型与Vue的Push-based响应式模型有本质区别。以下哪个选项最准确地描述了这个差异？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React不知道哪些数据变了，每次状态更新标记组件需要重新渲染，渲染时拉取最新数据；Vue通过依赖追踪精确知道哪些组件依赖哪些数据，数据变化时精确推送更新"
+        },
+        {
+          "id": "B",
+          "text": "React比Vue性能更好，因为Pull模型不需要维护依赖关系"
+        },
+        {
+          "id": "C",
+          "text": "Vue的Push模型无法处理异步更新，React的Pull模型天然支持异步"
+        },
+        {
+          "id": "D",
+          "text": "React的useEffect和Vue的watch都是Pull-based的"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "Pull-based和Push-based是两种响应式模型的核心范式，理解它们的差异对于深入理解React和Vue的设计哲学至关重要。\n\nPull-based模型（React）：\n\n核心特点：\n1. React不知道哪些数据变了，只知道\"有更新发生了\"\n2. 状态更新时标记组件需要重新渲染\n3. 渲染时才\"拉取\"最新数据\n4. 组件函数整体重新执行\n\n工作流程：\nsetState(newState) -> scheduleUpdate -> markFiberDirty -> renderPhase -> executeComponentFunction\n\n特点：\n- 不维护依赖关系\n- 组件级别更新\n- 可能有不必要的重渲染\n- 心智模型简单\n\nPush-based模型（Vue）：\n\n核心特点：\n1. Vue精确知道哪些数据变了\n2. 通过依赖收集建立数据-组件映射\n3. 数据变化时\"推送\"通知给依赖的组件\n4. 只更新真正需要更新的组件\n\n工作流程：\nstate.value = newValue -> set trap -> trigger -> notifyDependentEffects -> updateComponent\n\n特点：\n- 维护精确依赖关系\n- 细粒度更新\n- 无不必要的重渲染\n- 依赖追踪有开销\n\n对比示例：\n\n// React场景\nfunction App() {\n  const [count, setCount] = useState(0);\n  const [name, setName] = useState('React');\n  \n  return (\n    <div>\n      <span>{count}</span>\n      <span>{name}</span>\n    </div>\n  );\n}\n\nsetCount(1)时，整个App组件重新执行，即使name没变。\n\n// Vue场景\nconst state = reactive({\n  count: 0,\n  name: 'Vue'\n});\n\ntemplate: `\n  <div>\n    <span>{{ count }}</span>\n    <span>{{ name }}</span>\n  </div>\n`\n\nstate.count = 1时，只有第一个span更新，第二个span不受影响。\n\n各自的优缺点：\n\nReact Pull-based：\n优点：\n- 无依赖追踪开销\n- 心智模型简单（函数式）\n- 无需考虑响应式边界\n缺点：\n- 可能有不必要的重渲染\n- 需要手动优化（React.memo、useMemo）\n\nVue Push-based：\n优点：\n- 精确更新，默认高效\n- 无需手动优化\n- 细粒度响应式\n缺点：\n- 依赖追踪有内存和运行时开销\n- 需要理解响应式边界\n- 解构会丢失响应性\n\n为什么React选择Pull-based？\n\n1. 函数式编程理念：UI = f(state)\n2. 无需编译时信息\n3. 灵活性高（JSX可以在任何地方使用）\n4. 与不可变数据天然契合\n\n为什么Vue选择Push-based？\n\n1. 模板编译提供更多优化信息\n2. 追求默认高效\n3. 细粒度响应式更符合直觉\n4. 可变数据模型\n\n实际影响：\n\n1. 性能优化方式不同：\n   React需要React.memo、useMemo、useCallback\n   Vue默认高效，computed、watch是补充\n\n2. 状态管理方式不同：\n   React倾向于单一状态树（Redux）\n   Vue支持分散的响应式状态\n\n3. 心智模型不同：\n   React关注\"组件何时重新渲染\"\n   Vue关注\"哪些数据是响应式的\"",
+      "knowledge_point": "React_Vue_Reactive_Model",
+      "common_mistake": "容易误认为Pull或Push模型有绝对优劣。实际上两者是设计权衡，各有适用场景。",
+      "reference_link": "https://vuejs.org/guide/extras/rendering-mechanism.html"
+    },
+    {
+      "id": "framework-senior-024",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Vue",
+        "Context",
+        "provide/inject"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Context与provide/inject对比",
+      "content": "React的Context与Vue的provide/inject都用于跨层级传递数据，但实现机制有显著差异。以下说法哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React Context的value变化会导致所有消费者组件重渲染，即使消费者只使用了部分value"
+        },
+        {
+          "id": "B",
+          "text": "Vue的inject返回的是响应式引用，只有实际使用的属性变化时才触发更新"
+        },
+        {
+          "id": "C",
+          "text": "React可以通过拆分Context来优化性能，Vue通过toRef精确订阅属性"
+        },
+        {
+          "id": "D",
+          "text": "Vue的provide可以提供响应式对象，inject端自动获得响应性"
+        },
+        {
+          "id": "E",
+          "text": "两者的性能问题本质相同，都需要手动优化"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "Context和provide/inject虽然功能相似，但由于React和Vue响应式模型的差异，实现机制和性能特性有显著不同。\n\n选项A解析 - React Context的更新机制：\n正确。React Context的工作原理：\n\n1. Provider的value变化时，React标记所有Consumer需要更新\n2. 所有消费者组件都会重渲染，无论是否使用了变化的部分\n3. 这是React Pull-based模型的必然结果\n\n示例：\nconst UserContext = createContext({ name: '', age: 0, email: '' });\n\nfunction App() {\n  const [user, setUser] = useState({ name: 'John', age: 25, email: 'john@example.com' });\n  return (\n    <UserContext.Provider value={user}>\n      <UserName />\n      <UserAge />\n    </UserContext.Provider>\n  );\n}\n\nfunction UserName() {\n  const user = useContext(UserContext);\n  return <span>{user.name}</span>; // 只使用name\n}\n\nsetUser({ ...user, age: 26 })时：\n- UserName和UserAge都会重渲染\n- 即使UserName只使用name\n\n选项B解析 - Vue inject的响应性：\n正确。Vue的inject天然支持响应式：\n\n// 祖先组件\nexport default {\n  setup() {\n    const user = reactive({ name: 'John', age: 25 });\n    provide('user', user);\n  }\n}\n\n// 后代组件\nexport default {\n  setup() {\n    const user = inject('user');\n    // user是响应式对象\n    return { userName: computed(() => user.name) };\n  }\n}\n\nuser.age变化时：\n- 只有使用user.age的组件更新\n- 使用user.name的组件不受影响\n\n选项C解析 - 优化策略对比：\n正确。两者的优化策略：\n\nReact优化 - 拆分Context：\nconst NameContext = createContext('');\nconst AgeContext = createContext(0);\n\nfunction App() {\n  return (\n    <NameContext.Provider value=\"John\">\n      <AgeContext.Provider value={25}>\n        <UserName />\n        <UserAge />\n      </AgeContext.Provider>\n    </NameContext.Provider>\n  );\n}\n\nVue优化 - toRef精确订阅：\nconst user = inject('user');\nconst userName = toRef(user, 'name');\n// 只有name变化时才触发更新\n\n选项D解析 - 响应式provide：\n正确。Vue的provide可以提供响应式对象：\n\n// 方式1：提供reactive对象\nprovide('user', reactive({ name: 'John' }));\n\n// 方式2：提供ref\nprovide('count', ref(0));\n\n// 方式3：提供computed\nprovide('doubleCount', computed(() => count.value * 2));\n\ninject端自动获得响应性，无需额外处理。\n\n选项E解析 - 性能问题本质：\n错误。两者的性能问题本质不同：\n\nReact：Context更新触发所有消费者重渲染，是Pull-based模型的固有特性。\n\nVue：依赖追踪精确到属性级别，Push-based模型天然细粒度。\n\nVue的provide/inject在大多数场景下无需手动优化，而React的Context需要通过架构设计来优化。\n\n工程实践建议：\n\nReact Context优化：\n1. 拆分Context（按功能域）\n2. 使用useMemo缓存value对象\n3. 使用React.memo包裹消费者\n4. 考虑使用状态管理库（Redux、Zustand）\n\nVue provide/inject最佳实践：\n1. 提供响应式对象\n2. 使用Symbol作为注入key避免冲突\n3. TypeScript中声明注入类型\n4. 复杂场景使用toRef精确订阅",
+      "exclusion_analysis": {
+        "E": "不选原因：两者的性能问题本质不同。React Context的问题是Pull-based模型的固有特性，所有消费者都会重渲染。Vue的provide/inject基于Push-based模型，依赖追踪精确到属性级别，大多数场景无需手动优化"
+      },
+      "knowledge_point": "React_Vue_Context_Comparison",
+      "reference_link": "https://vuejs.org/guide/components/provide-inject.html"
+    },
+    {
+      "id": "framework-senior-025",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "并发模式",
+        "时间切片",
+        "大列表优化"
+      ],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "React大列表时间切片优化",
+      "content": "判断：在React中处理大列表渲染时，使用useTransition可以将渲染工作标记为低优先级，从而让用户输入等高优先级交互保持响应。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "这个说法是正确的。useTransition是React 18引入的并发特性，专门用于处理耗时渲染任务的优化。\n\nuseTransition的工作原理：\n\n1. 将状态更新标记为Transition优先级（低于用户输入）\n2. React可以中断Transition渲染，处理高优先级更新\n3. 渲染完成后平滑切换UI\n\n大列表场景示例：\n\nfunction LargeList() {\n  const [items, setItems] = useState([]);\n  const [isPending, startTransition] = useTransition();\n  \n  const loadItems = () => {\n    // 将状态更新标记为Transition\n    startTransition(() => {\n      setItems(createLargeArray(10000));\n    });\n  };\n  \n  return (\n    <div>\n      {isPending && <Spinner />}\n      <button onClick={loadItems}>Load</button>\n      <VirtualList items={items} />\n    </div>\n  );\n}\n\n加载10000条数据时：\n1. 按钮点击响应立即（高优先级）\n2. 列表渲染可被用户输入打断\n3. 用户可以继续交互（如输入搜索词）\n4. 渲染完成后显示结果\n\nuseTransition与虚拟列表的配合：\n\n1. useTransition：解决渲染阻塞问题\n2. 虚拟列表：解决DOM数量问题\n3. 两者结合效果最佳\n\nimport { FixedSizeList } from 'react-window';\n\nfunction OptimizedList() {\n  const [items, setItems] = useState([]);\n  const [isPending, startTransition] = useTransition();\n  \n  const Row = ({ index, style }) => (\n    <div style={style}>{items[index].name}</div>\n  );\n  \n  return (\n    <FixedSizeList\n      height={600}\n      itemCount={items.length}\n      itemSize={35}\n    >\n      {Row}\n    </FixedSizeList>\n  );\n}\n\n其他优化策略：\n\n1. 分片渲染：\nasync function loadInBatches(totalSize, batchSize) {\n  for (let i = 0; i < totalSize; i += batchSize) {\n    await new Promise(resolve => {\n      startTransition(() => {\n        setItems(prev => [...prev, ...createBatch(i, batchSize)]);\n        resolve();\n      });\n    });\n  }\n}\n\n2. requestIdleCallback配合：\nstartTransition(() => {\n  requestIdleCallback(() => {\n    setItems(largeData);\n  });\n});\n\n边界条件：\n\n1. isPending状态：表示Transition正在进行\n2. 过期机制：长时间未完成的Transition会被提升优先级\n3. 内存考虑：大量数据需要考虑内存占用",
+      "boundary_conditions": "useTransition适用于可延迟的更新。对于必须同步完成的场景（如表单验证），不应使用。另外，Transition期间旧UI保持可交互，但状态是'旧'的。"
+    },
+    {
+      "id": "framework-senior-026",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "v-memo",
+        "性能优化",
+        "条件跳过"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Vue 3 v-memo指令原理",
+      "content": "Vue 3的v-memo指令可以条件性地跳过更新。它的实现原理是什么？与v-once有什么区别？",
+      "options": [
+        {
+          "id": "A",
+          "text": "v-memo接收依赖数组，只有数组中的值变化时才重新渲染；v-once只渲染一次，永不更新"
+        },
+        {
+          "id": "B",
+          "text": "v-memo和v-once效果相同，都是缓存渲染结果"
+        },
+        {
+          "id": "C",
+          "text": "v-memo只能用于v-for循环中，v-once可以用于任何元素"
+        },
+        {
+          "id": "D",
+          "text": "v-memo比React.memo更高效，因为它不需要浅比较"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "v-memo是Vue 3.2引入的性能优化指令，它提供了比v-once更灵活的缓存控制能力。\n\nv-memo的工作原理：\n\nv-memo接收一个依赖数组，Vue会比较新旧依赖数组的每个元素。只有当依赖变化时，才重新渲染该元素及其子树。\n\n基本用法：\n\n<div v-memo=\"[dependencyA, dependencyB]\">\n  {{ expensiveComputation() }}\n</div>\n\n只有dependencyA或dependencyB变化时，才会重新执行expensiveComputation()。\n\n与v-once的区别：\n\nv-once：\n- 只渲染一次，永不更新\n- 适用于真正的静态内容\n- 编译时确定\n\nv-memo：\n- 依赖变化时更新\n- 适用于条件性静态内容\n- 运行时判断\n\n示例对比：\n\n<!-- v-once：永不更新 -->\n<div v-once>\n  {{ staticContent }}\n</div>\n\n<!-- v-memo：条件更新 -->\n<div v-memo=\"[userId]\">\n  {{ expensiveUserProfile }}\n</div>\n\nv-memo在v-for中的应用：\n\n这是v-memo最常见的优化场景：\n\n<div v-for=\"item in list\" :key=\"item.id\" v-memo=\"[item.selected]\">\n  <div>{{ item.name }}</div>\n  <div>{{ item.description }}</div>\n  <button @click=\"toggle(item)\">Select</button>\n</div>\n\n当list中某个item的其他属性（如name、description）变化时，如果selected没变，该item不会重新渲染。\n\n只有item.selected变化时才触发重渲染。\n\n源码级实现：\n\n在渲染函数中，v-memo会生成带memo属性的VNode：\n\n_createElementVNode('div', { ... }, [\n  // children\n], PatchFlags.ELEMENT, null, [dependencyA, dependencyB])\n\n最后一个参数就是memo数组。\n\n在patch阶段，Vue会比较memo数组：\n\nfunction checkMemoChanged(n1, n2) {\n  const prevMemo = n1.memo;\n  const nextMemo = n2.memo;\n  \n  if (prevMemo.length !== nextMemo.length) return true;\n  \n  for (let i = 0; i < prevMemo.length; i++) {\n    if (prevMemo[i] !== nextMemo[i]) {\n      return true;\n    }\n  }\n  \n  return false;\n}\n\n如果memo未变化，直接复用旧VNode，跳过整个子树的patch。\n\n性能对比：\n\n假设一个列表有1000项，每项有10个属性：\n\n无优化：任意属性变化都重渲染\n使用v-memo=\"[item.id, item.selected]\"：只有id或selected变化才重渲染\n\n在大列表场景下，v-memo可以带来显著的性能提升。\n\n使用注意事项：\n\n1. 依赖数组应该是基本类型或稳定引用：\n   <!-- 好 -->\n   <div v-memo=\"[item.id, item.selected]\">\n   \n   <!-- 不好：每次都是新对象 -->\n   <div v-memo=\"[{ id: item.id }]\">\n\n2. 不要过度使用：\n   简单元素（如<span>{{ text }}</span>）的渲染开销很小，使用v-memo可能反而增加比较开销。\n\n3. 与响应式的配合：\n   v-memo的依赖不限于响应式数据，任何值都可以作为依赖。\n\n与React.memo的对比：\n\nReact.memo：\n- 浅比较所有props\n- 可以自定义比较函数\n- 作用于组件级别\n\nv-memo：\n- 比较指定的依赖值\n- 无需自定义比较（值比较）\n- 作用于元素级别\n\n两者各有优势，但v-memo的使用更简单直观。",
+      "knowledge_point": "Vue_vMemo_Optimization",
+      "common_mistake": "容易混淆v-memo和v-once。v-once只渲染一次永不更新，v-memo根据依赖变化决定是否更新，更灵活。",
+      "reference_link": "https://vuejs.org/api/built-in-directives.html#v-memo"
+    },
+    {
+      "id": "framework-senior-027",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Error Boundary",
+        "错误处理",
+        "生命周期"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React Error Boundary机制",
+      "content": "React的Error Boundary是处理组件错误的重要机制。以下关于Error Boundary的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Error Boundary只能捕获子组件渲染过程中的错误，无法捕获事件处理函数中的错误"
+        },
+        {
+          "id": "B",
+          "text": "getDerivedStateFromError用于渲染fallback UI，componentDidCatch用于记录错误日志"
+        },
+        {
+          "id": "C",
+          "text": "一个组件可以有多个Error Boundary祖先，错误会被最近的Error Boundary捕获"
+        },
+        {
+          "id": "D",
+          "text": "Error Boundary无法捕获异步代码（setTimeout、Promise）中的错误"
+        },
+        {
+          "id": "E",
+          "text": "只有Class组件可以成为Error Boundary，函数组件无法直接实现"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "explanation": "Error Boundary是React处理组件错误的优雅方式，理解其工作原理和限制对于构建健壮的应用至关重要。\n\n选项A解析 - 错误捕获范围：\n正确。Error Boundary只捕获子组件渲染过程中的错误，具体包括：\n\n1. 构造函数中的错误\n2. render方法中的错误\n3. 生命周期方法中的错误\n\nError Boundary不捕获：\n1. 事件处理函数中的错误\n2. 异步代码中的错误\n3. Error Boundary自身的错误\n4. 服务端渲染中的错误\n\n原因：React的错误捕获机制工作在渲染阶段。事件处理和异步代码不在渲染阶段执行，因此无法被捕获。\n\n示例：\n// 会被捕获\nclass BuggyComponent extends React.Component {\n  render() {\n    throw new Error('I crashed!');\n    return <div />;\n  }\n}\n\n// 不会被捕获\nfunction Button() {\n  const handleClick = () => {\n    throw new Error('Event error'); // 不在渲染阶段\n  };\n  return <button onClick={handleClick}>Click</button>;\n}\n\n选项B解析 - 两个生命周期的作用：\n正确。Error Boundary有两个关键生命周期：\n\ngetDerivedStateFromError(error)：\n- 渲染阶段调用\n- 用于更新state，显示fallback UI\n- 必须返回state对象\n\ncomponentDidCatch(error, errorInfo)：\n- 提交阶段调用\n- 用于副作用（日志记录、错误上报）\n- 可以调用setState，但通常用于日志\n\n示例：\nclass ErrorBoundary extends React.Component {\n  state = { hasError: false };\n  \n  static getDerivedStateFromError(error) {\n    return { hasError: true };\n  }\n  \n  componentDidCatch(error, errorInfo) {\n    logErrorToService(error, errorInfo);\n  }\n  \n  render() {\n    if (this.state.hasError) {\n      return <h1>Something went wrong.</h1>;\n    }\n    return this.props.children;\n  }\n}\n\n选项C解析 - 多层Error Boundary：\n正确。组件树可以有多个Error Boundary，错误会被最近的Error Boundary捕获。\n\n<ErrorBoundary level=\"app\">\n  <Header />\n  <ErrorBoundary level=\"feature\">\n    <BuggyComponent />\n  </ErrorBoundary>\n</ErrorBoundary>\n\nBuggyComponent的错误会被level=\"feature\"的Error Boundary捕获，不会传播到外层。\n\n这种设计允许局部错误处理，防止整个应用崩溃。\n\n选项D解析 - 异步错误不捕获：\n正确。原因同选项A，异步代码不在React的渲染阶段执行。\n\n处理异步错误的方案：\n\n1. 使用try-catch：\nasync function fetchData() {\n  try {\n    const data = await fetch('/api');\n    setData(data);\n  } catch (error) {\n    setError(error);\n  }\n}\n\n2. 使用全局错误处理：\nwindow.addEventListener('unhandledrejection', (event) => {\n  logError(event.reason);\n});\n\n3. 使用React 19的use钩子配合Suspense：\nfunction DataComponent() {\n  const data = use(fetchData()); // fetch失败时throw promise\n  return <div>{data}</div>;\n}\n\n选项E解析 - 只有Class组件可成为Error Boundary：\n正确。Error Boundary需要实现getDerivedStateFromError或componentDidCatch，这两个生命周期只存在于Class组件。\n\n函数组件无法直接实现Error Boundary，但可以使用第三方库或react-error-boundary等库来简化使用。\n\n工程实践建议：\n\n1. 在关键位置放置Error Boundary\n2. 为不同功能区域使用独立的Error Boundary\n3. 记录详细的错误信息\n4. 提供用户友好的错误提示\n5. 考虑错误恢复机制（如重试按钮）",
+      "knowledge_point": "React_Error_Boundary",
+      "reference_link": "https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary"
+    },
+    {
+      "id": "framework-senior-028",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "并发模式",
+        "useOptimistic",
+        "乐观更新"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "React 19 useOptimistic Hook",
+      "content": "React 19引入了useOptimistic Hook用于乐观更新。以下关于useOptimistic的说法，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "useOptimistic在执行异步操作时立即显示乐观状态，操作失败后自动回滚到之前的状态"
+        },
+        {
+          "id": "B",
+          "text": "useOptimistic只能用于网络请求，不能用于其他异步操作"
+        },
+        {
+          "id": "C",
+          "text": "useOptimistic内部使用useState，乐观状态会在组件重渲染时丢失"
+        },
+        {
+          "id": "D",
+          "text": "useOptimistic替代了useTransition，两者不能同时使用"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "useOptimistic是React 19引入的新Hook，专门用于处理乐观更新（Optimistic Updates）场景。\n\n乐观更新概念：\n\n乐观更新是指：在执行异步操作（如API请求）时，先假设操作会成功，立即更新UI，如果操作失败再回滚。\n\n用户体验提升：用户不需要等待网络请求完成就能看到结果。\n\nuseOptimistic基本用法：\n\nimport { useOptimistic } from 'react';\n\nfunction TodoList({ todos, updateTodo }) {\n  const [optimisticTodos, addOptimisticTodo] = useOptimistic(\n    todos,\n    (state, newTodo) => [...state, { ...newTodo, pending: true }]\n  );\n  \n  async function handleSubmit(title) {\n    // 立即显示乐观状态\n    addOptimisticTodo({ id: Date.now(), title });\n    \n    // 执行实际请求\n    try {\n      await updateTodo(title);\n    } catch (error) {\n      // 失败时自动回滚到todos\n    }\n  }\n  \n  return (\n    <ul>\n      {optimisticTodos.map(todo => (\n        <li key={todo.id} style={{ opacity: todo.pending ? 0.5 : 1 }}>\n          {todo.title}\n        </li>\n      ))}\n    </ul>\n  );\n}\n\n工作原理：\n\n1. 初始状态：optimisticTodos === todos（基础状态）\n2. 调用addOptimisticTodo：optimisticTodos立即更新为乐观值\n3. 异步操作期间：乐观值持续显示\n4. 异步成功：基础状态todos更新，optimisticTodos同步更新\n5. 异步失败：optimisticTodos回滚到todos\n\nuseOptimistic签名：\n\nfunction useOptimistic<State, Action>(\n  passthrough: State,\n  reducer: (state: State, action: Action) => State\n): [State, (action: Action) => void]\n\n参数：\n- passthrough：基础状态（通常是来自props或服务器的真实状态）\n- reducer：计算乐观状态的函数\n\n返回：\n- optimisticState：当前状态（可能是乐观值或基础值）\n- addOptimistic：触发乐观更新的函数\n\n与useTransition的关系：\n\nuseOptimistic与useTransition是互补的，可以一起使用：\n\nfunction LikeButton({ postId, initialLikes }) {\n  const [isPending, startTransition] = useTransition();\n  const [optimisticLikes, addOptimisticLike] = useOptimistic(\n    initialLikes,\n    (state) => state + 1\n  );\n  \n  function handleLike() {\n    startTransition(async () => {\n      addOptimisticLike();\n      await likePost(postId);\n    });\n  }\n  \n  return (\n    <button onClick={handleLike} disabled={isPending}>\n      {optimisticLikes} likes\n    </button>\n  );\n}\n\n选项B解析 - 适用范围：\n错误。useOptimistic不限于网络请求，可以用于任何需要乐观更新的场景。\n\n选项C解析 - 状态持久性：\n错误。useOptimistic内部的乐观状态会在异步操作期间保持，直到操作完成。它不会在普通重渲染时丢失。\n\n选项D解析 - 与useTransition关系：\n错误。useOptimistic和useTransition是互补的，可以同时使用。useTransition控制优先级，useOptimistic管理乐观状态。\n\n工程实践场景：\n\n1. 点赞/收藏功能\n2. 发送消息\n3. 添加评论\n4. 删除项目\n5. 表单提交",
+      "knowledge_point": "React_useOptimistic",
+      "common_mistake": "容易误认为useOptimistic替代useTransition。实际上两者解决不同问题：useOptimistic管理乐观状态，useTransition控制更新优先级。",
+      "reference_link": "https://react.dev/reference/react/useOptimistic"
+    },
+    {
+      "id": "framework-senior-029",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "watch",
+        "watchEffect",
+        "响应式API"
+      ],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Vue 3 watch vs watchEffect",
+      "content": "Vue 3的watch和watchEffect都是响应式副作用API，但有重要区别。以下说法哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "watch需要显式指定侦听源，只有指定的源变化才触发回调；watchEffect自动收集回调中访问的所有响应式依赖"
+        },
+        {
+          "id": "B",
+          "text": "watch的回调接收新值和旧值两个参数，可以比较变化；watchEffect的回调不接收参数"
+        },
+        {
+          "id": "C",
+          "text": "watch默认是懒执行的（immediate: false），watchEffect在创建时立即执行一次"
+        },
+        {
+          "id": "D",
+          "text": "watch可以侦听单个ref、reactive对象、getter函数或这些类型的数组"
+        },
+        {
+          "id": "E",
+          "text": "watchEffect的性能总是比watch更好，因为它不需要指定依赖"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "watch和watchEffect是Vue 3响应式系统的两个核心副作用API，理解它们的区别对于正确使用非常重要。\n\n选项A解析 - 依赖收集方式：\n正确。这是两者的核心区别：\n\nwatch：\n- 显式指定侦听源\n- 只有指定的源变化才触发\n- 适合需要精确控制的场景\n\nwatchEffect：\n- 自动收集依赖\n- 回调中访问的所有响应式数据都会被追踪\n- 适合简单场景\n\n示例对比：\n\n// watch：显式指定\nwatch(\n  () => user.name,\n  (newName) => {\n    console.log('Name changed:', newName);\n  }\n);\n// 只有user.name变化触发\n\n// watchEffect：自动收集\nwatchEffect(() => {\n  console.log('User:', user.name, user.age);\n});\n// user.name或user.age变化都会触发\n\n选项B解析 - 回调参数：\n正确。\n\nwatch回调：\nwatch(source, (newValue, oldValue) => {\n  // 可以比较新旧值\n});\n\nwatchEffect回调：\nwatchEffect((onCleanup) => {\n  // 只接收清理函数参数\n  // 无法获取旧值\n});\n\n选项C解析 - 执行时机：\n正确。\n\nwatch：\n- 默认lazy（immediate: false）\n- 只在源变化时执行\n- 可以设置immediate: true立即执行\n\nwatchEffect：\n- 立即执行一次\n- 之后在依赖变化时执行\n\n示例：\n// watch：不立即执行\nconst count = ref(0);\nwatch(count, (newVal) => {\n  console.log('count:', newVal);\n});\n// 此时没有输出\n\ncount.value = 1;\n// 输出: count: 1\n\n// watchEffect：立即执行\nwatchEffect(() => {\n  console.log('count:', count.value);\n});\n// 立即输出: count: 0\n\n选项D解析 - 侦听源类型：\n正确。watch支持多种侦听源：\n\n// 1. ref\nwatch(count, (newVal) => {});\n\n// 2. reactive对象\nwatch(user, (newUser) => {});\n\n// 3. getter函数\nwatch(() => user.name, (newName) => {});\n\n// 4. 数组（多源）\nwatch([firstName, lastName], ([newFirst, newLast]) => {});\n\n选项E解析 - 性能比较：\n错误。两者性能取决于使用场景：\n\nwatch优势：\n- 精确控制依赖\n- 避免不必要的执行\n- 适合复杂条件判断\n\nwatchEffect优势：\n- 代码简洁\n- 不需要手动维护依赖列表\n- 适合依赖明确的简单场景\n\n实际选择建议：\n\n使用watch当：\n1. 需要比较新旧值\n2. 需要精确控制触发条件\n3. 侦听源是计算密集型getter\n\n使用watchEffect当：\n1. 依赖关系简单明了\n2. 不需要旧值\n3. 需要立即执行副作用\n\n高级特性：\n\n1. 停止侦听：\nconst stop = watch(source, callback);\nstop(); // 停止侦听\n\n2. 清理副作用：\nwatchEffect((onCleanup) => {\n  const timer = setInterval(() => {});\n  onCleanup(() => clearInterval(timer));\n});\n\n3. flush时机：\nwatch(source, callback, {\n  flush: 'post' // DOM更新后执行\n});\n\n4. 深度侦听：\nwatch(obj, callback, {\n  deep: true // 深度侦听对象内部变化\n});",
+      "exclusion_analysis": {
+        "E": "不选原因：两者性能取决于使用场景，不存在绝对的优劣。watch适合需要精确控制的场景，watchEffect适合简单场景。不当使用watchEffect（如在回调中访问过多依赖）反而可能导致性能问题"
+      },
+      "knowledge_point": "Vue_watch_vs_watchEffect",
+      "reference_link": "https://vuejs.org/guide/essentials/watchers.html"
+    },
+    {
+      "id": "framework-senior-030",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "源码解读",
+        "调度机制",
+        "scheduleUpdateOnFiber"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "React调度入口函数分析",
+      "content": "以下React源码是scheduleUpdateOnFiber函数的核心逻辑。该函数的作用是什么？executionContext的作用是什么？\n\nexport function scheduleUpdateOnFiber(\n  root: FiberRoot,\n  fiber: Fiber,\n  lane: Lane,\n  eventTime: number,\n): FiberRoot | null {\n  checkForNestedUpdates();\n  \n  markRootUpdated(root, lane, eventTime);\n  \n  if (\n    (executionContext & DiscreteEventContext) !== NoContext &&\n    (lane & (InputDiscreteHydrationLane | InputDiscreteLane)) !== NoLanes\n  ) {\n    return syncUpdates(root, fiber, lane, eventTime);\n  }\n  \n  ensureRootIsScheduled(root, eventTime);\n  \n  return null;\n}",
+      "options": [
+        {
+          "id": "A",
+          "text": "scheduleUpdateOnFiber是React调度的入口函数，executionContext用于判断当前执行上下文（如事件处理中），决定是同步执行还是异步调度"
+        },
+        {
+          "id": "B",
+          "text": "scheduleUpdateOnFiber只负责创建更新对象，不参与调度决策"
+        },
+        {
+          "id": "C",
+          "text": "executionContext是一个全局计数器，用于防止无限循环渲染"
+        },
+        {
+          "id": "D",
+          "text": "该函数只在并发模式下使用，legacy模式使用不同的调度机制"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "scheduleUpdateOnFiber是React更新调度的核心入口函数，理解它是深入掌握React更新机制的关键。\n\n函数作用详解：\n\nscheduleUpdateOnFiber的主要职责：\n\n1. 检查嵌套更新：\n   checkForNestedUpdates()防止无限循环更新\n   如果嵌套层数超过限制（50层），抛出错误\n\n2. 标记更新：\n   markRootUpdated(root, lane, eventTime)\n   将更新lane添加到root.pendingLanes\n   记录eventTime用于过期检测\n\n3. 决定调度策略：\n   根据executionContext和lane决定同步执行或异步调度\n\nexecutionContext的作用：\n\nexecutionContext是一个位掩码变量，记录当前代码的执行上下文：\n\nexport const NoContext = 0b000;\nexport const BatchedContext = 0b001;\nexport const EventContext = 0b010;\nexport const DiscreteEventContext = 0b100;\nexport const LegacyUnbatchedContext = 0b1000;\nexport const RenderContext = 0b10000;\nexport const CommitContext = 0b100000;\n\n关键判断逻辑：\n\nif (\n  (executionContext & DiscreteEventContext) !== NoContext &&\n  (lane & (InputDiscreteHydrationLane | InputDiscreteLane)) !== NoLanes\n) {\n  return syncUpdates(root, fiber, lane, eventTime);\n}\n\n这段代码的含义：\n\n1. 如果当前在DiscreteEventContext（离散事件处理中，如click）\n2. 且更新是InputDiscreteLane（用户输入相关的高优先级）\n3. 则同步执行更新，不经过调度\n\n这确保了用户交互的即时响应。\n\n否则调用ensureRootIsScheduled进行异步调度。\n\nensureRootIsScheduled的逻辑：\n\nfunction ensureRootIsScheduled(root, currentTime) {\n  // 1. 确定最高优先级的lane\n  const nextLanes = getNextLanes(root, root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes);\n  \n  // 2. 如果已有调度且优先级相同，复用\n  if (existingCallbackPriority === newCallbackPriority) {\n    return;\n  }\n  \n  // 3. 取消旧调度\n  cancelCallback(existingCallbackNode);\n  \n  // 4. 创建新调度\n  let newCallbackNode;\n  if (nextLanes === SyncLane) {\n    // 同步优先级：加入微任务队列\n    newCallbackNode = scheduleSyncCallback(\n      performSyncWorkOnRoot.bind(null, root)\n    );\n  } else {\n    // 其他优先级：加入调度器\n    const schedulerPriorityLevel = lanesToEventPriority(nextLanes);\n    newCallbackNode = scheduleCallback(\n      schedulerPriorityLevel,\n      performConcurrentWorkOnRoot.bind(null, root)\n    );\n  }\n  \n  root.callbackNode = newCallbackNode;\n}\n\n完整的更新流程：\n\n1. 触发更新：setState、dispatchAction等\n2. 创建更新对象：createUpdate\n3. 入队更新：enqueueUpdate\n4. 调度更新：scheduleUpdateOnFiber\n5. 判断执行方式：\n   - 同步上下文+高优先级 -> syncUpdates\n   - 其他 -> ensureRootIsScheduled\n6. 执行渲染：\n   - 同步：performSyncWorkOnRoot\n   - 并发：performConcurrentWorkOnRoot\n\n源码启示：\n\n1. React根据上下文和优先级智能选择执行策略\n2. 离散事件（click等）在事件处理期间同步执行，确保响应性\n3. 其他更新通过Scheduler调度，支持中断和恢复\n4. executionContext是React控制更新行为的关键机制\n\n工程实践意义：\n理解调度机制有助于：\n- 解释某些场景下同步/异步更新的差异\n- 调试更新相关问题\n- 理解flushSync的工作原理",
+      "knowledge_point": "React_ScheduleUpdateOnFiber",
+      "common_mistake": "容易误认为executionContext只是防止循环。实际上它是React控制更新行为的多功能上下文管理器，支持批处理、同步执行等多种场景。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js"
+    },
+    {
+      "id": "framework-senior-031",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "手写实现",
+        "useState",
+        "Hook原理"
+      ],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "手写实现useState",
+      "content": "请手写实现一个简易版的useState Hook，要求：\n1. 支持初始值和函数式初始值\n2. 支持setState接收值和函数式更新\n3. 多个useState能正确工作\n4. 组件重新渲染时能保持状态\n\n注意：这是一个简化实现，不考虑并发模式等复杂场景。",
+      "code_template": "let stateSlots = [];\nlet currentIndex = 0;\n\nfunction useState(initialValue) {\n  // 实现useState逻辑\n  // 提示：\n  // 1. 使用闭包保存状态\n  // 2. 返回[state, setState]\n  // 3. setState需要触发重渲染\n}\n\n// 重置Hook索引（每次渲染前调用）\nfunction resetHookIndex() {\n  currentIndex = 0;\n}\n\n// 模拟组件渲染\nfunction render(Component) {\n  resetHookIndex();\n  return Component();\n}",
+      "test_cases": [
+        {
+          "input": "const [count, setCount] = useState(0); setCount(1); console.log(count);",
+          "expected_output": "1",
+          "description": "基本状态更新"
+        },
+        {
+          "input": "const [count, setCount] = useState(0); setCount(c => c + 1); setCount(c => c + 1); console.log(count);",
+          "expected_output": "2",
+          "description": "函数式更新累积"
+        },
+        {
+          "input": "const [a] = useState(1); const [b] = useState(2); console.log(a, b);",
+          "expected_output": "1 2",
+          "description": "多个useState独立工作"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "不能使用全局变量存储单个状态",
+        "必须支持任意数量的useState调用",
+        "setState可以是值或函数"
+      ],
+      "correct_answer": "见参考实现",
+      "reference_solution": "let stateSlots = [];\nlet currentIndex = 0;\nlet currentComponent = null;\n\nfunction useState(initialValue) {\n  const slotIndex = currentIndex;\n  \n  // 初始化状态（只在首次渲染时）\n  if (stateSlots[slotIndex] === undefined) {\n    stateSlots[slotIndex] = typeof initialValue === 'function' \n      ? initialValue() \n      : initialValue;\n  }\n  \n  const setState = (newValue) => {\n    const prevValue = stateSlots[slotIndex];\n    const nextValue = typeof newValue === 'function'\n      ? newValue(prevValue)\n      : newValue;\n    \n    // 只有值变化才触发重渲染\n    if (!Object.is(prevValue, nextValue)) {\n      stateSlots[slotIndex] = nextValue;\n      // 触发重渲染\n      if (currentComponent) {\n        render(currentComponent);\n      }\n    }\n  };\n  \n  currentIndex++;\n  return [stateSlots[slotIndex], setState];\n}\n\nfunction resetHookIndex() {\n  currentIndex = 0;\n}\n\nfunction render(Component) {\n  currentComponent = Component;\n  resetHookIndex();\n  return Component();\n}",
+      "explanation": "useState是React最基础的Hook，理解其实现原理对于深入掌握React至关重要。\n\n核心设计思想：\n\n1. 状态存储：\n使用数组stateSlots存储所有状态，每个useState调用对应数组的一个位置。通过currentIndex索引确定当前useState对应的位置。\n\n2. 闭包与索引：\nuseState利用闭包捕获当前的slotIndex，使得setState能正确更新对应的位置。这就是为什么Hook必须在顶层调用——索引必须保持一致。\n\n3. 惰性初始化：\n如果initialValue是函数，只在首次渲染时执行一次。这避免了每次渲染都执行初始化函数。\n\n4. 函数式更新：\nsetState接收函数时，传入前一个状态值，返回新状态。这对于基于前状态更新的场景（如计数器）很有用。\n\n5. 重渲染触发：\nsetState后需要触发组件重渲染。简化实现中直接调用render函数，实际React中通过调度机制处理。\n\n为什么Hook不能在条件语句中调用？\n\n因为useState依赖调用顺序确定状态位置。如果条件语句导致调用顺序变化，索引会错位，导致状态混乱。\n\n示例：\n// 第一次渲染\nuseState(0); // slotIndex = 0\nif (condition) useState(1); // slotIndex = 1\nuseState(2); // slotIndex = 2\n\n// 第二次渲染（condition为false）\nuseState(0); // slotIndex = 0\n// 条件不满足，跳过\nuseState(2); // slotIndex = 1，但实际应该对应slotIndex=2的状态！\n\nReact如何优化重渲染？\n\n1. 批处理：多个setState合并为一次渲染\n2. Object.is比较：值相同则跳过渲染\n3. 调度机制：高优先级更新可打断低优先级",
+      "knowledge_point": "React_UseState_Implementation",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberHooks.js"
+    },
+    {
+      "id": "framework-senior-032",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "手写实现",
+        "reactive",
+        "响应式"
+      ],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "手写实现reactive和effect",
+      "content": "请手写实现Vue 3的reactive和effect函数，要求：\n1. reactive将对象转为响应式代理\n2. effect函数自动收集依赖\n3. 当响应式对象属性变化时，自动触发相关effect重新执行",
+      "code_template": "let activeEffect = null;\nconst targetMap = new WeakMap();\n\n// 响应式代理\nfunction reactive(target) {\n  // 实现Proxy代理\n}\n\n// 副作用函数\nfunction effect(fn) {\n  // 实现依赖收集\n}\n\n// 依赖收集\nfunction track(target, key) {\n  // 将activeEffect添加到依赖\n}\n\n// 触发更新\nfunction trigger(target, key) {\n  // 执行所有依赖的effect\n}",
+      "test_cases": [
+        {
+          "input": "const state = reactive({ count: 0 }); let dummy; effect(() => { dummy = state.count }); state.count++; console.log(dummy);",
+          "expected_output": "1",
+          "description": "基本响应式更新"
+        },
+        {
+          "input": "const state = reactive({ a: 1, b: 2 }); let sum; effect(() => { sum = state.a + state.b }); state.a = 10; console.log(sum);",
+          "expected_output": "12",
+          "description": "多属性依赖"
+        },
+        {
+          "input": "const state = reactive({ nested: { value: 1 } }); let dummy; effect(() => { dummy = state.nested.value }); state.nested.value = 2; console.log(dummy);",
+          "expected_output": "2",
+          "description": "嵌套对象响应式"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "必须使用Proxy实现",
+        "需要支持嵌套对象",
+        "effect应自动收集依赖"
+      ],
+      "correct_answer": "见参考实现",
+      "reference_solution": "let activeEffect = null;\nconst targetMap = new WeakMap();\n\nfunction reactive(target) {\n  if (typeof target !== 'object' || target === null) {\n    return target;\n  }\n  \n  return new Proxy(target, {\n    get(target, key, receiver) {\n      const result = Reflect.get(target, key, receiver);\n      track(target, key);\n      \n      // 嵌套对象代理\n      if (typeof result === 'object' && result !== null) {\n        return reactive(result);\n      }\n      return result;\n    },\n    \n    set(target, key, value, receiver) {\n      const oldValue = target[key];\n      const result = Reflect.set(target, key, value, receiver);\n      if (oldValue !== value) {\n        trigger(target, key);\n      }\n      return result;\n    }\n  });\n}\n\nfunction effect(fn) {\n  activeEffect = fn;\n  fn();\n  activeEffect = null;\n}\n\nfunction track(target, key) {\n  if (!activeEffect) return;\n  \n  let depsMap = targetMap.get(target);\n  if (!depsMap) {\n    targetMap.set(target, (depsMap = new Map()));\n  }\n  \n  let dep = depsMap.get(key);\n  if (!dep) {\n    depsMap.set(key, (dep = new Set()));\n  }\n  \n  dep.add(activeEffect);\n}\n\nfunction trigger(target, key) {\n  const depsMap = targetMap.get(target);\n  if (!depsMap) return;\n  \n  const dep = depsMap.get(key);\n  if (!dep) return;\n  \n  dep.forEach(effect => effect());\n}",
+      "explanation": "Vue 3的响应式系统基于Proxy实现，理解其核心原理对于深入掌握Vue至关重要。\n\n核心概念：\n\n1. Proxy代理：\nProxy可以拦截对象的各种操作，Vue主要使用get和set拦截。get时收集依赖，set时触发更新。\n\n2. 依赖收集的三层Map结构：\ntargetMap: WeakMap<object, depsMap>\ndepsMap: Map<string, Set<effect>>\ndep: Set<effect>\n\n这种结构允许精确追踪哪个对象的哪个属性被哪个effect依赖。\n\n3. activeEffect：\n全局变量，记录当前正在执行的effect。当响应式属性被访问时，将activeEffect添加到该属性的依赖集合中。\n\n4. Reflect的作用：\n使用Reflect.get/set而非target[key]，是因为receiver参数确保this指向正确的代理对象，特别是在继承场景中。\n\n为什么使用WeakMap？\n\nWeakMap的键是弱引用，当target对象被垃圾回收时，targetMap中对应的条目会自动清除，避免内存泄漏。\n\n嵌套对象处理：\n\n在get拦截中，如果返回值是对象，递归调用reactive创建代理。这实现了懒代理——只有访问嵌套对象时才创建代理。\n\n简化版本缺少的功能：\n\n1. effect返回runner和stop函数\n2. scheduler选项\n3. computed和watch的实现\n4. readonly和shallow变体\n5. ref的封装\n6. 嵌套effect的处理\n\n实际Vue实现考虑的问题：\n\n1. 循环引用处理\n2. 原始对象和代理对象的映射缓存\n3. 数组特殊方法的拦截\n4. Map/Set等集合类型的代理\n5. 性能优化（如避免重复代理）",
+      "knowledge_point": "Vue_Reactive_Implementation",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/reactivity/src/reactive.ts"
+    },
+    {
+      "id": "framework-senior-033",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "手写实现",
+        "useReducer",
+        "Hook原理"
+      ],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": "手写实现useReducer",
+      "content": "请手写实现useReducer Hook，要求：\n1. 接收reducer函数和初始状态\n2. 返回[state, dispatch]\n3. dispatch发送action触发状态更新\n4. 支持惰性初始化（init函数）",
+      "code_template": "let stateSlots = [];\nlet currentIndex = 0;\n\nfunction useReducer(reducer, initialArg, init) {\n  // 实现useReducer逻辑\n  // reducer: (state, action) => newState\n  // init: 可选的惰性初始化函数\n}\n\nfunction dispatch(action) {\n  // 发送action，触发状态更新\n}",
+      "test_cases": [
+        {
+          "input": "const [state, dispatch] = useReducer((s, a) => a.type === 'inc' ? s + 1 : s, 0); dispatch({type: 'inc'}); console.log(state);",
+          "expected_output": "1",
+          "description": "基本reducer更新"
+        },
+        {
+          "input": "const [state, dispatch] = useReducer((s, a) => a === 'reset' ? 0 : s, 5); dispatch('reset'); console.log(state);",
+          "expected_output": "0",
+          "description": "重置状态"
+        },
+        {
+          "input": "const [state, dispatch] = useReducer((s, a) => s + a, 0, (init) => init * 2); console.log(state);",
+          "expected_output": "0",
+          "description": "惰性初始化"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "reducer必须是纯函数",
+        "dispatch可以接收任意类型的action",
+        "惰性初始化函数只在首次渲染时执行"
+      ],
+      "correct_answer": "见参考实现",
+      "reference_solution": "let stateSlots = [];\nlet currentIndex = 0;\nlet currentComponent = null;\n\nfunction useReducer(reducer, initialArg, init) {\n  const slotIndex = currentIndex;\n  \n  // 初始化状态\n  if (stateSlots[slotIndex] === undefined) {\n    stateSlots[slotIndex] = init !== undefined \n      ? init(initialArg) \n      : initialArg;\n  }\n  \n  const dispatch = (action) => {\n    const prevState = stateSlots[slotIndex];\n    const nextState = reducer(prevState, action);\n    \n    if (!Object.is(prevState, nextState)) {\n      stateSlots[slotIndex] = nextState;\n      if (currentComponent) {\n        render(currentComponent);\n      }\n    }\n  };\n  \n  currentIndex++;\n  return [stateSlots[slotIndex], dispatch];\n}\n\nfunction resetHookIndex() {\n  currentIndex = 0;\n}\n\nfunction render(Component) {\n  currentComponent = Component;\n  resetHookIndex();\n  return Component();\n}",
+      "explanation": "useReducer是useState的替代方案，适用于复杂状态逻辑的场景。\n\nuseReducer与useState的关系：\n\nuseState实际上是useReducer的简化版本。useState(initialValue)等价于：\nuseReducer((state, action) => typeof action === 'function' ? action(state) : action, initialValue);\n\n适用场景：\n\n1. 状态逻辑复杂，包含多个子值\n2. 下一个状态依赖于前一个状态\n3. 需要触发深更新的场景\n4. 状态管理需要测试（reducer是纯函数）\n\nRedux模式：\n\nuseReducer天然支持Redux模式：\n\nconst initialState = { count: 0 };\n\nfunction reducer(state, action) {\n  switch (action.type) {\n    case 'increment':\n      return { count: state.count + 1 };\n    case 'decrement':\n      return { count: state.count - 1 };\n    case 'reset':\n      return { count: action.payload };\n    default:\n      throw new Error('Unknown action type');\n  }\n}\n\n惰性初始化：\n\ninit函数允许延迟计算初始状态。如果初始状态需要复杂计算，可以传入函数避免每次渲染都计算：\n\nconst [state, dispatch] = useReducer(\n  reducer,\n  { items: [], count: 0 },\n  (initial) => {\n    // 复杂初始化逻辑\n    return {\n      items: fetchInitialItems(),\n      count: calculateInitialCount()\n    };\n  }\n);\n\ndispatch的批量处理：\n\n在React 18的自动批处理中，多次dispatch会合并为一次渲染：\n\nfunction handleComplexAction() {\n  dispatch({ type: 'A' });\n  dispatch({ type: 'B' });\n  dispatch({ type: 'C' });\n  // 只触发一次渲染\n}\n\nuseReducer的性能优势：\n\n1. reducer是纯函数，易于测试和调试\n2. dispatch函数引用稳定，不需要useCallback包裹\n3. 状态更新逻辑集中，便于维护\n4. 支持中间件模式扩展\n\n实际React中的增强：\n\nReact实际实现中，useReducer还支持：\n\n1. 并发模式下的中断和恢复\n2. 优先级调度\n3. bailout优化（状态相同时跳过渲染）\n4. 服务端渲染的hydration",
+      "knowledge_point": "React_UseReducer_Implementation",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberHooks.js"
+    },
+    {
+      "id": "framework-senior-034",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React 19",
+        "use",
+        "Hook",
+        "并发特性"
+      ],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "React 19 use Hook原理",
+      "content": "React 19引入了新的use Hook。以下关于use Hook的说法，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "use Hook可以在条件语句中调用，打破了Rules of Hooks的限制"
+        },
+        {
+          "id": "B",
+          "text": "use Hook可以读取Context或Promise的值，在Promise未resolve时会触发Suspense"
+        },
+        {
+          "id": "C",
+          "text": "use Hook只能在客户端组件中使用，不支持服务端渲染"
+        },
+        {
+          "id": "D",
+          "text": "use Hook是useContext的别名，功能完全相同"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "use Hook是React 19引入的重要新特性，它统一了Context和异步数据的读取方式。\n\nuse Hook的核心特性：\n\n1. 统一的API：\nuse可以读取多种类型的值：\n\n// 读取Context\nconst theme = use(ThemeContext);\n\n// 读取Promise\nconst data = use(fetchData());\n\n// 读取thenable\nconst result = use(promiseLike);\n\n2. 与Suspense配合：\n当读取的Promise未resolve时，use会throw Promise，触发最近的Suspense边界显示fallback：\n\nfunction DataComponent() {\n  const data = use(fetchData()); // 如果未resolve，throw Promise\n  return <div>{data.name}</div>;\n}\n\nfunction App() {\n  return (\n    <Suspense fallback={<Loading />}>\n      <DataComponent />\n    </Suspense>\n  );\n}\n\n3. 条件调用：\n选项A部分正确但不完整。use Hook确实可以在条件语句中调用（不同于其他Hook），但这是因为它的工作机制不同：\n\nif (condition) {\n  const data = use(promise); // 允许！\n}\n\n但这需要谨慎使用，因为每次条件变化可能导致读取不同的值。\n\n4. 服务端支持：\n选项C错误。use Hook天然支持服务端渲染：\n\n// Server Component\nasync function ServerComponent() {\n  const data = await fetchData(); // 服务端直接await\n  return <div>{data.name}</div>;\n}\n\n// Client Component\nfunction ClientComponent() {\n  const data = use(fetchData()); // 客户端使用use\n  return <div>{data.name}</div>;\n}\n\nuse vs useContext：\n\n选项D错误。use可以读取Context，但功能更广泛：\n\n// useContext只能读取Context\nconst value = useContext(MyContext);\n\n// use可以读取Context和Promise\nconst contextValue = use(MyContext);\nconst promiseValue = use(promise);\n\nuse的实现原理：\n\nfunction use<T>(usable: Usable<T>): T {\n  if (usable !== null && typeof usable === 'object') {\n    // 检查是否是Context\n    if (usable.$$typeof === REACT_CONTEXT_TYPE) {\n      return readContext(usable);\n    }\n    // 检查是否是thenable\n    if (typeof usable.then === 'function') {\n      return useThenable(usable);\n    }\n  }\n  throw new Error('Invalid use argument');\n}\n\nuseThenable的实现：\n\nfunction useThenable<T>(thenable: Thenable<T>): T {\n  const [state, setState] = useState(() => ({\n    status: 'pending',\n    value: null,\n    error: null\n  }));\n  \n  if (state.status === 'pending') {\n    throw thenable; // 触发Suspense\n  }\n  \n  if (state.status === 'error') {\n    throw state.error;\n  }\n  \n  return state.value;\n}\n\n使用场景：\n\n1. 简化Context使用：\n// 之前\nconst theme = useContext(ThemeContext);\n// 现在\nconst theme = use(ThemeContext);\n\n2. 优雅处理异步数据：\nfunction Profile({ id }) {\n  const user = use(fetchUser(id));\n  return <div>{user.name}</div>;\n}\n\n3. 配合缓存：\nconst cachedPromise = cache(fetchData)();\nconst data = use(cachedPromise);\n\n注意事项：\n\n1. Promise应该稳定（不要在渲染中创建新的Promise）\n2. 使用缓存机制避免重复请求\n3. 配合Suspense和Error Boundary处理边界情况",
+      "knowledge_point": "React_19_Use_Hook",
+      "common_mistake": "容易误认为use可以在任何地方调用。虽然比其他Hook灵活，但仍需遵循一定规则，如稳定的Promise引用。",
+      "reference_link": "https://react.dev/reference/react/use"
+    },
+    {
+      "id": "framework-senior-035",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React 19",
+        "Server Components",
+        "服务端渲染",
+        "RSC"
+      ],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "React Server Components原理",
+      "content": "React Server Components (RSC) 是React的重要架构创新。以下关于RSC的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Server Components在服务端执行，不会发送JavaScript到客户端，减少bundle大小"
+        },
+        {
+          "id": "B",
+          "text": "Server Components可以直接访问数据库、文件系统等后端资源"
+        },
+        {
+          "id": "C",
+          "text": "Server Components可以有状态（useState）和副作用（useEffect）"
+        },
+        {
+          "id": "D",
+          "text": "Server Components和Client Components可以通过props传递数据，但不能传递函数"
+        },
+        {
+          "id": "E",
+          "text": "Server Components的渲染结果是一个描述UI的JSON结构，而非HTML"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "explanation": "React Server Components是React架构的重大创新，理解其原理对于构建现代React应用至关重要。\n\n选项A解析 - 零客户端JS：\n正确。Server Components的最大优势之一：\n\n1. 组件代码不会打包到客户端bundle\n2. 只有渲染结果发送到客户端\n3. 大幅减少JavaScript下载和执行\n\n示例：\n// ServerComponent.server.js - 不会发送到客户端\nasync function ProductList() {\n  const products = await db.query('SELECT * FROM products');\n  return (\n    <ul>\n      {products.map(p => <li key={p.id}>{p.name}</li>)}\n    </ul>\n  );\n}\n\n// 这个组件的JS永远不会发送到客户端\n选项B解析 - 后端资源访问：\n正确。Server Components运行在服务端，可以直接访问：\n\n// 数据库\nconst user = await db.users.find(id);\n\n// 文件系统\nconst config = JSON.parse(fs.readFileSync('config.json'));\n\n// 服务端SDK\nconst data = await aws.s3.getObject(...);\n\n// 环境变量\nconst apiKey = process.env.API_KEY;\n\n这些敏感资源不需要通过API暴露。\n\n选项C解析 - 状态和副作用限制：\n错误。Server Components不能使用：\n\n// 不允许\nconst [state, setState] = useState(); // 错误！\nuseEffect(() => {}); // 错误！\nuseLayoutEffect(() => {}); // 错误！\n\n原因：\n1. Server Components只渲染一次，没有交互\n2. 没有客户端环境，无法执行副作用\n3. 状态需要在客户端维护\n\nServer Components可以使用：\n- use (读取Context和Promise)\n- useContext (通过use)\n- useId (生成稳定ID)\n- async/await\n\n选项D解析 - props传递限制：\n正确。Server Components和Client Components之间传递props有限制：\n\n// 可以传递\n<ClientComponent \n  data={someData}        // ✅ 序列化数据\n  items={['a', 'b']}     // ✅ 数组\n  config={{ key: 'val'}} // ✅ 对象\n/>\n\n// 不能传递\n<ClientComponent \n  onClick={handleClick}  // ❌ 函数\n  ref={myRef}            // ❌ ref\n  callback={() => {}}    // ❌ 函数\n/>\n\n原因：props需要序列化传输到客户端。\n\n选项E解析 - RSC Payload：\n正确。Server Components的渲染结果不是HTML，而是RSC Payload（JSON格式）：\n\n// RSC Payload示例\n{\n  \"type\": \"div\",\n  \"props\": {\n    \"children\": [\n      {\n        \"type\": \"h1\",\n        \"props\": { \"children\": \"Hello\" }\n      },\n      {\n        \"type\": \"$L1\", // 引用Client Component\n        \"props\": { \"name\": \"World\" }\n      }\n    ]\n  }\n}\n\n这个JSON结构在客户端被解析并渲染为实际DOM。\n\nServer Components vs Client Components：\n\n| 特性 | Server Component | Client Component |\n|------|-----------------|------------------|\n| 执行环境 | 服务端 | 客户端 |\n| 发送到客户端 | 否（只发结果） | 是（发代码） |\n| 状态(state) | ❌ | ✅ |\n| 副作用(effect) | ❌ | ✅ |\n| 事件处理 | ❌ | ✅ |\n| 数据库访问 | ✅ | ❌ |\n| async/await | ✅ | ✅(use) |\n\n边界传递规则：\n\nServer -> Client: 可传递序列化数据\nClient -> Server: 不可能（Server先执行）\nClient -> Client: 可传递任意props\nServer -> Server: 可传递任意数据\n\n最佳实践：\n\n1. 默认使用Server Components\n2. 只在需要交互时使用Client Components\n3. 合理划分边界，减少Client Components\n4. 使用'server'和'client'指令明确标记",
+      "exclusion_analysis": {
+        "C": "不选原因：Server Components不能使用useState和useEffect。它们只在服务端执行一次，没有状态变化和副作用的场景。useState和useEffect只能在Client Components中使用"
+      },
+      "knowledge_point": "React_Server_Components",
+      "reference_link": "https://react.dev/reference/rsc/server-components"
+    },
+    {
+      "id": "framework-senior-036",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue 3.4",
+        "defineModel",
+        "双向绑定",
+        "Composition API"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Vue 3.4 defineModel宏",
+      "content": "Vue 3.4引入了defineModel编译器宏，简化了v-model的实现。以下代码的等价形式是什么？\n\nconst modelValue = defineModel({ default: 0 })",
+      "options": [
+        {
+          "id": "A",
+          "text": "const props = defineProps(['modelValue']); const emit = defineEmits(['update:modelValue']); const modelValue = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })"
+        },
+        {
+          "id": "B",
+          "text": "const modelValue = ref(0)"
+        },
+        {
+          "id": "C",
+          "text": "const modelValue = reactive({ value: 0 })"
+        },
+        {
+          "id": "D",
+          "text": "const modelValue = defineProp('modelValue', { default: 0 })"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "defineModel是Vue 3.4引入的编译器宏，它极大简化了组件双向绑定的实现。\n\ndefineModel的作用：\n\n在Vue 3.4之前，实现v-model需要手动定义props和emit：\n\n// Vue 3.3及之前\nconst props = defineProps({\n  modelValue: { type: Number, default: 0 }\n});\n\nconst emit = defineEmits(['update:modelValue']);\n\nconst modelValue = computed({\n  get: () => props.modelValue,\n  set: (value) => emit('update:modelValue', value)\n});\n\n// Vue 3.4\nconst modelValue = defineModel({ default: 0 });\n\ndefineModel的编译结果：\n\ndefineModel在编译时展开为：\n\n// 编译后\nconst props = defineProps(['modelValue']);\nconst emit = defineEmits(['update:modelValue']);\nconst modelValue = computed({\n  get: () => props.modelValue ?? 0,\n  set: (v) => emit('update:modelValue', v)\n});\n\n使用示例：\n\n// 子组件 Child.vue\n<script setup>\nconst count = defineModel({ default: 0 });\n\nfunction increment() {\n  count.value++;\n}\n</script>\n\n<template>\n  <button @click=\"increment\">{{ count }}</button>\n</template>\n\n// 父组件\n<template>\n  <Child v-model=\"parentCount\" />\n</template>\n\n多v-model支持：\n\n// 定义多个model\nconst firstName = defineModel('firstName');\nconst lastName = defineModel('lastName');\n\n// 使用\n<Child\n  v-model:first-name=\"first\"\n  v-model:last-name=\"last\"\n/>\n\n类型定义：\n\n// TypeScript支持\nconst count = defineModel<number>({ \n  default: 0,\n  required: true \n});\n\n// 或使用泛型\nconst value = defineModel<string>();\n\n选项配置：\n\ndefineModel({\n  type: String,\n  default: '',\n  required: false,\n  validator: (value) => value.length > 0\n});\n\n局部变更（不触发更新）：\n\nconst model = defineModel();\n\n// 不触发emit的修改\nmodel.value = 'new value'; // 会触发emit\n\n// 如果需要本地修改\nconst localModel = ref(model.value);\nlocalModel.value = 'local change';\n\n与v-model修饰符配合：\n\n// 定义带修饰符的model\nconst [value, modifiers] = defineModel({\n  set(value) {\n    if (modifiers.uppercase) {\n      return value.toUpperCase();\n    }\n    return value;\n  }\n});\n\n// 使用\n<Child v-model.uppercase=\"text\" />\n\ndefineModel的优势：\n\n1. 代码更简洁：减少了大量模板代码\n2. 类型推断更好：TypeScript支持更完善\n3. 一致性：与Vue 2的v-model语法更接近\n4. 编译时优化：宏在编译时展开，无运行时开销\n\n注意事项：\n\n1. defineModel是编译器宏，不能在运行时使用\n2. 只能在<script setup>中使用\n3. 需要Vue 3.4及以上版本",
+      "knowledge_point": "Vue_DefineModel_Macro",
+      "common_mistake": "容易误认为defineModel等同于ref。实际上它是一个双向绑定的computed，同时处理props和emit。",
+      "reference_link": "https://vuejs.org/api/sfc-script-setup.html#definemodel"
+    },
+    {
+      "id": "framework-senior-037",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue 3.4",
+        "v-bind同命",
+        "模板语法",
+        "性能优化"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Vue 3.4 v-bind同名简写",
+      "content": "Vue 3.4引入了v-bind同名简写语法。以下关于这个新语法的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "<div :title=\"title\">可以简写为<div :title>，当属性名和变量名相同时"
+        },
+        {
+          "id": "B",
+          "text": "这个语法糖减少了模板代码，提高了可读性"
+        },
+        {
+          "id": "C",
+          "text": "简写语法只能在Composition API的<script setup>中使用"
+        },
+        {
+          "id": "D",
+          "text": "该语法也会应用于v-on，如@click=\"click\"可简写为@click"
+        },
+        {
+          "id": "E",
+          "text": "这是编译时优化，不影响运行时行为"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "E"
+      ],
+      "explanation": "Vue 3.4引入的同名简写语法是一个小巧但实用的模板语法糖。\n\n语法说明：\n\n当属性名和绑定的变量名相同时，可以省略变量名：\n\n// 之前\n<div :title=\"title\" :class=\"class\" :style=\"style\">\n\n// Vue 3.4\n<div :title :class :style>\n\n选项A解析 - 语法正确：\n正确。这是同名简写的标准用法：\n\n<script setup>\nconst title = ref('Hello');\nconst className = ref('container');\n</script>\n\n<template>\n  <!-- 简写 -->\n  <div :title :class=\"className\">\n  </div>\n</template>\n\n选项B解析 - 提高可读性：\n正确。对于大量同名属性的组件，简写显著减少重复代码：\n\n// 复杂组件场景\n<template>\n  <Button\n    :disabled\n    :loading\n    :size\n    :type\n    @click\n  />\n</template>\n\n<script setup>\nconst disabled = ref(false);\nconst loading = ref(false);\nconst size = ref('medium');\nconst type = ref('primary');\n</script>\n\n选项C解析 - 使用限制：\n错误。这个语法糖与API风格无关：\n\n// Options API也可以使用\nexport default {\n  data() {\n    return {\n      title: 'Hello'\n    };\n  }\n}\n\n<template>\n  <div :title></div>\n</template>\n\n选项D解析 - v-on支持：\n错误。Vue 3.4的同名简写只支持v-bind，不支持v-on：\n\n// 支持\n<div :title>\n\n// 不支持\n<button @click>  <!-- 需要写完整 -->\n<button @click=\"click\"> <!-- 正确 -->\n\n但在Vue 3.5中，这个功能可能会扩展到v-on。\n\n选项E解析 - 编译时处理：\n正确。同名简写是编译时的语法糖，编译后展开为完整形式：\n\n// 模板\n<div :title>\n\n// 编译结果\n_h('div', { title: _ctx.title })\n\n运行时行为与完整写法完全相同。\n\n实际应用场景：\n\n1. 组件props透传：\n<template>\n  <Child\n    :disabled\n    :loading\n    :placeholder\n    :value\n  />\n</template>\n\n2. CSS变量绑定：\n<template>\n  <div :style> <!-- style变量 -->\n  </div>\n</template>\n\n3. 响应式样式：\n<script setup>\nconst color = ref('red');\nconst size = ref('16px');\n</script>\n\n<template>\n  <div :style=\"{ color, fontSize: size }\">\n  </div>\n</template>\n\n与其他框架对比：\n\nSvelte类似语法：\n<div {title}> <!-- Svelte -->\n<div :title> <!-- Vue 3.4 -->\n\nReact没有类似语法，需要完整写法。\n\n注意事项：\n\n1. 变量必须存在于当前作用域\n2. 属性名会被kebab-case转换\n3. 不适用于需要表达式的情况\n\n// 不能简写的情况\n<div :class=\"'prefix-' + className\">\n<div :style=\"{ color: activeColor }\">",
+      "exclusion_analysis": {
+        "C": "不选原因：同名简写是模板语法糖，与使用Options API还是Composition API无关，两种API风格都可以使用",
+        "D": "不选原因：Vue 3.4的同名简写只支持v-bind，不支持v-on。@click=\"click\"不能简写为@click"
+      },
+      "knowledge_point": "Vue_vBind_Shorthand",
+      "reference_link": "https://blog.vuejs.org/posts/vue-3-4"
+    },
+    {
+      "id": "framework-senior-038",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "Teleport",
+        "传送门",
+        "DOM结构"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Vue Teleport组件原理",
+      "content": "Vue的Teleport组件可以将子组件渲染到DOM树的其他位置。以下关于Teleport的说法，哪个是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Teleport只是视觉上移动元素，实际DOM结构不变"
+        },
+        {
+          "id": "B",
+          "text": "Teleport将组件的DOM节点移动到指定目标，但组件的逻辑关系（props、emit）保持不变"
+        },
+        {
+          "id": "C",
+          "text": "Teleport只能传送到body元素内部"
+        },
+        {
+          "id": "D",
+          "text": "Teleport会创建一个新的Vue应用实例"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "Teleport是Vue 3内置组件，用于解决特定UI模式的DOM结构问题。\n\nTeleport的核心特性：\n\n1. DOM移动，逻辑不变：\n选项B正确描述了Teleport的本质。DOM节点被移动到目标位置，但组件实例、props、emit、provide/inject等逻辑关系完全保留。\n\n示例：\n<template>\n  <div class=\"container\">\n    <Teleport to=\"body\">\n      <Modal :title=\"modalTitle\" @close=\"handleClose\" />\n    </Teleport>\n  </div>\n</template>\n\nModal的DOM渲染到body末尾，但：\n- modalTitle通过props正常传递\n- handleClose事件正常触发\n- 组件的provide/inject正常工作\n\n2. 使用场景：\n\n模态框/对话框：\n<Teleport to=\"body\">\n  <div class=\"modal\">\n    <!-- 避免overflow:hidden的父容器 -->\n  </div>\n</Teleport>\n\n全局通知：\n<Teleport to=\"#notifications\">\n  <Notification />\n</Teleport>\n\n下拉菜单：\n<Teleport to=\"body\">\n  <DropdownMenu />\n</Teleport>\n\n3. to属性：\n\n// CSS选择器\n<Teleport to=\"body\">\n<Teleport to=\"#app\">\n<Teleport to=\".modals\">\n\n// 动态目标\n<Teleport :to=\"targetSelector\">\n\n4. disabled属性：\n\n<Teleport to=\"body\" :disabled=\"isMobile\">\n  <!-- 在移动端禁用传送 -->\n</Teleport>\n\n选项A解析 - DOM结构：\n错误。Teleport确实会移动DOM节点，不是视觉欺骗。\n\n渲染前：\n<div class=\"container\">\n  <!-- Teleport内容 -->\n</div>\n\n渲染后：\n<div class=\"container\">\n  <!-- 空 -->\n</div>\n<body>\n  <!-- Teleport内容渲染在这里 -->\n</body>\n\n选项C解析 - 目标限制：\n错误。Teleport可以传送到任何有效的DOM元素：\n\n<Teleport to=\"body\">\n<Teleport to=\"#app\">\n<Teleport to=\".container\">\n<Teleport to=\"[data-portal]\">\n\n选项D解析 - 应用实例：\n错误。Teleport不会创建新的Vue应用实例，组件仍然属于原来的应用。\n\n实现原理：\n\n1. 渲染阶段：\nTeleport组件的children渲染为Fragment\n\n2. DOM挂载：\n在mount阶段，将DOM节点移动到目标位置\n\n3. 卸载阶段：\n组件卸载时，清理移动的DOM节点\n\n源码关键逻辑：\n\nfunction mountTeleport(vnode, container, anchor) {\n  const target = document.querySelector(vnode.props.to);\n  const mountPoint = document.createComment('teleport start');\n  \n  // 在原位置保留注释节点\n  container.insertBefore(mountPoint, anchor);\n  \n  // 将children移动到目标位置\n  vnode.children.forEach(child => {\n    target.appendChild(child.el);\n  });\n}\n\n与React Portal对比：\n\nVue Teleport:\n<Teleport to=\"body\">\n  <Child />\n</Teleport>\n\nReact Portal:\nReactDOM.createPortal(\n  <Child />,\n  document.body\n)\n\n两者功能相同，但API风格不同。\n\n注意事项：\n\n1. 目标元素必须存在于DOM中\n2. Teleport内容仍然在Vue组件树中\n3. CSS作用域需要注意目标位置的样式",
+      "knowledge_point": "Vue_Teleport_Component",
+      "common_mistake": "容易误认为Teleport只是视觉移动。实际上DOM节点被真正移动到目标位置，只是逻辑关系保持不变。",
+      "reference_link": "https://vuejs.org/guide/built-ins/teleport.html"
+    },
+    {
+      "id": "framework-senior-039",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Ref",
+        "useRef",
+        "useImperativeHandle"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React ref转发机制",
+      "content": "React的ref转发（forwardRef）和useImperativeHandle配合使用可以暴露组件方法。以下说法哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "forwardRef允许函数组件接收ref参数并转发给子组件"
+        },
+        {
+          "id": "B",
+          "text": "useImperativeHandle可以自定义暴露给父组件的实例值，避免暴露整个DOM节点"
+        },
+        {
+          "id": "C",
+          "text": "Class组件自动支持ref，不需要forwardRef"
+        },
+        {
+          "id": "D",
+          "text": "ref.current在render阶段就可以访问"
+        },
+        {
+          "id": "E",
+          "text": "forwardRef不会改变组件的行为，只是添加了ref参数"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "ref转发是React组件封装的重要机制，理解其原理对于设计可复用组件至关重要。\n\n选项A解析 - forwardRef作用：\n正确。函数组件默认不能接收ref参数：\n\n// 错误：函数组件不能直接接收ref\nfunction Input(props) {\n  return <input ref={props.ref} />; // ref是保留属性\n}\n\n// 正确：使用forwardRef\nconst Input = forwardRef((props, ref) => {\n  return <input ref={ref} />;\n});\n\n// 使用\n<Input ref={inputRef} />\n\n选项B解析 - useImperativeHandle：\n正确。useImperativeHandle允许自定义暴露给父组件的方法：\n\nconst FancyInput = forwardRef((props, ref) => {\n  const inputRef = useRef();\n  \n  useImperativeHandle(ref, () => ({\n    focus: () => {\n      inputRef.current.focus();\n    },\n    clear: () => {\n      inputRef.current.value = '';\n    }\n    // 不暴露inputRef本身\n  }));\n  \n  return <input ref={inputRef} />;\n});\n\n// 父组件只能调用focus和clear，无法直接操作DOM\nfancyInputRef.current.focus();\nfancyInputRef.current.clear();\nfancyInputRef.current.value = 'x'; // undefined!\n\n选项C解析 - Class组件ref：\n正确。Class组件自动支持ref：\n\nclass Input extends React.Component {\n  focus() {\n    this.inputRef.focus();\n  }\n  \n  render() {\n    return <input ref={el => this.inputRef = el} />;\n  }\n}\n\n// 使用\n<Input ref={inputRef} />\ninputRef.current.focus(); // 调用组件方法\n\nClass组件的ref.current指向组件实例，可以直接访问实例方法。\n\n选项D解析 - ref访问时机：\n错误。ref.current在commit阶段才被赋值，render阶段是null：\n\nfunction App() {\n  const ref = useRef();\n  \n  console.log(ref.current); // render阶段：可能是null\n  \n  useEffect(() => {\n    console.log(ref.current); // commit阶段后：DOM节点\n  });\n  \n  return <div ref={ref} />;\n}\n\n选项E解析 - forwardRef行为：\n正确。forwardRef是一个高阶组件，只是将ref作为第二个参数传递：\n\n// forwardRef实现概念\nfunction forwardRef(render) {\n  return {\n    $$typeof: REACT_FORWARD_REF_TYPE,\n    render\n  };\n}\n\n// React在渲染时检测到REACT_FORWARD_REF_TYPE\n// 就会调用render(props, ref)\n\nforwardRef的实际应用场景：\n\n1. 表单组件封装：\nconst FormInput = forwardRef((props, ref) => {\n  const [value, setValue] = useState('');\n  const inputRef = useRef();\n  \n  useImperativeHandle(ref, () => ({\n    focus: () => inputRef.current?.focus(),\n    getValue: () => value,\n    setValue: (v) => setValue(v)\n  }));\n  \n  return (\n    <input\n      ref={inputRef}\n      value={value}\n      onChange={e => setValue(e.target.value)}\n    />\n  );\n});\n\n2. 高阶组件转发ref：\nfunction withLogger(Component) {\n  const WrappedComponent = forwardRef((props, ref) => {\n    useEffect(() => {\n      console.log('Component mounted');\n    });\n    \n    return <Component {...props} ref={ref} />;\n  });\n  \n  WrappedComponent.displayName = `withLogger(${Component.displayName})`;\n  return WrappedComponent;\n}\n\n3. 暴露复合方法：\nconst Modal = forwardRef((props, ref) => {\n  const [visible, setVisible] = useState(false);\n  \n  useImperativeHandle(ref, () => ({\n    open: () => setVisible(true),\n    close: () => setVisible(false),\n    toggle: () => setVisible(v => !v)\n  }));\n  \n  return visible ? <div className=\"modal\">{props.children}</div> : null;\n});\n\n注意事项：\n\n1. 不要在render阶段读取ref.current\n2. useImperativeHandle的依赖数组要正确声明\n3. 避免暴露过多内部实现细节",
+      "exclusion_analysis": {
+        "D": "不选原因：ref.current在commit阶段（DOM操作完成后）才被赋值，render阶段访问可能是null或旧值。这就是为什么不能在render函数中使用ref.current"
+      },
+      "knowledge_point": "React_Ref_Forwarding",
+      "reference_link": "https://react.dev/reference/react/forwardRef"
+    },
+    {
+      "id": "framework-senior-040",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "源码解读",
+        "Fiber节点",
+        "渲染流程"
+      ],
+      "source_company": "Google",
+      "score": 10,
+      "title": "React Fiber节点结构分析",
+      "content": "以下React Fiber节点的核心属性，哪个描述是正确的？\n\nfunction FiberNode(tag, pendingProps, key, mode) {\n  this.tag = tag;\n  this.key = key;\n  this.elementType = null;\n  this.type = null;\n  this.stateNode = null;\n  this.return = null;\n  this.child = null;\n  this.sibling = null;\n  this.index = 0;\n  this.memoizedProps = pendingProps;\n  this.memoizedState = null;\n  this.updateQueue = null;\n  this.flags = NoFlags;\n  this.lanes = NoLanes;\n}",
+      "options": [
+        {
+          "id": "A",
+          "text": "return指向父Fiber节点，child指向第一个子Fiber节点，sibling指向下一个兄弟Fiber节点，形成树形结构"
+        },
+        {
+          "id": "B",
+          "text": "return指向子Fiber节点，用于返回数据"
+        },
+        {
+          "id": "C",
+          "text": "memoizedState存储的是组件的state，对于函数组件是Hook链表的头节点"
+        },
+        {
+          "id": "D",
+          "text": "A和C都正确"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "Fiber节点是React架构的核心数据结构，理解其属性对于深入掌握React至关重要。\n\nFiber树形结构：\n\nreturn、child、sibling三个指针构成Fiber树：\n\n// 树形结构示意\nApp (Fiber)\n├── return: null (根节点)\n├── child: Header (第一个子节点)\n└── ...\n\nHeader (Fiber)\n├── return: App (父节点)\n├── child: Logo (第一个子节点)\n├── sibling: Content (下一个兄弟节点)\n└── ...\n\nLogo (Fiber)\n├── return: Header (父节点)\n├── child: null (无子节点)\n├── sibling: Nav (下一个兄弟节点)\n└── ...\n\n遍历规则：\n\n1. beginWork：从父节点进入子节点（child）\n2. completeWork：从子节点返回父节点（return）\n3. 遍历兄弟节点（sibling）\n\nmemoizedState详解：\n\nmemoizedState存储组件的状态，根据组件类型不同：\n\n1. 函数组件：Hook链表的头节点\nconst [count, setCount] = useState(0);\nconst [name, setName] = useState('');\n\n// fiber.memoizedState -> Hook(count) -> Hook(name) -> null\n\n2. 类组件：this.state\nthis.state = { count: 0 };\n// fiber.memoizedState = { count: 0 }\n\n3. HostComponent：null（DOM节点无状态）\n\n4. HostRoot：待处理的更新队列\n\n其他核心属性：\n\ntag：Fiber节点类型\nFunctionComponent = 0\nClassComponent = 1\nHostRoot = 3\nHostComponent = 5\nHostText = 6\nFragment = 7\n\nelementType：React元素的类型\n// 对于<MyComponent />\nelementType = MyComponent\n\n// 对于<div />\nelementType = 'div'\n\ntype：处理后的类型\n// 对于懒加载组件\ntype = lazyComponent._result // resolved值\n\nstateNode：关联的实例\n// 对于ClassComponent：组件实例\nstateNode = new MyComponent()\n\n// 对于HostComponent：DOM节点\nstateNode = document.createElement('div')\n\nupdateQueue：更新队列\n// 对于函数组件\nupdateQueue = {\n  pending: circularLinkedList<Update>,\n  interleaved: null\n}\n\nflags：副作用标志\nNoFlags = 0\nPerformedWork = 1\nPlacement = 2\nUpdate = 4\nDeletion = 8\n...\n\nlanes：优先级\nthis.lanes = NoLanes; // 默认无优先级\nthis.childLanes = NoLanes; // 子树优先级\n\nFiber节点创建流程：\n\n1. 首次渲染：\ncreateFiberFromElement(element) -> createFiber(tag, pendingProps, key, mode)\n\n2. 更新渲染：\ncreateWorkInProgress(current, pendingProps) -> 复用或创建alternate\n\nFiber与React Element的区别：\n\nReact Element：不可变的描述对象\nconst element = <div className=\"app\">Hello</div>;\n// { type: 'div', props: { className: 'app', children: 'Hello' } }\n\nFiber：可变的工作单元\nconst fiber = new FiberNode(HostComponent, props);\n// 可变的，包含状态、副作用、优先级等",
+      "knowledge_point": "React_Fiber_Structure",
+      "common_mistake": "容易混淆return和parent。return用于向上遍历（在completeWork时返回父节点），child用于向下遍历。",
+      "reference_link": "https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiber.js"
+    },
+    {
+      "id": "framework-senior-041",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "生命周期",
+        "Class组件",
+        "函数组件"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "React生命周期与Hook对应关系",
+      "content": "React类组件的生命周期方法与函数组件的Hook存在对应关系。以下对应关系哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "componentDidMount -> useEffect(() => {}, [])"
+        },
+        {
+          "id": "B",
+          "text": "componentDidUpdate -> useEffect(() => {}, [deps])"
+        },
+        {
+          "id": "C",
+          "text": "componentWillUnmount -> useEffect(() => { return () => cleanup }, [])"
+        },
+        {
+          "id": "D",
+          "text": "getSnapshotBeforeUpdate -> useRef保存快照 + useEffect读取"
+        },
+        {
+          "id": "E",
+          "text": "shouldComponentUpdate -> React.memo或useMemo"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "理解类组件生命周期与Hook的对应关系对于从类组件迁移到函数组件至关重要。\n\n选项A解析 - componentDidMount：\n正确。空依赖数组的useEffect在挂载后执行：\n\n// 类组件\ncomponentDidMount() {\n  fetchData();\n}\n\n// 函数组件\nuseEffect(() => {\n  fetchData();\n}, []);\n\n注意：useEffect在绑定后异步执行，componentDidMount在绑定后同步执行。\n\n选项B解析 - componentDidUpdate：\n正确。带依赖的useEffect在依赖变化后执行：\n\n// 类组件\ncomponentDidUpdate(prevProps) {\n  if (this.props.id !== prevProps.id) {\n    fetchData(this.props.id);\n  }\n}\n\n// 函数组件\nuseEffect(() => {\n  fetchData(id);\n}, [id]);\n\n注意：useEffect首次渲染后也会执行，componentDidUpdate只在更新时执行。\n\n选项C解析 - componentWillUnmount：\n正确。useEffect的清理函数在卸载时执行：\n\n// 类组件\ncomponentWillUnmount() {\n  clearInterval(this.timer);\n}\n\n// 函数组件\nuseEffect(() => {\n  const timer = setInterval(() => {}, 1000);\n  return () => clearInterval(timer);\n}, []);\n\n选项D解析 - getSnapshotBeforeUpdate：\n错误。getSnapshotBeforeUpdate在DOM更新前同步获取快照：\n\n// 类组件\ngetSnapshotBeforeUpdate(prevProps, prevState) {\n  if (prevProps.list.length < this.props.list.length) {\n    const list = this.listRef.current;\n    return list.scrollHeight - list.scrollTop;\n  }\n  return null;\n}\n\ncomponentDidUpdate(prevProps, prevState, snapshot) {\n  if (snapshot !== null) {\n    const list = this.listRef.current;\n    list.scrollTop = list.scrollHeight - snapshot;\n  }\n}\n\n函数组件没有直接等价的方式。useLayoutEffect可以在DOM更新后同步执行，但无法获取更新前的快照。\n\n解决方案：手动用ref保存快照\nconst prevScrollHeight = useRef();\n\nuseLayoutEffect(() => {\n  if (listRef.current) {\n    prevScrollHeight.current = listRef.current.scrollHeight;\n  }\n});\n\nuseEffect(() => {\n  if (prevScrollHeight.current) {\n    // 使用快照\n  }\n});\n\n选项E解析 - shouldComponentUpdate：\n正确。React.memo实现类似功能：\n\n// 类组件\nshouldComponentUpdate(nextProps, nextState) {\n  return nextProps.id !== this.props.id;\n}\n\n// 函数组件\nconst MemoComponent = React.memo(MyComponent, (prevProps, nextProps) => {\n  return prevProps.id === nextProps.id;\n});\n\n完整对应表：\n\n| 类组件生命周期 | 函数组件Hook |\n|---------------|-------------|\n| constructor | useState初始值 |\n| getDerivedStateFromProps | useState + useEffect |\n| shouldComponentUpdate | React.memo |\n| render | 函数体 |\n| componentDidMount | useEffect(() => {}, []) |\n| getSnapshotBeforeUpdate | 无直接等价 |\n| componentDidUpdate | useEffect(() => {}, [deps]) |\n| componentWillUnmount | useEffect return清理函数 |\n| componentDidCatch | 无函数组件等价 |\n| getDerivedStateFromError | 无函数组件等价 |\n\n执行顺序差异：\n\n类组件更新：\n1. getDerivedStateFromProps\n2. shouldComponentUpdate\n3. render\n4. getSnapshotBeforeUpdate\n5. componentDidUpdate\n\n函数组件更新：\n1. 渲染函数体\n2. React.memo比较（如果有）\n3. commit阶段\n4. useLayoutEffect清理\n5. useLayoutEffect\n6. useEffect清理\n7. useEffect\n\n迁移注意事项：\n\n1. useEffect是异步的，getSnapshotBeforeUpdate是同步的\n2. 无法在函数组件中实现Error Boundary\n3. getDerivedStateFromProps需要结合useState和useEffect\n4. 清理函数在每次effect执行前都会执行，不只是卸载时",
+      "exclusion_analysis": {
+        "D": "不选原因：getSnapshotBeforeUpdate在DOM更新前同步获取快照，然后传递给componentDidUpdate。函数组件没有直接等价的方式，useRef无法实现完全相同的功能，因为useEffect在DOM更新后执行"
+      },
+      "knowledge_point": "React_Lifecycle_vs_Hooks",
+      "reference_link": "https://react.dev/reference/react/Component"
+    },
+    {
+      "id": "framework-senior-042",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "插槽",
+        "slot",
+        "作用域插槽"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Vue作用域插槽原理",
+      "content": "Vue的作用域插槽（Scoped Slots）允许子组件向插槽传递数据。以下代码的编译结果是什么？\n\n<template #default=\"{ user }\">\n  <div>{{ user.name }}</div>\n</template>",
+      "options": [
+        {
+          "id": "A",
+          "text": "编译为返回渲染函数的函数，接收插槽props作为参数：function(slotProps) { return h('div', slotProps.user.name) }"
+        },
+        {
+          "id": "B",
+          "text": "编译为普通的渲染函数，user从组件作用域获取"
+        },
+        {
+          "id": "C",
+          "text": "编译为v-for循环，遍历user对象"
+        },
+        {
+          "id": "D",
+          "text": "作用域插槽在运行时不存在，只是编译时语法糖"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "作用域插槽是Vue强大的组件复用机制，理解其编译原理有助于写出更灵活的组件。\n\n作用域插槽的使用：\n\n// 子组件 List.vue\n<template>\n  <ul>\n    <li v-for=\"item in items\" :key=\"item.id\">\n      <slot :item=\"item\" :index=\"index\">\n        {{ item.name }}\n      </slot>\n    </li>\n  </ul>\n</template>\n\n// 父组件\n<List :items=\"users\">\n  <template #default=\"{ item, index }\">\n    <div>{{ index }}: {{ item.name }}</div>\n  </template>\n</List>\n\n编译结果分析：\n\n父组件编译为：\n\n// 编译后的渲染函数\nfunction render() {\n  return h(List, {\n    items: users\n  }, {\n    default: (slotProps) => {\n      // 解构slotProps\n      const { item, index } = slotProps;\n      return h('div', `${index}: ${item.name}`);\n    }\n  });\n}\n\n子组件调用插槽：\n\n// 子组件渲染函数\nfunction render() {\n  return h('ul', items.map((item, index) => \n    h('li', { key: item.id }, [\n      // 调用插槽函数，传入数据\n      slots.default({ item, index })\n    ])\n  ));\n}\n\n选项A正确的原因：\n\n作用域插槽本质上是一个函数，接收子组件传递的props，返回VNode。这个函数在子组件渲染时被调用。\n\n对比普通插槽：\n\n// 普通插槽\n<template #header>\n  <div>Static Header</div>\n</template>\n\n// 编译结果\n{\n  header: () => h('div', 'Static Header')\n}\n\n// 作用域插槽\n<template #default=\"{ data }\">\n  <div>{{ data }}</div>\n</template>\n\n// 编译结果\n{\n  default: (slotProps) => h('div', slotProps.data)\n}\n\n实际应用场景：\n\n1. 列表组件：\n<DataTable :rows=\"data\">\n  <template #row=\"{ row, isSelected }\">\n    <tr :class=\"{ selected: isSelected }\">\n      <td>{{ row.name }}</td>\n    </tr>\n  </template>\n</DataTable>\n\n2. 可配置渲染：\n<Card>\n  <template #header=\"{ collapsed, toggle }\">\n    <button @click=\"toggle\">\n      {{ collapsed ? 'Expand' : 'Collapse' }}\n    </button>\n  </template>\n</Card>\n\n3. 暴露组件内部状态：\n<Modal v-model=\"visible\">\n  <template #footer=\"{ close, confirm }\">\n    <button @click=\"close\">Cancel</button>\n    <button @click=\"confirm\">OK</button>\n  </template>\n</Modal>\n\nTypeScript类型定义：\n\n// 定义插槽props类型\ninterface SlotProps {\n  item: Item;\n  index: number;\n  isSelected: boolean;\n}\n\n// 组件中\ndefineSlots<{\n  default(props: SlotProps): VNode[];\n}>();\n\nVue 2 vs Vue 3：\n\nVue 2：\n<template slot-scope=\"{ item }\">\n  <div>{{ item.name }}</div>\n</template>\n\nVue 3：\n<template #default=\"{ item }\">\n  <div>{{ item.name }}</div>\n</template>\n\n性能考虑：\n\n作用域插槽是函数，在子组件渲染时调用。如果插槽内容复杂，可能影响性能。\n\n优化建议：\n\n1. 避免在插槽中做复杂计算\n2. 使用v-once缓存静态内容\n3. 合理使用v-memo",
+      "knowledge_point": "Vue_Scoped_Slots",
+      "common_mistake": "容易误认为作用域插槽只是语法糖。实际上它改变了编译结果——插槽内容变成函数，接收子组件传递的参数。",
+      "reference_link": "https://vuejs.org/guide/components/slots.html#scoped-slots"
+    },
+    {
+      "id": "framework-senior-043",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "状态管理",
+        "Zustand",
+        "Jotai"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "现代React状态管理方案对比",
+      "content": "现代React状态管理库（如Zustand、Jotai、Recoil）相比Redux有哪些优势？以下说法哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Zustand基于hooks，无需Provider包裹，store可以在组件外部创建和访问"
+        },
+        {
+          "id": "B",
+          "text": "Jotai基于原子化状态，每个atom独立订阅，实现精确更新"
+        },
+        {
+          "id": "C",
+          "text": "Redux的useSelector只能订阅整个store，无法实现组件级别的精确订阅"
+        },
+        {
+          "id": "D",
+          "text": "现代库通常更轻量，Zustand约1KB，Redux约7KB"
+        },
+        {
+          "id": "E",
+          "text": "Zustand和Jotai都支持React 18的并发特性"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "explanation": "现代React状态管理库在设计理念和API设计上都有显著创新。\n\n选项A解析 - Zustand的无Provider设计：\n正确。Zustand的核心特点：\n\n// 创建store（组件外部）\nconst useStore = create((set) => ({\n  count: 0,\n  increment: () => set((state) => ({ count: state.count + 1 }))\n}));\n\n// 在任何地方访问\nuseStore.getState().count; // 组件外部\n\n// 组件内订阅\nfunction Counter() {\n  const count = useStore((state) => state.count);\n  const increment = useStore((state) => state.increment);\n  return <button onClick={increment}>{count}</button>;\n}\n\n无Provider意味着：\n- 可以在组件外部访问store\n- 更容易测试\n- 减少组件树嵌套\n\n选项B解析 - Jotai的原子化：\n正确。Jotai将状态拆分为独立的atom：\n\n// 定义原子\nconst countAtom = atom(0);\nconst doubleCountAtom = atom((get) => get(countAtom) * 2);\n\n// 组件订阅\nfunction Counter() {\n  const [count, setCount] = useAtom(countAtom);\n  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;\n}\n\nfunction DoubleDisplay() {\n  const [doubleCount] = useAtom(doubleCountAtom);\n  return <div>{doubleCount}</div>;\n}\n\n// 只有使用countAtom的组件在count变化时更新\n// doubleCountAtom自动派生\n\n选项C解析 - Redux的订阅机制：\n错误。useSelector支持精确订阅：\n\n// 精确订阅特定字段\nconst count = useSelector((state) => state.count);\n\n// 只有count变化时才重渲染\n// useSelector内部使用浅比较或自定义比较函数\n\nconst user = useSelector(\n  (state) => state.users[userId],\n  (prev, next) => prev?.id === next?.id\n);\n\nRedux的问题是：\n- 需要Provider包裹\n- store在组件外部访问不便（需要store.getState()）\n- 配置较复杂（reducer、actions、middleware）\n\n选项D解析 - 包体积对比：\n正确。现代库更轻量：\n\n| 库 | 大小(minzip) |\n|----|-------------|\n| Redux | ~7KB |\n| Redux Toolkit | ~10KB |\n| Zustand | ~1KB |\n| Jotai | ~2KB |\n| Recoil | ~13KB |\n\n现代库利用React hooks，避免了Redux的样板代码。\n\n选项E解析 - 并发特性支持：\n正确。Zustand和Jotai都支持React 18：\n\n// Zustand\nconst useStore = create(\n  devtools(\n    persist(\n      (set) => ({ /* store */ }),\n      { name: 'store' }\n    )\n  )\n);\n\n// 内部使用useSyncExternalStore，支持并发\n\n// Jotai\nimport { useAtom } from 'jotai';\n// 自动支持并发模式\n\n现代库对比：\n\nZustand：\n- 类似Redux的全局store\n- API简单，学习成本低\n- 适合中小型应用\n\nJotai：\n- 原子化状态\n- 自动依赖追踪\n- 适合复杂派生状态\n\nRecoil：\n- Facebook官方出品\n- 原子化+图结构\n- 功能强大但包较大\n\nSignals (Preact/Solid)：\n- 细粒度响应式\n- 无Virtual DOM开销\n- 最高性能\n\n选择建议：\n\n1. 简单应用：useState/useReducer\n2. 中型应用：Zustand\n3. 复杂状态关系：Jotai/Recoil\n4. 追求性能：Signals方案\n5. 团队熟悉Redux：Redux Toolkit",
+      "exclusion_analysis": {
+        "C": "不选原因：Redux的useSelector支持精确订阅，通过selector函数只订阅需要的状态切片。只有selector返回值变化时才触发重渲染。Redux的问题在于配置复杂和需要Provider，而非订阅精度"
+      },
+      "knowledge_point": "React_State_Management_Comparison",
+      "reference_link": "https://docs.pmnd.rs/zustand/getting-started/introduction"
+    },
+    {
+      "id": "framework-senior-044",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "Composition API",
+        "依赖注入",
+        "provide/inject"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Vue Composition API原理",
+      "content": "Vue的Composition API的setup函数在什么时机执行？为什么能够访问props但不能访问组件实例(this)？",
+      "options": [
+        {
+          "id": "A",
+          "text": "setup在组件创建前执行，此时组件实例尚未创建，所以无法访问this；props通过函数参数传入，是响应式的"
+        },
+        {
+          "id": "B",
+          "text": "setup在created之后执行，此时可以访问this"
+        },
+        {
+          "id": "C",
+          "text": "setup在mounted时执行，此时DOM已就绪"
+        },
+        {
+          "id": "D",
+          "text": "setup的执行时机与Options API的created相同"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "setup函数是Composition API的核心，理解其执行时机对于正确使用至关重要。\n\nsetup执行时机详解：\n\n1. 执行顺序：\nsetup在组件创建前执行，早于所有生命周期钩子：\n\n// 执行顺序\n1. props初始化\n2. setup()执行\n3. beforeCreate\n4. created\n5. beforeMount\n6. mounted\n...\n\n源码位置（runtime-core/src/component.ts）：\n\nfunction setupStatefulComponent(instance) {\n  // 1. 创建setup参数\n  const props = instance.props;\n  const setupContext = {\n    attrs: instance.attrs,\n    slots: instance.slots,\n    emit: instance.emit,\n    expose: instance.expose\n  };\n  \n  // 2. 执行setup（此时instance.proxy还未创建）\n  const setupResult = instance.setup(props, setupContext);\n  \n  // 3. 处理setup返回值\n  handleSetupResult(instance, setupResult);\n  \n  // 4. 创建instance.proxy\n  // ...\n}\n\n为什么不能访问this？\n\nsetup执行时：\n- 组件实例(instance)已创建\n- 但instance.proxy（组件的this代理）还未创建\n\n原因：\n1. setup返回的内容需要合并到组件实例\n2. 在setup完成前，组件的公共接口未确定\n3. 避免开发者依赖this，鼓励函数式风格\n\nprops为什么可访问？\n\nprops作为setup的第一个参数传入：\n\nexport default {\n  props: ['title'],\n  setup(props) {\n    console.log(props.title); // ✅ 可访问\n    // props是响应式的Proxy\n    \n    // 不能解构（会丢失响应性）\n    const { title } = props; // ❌ 失去响应性\n    \n    // 正确：使用toRef\n    const title = toRef(props, 'title'); // ✅ 保持响应性\n  }\n}\n\nsetup返回值：\n\n1. 返回对象：合并到组件模板上下文\n\nsetup() {\n  const count = ref(0);\n  const increment = () => count.value++;\n  \n  return {\n    count,\n    increment\n  };\n}\n\n// 模板中可直接使用\ntemplate: `<button @click=\"increment\">{{ count }}</button>`\n\n2. 返回函数：渲染函数\n\nsetup() {\n  return () => h('div', 'Hello');\n}\n\nsetupContext参数：\n\nsetup(props, { attrs, slots, emit, expose }) {\n  // attrs: 非prop属性\n  // slots: 插槽\n  // emit: 事件触发\n  // expose: 暴露给父组件的方法\n}\n\n与Options API的对应关系：\n\n| Options API | Composition API |\n|-------------|-----------------|\n| beforeCreate | setup() |\n| created | setup() |\n| beforeMount | onBeforeMount |\n| mounted | onMounted |\n| beforeUpdate | onBeforeUpdate |\n| updated | onUpdated |\n| beforeUnmount | onBeforeUnmount |\n| unmounted | onUnmounted |\n\n选项B、C、D错误原因：\n\n- B：setup在created之前执行\n- C：setup在mounted之前很久执行\n- D：setup早于beforeCreate执行\n\n最佳实践：\n\n1. 避免在setup中使用this\n2. 使用生命周期钩子代替Options API方法\n3. 使用provide/inject代替this.$parent\n4. 使用getCurrentInstance()仅在特殊场景",
+      "knowledge_point": "Vue_Composition_API_Setup",
+      "common_mistake": "容易误认为setup与created同时执行。实际上setup是最早执行的，早于beforeCreate。",
+      "reference_link": "https://vuejs.org/api/composition-api-setup.html"
+    },
+    {
+      "id": "framework-senior-045",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "React DOM",
+        "事件系统",
+        "合成事件"
+      ],
+      "source_company": "Google",
+      "score": 10,
+      "title": "React合成事件系统",
+      "content": "React的合成事件（Synthetic Events）与原生事件有什么区别？以下说法哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React事件委托到document（React 17之前）或root容器（React 17+），而非直接绑定到DOM元素"
+        },
+        {
+          "id": "B",
+          "text": "合成事件是原生事件的跨浏览器包装器，提供一致的API"
+        },
+        {
+          "id": "C",
+          "text": "在React事件处理函数中，e.nativeEvent可以获取原生事件对象"
+        },
+        {
+          "id": "D",
+          "text": "React事件处理的执行顺序早于原生事件，因为事件冒泡先触发React委托"
+        },
+        {
+          "id": "E",
+          "text": "e.stopPropagation()只能阻止React事件冒泡，不影响原生事件"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "E"
+      ],
+      "explanation": "React的合成事件系统是其跨平台策略的重要组成部分，理解其原理对于调试事件相关问题至关重要。\n\n选项A解析 - 事件委托：\n正确。React使用事件委托机制：\n\n// React 16及之前\n<button onClick={handleClick}>Click</button>\n\n// 实际：事件监听器绑定到document\ndocument.addEventListener('click', dispatchEvent);\n\n// React 17+\n// 事件监听器绑定到root容器\nconst root = document.getElementById('root');\nroot.addEventListener('click', dispatchEvent);\n\nReact 17的改变解决了：\n- 与其他框架的兼容问题\n- 微前端场景的事件隔离\n- 全局事件污染问题\n\n选项B解析 - 跨浏览器包装器：\n正确。合成事件提供统一API：\n\n// 不同浏览器的focus事件可能有差异\n// React统一为SyntheticFocusEvent\n\nfunction handleFocus(e: SyntheticFocusEvent) {\n  e.target; // 统一的target\n  e.relatedTarget; // 统一的relatedTarget\n  e.preventDefault(); // 统一的方法\n  e.stopPropagation();\n}\n\n合成事件特性：\n- 事件池化（React 16，React 17已移除）\n- 跨浏览器兼容\n- 自动清理\n\n选项C解析 - 获取原生事件：\n正确。nativeEvent属性访问原生事件：\n\nfunction handleClick(e) {\n  // 合成事件\n  console.log(e.type); // 'click'\n  \n  // 原生事件\n  console.log(e.nativeEvent); // 原生MouseEvent\n  console.log(e.nativeEvent.clientX); // 原生属性\n}\n\n选项D解析 - 执行顺序：\n错误。事件执行顺序取决于注册顺序：\n\ndocument.addEventListener('click', () => {\n  console.log('原生document');\n});\n\nconst root = document.getElementById('root');\nroot.addEventListener('click', () => {\n  console.log('原生root');\n});\n\n// React事件\n<button onClick={() => console.log('React事件')}>\n\n点击按钮后的执行顺序（React 17+）：\n1. 原生root（捕获阶段先注册）\n2. React事件\n3. 原生document（冒泡到document）\n\n选项E解析 - stopPropagation行为：\n正确。React的stopPropagation只阻止React事件：\n\nfunction ReactComponent() {\n  const handleClick = (e) => {\n    e.stopPropagation(); // 只阻止React事件冒泡\n    // 原生事件继续冒泡\n  };\n  return <button onClick={handleClick}>Click</button>;\n}\n\n// 原生事件监听\ndocument.addEventListener('click', () => {\n  console.log('document click'); // 仍然会触发\n});\n\n// 阻止原生事件\n// 需要使用e.nativeEvent.stopPropagation()\n// 或e.nativeEvent.stopImmediatePropagation()\n\nReact事件系统原理：\n\n1. 事件注册：\nfunction listenToAllSupportedEvents(rootContainerElement) {\n  // 注册所有支持的事件类型\n  allNativeEvents.forEach((domEventName) => {\n    listenToNativeEvent(\n      domEventName,\n      false, // 冒泡\n      rootContainerElement,\n      null\n    );\n    listenToNativeEvent(\n      domEventName,\n      true, // 捕获\n      rootContainerElement,\n      null\n    );\n  });\n}\n\n2. 事件触发：\nfunction dispatchEvent(\n  domEventName,\n  eventSystemFlags,\n  targetContainer,\n  nativeEvent\n) {\n  // 创建合成事件\n  const syntheticEvent = createSyntheticEvent(nativeEvent);\n  \n  // 从target向上遍历，收集事件处理函数\n  const dispatchQueue = [];\n  accumulateListeners(dispatchQueue, targetContainer);\n  \n  // 执行事件处理函数\n  executeDispatch(dispatchQueue, syntheticEvent);\n}\n\nReact 17的变化：\n\n1. 事件委托到root\n2. 移除事件池化\n3. useEffect清理函数执行时机调整\n4. onScroll事件不再冒泡\n\n最佳实践：\n\n1. 避免混用React和原生事件\n2. 需要阻止原生事件时使用nativeEvent\n3. 理解事件委托机制有助于调试",
+      "exclusion_analysis": {
+        "D": "不选原因：React事件的执行顺序取决于事件委托的位置和事件阶段。在React 17+，原生事件和React事件的执行顺序取决于注册顺序，不是简单的'React先执行'"
+      },
+      "knowledge_point": "React_Synthetic_Events",
+      "reference_link": "https://react.dev/learn/responding-to-events"
+    },
+    {
+      "id": "framework-senior-046",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "手写实现",
+        "useCallback",
+        "性能优化"
+      ],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "手写实现useCallback和useMemo",
+      "content": "请手写实现useCallback和useMemo Hook，要求：\n1. useCallback返回稳定的函数引用，依赖不变时返回相同引用\n2. useMemo缓存计算结果，依赖不变时返回缓存值\n3. 正确处理依赖数组比较",
+      "code_template": "let hookSlots = [];\nlet currentIndex = 0;\n\nfunction useMemo(factory, deps) {\n  // 实现useMemo\n  // factory: 计算函数\n  // deps: 依赖数组\n}\n\nfunction useCallback(callback, deps) {\n  // 实现useCallback\n  // callback: 回调函数\n  // deps: 依赖数组\n}\n\n// 依赖比较函数\nfunction areDepsEqual(prevDeps, nextDeps) {\n  // 实现依赖比较\n}",
+      "test_cases": [
+        {
+          "input": "const fn = useCallback(() => 1, []); const fn2 = useCallback(() => 1, []); console.log(fn === fn2);",
+          "expected_output": "true",
+          "description": "空依赖返回相同引用"
+        },
+        {
+          "input": "const [count, setCount] = useState(0); const value = useMemo(() => count * 2, [count]); setCount(1); console.log(value);",
+          "expected_output": "2",
+          "description": "依赖变化重新计算"
+        },
+        {
+          "input": "const arr = useMemo(() => [1, 2, 3], []); const arr2 = useMemo(() => [1, 2, 3], []); console.log(arr === arr2);",
+          "expected_output": "true",
+          "description": "缓存数组引用"
+        }
+      ],
+      "time_complexity": "O(n) where n = deps.length",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "依赖比较使用浅比较",
+        "首次调用必须执行factory/callback",
+        "需要处理undefined deps的情况"
+      ],
+      "correct_answer": "见参考实现",
+      "reference_solution": "let hookSlots = [];\nlet currentIndex = 0;\n\nfunction useMemo(factory, deps) {\n  const slotIndex = currentIndex;\n  const slot = hookSlots[slotIndex];\n  \n  // 首次渲染或依赖变化\n  if (\n    !slot ||\n    !areDepsEqual(slot.deps, deps)\n  ) {\n    hookSlots[slotIndex] = {\n      value: factory(),\n      deps: deps\n    };\n  }\n  \n  currentIndex++;\n  return hookSlots[slotIndex].value;\n}\n\nfunction useCallback(callback, deps) {\n  const slotIndex = currentIndex;\n  const slot = hookSlots[slotIndex];\n  \n  // 首次渲染或依赖变化\n  if (\n    !slot ||\n    !areDepsEqual(slot.deps, deps)\n  ) {\n    hookSlots[slotIndex] = {\n      value: callback,\n      deps: deps\n    };\n  }\n  \n  currentIndex++;\n  return hookSlots[slotIndex].value;\n}\n\nfunction areDepsEqual(prevDeps, nextDeps) {\n  // 处理undefined\n  if (prevDeps === undefined || nextDeps === undefined) {\n    return false;\n  }\n  \n  if (prevDeps.length !== nextDeps.length) {\n    return false;\n  }\n  \n  for (let i = 0; i < prevDeps.length; i++) {\n    if (!Object.is(prevDeps[i], nextDeps[i])) {\n      return false;\n    }\n  }\n  \n  return true;\n}",
+      "explanation": "useCallback和useMemo是React最重要的性能优化Hook，理解其实现原理对于正确使用至关重要。\n\n核心设计思想：\n\n1. 依赖缓存：\nuseMemo和useCallback都基于依赖数组决定是否重新计算。依赖不变则返回缓存值，依赖变化则重新计算。\n\n2. Hook存储结构：\n每个Hook在hookSlots数组中有一个slot，存储value和deps。\n\nuseMemo实现细节：\n\n// 使用示例\nconst expensiveValue = useMemo(() => {\n  return computeExpensiveValue(a, b);\n}, [a, b]);\n\n// 等价于\nlet cachedValue;\nif (depsChanged) {\n  cachedValue = computeExpensiveValue(a, b);\n}\n\nuseCallback实现细节：\n\n// 使用示例\nconst memoizedCallback = useCallback(() => {\n  doSomething(a, b);\n}, [a, b]);\n\n// 等价于\nuseMemo(() => () => {\n  doSomething(a, b);\n}, [a, b]);\n\nuseCallback本质上就是useMemo的特殊形式。\n\n依赖比较原理：\n\nReact使用Object.is进行依赖比较：\n\nObject.is(1, 1); // true\nObject.is('a', 'a'); // true\nObject.is({}, {}); // false（不同引用）\nObject.is(NaN, NaN); // true（与===不同）\n\n常见陷阱：\n\n1. 对象作为依赖：\nconst obj = { a: 1 };\nuseEffect(() => {}, [obj]); // 每次都是新对象，依赖永远变化\n\n// 解决：使用useMemo\nconst obj = useMemo(() => ({ a: 1 }), [a]);\n\n2. 函数作为依赖：\nconst fn = () => {};\nuseEffect(() => {}, [fn]); // 每次都是新函数\n\n// 解决：使用useCallback\nconst fn = useCallback(() => {}, [deps]);\n\n3. 空依赖数组：\nuseMemo(() => value, []); // 只计算一次\nuseMemo(() => value); // 每次都计算（无依赖）\n\nuseMemo vs useCallback：\n\nuseMemo：缓存任意值\nuseCallback：缓存函数\n\n// useCallback(fn, deps) 等价于\nuseMemo(() => fn, deps)\n\n性能优化策略：\n\n1. 缓存计算结果：\nconst sortedList = useMemo(() => {\n  return [...list].sort(compareFn);\n}, [list]);\n\n2. 稳定回调引用：\nconst handleSubmit = useCallback((data) => {\n  submit(data);\n}, [submit]);\n\n3. 配合React.memo：\nconst MemoChild = React.memo(Child);\n\nfunction Parent() {\n  const handleClick = useCallback(() => {}, []);\n  return <MemoChild onClick={handleClick} />;\n}\n\n注意事项：\n\n1. 不要过度优化：简单操作可能比useMemo开销更大\n2. 依赖数组必须完整：ESLint插件帮助检测\n3. useCallback不等于性能：内部实现有成本",
+      "knowledge_point": "React_UseCallback_UseMemo_Implementation",
+      "reference_link": "https://react.dev/reference/react/useMemo"
+    },
+    {
+      "id": "framework-senior-047",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Vue",
+        "源码解读",
+        "响应式",
+        "track/trigger"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Vue响应式track/trigger源码分析",
+      "content": "以下是Vue 3响应式系统的track函数简化版本。请分析这个函数的作用和执行流程：\n\nfunction track(target, type, key) {\n  if (!shouldTrack || !activeEffect) return;\n  \n  let depsMap = targetMap.get(target);\n  if (!depsMap) {\n    targetMap.set(target, (depsMap = new Map()));\n  }\n  \n  let dep = depsMap.get(key);\n  if (!dep) {\n    depsMap.set(key, (dep = createDep()));\n  }\n  \n  trackEffects(dep);\n}",
+      "options": [
+        {
+          "id": "A",
+          "text": "track函数在属性读取时调用，将当前activeEffect添加到该属性的依赖集合中，建立属性-副作用映射关系"
+        },
+        {
+          "id": "B",
+          "text": "track函数在属性修改时调用，触发所有依赖该属性的副作用执行"
+        },
+        {
+          "id": "C",
+          "text": "track函数创建新的响应式对象"
+        },
+        {
+          "id": "D",
+          "text": "track函数用于比较新旧值"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "track是Vue 3响应式系统依赖收集的核心函数，理解其工作原理对于掌握Vue至关重要。\n\ntrack函数执行流程：\n\n1. 前置检查：\nif (!shouldTrack || !activeEffect) return;\n\nshouldTrack：全局标志，控制是否收集依赖\nactiveEffect：当前正在执行的副作用函数\n\n如果不在副作用执行期间或不需要追踪，直接返回。\n\n2. 获取/创建depsMap：\nlet depsMap = targetMap.get(target);\nif (!depsMap) {\n  targetMap.set(target, (depsMap = new Map()));\n}\n\ntargetMap是WeakMap<object, depsMap>\ndepsMap是Map<string, dep>\n\n每个响应式对象对应一个depsMap。\n\n3. 获取/创建dep：\nlet dep = depsMap.get(key);\nif (!dep) {\n  depsMap.set(key, (dep = createDep()));\n}\n\ndep是Set<ReactiveEffect>，存储所有依赖该属性的副作用。\n\n4. 收集依赖：\ntrackEffects(dep);\n\nfunction trackEffects(dep) {\n  if (!dep.has(activeEffect)) {\n    dep.add(activeEffect);\n    activeEffect.deps.push(dep);\n  }\n}\n\n建立双向引用：\n- dep中存储activeEffect\n- activeEffect.deps中也存储dep（便于清理）\n\n完整流程示例：\n\nconst state = reactive({ count: 0 });\n\neffect(() => {\n  console.log(state.count);\n});\n\n执行过程：\n\n1. effect(() => { ... })执行\n   - activeEffect = 副作用函数\n\n2. 副作用函数执行，访问state.count\n\n3. Proxy的get trap触发\n\n4. track(target, 'get', 'count')调用\n\n5. 创建依赖结构：\n   targetMap: {\n     [state对象]: {\n       'count': Set([副作用函数])\n     }\n   }\n\n6. 后续state.count = 1时，trigger遍历Set执行副作用\n\ntype参数的作用：\n\ntrack(target, TrackOpTypes.GET, key);\n\nTrackOpTypes包括：\n- GET：读取属性\n- HAS：in操作符\n- ITERATE：迭代（如for...in）\n\n不同类型可能影响依赖收集的范围。\n\n与trigger的配合：\n\nfunction trigger(target, type, key) {\n  const depsMap = targetMap.get(target);\n  if (!depsMap) return;\n  \n  const dep = depsMap.get(key);\n  if (dep) {\n    triggerEffects(dep);\n  }\n}\n\ntrack收集依赖，trigger触发依赖，形成完整的响应式循环。\n\n性能优化：\n\n1. WeakMap避免内存泄漏：\n   target使用WeakMap，对象被GC时自动清理\n\n2. 延迟创建：\n   depsMap和dep按需创建，避免预分配\n\n3. 双向引用：\n   effect.deps用于快速清理所有依赖\n\nshouldTrack的控制：\n\n// 暂停追踪\npauseTracking();\nshouldTrack = false;\n\n// 恢复追踪\nresetTracking();\n\n用于数组变异方法内部，避免无限循环。\n\n选项B错误原因：\ntrigger函数才是触发副作用执行的函数，track只负责收集依赖。",
+      "knowledge_point": "Vue_Track_Trigger_Source",
+      "common_mistake": "容易混淆track和trigger的作用。track在属性读取时收集依赖，trigger在属性修改时触发依赖执行。",
+      "reference_link": "https://github.com/vuejs/core/blob/main/packages/reactivity/src/effect.ts"
+    },
+    {
+      "id": "framework-senior-048",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Vue",
+        "虚拟DOM",
+        "Diff算法"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "虚拟DOM设计理念",
+      "content": "虚拟DOM是React和Vue的核心技术。以下关于虚拟DOM的说法，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "虚拟DOM本质是JavaScript对象，描述真实DOM的结构"
+        },
+        {
+          "id": "B",
+          "text": "虚拟DOM的优势在于批量更新和最小化DOM操作"
+        },
+        {
+          "id": "C",
+          "text": "虚拟DOM总是比直接操作DOM快"
+        },
+        {
+          "id": "D",
+          "text": "React和Vue的虚拟DOM结构相同"
+        },
+        {
+          "id": "E",
+          "text": "虚拟DOM支持跨平台渲染（Web、Native、Canvas等）"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "E"
+      ],
+      "explanation": "虚拟DOM是现代前端框架的核心抽象层，理解其设计理念对于掌握框架至关重要。\n\n选项A解析 - JavaScript对象：\n正确。虚拟DOM是纯JavaScript对象：\n\n// React VNode\nconst reactElement = {\n  type: 'div',\n  props: {\n    className: 'container',\n    children: 'Hello'\n  }\n};\n\n// Vue VNode\nconst vueVNode = {\n  type: 'div',\n  props: { class: 'container' },\n  children: 'Hello',\n  patchFlag: 0\n};\n\n这是框架能够跨平台的基础——虚拟DOM与平台无关。\n\n选项B解析 - 批量更新和最小化操作：\n正确。虚拟DOM的核心优势：\n\n1. 批量更新：\n// 多次setState\nsetState({ a: 1 });\nsetState({ b: 2 });\nsetState({ c: 3 });\n\n// 虚拟DOM合并为一次更新\n// 只触发一次重渲染\n\n2. 最小化DOM操作：\n// 旧树\n<div><span>A</span></div>\n\n// 新树\n<div><span>B</span></div>\n\n// Diff发现只有文本变化\n// 只更新textContent，不重建DOM\n\n选项C解析 - 性能误区：\n错误。虚拟DOM不是万能的性能解决方案：\n\n// 虚拟DOM的开销\n1. 创建VNode对象\n2. Diff算法执行\n3. Patch DOM操作\n\n// 直接DOM操作\n1. 直接操作DOM\n\n对于简单场景，直接DOM操作更快。虚拟DOM的优势在于复杂场景的批量更新和可维护性。\n\n选项D解析 - 结构差异：\n错误。React和Vue的虚拟DOM结构不同：\n\n// React Element\n{\n  $$typeof: REACT_ELEMENT_TYPE,\n  type: 'div',\n  key: null,\n  ref: null,\n  props: { children: 'Hello' },\n  _owner: null\n}\n\n// Vue VNode\n{\n  type: 'div',\n  props: null,\n  key: null,\n  children: 'Hello',\n  patchFlag: 0,\n  dynamicChildren: null,\n  shapeFlag: 8,\n  // ...\n}\n\nVue的VNode有额外的优化字段（patchFlag、dynamicChildren）。\n\n选项E解析 - 跨平台支持：\n正确。虚拟DOM是平台无关的抽象：\n\n// Web\nimport { render } from 'react-dom';\n\n// Native\nimport { render } from 'react-native';\n\n// Canvas\nimport { render } from 'react-canvas';\n\n// Terminal\nimport { render } from 'ink';\n\n相同的组件代码，不同的渲染器，实现跨平台。\n\n虚拟DOM的完整工作流程：\n\n1. 创建：JSX/Template编译为VNode创建函数\n\n// JSX\n<div className=\"app\">Hello</div>\n\n// 编译为\nReact.createElement('div', { className: 'app' }, 'Hello')\n\n2. Diff：比较新旧VNode树\n\nfunction reconcile(oldVNode, newVNode) {\n  // 比较type和key\n  // 决定复用、更新或删除\n}\n\n3. Patch：将变化应用到真实DOM\n\nfunction patchDOM(operations) {\n  operations.forEach(op => {\n    switch (op.type) {\n      case 'INSERT': dom.appendChild(op.node); break;\n      case 'UPDATE': updateProps(op.node, op.props); break;\n      case 'DELETE': dom.removeChild(op.node); break;\n    }\n  });\n}\n\n虚拟DOM的局限：\n\n1. 内存占用：需要维护完整的虚拟树\n2. 首次渲染开销：创建VNode + 渲染\n3. 不适合高性能动画：每帧都需要Diff\n\n替代方案：\n\n1. Svelte：编译时优化，无虚拟DOM\n2. Solid.js：细粒度响应式，直接DOM更新\n3. Preact：轻量虚拟DOM，更小的运行时",
+      "exclusion_analysis": {
+        "C": "不选原因：虚拟DOM不总是比直接操作DOM快。简单场景下直接DOM操作更快。虚拟DOM的优势在于复杂场景的批量更新、可维护性和跨平台能力",
+        "D": "不选原因：React和Vue的虚拟DOM结构不同。Vue的VNode包含patchFlag、dynamicChildren等编译优化字段，React的Element结构更简单"
+      },
+      "knowledge_point": "Virtual_DOM_Design",
+      "reference_link": "https://reactjs.org/docs/faq-internals.html"
+    },
+    {
+      "id": "framework-senior-049",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "并发模式",
+        "并发安全",
+        "useSyncExternalStore"
+      ],
+      "source_company": "Google",
+      "score": 8,
+      "title": "useSyncExternalStore原理",
+      "content": "React 18引入的useSyncExternalStore用于安全地订阅外部store。它解决了什么问题？为什么在并发模式下需要这个Hook？",
+      "options": [
+        {
+          "id": "A",
+          "text": "解决并发渲染中外部状态与React状态不一致的问题，确保渲染过程中store快照的一致性"
+        },
+        {
+          "id": "B",
+          "text": "只是一个性能优化Hook，与并发安全无关"
+        },
+        {
+          "id": "C",
+          "text": "用于替代useEffect中订阅外部store的模式"
+        },
+        {
+          "id": "D",
+          "text": "只适用于Redux，不适用于其他状态管理库"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "useSyncExternalStore是React 18为并发安全引入的重要Hook，解决了外部状态订阅的撕裂问题。\n\n并发模式的问题：\n\n在并发模式下，React可能在渲染过程中暂停并让出主线程。这导致一个潜在问题：\n\n// 问题场景\nfunction Component() {\n  const value1 = externalStore.get(); // 渲染开始时读取\n  // ... React暂停，让出主线程\n  // 外部store被更新\n  const value2 = externalStore.get(); // 渲染恢复时读取\n  \n  // value1和value2可能不同！\n  // 导致UI不一致（Tearing）\n}\n\nuseSyncExternalStore的解决方案：\n\nconst value = useSyncExternalStore(\n  subscribe, // 订阅函数\n  getSnapshot, // 获取快照\n  getServerSnapshot? // SSR时的快照\n);\n\n// 内部实现概念\nfunction useSyncExternalStore(subscribe, getSnapshot) {\n  // 强制同步读取\n  // 在并发渲染期间，如果store变化，强制同步更新\n  \n  // 关键：使用getSnapshot保证整个渲染过程中读取相同值\n}\n\nAPI详解：\n\n1. subscribe：注册回调，store变化时调用\n(subscribe) => {\n  externalStore.subscribe(() => {\n    // 触发React重渲染\n    React.scheduleUpdate();\n  });\n}\n\n2. getSnapshot：返回store的不可变快照\n() => externalStore.getState()\n\n3. getServerSnapshot：服务端渲染时使用\n() => initialServerState\n\n实际使用示例：\n\n// 订阅Redux store\nimport { useSyncExternalStore } from 'react';\n\nfunction useReduxStore(selector) {\n  const store = useStore();\n  \n  return useSyncExternalStore(\n    (callback) => store.subscribe(callback),\n    () => selector(store.getState())\n  );\n}\n\n// 订阅浏览器API\nfunction useOnlineStatus() {\n  return useSyncExternalStore(\n    (callback) => {\n      window.addEventListener('online', callback);\n      window.addEventListener('offline', callback);\n      return () => {\n        window.removeEventListener('online', callback);\n        window.removeEventListener('offline', callback);\n      };\n    },\n    () => navigator.onLine\n  );\n}\n\nTearing问题详解：\n\nTearing是指渲染过程中状态不一致导致UI撕裂：\n\n// 可能出现Tearing的代码\nfunction ProductList() {\n  const products = externalStore.products;\n  \n  return (\n    <ul>\n      {products.map(p => (\n        // 如果渲染中途products变化\n        // 前几个用旧数据，后几个用新数据\n        <li key={p.id}>{p.name}</li>\n      ))}\n    </ul>\n  );\n}\n\nuseSyncExternalStore保证整个渲染过程中快照一致。\n\n与并发模式的关系：\n\nReact 18的并发特性（useTransition、useDeferredValue）允许渲染被中断。useSyncExternalStore确保：\n\n1. 渲染期间store快照一致\n2. store变化时强制同步更新\n3. 不会出现中间状态的UI\n\nRedux/Zustand的适配：\n\n现代状态管理库已内置支持：\n\n// Zustand\nconst useStore = create((set) => ({ count: 0 }));\n\n// 内部使用useSyncExternalStore\nfunction useZustandStore(store, selector) {\n  return useSyncExternalStore(\n    store.subscribe,\n    () => selector(store.getState())\n  );\n}\n\n迁移指南：\n\n// 旧代码（并发不安全）\nuseEffect(() => {\n  const unsubscribe = store.subscribe(() => {\n    setState(store.getState());\n  });\n  return unsubscribe;\n}, []);\n\n// 新代码（并发安全）\nconst state = useSyncExternalStore(\n  store.subscribe,\n  store.getState\n);",
+      "knowledge_point": "React_UseSyncExternalStore",
+      "common_mistake": "容易忽视并发模式下的Tearing问题。useSyncExternalStore是专门为解决并发安全而设计的，不是简单的性能优化。",
+      "reference_link": "https://react.dev/reference/react/useSyncExternalStore"
+    },
+    {
+      "id": "framework-senior-050",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "React",
+        "Vue",
+        "框架选型",
+        "架构设计"
+      ],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "框架选型与架构决策",
+      "content": "在技术选型时，React和Vue各有优势。以下关于框架选型的考虑因素，哪些是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "React更适合大型团队，因为JSX是纯JavaScript，TypeScript支持更好，代码风格统一"
+        },
+        {
+          "id": "B",
+          "text": "Vue更适合快速开发，因为模板语法更直观，内置指令和组件更丰富"
+        },
+        {
+          "id": "C",
+          "text": "React的生态系统更丰富，但选择成本更高（状态管理、路由、UI库都需要选择）"
+        },
+        {
+          "id": "D",
+          "text": "Vue的学习曲线更平缓，文档更完整，适合团队技术栈统一"
+        },
+        {
+          "id": "E",
+          "text": "React Native使React在跨平台移动开发中有明显优势"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "explanation": "框架选型是架构决策的重要部分，需要综合考虑团队、项目、生态等多个维度。\n\n选项A解析 - React与大型团队：\n正确。React的特点：\n\n1. JSX是JavaScript：\n// JSX\nconst element = <div className=\"app\">{title}</div>;\n\n// 等价的JS\nconst element = React.createElement('div', { className: 'app' }, title);\n\n没有新的模板语法需要学习，TypeScript类型推断自然。\n\n2. 函数式风格：\nfunction Counter({ initialCount }) {\n  const [count, setCount] = useState(initialCount);\n  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;\n}\n\n组件是纯函数，易于测试和推理。\n\n3. 代码风格统一：\n没有Options API和Composition API的选择，函数组件是唯一推荐方式。\n\n选项B解析 - Vue与快速开发：\n正确。Vue的优势：\n\n1. 模板语法直观：\n<template>\n  <div v-if=\"show\">\n    <ul>\n      <li v-for=\"item in list\" :key=\"item.id\">\n        {{ item.name }}\n      </li>\n    </ul>\n  </div>\n</template>\n\nvs React：\n{show && (\n  <ul>\n    {list.map(item => (\n      <li key={item.id}>{item.name}</li>\n    ))}\n  </ul>\n)}\n\n2. 内置指令丰富：\nv-if, v-for, v-model, v-show, v-bind, v-on, v-slot, v-memo...\n\nReact需要使用条件渲染、map等JavaScript实现。\n\n选项C解析 - 生态系统对比：\n正确。\n\nReact生态：\n- 状态管理：Redux, MobX, Zustand, Jotai, Recoil, XState...\n- 路由：React Router, Reach Router, TanStack Router...\n- UI库：Material-UI, Ant Design, Chakra UI, Mantine...\n- 表单：React Hook Form, Formik, Final Form...\n\n选择成本：需要评估每个选项，做出决策。\n\nVue生态：\n- 状态管理：Pinia（官方推荐）\n- 路由：Vue Router（官方）\n- UI库：Element Plus, Vuetify, Ant Design Vue...\n- 表单：VeeValidate\n\n选择成本更低：官方推荐通常是最好的选择。\n\n选项D解析 - 学习曲线：\n正确。\n\nVue学习路径：\n1. 模板语法 -> Options API -> 基础组件 -> 路由 -> Pinia\n2. 文档完整，API清晰\n3. 进阶：Composition API, 响应式原理\n\nReact学习路径：\n1. JSX -> 组件 -> Props/State -> Hooks -> 路由 -> 状态管理\n2. 需要理解JavaScript特性（闭包、副作用）\n3. 进阶：Fiber, 并发模式, 性能优化\n\nVue的API设计更友好，学习曲线更平缓。\n\n选项E解析 - React Native优势：\n正确。\n\nReact Native：\n- 与React共享核心概念\n- 组件可复用（70%+代码共享）\n- 生态成熟\n\nVue移动方案：\n- Weex（阿里维护，社区活跃度较低）\n- Uni-app（DCloud维护，国内流行）\n- NativeScript-Vue\n\nReact Native有明显优势。\n\n选型决策矩阵：\n\n| 因素 | React优势 | Vue优势 |\n|------|----------|--------|\n| 团队规模 | 大型团队 | 中小型团队 |\n| 开发速度 | 中等 | 快速 |\n| TypeScript | 原生支持 | 良好支持 |\n| 学习曲线 | 中等 | 平缓 |\n| 生态选择 | 丰富（选择成本高） | 官方推荐 |\n| 跨平台 | React Native | 选项较少 |\n| 性能优化 | 手动优化 | 自动优化 |\n| 函数式风格 | 原生支持 | Composition API |\n\n实际选型建议：\n\n选择React当：\n1. 大型团队，需要代码风格统一\n2. 复杂应用，需要精细控制\n3. 有React Native需求\n4. 团队熟悉函数式编程\n\n选择Vue当：\n1. 快速开发原型或中小型项目\n2. 团队经验水平不一\n3. 希望官方推荐方案\n4. 偏好模板语法\n\n混合方案：\n\n微前端架构允许不同框架共存：\n- 主应用：React\n- 子应用：Vue（特定模块）\n\n这允许团队根据具体需求选择最合适的工具。",
+      "knowledge_point": "Framework_Selection_Decision",
+      "reference_link": "https://react.dev/learn"
+    }
+  ]
+}

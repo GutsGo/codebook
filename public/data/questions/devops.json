@@ -1,0 +1,2726 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "Engineering/DevOps",
+    "generated_at": "2024-05-20T10:00:00Z",
+    "total_questions": 30,
+    "target_level": "Senior",
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
+  },
+  "questions": [
+    {
+      "id": "engineer-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Pipeline", "DevOps"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "CI/CD 流水线阶段设计",
+      "content": "在设计一个高可用的前端 CI/CD 流水线时，以下哪个阶段顺序最符合最佳实践？\n\nA. Build -> Lint -> Test -> Deploy\nB. Lint -> Test -> Build -> Deploy\nC. Lint -> Build -> Test -> Deploy\nD. Test -> Lint -> Build -> Deploy",
+      "options": [
+        { "id": "A", "text": "Build -> Lint -> Test -> Deploy" },
+        { "id": "B", "text": "Lint -> Test -> Build -> Deploy" },
+        { "id": "C", "text": "Lint -> Build -> Test -> Deploy" },
+        { "id": "D", "text": "Test -> Lint -> Build -> Deploy" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：CI/CD 的核心目标是快速反馈错误并保证交付质量。Lint 阶段消耗资源最少且能发现最基础的语法规范问题，应最先执行以快速失败（Fail Fast）。Build 阶段将源码转化为可执行产物，Test 阶段需要基于构建后的产物或模块进行单元测试和集成测试，若先 Test 后 Build 可能导致测试环境与生产构建不一致。Deploy 是最后一步。\n\n错误选项剖析：A 选项先 Build 后 Lint，若 Lint 失败则浪费 Build 资源；B 选项先 Test 后 Build，测试可能无法通过未构建的模块依赖；D 选项顺序完全混乱。\n\n工程实践建议：在大型项目中，建议将 Lint 放在 Pre-commit Hook 和 CI 第一步，Build 产物应缓存以加速后续流程，测试阶段应并行化执行以减少流水线耗时。",
+      "common_mistake": "误认为 Build 应该最先执行以确保代码可编译，忽略了 Lint 的轻量级快速反馈特性。"
+    },
+    {
+      "id": "engineer-senior-002",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Docker", "Image", "Performance"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Docker 镜像层缓存优化",
+      "content": "为了最大化利用 Docker 镜像层缓存（Layer Caching），以下 Dockerfile 写法最优的是？\n\nA. COPY . . -> RUN npm install\nB. RUN npm install -> COPY . .\nC. COPY package.json -> RUN npm install -> COPY . .\nD. COPY package-lock.json -> RUN npm install -> COPY src",
+      "options": [
+        { "id": "A", "text": "COPY . . -> RUN npm install" },
+        { "id": "B", "text": "RUN npm install -> COPY . ." },
+        {
+          "id": "C",
+          "text": "COPY package.json -> RUN npm install -> COPY . ."
+        },
+        {
+          "id": "D",
+          "text": "COPY package-lock.json -> RUN npm install -> COPY src"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：Docker 镜像构建是分层缓存的，任何一层指令变化会导致该层及后续所有层缓存失效。npm install 依赖 package.json 的变化。若先 COPY . .，任何源码变动都会导致 COPY 层哈希变化，从而使后续 npm install 层缓存失效，每次全量安装依赖。\n\n错误选项剖析：A 选项任何文件变动都会触发依赖重装，效率极低；B 选项逻辑错误，未复制文件无法安装；D 选项仅复制 lock 文件可能不足，且 COPY src 范围过窄可能遗漏其他配置。\n\n工程实践建议：最佳实践是先复制依赖描述文件（package.json 和 lock 文件），执行安装，再复制源代码。这样只有依赖变更时才会重新安装，源码变更可直接复用依赖层缓存，显著缩短构建时间。",
+      "common_mistake": "忽略 Docker 层缓存机制，习惯性将所有文件一次性 COPY 进去。"
+    },
+    {
+      "id": "engineer-senior-003",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Git", "VersionControl", "Workflow"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "Git Rebase 与 Merge 的选择",
+      "content": "在多人协作的主分支保护策略中，关于 Rebase 和 Merge 的使用场景，下列说法正确的是？\n\nA. 公共分支应强制使用 Rebase 保持线性历史\nB. 公共分支应使用 Merge 保留完整上下文，私有分支可用 Rebase 整理\nC. 所有场景都应使用 Rebase 以保持历史干净\nD. 所有场景都应使用 Merge 以避免历史丢失",
+      "options": [
+        { "id": "A", "text": "公共分支应强制使用 Rebase 保持线性历史" },
+        {
+          "id": "B",
+          "text": "公共分支应使用 Merge 保留完整上下文，私有分支可用 Rebase 整理"
+        },
+        { "id": "C", "text": "所有场景都应使用 Rebase 以保持历史干净" },
+        { "id": "D", "text": "所有场景都应使用 Merge 以避免历史丢失" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Rebase 会重写提交历史，改变 Commit Hash。若在公共分支（如 main/dev）上 Rebase，会导致其他协作者的历史分叉，引发严重的同步冲突。Merge 保留完整的分支合并上下文，适合公共分支。私有分支（本地功能分支）尚未共享，可使用 Rebase 整理提交记录，使历史清晰。\n\n错误选项剖析：A 选项在公共分支 Rebase 会破坏协作历史；C 选项公共分支 Rebase 风险极大；D 选项虽安全但历史可能杂乱，私有分支整理无妨。\n\n工程实践建议：配置 Git Hook 禁止在 protected branches 上 force push。代码审查合并时，建议使用 Squash Merge 或 Merge Commit，视团队偏好而定，但严禁在共享分支 Rebase。",
+      "common_mistake": "为了追求历史线性美观，在公共分支上强制 Rebase，导致团队同步灾难。"
+    },
+    {
+      "id": "engineer-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SemVer", "Dependency", "Management"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "语义化版本控制规范",
+      "content": "根据 Semantic Versioning 2.0.0 规范，版本号格式为 X.Y.Z。当修复了一个不影响 API 兼容性的 Bug 时，应递增哪一位？\n\nA. X (Major)\nB. Y (Minor)\nC. Z (Patch)\nD. 任意位",
+      "options": [
+        { "id": "A", "text": "X (Major)" },
+        { "id": "B", "text": "Y (Minor)" },
+        { "id": "C", "text": "Z (Patch)" },
+        { "id": "D", "text": "任意位" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：SemVer 规定 Major 版本用于不兼容的 API 修改，Minor 版本用于向后兼容的功能性新增，Patch 版本用于向后兼容的问题修正。修复 Bug 属于问题修正且不破坏 API 兼容性，因此递增 Patch 位。\n\n错误选项剖析：A 选项用于破坏性更新；B 选项用于新增功能；D 选项违背规范。\n\n工程实践建议：在 package.json 中建议使用锁定文件（package-lock.json 或 yarn.lock）确保依赖版本精确一致。发布库时严格遵循 SemVer，避免随意升级 Major 版本导致下游用户构建失败。",
+      "common_mistake": "混淆 Minor 和 Patch 的使用场景，或将所有更新都视为 Minor。"
+    },
+    {
+      "id": "engineer-senior-005",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "Observability", "RED"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "RED 监控方法论",
+      "content": "在微服务监控体系中，Google SRE 提出的 RED 方法主要关注哪三个指标？\n\nA. CPU, Memory, Disk\nB. Rate, Errors, Duration\nC. Requests, Events, Logs\nD. Response, Error, Data",
+      "options": [
+        { "id": "A", "text": "CPU, Memory, Disk" },
+        { "id": "B", "text": "Rate, Errors, Duration" },
+        { "id": "C", "text": "Requests, Events, Logs" },
+        { "id": "D", "text": "Response, Error, Data" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：RED 方法专用于监控服务级别的关键指标。Rate 指每秒请求数（吞吐量），Errors 指每秒失败请求数，Duration 指处理每个请求的时间（延迟）。这三个指标能最直接反映服务健康度。A 选项是 USE 方法（针对资源）。\n\n错误选项剖析：A 选项是资源监控指标；C 选项是日志相关；D 选项拼凑词汇。\n\n工程实践建议：在 Prometheus 或 SkyWalking 中配置 RED 面板。报警阈值应基于 Errors 比率和 Duration 的 P99 分位数，而非平均值，以捕捉长尾延迟问题。",
+      "common_mistake": "混淆 RED（服务指标）与 USE（资源指标）方法，或仅关注平均值忽略分位数。"
+    },
+    {
+      "id": "engineer-senior-006",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["CodeReview", "Quality", "Process"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "代码审查核心关注点",
+      "content": "在进行 Senior 级别的代码审查（Code Review）时，以下哪项优先级最高？\n\nA. 变量命名规范\nB. 缩进与格式\nC. 架构设计与潜在风险\nD. 注释完整性",
+      "options": [
+        { "id": "A", "text": "变量命名规范" },
+        { "id": "B", "text": "缩进与格式" },
+        { "id": "C", "text": "架构设计与潜在风险" },
+        { "id": "D", "text": "注释完整性" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：代码审查的核心价值在于发现设计缺陷、逻辑错误和安全风险。命名、格式等应由 Linter 自动检查，不应浪费人力。架构设计错误后期修复成本极高，属于高风险区域，需人工重点把关。\n\n错误选项剖析：A、B、D 属于风格和规范，应自动化处理。若人工纠结于此，会降低 CR 效率且忽略核心问题。\n\n工程实践建议：配置 ESLint/Prettier 强制格式化，CI 阶段拦截规范问题。CR 重点检查边界条件、并发安全、数据一致性、扩展性及是否符合系统整体架构。",
+      "common_mistake": "在 CR 中过度纠结格式细节，导致忽略逻辑漏洞，或因格式问题反复打回降低士气。"
+    },
+    {
+      "id": "engineer-senior-007",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Kubernetes", "Pod", "Status"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "K8s Pod 状态排查",
+      "content": "当 Kubernetes Pod 状态显示为 CrashLoopBackOff 时，最可能的原因是？\n\nA. 镜像拉取失败\nB. 应用启动后立即退出或崩溃\nC. 节点资源不足\nD. 服务端口未暴露",
+      "options": [
+        { "id": "A", "text": "镜像拉取失败" },
+        { "id": "B", "text": "应用启动后立即退出或崩溃" },
+        { "id": "C", "text": "节点资源不足" },
+        { "id": "D", "text": "服务端口未暴露" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：CrashLoopBackOff 表示容器启动后非正常退出，K8s 尝试重启但再次失败，进入退避等待循环。通常由应用代码错误、配置缺失、依赖连接失败导致进程退出引起。A 选项是 ImagePullBackOff，C 选项是 Pending。\n\n错误选项剖析：A 选项状态为 ImagePullBackOff；C 选项通常导致 Pending；D 选项不影响 Pod 运行状态，只影响服务访问。\n\n工程实践建议：使用 `kubectl logs <pod> --previous` 查看上一次崩溃的日志。检查健康检查（Liveness Probe）配置是否过于严格导致误杀。确保应用捕获异常并优雅退出或保持运行。",
+      "common_mistake": "混淆 CrashLoopBackOff 与 ImagePullBackOff 或 Pending 状态的含义。"
+    },
+    {
+      "id": "engineer-senior-008",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["IaC", "Terraform", "Infrastructure"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "基础设施即代码优势",
+      "content": "采用 Terraform 等基础设施即代码（IaC）工具的主要优势不包括？\n\nA. 版本控制基础设施变更\nB. 自动化资源销毁与重建\nC. 完全替代手动控制台操作\nD. 提高环境一致性",
+      "options": [
+        { "id": "A", "text": "版本控制基础设施变更" },
+        { "id": "B", "text": "自动化资源销毁与重建" },
+        { "id": "C", "text": "完全替代手动控制台操作" },
+        { "id": "D", "text": "提高环境一致性" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：IaC 的核心是将基础设施定义代码化，实现版本管理、自动化部署和环境一致性。虽然目标是减少手动操作，但紧急故障排查、临时调试等场景仍需手动控制台介入，无法‘完全替代’。\n\n错误选项剖析：A、B、D 均为 IaC 的核心优势。C 选项过于绝对，实际工程中需保留应急手动通道。\n\n工程实践建议：状态文件（tfstate）需远程存储并加锁。生产环境开启 drift detection 检测配置漂移。严禁直接在控制台修改 IaC 管理的资源，如需修改应更新代码后 apply。",
+      "common_mistake": "认为 IaC 能 100% 消除手动操作，忽略应急场景和工具局限性。"
+    },
+    {
+      "id": "engineer-senior-009",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Deployment", "Canary", "Strategy"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "金丝雀发布策略",
+      "content": "关于金丝雀发布（Canary Deployment），以下描述正确的是？\n\nA. 一次性将所有流量切换到新版本\nB. 先将少量流量导入新版本，观察稳定后逐步扩大\nC. 同时运行两套完全独立的生产环境\nD. 仅在测试环境验证新版本",
+      "options": [
+        { "id": "A", "text": "一次性将所有流量切换到新版本" },
+        { "id": "B", "text": "先将少量流量导入新版本，观察稳定后逐步扩大" },
+        { "id": "C", "text": "同时运行两套完全独立的生产环境" },
+        { "id": "D", "text": "仅在测试环境验证新版本" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：金丝雀发布旨在降低发布风险。通过路由控制将少量真实流量（如 1%~5%）导入新版本，监控错误率和性能。若稳定则逐步全量，若异常则快速回滚。A 是全量发布，C 是蓝绿部署，D 是测试。\n\n错误选项剖析：A 风险极高；C 资源消耗大且切换瞬间完成，非金丝雀特征；D 未涉及生产流量。\n\n工程实践建议：结合特征标记（Feature Flag）控制流量。监控需细化到新版本实例的独立指标。回滚策略应自动化，一旦错误率超阈值立即切回旧版本。",
+      "common_mistake": "混淆金丝雀发布与蓝绿部署，或未配置细粒度监控导致金丝雀失效。"
+    },
+    {
+      "id": "engineer-senior-010",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Dependency", "LockFile", "Security"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "依赖锁定文件作用",
+      "content": "在前端项目中，package-lock.json 或 yarn.lock 的主要作用是？\n\nA. 加速 npm install 速度\nB. 确保所有环境安装的依赖版本完全一致\nC. 防止安装恶意包\nD. 自动升级依赖版本",
+      "options": [
+        { "id": "A", "text": "加速 npm install 速度" },
+        { "id": "B", "text": "确保所有环境安装的依赖版本完全一致" },
+        { "id": "C", "text": "防止安装恶意包" },
+        { "id": "D", "text": "自动升级依赖版本" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：锁定文件记录了依赖树中每个包的确切版本和哈希值。不同开发者或 CI 环境执行 install 时，能还原出完全一致的 node_modules 结构，避免‘在我机器上是好的’问题。A 是次要效果，C 需配合审计工具，D 违背锁定初衷。\n\n错误选项剖析：A 虽有缓存效果但非核心目的；C 需 npm audit；D 锁定文件正是为了防止自动升级。\n\n工程实践建议：锁定文件必须提交到版本控制。更新依赖应使用专门命令（如 npm update）并审查变更。CI 阶段应校验锁定文件是否与 package.json 冲突。",
+      "common_mistake": "忽略提交锁定文件，导致团队协作中依赖版本不一致引发 Bug。"
+    },
+    {
+      "id": "engineer-senior-011",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Artifact", "Storage", "CI/CD"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "构建产物存储策略",
+      "content": "关于 CI/CD 中的构建产物（Artifact）管理，最佳实践是？\n\nA. 存入 Git 仓库\nB. 存入专用制品库（如 Nexus/AWS S3）\nC. 留在 CI  runner 本地\nD. 直接部署不存储",
+      "options": [
+        { "id": "A", "text": "存入 Git 仓库" },
+        { "id": "B", "text": "存入专用制品库（如 Nexus/AWS S3）" },
+        { "id": "C", "text": "留在 CI  runner 本地" },
+        { "id": "D", "text": "直接部署不存储" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：构建产物是二进制文件或静态资源，体积大且无需版本 diffs，存入 Git 会导致仓库膨胀。CI Runner 本地存储不可靠（实例可能销毁）。专用制品库支持版本管理、权限控制和快速分发，支持回滚到特定构建版本。\n\n错误选项剖析：A 污染代码库；C 易丢失且无法复用；D 无法回滚历史版本。\n\n工程实践建议：产物应包含构建元数据（Commit Hash, Build Time）。设置保留策略自动清理旧产物以节省成本。部署阶段从制品库拉取而非重新构建，确保部署一致性。",
+      "common_mistake": "将 dist 目录提交到 Git，或依赖 CI 临时实例存储产物导致无法回滚。"
+    },
+    {
+      "id": "engineer-senior-012",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Git", "Hotfix", "Branching"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "线上紧急修复流程",
+      "content": "生产环境发现严重 Bug 需要紧急修复（Hotfix），基于 Git Flow 的最佳操作是？\n\nA. 直接在 main 分支修改并提交\nB. 从 main 分支切出 hotfix 分支，修复后合并回 main 和 develop\nC. 在 develop 分支修复后等待下次发布\nD. 本地修复后强制推送到 main",
+      "options": [
+        { "id": "A", "text": "直接在 main 分支修改并提交" },
+        {
+          "id": "B",
+          "text": "从 main 分支切出 hotfix 分支，修复后合并回 main 和 develop"
+        },
+        { "id": "C", "text": "在 develop 分支修复后等待下次发布" },
+        { "id": "D", "text": "本地修复后强制推送到 main" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Hotfix 需快速上线且不影响正在开发中的功能（develop 分支）。从 main（稳定版）切出 hotfix 分支修复，验证后合并回 main 发布，并同步合并回 develop 确保后续版本包含修复。A 破坏分支保护，C 延误修复，D 风险极高。\n\n错误选项剖析：A 绕过 CR 和测试流程；C 无法满足紧急性；D 可能覆盖他人提交。\n\n工程实践建议：Hotfix 流程应自动化触发快速流水线。修复后需验证是否引入回归问题。同步合并到 develop 避免版本漂移，若冲突需手动解决。",
+      "common_mistake": "直接在主分支修改导致未经过完整测试，或忘记同步回开发分支导致 Bug 复发。"
+    },
+    {
+      "id": "engineer-senior-013",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["DevOps", "Culture", "Practice"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "DevOps 核心文化实践",
+      "content": "以下哪些行为符合 DevOps 的核心文化与实践原则？（多选）\n\nA. 开发与运维团队职责严格隔离\nB. 自动化一切可自动化的流程\nC. 鼓励小规模频繁发布\nD. 建立共同的责任制（You build it, You run it）\nE. 故障发生后优先追责个人",
+      "options": [
+        { "id": "A", "text": "开发与运维团队职责严格隔离" },
+        { "id": "B", "text": "自动化一切可自动化的流程" },
+        { "id": "C", "text": "鼓励小规模频繁发布" },
+        { "id": "D", "text": "建立共同的责任制（You build it, You run it）" },
+        { "id": "E", "text": "故障发生后优先追责个人" }
+      ],
+      "correct_answer": ["B", "C", "D"],
+      "explanation": "原理机制：DevOps 旨在打破开发与运维的墙（Silos），强调协作、自动化和快速反馈。A 违背打破隔离原则；E 违背无责复盘（Blameless Postmortem）原则。B、C、D 均符合加速交付、降低风险、增强责任感的核心理念。\n\n错误选项剖析：A 是传统运维模式；E 会导致隐瞒故障，应关注系统改进而非个人惩罚。\n\n工程实践建议：推行全功能团队，开发人员参与 On-call。建设自助式运维平台减少人工介入。故障复盘聚焦流程漏洞而非人为失误。",
+      "exclusion_analysis": {
+        "A": "DevOps 核心是打破部门墙，严格隔离会导致沟通成本高昂。",
+        "E": "无责文化鼓励暴露问题，追责个人会导致隐瞒隐患。"
+      }
+    },
+    {
+      "id": "engineer-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "Pyramid", "Strategy"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "测试金字塔模型",
+      "content": "根据测试金字塔模型，构建高效测试体系应包含哪些层次？（多选）\n\nA. 大量 UI 端到端测试\nB. 大量单元测试\nC. 适量集成测试\nD. 少量端到端测试\nE. 仅靠手动测试",
+      "options": [
+        { "id": "A", "text": "大量 UI 端到端测试" },
+        { "id": "B", "text": "大量单元测试" },
+        { "id": "C", "text": "适量集成测试" },
+        { "id": "D", "text": "少量端到端测试" },
+        { "id": "E", "text": "仅靠手动测试" }
+      ],
+      "correct_answer": ["B", "C", "D"],
+      "explanation": "原理机制：测试金字塔建议底层单元测试数量最多（速度快、成本低），中间集成测试适量，顶层端到端（E2E）测试最少（速度慢、维护成本高）。A 选项倒金字塔会导致测试套件脆弱且运行缓慢。E 选项无法自动化回归。\n\n错误选项剖析：A 违背金字塔原则，UI 测试不稳定且慢；E 无法适应敏捷迭代。\n\n工程实践建议：单元测试覆盖核心逻辑，集成测试验证模块交互，E2E 测试覆盖关键用户路径。CI 中优先运行单元测试，夜间运行 E2E。",
+      "exclusion_analysis": {
+        "A": "UI 测试维护成本高且运行慢，不应作为主体。",
+        "E": "手动测试无法保证回归效率，必须自动化。"
+      }
+    },
+    {
+      "id": "engineer-senior-015",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Container", "Security", "BestPractice"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "容器安全最佳实践",
+      "content": "在生产环境部署 Docker 容器时，以下哪些安全措施是必要的？（多选）\n\nA. 使用 root 用户运行容器\nB. 扫描镜像漏洞\nC. 限制容器资源（CPU/Memory）\nD. 移除不必要的工具（如 curl, ssh）\nE. 硬编码密钥在镜像中",
+      "options": [
+        { "id": "A", "text": "使用 root 用户运行容器" },
+        { "id": "B", "text": "扫描镜像漏洞" },
+        { "id": "C", "text": "限制容器资源（CPU/Memory）" },
+        { "id": "D", "text": "移除不必要的工具（如 curl, ssh）" },
+        { "id": "E", "text": "硬编码密钥在镜像中" }
+      ],
+      "correct_answer": ["B", "C", "D"],
+      "explanation": "原理机制：容器安全遵循最小权限原则。A 选项 root 运行风险极大，一旦逃逸危害宿主机；E 选项密钥泄露风险高。B 确保基础镜像安全，C 防止资源耗尽攻击（DoS），D 减小攻击面（Attack Surface）。\n\n错误选项剖析：A 违背最小权限；E 违背密钥管理规范，应使用 Secrets 管理。\n\n工程实践建议：使用 Distroless 或 Alpine 最小化镜像。CI 阶段集成 Trivy 等扫描工具。K8s 中配置 SecurityContext 禁止特权模式。密钥通过环境变量或 Vault 注入。",
+      "exclusion_analysis": {
+        "A": "Root 权限可能导致容器逃逸危及宿主机安全。",
+        "E": "镜像公开可见，硬编码密钥等于泄露，应使用运行时注入。"
+      }
+    },
+    {
+      "id": "engineer-senior-016",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Security", "Risk"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "CI/CD 流水线安全风险",
+      "content": "CI/CD 流水线可能面临哪些安全风险？（多选）\n\nA. 恶意代码注入构建脚本\nB. 构建凭证泄露\nC. 依赖包投毒\nD.  artifacts 被篡改\nE. 流水线运行过慢",
+      "options": [
+        { "id": "A", "text": "恶意代码注入构建脚本" },
+        { "id": "B", "text": "构建凭证泄露" },
+        { "id": "C", "text": "依赖包投毒" },
+        { "id": "D", "text": " artifacts 被篡改" },
+        { "id": "E", "text": "流水线运行过慢" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：CI/CD 拥有高权限，是攻击高价值目标。A 可通过 PR 注入恶意脚本；B 导致攻击者获取部署权限；C 供应链攻击常见手段；D 导致部署恶意产物。E 是性能问题而非安全风险。\n\n错误选项剖析：E 影响效率但不直接构成安全威胁。\n\n工程实践建议：限制 CI 权限，仅授予最小必要范围。扫描依赖漏洞（SCA）。签名构建产物。保护 CI 变量和 Secrets。审查外部贡献者的 PR 流水线权限。",
+      "exclusion_analysis": {
+        "E": "运行慢属于性能优化范畴，不属于安全威胁。"
+      }
+    },
+    {
+      "id": "engineer-senior-017",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Monorepo", "Architecture", "Strategy"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "Monorepo 架构优缺点",
+      "content": "关于 Monorepo（单体仓库）管理策略，以下描述正确的有？（多选）\n\nA. 便于跨项目代码共享和重构\nB. 构建速度天然比 Multirepo 快\nC. 版本管理统一，避免依赖地狱\nD. 权限控制粒度较粗\nE. 适合所有规模的项目",
+      "options": [
+        { "id": "A", "text": "便于跨项目代码共享和重构" },
+        { "id": "B", "text": "构建速度天然比 Multirepo 快" },
+        { "id": "C", "text": "版本管理统一，避免依赖地狱" },
+        { "id": "D", "text": "权限控制粒度较粗" },
+        { "id": "E", "text": "适合所有规模的项目" }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "原理机制：Monorepo 将多个项目放在同一仓库，利于原子提交和共享库管理（A、C）。但所有代码可见，权限控制通常基于目录，粒度不如多仓库精细（D）。B 错误，若无增量构建优化，Monorepo 构建通常更慢。E 错误，小项目无需复杂 Monorepo 工具链。\n\n错误选项剖析：B 需配合 Nx/Turborepo 等工具才能实现增量构建，否则更慢；E 需视团队规模而定。\n\n工程实践建议：使用 pnpm workspace 或 Nx 管理。配置增量构建和受影响项目检测。注意仓库克隆体积，必要时使用 Sparse Checkout。",
+      "exclusion_analysis": {
+        "B": "代码量大时全量构建慢，需工具优化才快。",
+        "E": "小团队维护成本高，不一定适合。"
+      }
+    },
+    {
+      "id": "engineer-senior-018",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Observability", "Pillars", "Monitoring"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "可观测性三大支柱",
+      "content": "现代可观测性（Observability）体系的三大支柱包括？（多选）\n\nA. Metrics（指标）\nB. Logs（日志）\nC. Traces（链路追踪）\nD. Alerts（报警）\nE. Dashboards（仪表盘）",
+      "options": [
+        { "id": "A", "text": "Metrics（指标）" },
+        { "id": "B", "text": "Logs（日志）" },
+        { "id": "C", "text": "Traces（链路追踪）" },
+        { "id": "D", "text": "Alerts（报警）" },
+        { "id": "E", "text": "Dashboards（仪表盘）" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：可观测性三大支柱是 Metrics（聚合数据）、Logs（离散事件）、Traces（请求路径）。D 和 E 是基于三大支柱数据的消费展示方式，不属于数据源支柱本身。\n\n错误选项剖析：D、E 是应用层功能，非底层数据支柱。\n\n工程实践建议：统一采集标准（如 OpenTelemetry）。实现三者关联（如在 Metric 中跳转 Trace）。避免日志过多影响性能，采用采样策略。",
+      "exclusion_analysis": {
+        "D": "报警是基于指标的动作，非数据支柱。",
+        "E": "仪表盘是展示工具，非数据支柱。"
+      }
+    },
+    {
+      "id": "engineer-senior-019",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Deployment", "BlueGreen", "Canary"],
+      "source_company": "Amazon",
+      "score": 15,
+      "title": "蓝绿部署与金丝雀对比",
+      "content": "关于蓝绿部署（Blue-Green）与金丝雀发布（Canary），以下对比正确的有？（多选）\n\nA. 蓝绿部署资源消耗通常更高\nB. 金丝雀发布风险更低\nC. 蓝绿部署切换速度更快\nD. 金丝雀发布需要复杂的路由控制\nE. 蓝绿部署无法回滚",
+      "options": [
+        { "id": "A", "text": "蓝绿部署资源消耗通常更高" },
+        { "id": "B", "text": "金丝雀发布风险更低" },
+        { "id": "C", "text": "蓝绿部署切换速度更快" },
+        { "id": "D", "text": "金丝雀发布需要复杂的路由控制" },
+        { "id": "E", "text": "蓝绿部署无法回滚" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：蓝绿需同时运行两套完整环境，资源消耗高（A），但切换是瞬间的（C）。金丝雀逐步放量，风险更可控（B），但需负载均衡器支持权重路由（D）。蓝绿可快速切回旧环境，支持回滚（E 错）。\n\n错误选项剖析：E 蓝绿部署回滚只需切换流量回旧环境，非常快。\n\n工程实践建议：资源紧张时选金丝雀，追求快速回滚且资源充足时选蓝绿。结合自动化脚本管理环境生命周期。",
+      "exclusion_analysis": {
+        "E": "蓝绿部署的核心优势之一就是快速回滚。"
+      }
+    },
+    {
+      "id": "engineer-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CodeQuality", "Metrics", "Analysis"],
+      "source_company": "SonarSource",
+      "score": 15,
+      "title": "代码质量度量指标",
+      "content": "评估代码质量时，以下哪些指标具有参考意义？（多选）\n\nA. 代码覆盖率（Coverage）\nB. 圈复杂度（Cyclomatic Complexity）\nC. 重复代码率（Duplication）\nD. 技术债务比率（Technical Debt）\nE. 代码行数（LOC）",
+      "options": [
+        { "id": "A", "text": "代码覆盖率（Coverage）" },
+        { "id": "B", "text": "圈复杂度（Cyclomatic Complexity）" },
+        { "id": "C", "text": "重复代码率（Duplication）" },
+        { "id": "D", "text": "技术债务比率（Technical Debt）" },
+        { "id": "E", "text": "代码行数（LOC）" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：A 反映测试完备性，B 反映逻辑复杂度和可测试性，C 反映维护成本，D 反映修复缺陷所需工时。E 代码行数多不代表质量差，有时业务复杂必然行数多，非直接质量指标。\n\n错误选项剖析：E 仅反映规模，不反映质量，甚至可能鼓励冗余代码。\n\n工程实践建议：设定质量门禁（Quality Gate），如覆盖率>80%，复杂度<15。定期重构降低技术债务。不盲目追求 100% 覆盖率。",
+      "exclusion_analysis": {
+        "E": "行数多可能是业务复杂，不能作为质量差的依据。"
+      }
+    },
+    {
+      "id": "engineer-senior-021",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Release", "Management", "Process"],
+      "source_company": "Microsoft",
+      "score": 15,
+      "title": "发布管理关键步骤",
+      "content": "一个标准的生产发布流程应包含哪些关键步骤？（多选）\n\nA. 发布计划评审\nB. 预发布环境验证\nC. 自动化部署执行\nD. 发布后监控观察\nE. 直接推送生产代码",
+      "options": [
+        { "id": "A", "text": "发布计划评审" },
+        { "id": "B", "text": "预发布环境验证" },
+        { "id": "C", "text": "自动化部署执行" },
+        { "id": "D", "text": "发布后监控观察" },
+        { "id": "E", "text": "直接推送生产代码" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：发布管理需控制风险。A 确保各方知情，B 验证生产配置兼容性，C 减少人为错误，D 确保发布后健康。E 跳过流程风险极高，不符合工程规范。\n\n错误选项剖析：E 属于违规操作，极易引发事故。\n\n工程实践建议：建立 Change Advisory Board (CAB) 评审重大变更。预发布环境数据需脱敏但结构一致。发布窗口避开业务高峰期。",
+      "exclusion_analysis": {
+        "E": "未经测试和评审直接推送生产是严重违规行为。"
+      }
+    },
+    {
+      "id": "engineer-senior-022",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Infrastructure", "Immutable", "Concept"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "不可变基础设施概念",
+      "content": "不可变基础设施（Immutable Infrastructure）意味着服务器一旦部署，就不应再进行任何修改，如有变更需替换新实例。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：紧急安全补丁可能需要临时修复，但随后应更新镜像并替换。调试时可临时进入但变更不应持久化。",
+      "explanation": "原理机制：不可变基础设施核心是‘替换而非修改’。这消除了配置漂移（Configuration Drift），确保环境一致性，支持快速回滚和弹性伸缩。若直接修改运行中服务器，状态将变得不可预测且难以复现。\n\n工程实践建议：结合容器化技术，每次发布构建新镜像。使用自动伸缩组自动替换旧实例。禁止 SSH 登录生产服务器进行配置修改。",
+      "common_mistake": "认为不可变意味着完全不能登录调试，实际上调试允许但变更不可持久。"
+    },
+    {
+      "id": "engineer-senior-023",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Testing", "Coverage", "Quality"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "测试覆盖率与质量关系",
+      "content": "单元测试覆盖率达到 100% 意味着代码没有 Bug 且质量极高。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：覆盖率仅衡量代码执行行数，不衡量断言有效性。可能覆盖了代码但未验证逻辑正确性。",
+      "explanation": "原理机制：覆盖率仅表示代码被执行的比例，不保证测试用例的正确性或断言的有效性。可能所有行都运行了但没检查返回值。此外，覆盖率无法发现需求理解错误、集成问题或性能问题。\n\n工程实践建议：关注分支覆盖率和突变测试（Mutation Testing）。结合集成测试和 E2E 测试。质量是综合指标，非单一覆盖率决定。",
+      "common_mistake": "盲目追求 100% 覆盖率指标，编写无断言的测试代码凑数。"
+    },
+    {
+      "id": "engineer-senior-024",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Git", "Security", "ForcePush"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Git 强制推送风险",
+      "content": "在共享的主分支（main/master）上执行 git push --force 是安全的操作。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：仅在个人私有分支或确认无人基于该分支开发时可 force push。公共分支严禁。",
+      "explanation": "原理机制：Force push 会重写历史，改变 Commit Hash。若在共享分支执行，其他协作者的本地历史将与远程冲突，导致代码丢失或合并混乱。这是协作大忌。\n\n工程实践建议：配置分支保护规则（Branch Protection Rules）禁止 Force Push。使用 git push --force-with-lease 在私有分支降低误删风险。",
+      "common_mistake": "为了解决合并冲突图方便在公共分支强制推送，破坏团队历史。"
+    },
+    {
+      "id": "engineer-senior-025",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Docker", "Security", "Root"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "Docker 容器用户权限",
+      "content": "为了便于调试，生产环境 Docker 容器应默认使用 root 用户运行。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：某些特定系统级工具可能需要 root，但应通过 capabilities 最小化授权，而非直接 root 运行应用。",
+      "explanation": "原理机制：容器内 root 等同于宿主机 root 权限（取决于配置），一旦容器逃逸，攻击者将控制宿主机。最小权限原则要求使用非 root 用户运行应用进程。\n\n工程实践建议：Dockerfile 中使用 USER 指令切换用户。K8s 中配置 runAsNonRoot: true。仅必要工具以 root 启动后降权。",
+      "common_mistake": "为方便调试忽略安全风险，默认 root 运行导致攻击面扩大。"
+    },
+    {
+      "id": "engineer-senior-026",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Approval", "Process"],
+      "source_company": "Banking",
+      "score": 5,
+      "title": "CI/CD 人工审批环节",
+      "content": "在金融等高风险行业，生产部署流水线中保留人工审批（Manual Approval）环节是必要的。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：内部测试环境可全自动，但生产环境尤其是涉及资金变动的系统需合规审批。",
+      "explanation": "原理机制：虽然 DevOps 追求自动化，但高风险场景需合规控制和最终确认。人工审批作为最后一道防线，确保变更窗口、回滚方案已准备就绪。完全自动化可能因脚本错误导致灾难。\n\n工程实践建议：审批流程应电子化留痕。限制审批人权限。审批超时自动取消。结合自动化测试报告辅助审批决策。",
+      "common_mistake": "盲目追求全自动化，忽略行业合规要求和风险控制。"
+    },
+    {
+      "id": "engineer-senior-027",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["SemVer", "Algorithm", "Engineering"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "语义化版本号比较器",
+      "content": "在依赖管理系统中，需要实现一个函数比较两个语义化版本号（SemVer）的大小。请实现 compareVersion 函数。\n\n规则：\n1. 版本号格式：major.minor.patch (如 1.2.3)\n2. 返回 1 如果 v1 > v2，-1 如果 v1 < v2，0 如果相等\n3. 忽略前导零（如 01.1 等于 1.1）\n4. 缺失部分视为 0（如 1.0 等于 1.0.0）",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "/**\n * 比较两个语义化版本号\n * @param v1 - 版本号字符串\n * @param v2 - 版本号字符串\n * @returns 1 (v1>v2), -1 (v1<v2), 0 (equal)\n */\nfunction compareVersion(v1: string, v2: string): number {\n  // 请在此处实现代码\n  return 0;\n}",
+      "test_cases": [
+        {
+          "input": "\"1.0.1\", \"1.0.0\"",
+          "expected_output": "1",
+          "description": "patch 版本更大"
+        },
+        {
+          "input": "\"1.0\", \"1.0.0\"",
+          "expected_output": "0",
+          "description": "缺失部分视为 0"
+        },
+        {
+          "input": "\"01.1\", \"1.1\"",
+          "expected_output": "0",
+          "description": "忽略前导零"
+        },
+        {
+          "input": "\"1.2\", \"1.10\"",
+          "expected_output": "-1",
+          "description": "数字比较非字符串比较"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(N)",
+      "explanation": "原理机制：版本号比较需按段分割后逐段转为整数比较。不能直接字符串比较（因为 1.10 > 1.2 但字符串 '10' < '2' 是错的，实际上 '10' > '2' 但在版本逻辑中需数值比较）。需处理长度不一致情况，短版本补零。\n\n错误选型剖析：直接字符串比较会出错；未处理前导零会导致解析错误；未补零会导致长度不同时比较异常。\n\n工程实践建议：实际项目中建议使用 semver 库而非手写，避免边界条件遗漏。手写时需考虑大数溢出问题（JS 中 Number 安全范围）。",
+      "reference_solution": "function compareVersion(v1: string, v2: string): number {\n  const parts1 = v1.split('.').map(Number);\n  const parts2 = v2.split('.').map(Number);\n  const len = Math.max(parts1.length, parts2.length);\n  for (let i = 0; i < len; i++) {\n    const n1 = parts1[i] || 0;\n    const n2 = parts2[i] || 0;\n    if (n1 > n2) return 1;\n    if (n1 < n2) return -1;\n  }\n  return 0;\n}",
+      "common_mistake": "使用字符串 localeCompare 而非数值比较，导致 1.10 被判定小于 1.2。"
+    },
+    {
+      "id": "engineer-senior-028",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Dependency", "Graph", "TopologicalSort"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "依赖构建顺序解析",
+      "content": "在构建系统中，模块之间存在依赖关系。给定一组模块和依赖关系，请输出一个合法的构建顺序（拓扑排序）。\n\n要求：\n1. 若存在循环依赖，返回空数组\n2. 若有多种顺序，返回任意一种\n3. 输入为依赖边列表 [from, to] 表示 to 依赖 from",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "/**\n * 计算构建顺序\n * @param n - 模块数量 (0 到 n-1)\n * @param dependencies - 依赖关系 [from, to]\n * @returns 构建顺序数组\n */\nfunction findBuildOrder(n: number, dependencies: number[][]): number[] {\n  // 请在此处实现代码\n  return [];\n}",
+      "test_cases": [
+        {
+          "input": "4, [[1,0],[2,0],[3,1],[3,2]]",
+          "expected_output": "[0,1,2,3]",
+          "description": "正常依赖链"
+        },
+        {
+          "input": "2, [[0,1],[1,0]]",
+          "expected_output": "[]",
+          "description": "循环依赖"
+        },
+        {
+          "input": "3, []",
+          "expected_output": "[0,1,2]",
+          "description": "无依赖"
+        },
+        {
+          "input": "3, [[1,0]]",
+          "expected_output": "[0,1,2]",
+          "description": "部分依赖"
+        }
+      ],
+      "time_complexity": "O(V+E)",
+      "space_complexity": "O(V+E)",
+      "explanation": "原理机制：这是典型的拓扑排序问题，使用 Kahn 算法或 DFS。统计每个节点的入度，入度为 0 的节点可先构建。每构建一个节点，减少其依赖节点的入度。若最终处理节点数小于总数，说明存在环。\n\n错误选型剖析：DFS 未检测回边会导致死循环；未处理入度更新会导致顺序错误；忽略孤立节点会导致结果不全。\n\n工程实践建议：Webpack/Vite 等打包工具内部使用类似算法确定模块加载顺序。循环依赖检测是构建系统必备功能，需友好报错。",
+      "reference_solution": "function findBuildOrder(n: number, dependencies: number[][]): number[] {\n  const indegree = new Array(n).fill(0);\n  const graph = new Array(n).fill(null).map(() => []);\n  for (const [from, to] of dependencies) {\n    graph[from].push(to);\n    indegree[to]++;\n  }\n  const queue = indegree.map((v, i) => v === 0 ? i : -1).filter(i => i !== -1);\n  const result = [];\n  while (queue.length) {\n    const node = queue.shift()!;\n    result.push(node);\n    for (const next of graph[node]) {\n      if (--indegree[next] === 0) queue.push(next);\n    }\n  }\n  return result.length === n ? result : [];\n}",
+      "common_mistake": "忽略循环依赖检测，导致构建死锁或栈溢出。"
+    },
+    {
+      "id": "engineer-senior-029",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Log", "Analysis", "Metrics"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "日志错误率计算",
+      "content": "给定一个按时间排序的日志数组，每条日志包含 timestamp 和 level。请计算最近 5 分钟内的错误率（ERROR 级别占比）。\n\n要求：\n1. 时间单位为秒\n2. 滑动窗口计算\n3. 若窗口内无日志，返回 0",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Log {\n  timestamp: number; // 秒级时间戳\n  level: string;\n}\n\n/**\n * 计算最近 5 分钟错误率\n * @param logs - 日志数组\n * @param now - 当前时间戳\n * @returns 错误率 0-1\n */\nfunction calculateErrorRate(logs: Log[], now: number): number {\n  // 请在此处实现代码\n  return 0;\n}",
+      "test_cases": [
+        {
+          "input": "[{timestamp:100, level:'INFO'}], 100",
+          "expected_output": "0",
+          "description": "无错误"
+        },
+        {
+          "input": "[{timestamp:100, level:'ERROR'}], 100",
+          "expected_output": "1",
+          "description": "全错误"
+        },
+        {
+          "input": "[{timestamp:100, level:'INFO'}, {timestamp:200, level:'ERROR'}], 300",
+          "expected_output": "0.5",
+          "description": "混合日志"
+        },
+        {
+          "input": "[{timestamp:100, level:'ERROR'}], 400",
+          "expected_output": "0",
+          "description": "超出 5 分钟窗口"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：滑动窗口算法。由于日志已排序，可从后向前遍历或双指针。过滤掉超过 5 分钟（300 秒）的日志。统计窗口内总数和错误数。注意边界条件，窗口外日志不计入。\n\n错误选型剖析：未过滤时间窗口导致历史数据污染；未处理空数组导致除零错误；未考虑日志无序（题目假设有序，若无序需排序）。\n\n工程实践建议：实际监控系统中通常使用时序数据库（如 Prometheus）预聚合，而非实时计算全量日志。前端监控 SDK 应本地采样后上报。",
+      "reference_solution": "function calculateErrorRate(logs: Log[], now: number): number {\n  const windowSize = 300;\n  let total = 0;\n  let errors = 0;\n  for (let i = logs.length - 1; i >= 0; i--) {\n    if (now - logs[i].timestamp > windowSize) break;\n    total++;\n    if (logs[i].level === 'ERROR') errors++;\n  }\n  return total === 0 ? 0 : errors / total;\n}",
+      "common_mistake": "忘记检查时间窗口边界，将所有历史日志都计入计算。"
+    },
+    {
+      "id": "engineer-senior-030",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "DAG", "Validation"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "CI 流水线 DAG 有效性验证",
+      "content": "CI 流水线可视为有向无环图（DAG）。给定任务节点和依赖关系，验证该流水线配置是否有效（无环且所有依赖存在）。\n\n要求：\n1. 检查是否存在循环依赖\n2. 检查依赖的任务节点是否定义\n3. 返回验证结果对象",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface PipelineConfig {\n  tasks: string[];\n  dependencies: [string, string][]; // [task, dependsOn]\n}\n\ninterface ValidationResult {\n  valid: boolean;\n  error?: string;\n}\n\n/**\n * 验证流水线配置\n * @param config - 流水线配置\n * @returns 验证结果\n */\nfunction validatePipeline(config: PipelineConfig): ValidationResult {\n  // 请在此处实现代码\n  return { valid: true };\n}",
+      "test_cases": [
+        {
+          "input": "{\"tasks\":[\"A\",\"B\"], \"dependencies\":[[\"B\",\"A\"]]}",
+          "expected_output": "{\"valid\":true}",
+          "description": "有效配置"
+        },
+        {
+          "input": "{\"tasks\":[\"A\",\"B\"], \"dependencies\":[[\"B\",\"C\"]]}",
+          "expected_output": "{\"valid\":false, \"error\":\"...\"}",
+          "description": "依赖未定义任务"
+        },
+        {
+          "input": "{\"tasks\":[\"A\",\"B\"], \"dependencies\":[[\"A\",\"B\"],[\"B\",\"A\"]]}",
+          "expected_output": "{\"valid\":false, \"error\":\"...\"}",
+          "description": "循环依赖"
+        },
+        {
+          "input": "{\"tasks\":[\"A\"], \"dependencies\":[]}",
+          "expected_output": "{\"valid\":true}",
+          "description": "单任务无依赖"
+        }
+      ],
+      "time_complexity": "O(V+E)",
+      "space_complexity": "O(V)",
+      "explanation": "原理机制：需结合集合查找和图遍历。首先验证所有依赖节点是否在 tasks 列表中（O(E)）。然后使用 DFS 或入度法检测环（O(V+E)）。若依赖不存在直接报错；若检测到环报错。\n\n错误选型剖析：仅检测环忽略节点存在性；仅检测节点存在性忽略环；未处理孤立节点（允许）。\n\n工程实践建议：GitHub Actions/GitLab CI 在解析 yaml 时会进行此类验证。前端可视化编排工具也需实时验证 DAG 有效性以防死锁。",
+      "reference_solution": "function validatePipeline(config: PipelineConfig): ValidationResult {\n  const taskSet = new Set(config.tasks);\n  for (const [task, dep] of config.dependencies) {\n    if (!taskSet.has(task) || !taskSet.has(dep)) {\n      return { valid: false, error: 'Undefined task in dependencies' };\n    }\n  }\n  const graph = new Map();\n  config.tasks.forEach(t => graph.set(t, []));\n  config.dependencies.forEach(([t, d]) => graph.get(d).push(t));\n  const visited = new Set();\n  const recStack = new Set();\n  function hasCycle(node: string): boolean {\n    visited.add(node);\n    recStack.add(node);\n    for (const next of graph.get(node)) {\n      if (!visited.has(next) && hasCycle(next)) return true;\n      if (recStack.has(next)) return true;\n    }\n    recStack.delete(node);\n    return false;\n  }\n  for (const task of config.tasks) {\n    if (!visited.has(task) && hasCycle(task)) return { valid: false, error: 'Cycle detected' };\n  }\n  return { valid: true };\n}",
+      "common_mistake": "忽略依赖节点未定义的情况，仅关注循环检测。"
+    },
+    {
+      "id": "engineer-senior-031",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Build", "Cache", "Performance"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "远程构建缓存策略",
+      "content": "在大型 Monorepo 项目中，为了加速 CI 构建，引入远程缓存（Remote Cache）机制。以下关于缓存键（Cache Key）生成的最佳实践是？\n\nA. 仅基于文件内容哈希\nB. 基于文件内容哈希 + 环境变量哈希 + 命令哈希\nC. 基于时间戳生成\nD. 基于分支名称生成",
+      "options": [
+        { "id": "A", "text": "仅基于文件内容哈希" },
+        { "id": "B", "text": "基于文件内容哈希 + 环境变量哈希 + 命令哈希" },
+        { "id": "C", "text": "基于时间戳生成" },
+        { "id": "D", "text": "基于分支名称生成" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：构建缓存的准确性取决于输入的唯一性。仅文件内容哈希忽略了环境变量（如 API_URL）或命令参数变化可能导致构建产物不同。时间戳和分支名不稳定，会导致缓存命中率低或命中错误缓存。最佳实践是综合所有影响构建输出的因素生成哈希。\n\n错误选项剖析：A 忽略环境因素；C 导致缓存永不命中；D 导致不同分支相同代码无法共享缓存。\n\n工程实践建议：使用 Turborepo 或 Nx 的远程缓存功能。配置 cache key 包含 package.json 锁文件、相关源码文件、环境变量白名单。确保缓存存储后端（如 S3）具备高可用性。",
+      "common_mistake": "忽略环境变量对构建产物的影响，导致缓存命中后运行时报错。"
+    },
+    {
+      "id": "engineer-senior-032",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["FeatureFlag", "Release", "Risk"],
+      "source_company": "Facebook",
+      "score": 10,
+      "title": "功能开关生命周期管理",
+      "content": "关于功能开关（Feature Flag）的管理，以下哪种做法风险最高？\n\nA. 长期保留已全量开启的功能开关\nB. 在代码中硬编码开关默认值\nC. 使用配置中心动态下发开关状态\nD. 为每个开关设置过期清理计划",
+      "options": [
+        { "id": "A", "text": "长期保留已全量开启的功能开关" },
+        { "id": "B", "text": "在代码中硬编码开关默认值" },
+        { "id": "C", "text": "使用配置中心动态下发开关状态" },
+        { "id": "D", "text": "为每个开关设置过期清理计划" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：功能开关引入代码复杂度和维护成本。长期保留已全量开启的开关会导致代码库中积累大量死代码（Dead Code），增加测试负担和逻辑分支复杂度，最终导致‘开关债务’。B 虽不灵活但风险可控；C 是最佳实践；D 是治理手段。\n\n错误选项剖析：A 导致技术债务累积，增加系统熵值；B、C、D 均为正常管理手段。\n\n工程实践建议：建立开关注册表和清理机制。开关全量稳定后应在下一个迭代移除代码分支。定期审计活跃开关数量。避免嵌套过多开关导致组合爆炸。",
+      "common_mistake": "认为开关无害，长期不清理，导致系统逻辑支离破碎，排查问题困难。"
+    },
+    {
+      "id": "engineer-senior-033",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Environment", "Parity", "DevOps"],
+      "source_company": "Netflix",
+      "score": 10,
+      "title": "环境一致性保障",
+      "content": "为避免‘在我本地是好的’问题，保障开发、测试、生产环境一致性的最有效手段是？\n\nA. 口头约定配置规范\nB. 使用 Docker 容器统一运行时环境\nC. 手动同步配置文件\nD. 仅在生产环境部署前测试",
+      "options": [
+        { "id": "A", "text": "口头约定配置规范" },
+        { "id": "B", "text": "使用 Docker 容器统一运行时环境" },
+        { "id": "C", "text": "手动同步配置文件" },
+        { "id": "D", "text": "仅在生产环境部署前测试" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：环境不一致通常源于 OS 版本、依赖库、运行时版本差异。Docker 通过镜像固化了文件系统、依赖和运行时，确保‘构建一次，到处运行’。口头约定和手动同步不可靠，易出错。仅生产前测试发现太晚。\n\n错误选项剖析：A 无强制力；C 易遗漏且效率低；D 风险极高，不符合左移测试原则。\n\n工程实践建议：开发环境也使用 Docker Compose 启动依赖服务。配置差异通过环境变量注入，而非镜像差异。确保本地开发环境与 CI 环境镜像一致。",
+      "common_mistake": "本地直接安装 Node/Python 环境开发，而生产使用容器，导致原生依赖编译不一致。"
+    },
+    {
+      "id": "engineer-senior-034",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["ChaosEngineering", "Reliability", "Testing"],
+      "source_company": "Netflix",
+      "score": 10,
+      "title": "混沌工程实施原则",
+      "content": "在生产环境实施混沌工程（Chaos Engineering）实验时，首要原则是？\n\nA. 尽可能制造最大故障\nB. 最小化爆炸半径（Blast Radius）\nC. 无需通知相关人员\nD. 在业务高峰期进行",
+      "options": [
+        { "id": "A", "text": "尽可能制造最大故障" },
+        { "id": "B", "text": "最小化爆炸半径（Blast Radius）" },
+        { "id": "C", "text": "无需通知相关人员" },
+        { "id": "D", "text": "在业务高峰期进行" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：混沌工程旨在验证系统韧性，而非破坏系统。最小化爆炸半径意味着控制影响范围（如仅影响 1% 用户或特定区域），防止实验引发大规模事故。A 违背安全原则；C 违背协作原则；D 增加风险。\n\n错误选项剖析：A 可能导致真实灾难；C 导致故障发生时无人响应；D 增加业务损失风险。\n\n工程实践建议：先在小范围非核心业务实验。配置自动停止机制（Auto-stop）。建立假设驱动的实验流程。确保监控告警能覆盖实验引发的异常。",
+      "common_mistake": "盲目注入故障，未控制范围，导致真实用户受影响，引发生产事故。"
+    },
+    {
+      "id": "engineer-senior-035",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "Secrets", "Vault"],
+      "source_company": "HashiCorp",
+      "score": 10,
+      "title": "密钥管理最佳实践",
+      "content": "关于敏感信息（密钥、密码）的管理，以下哪种方式最安全？\n\nA. 存入代码仓库的配置文件\nB. 存入 CI/CD 的环境变量\nC. 使用专用密钥管理服务（如 Vault）动态注入\nD. 加密后存入代码仓库",
+      "options": [
+        { "id": "A", "text": "存入代码仓库的配置文件" },
+        { "id": "B", "text": "存入 CI/CD 的环境变量" },
+        { "id": "C", "text": "使用专用密钥管理服务（如 Vault）动态注入" },
+        { "id": "D", "text": "加密后存入代码仓库" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：密钥应与代码分离。A 极易泄露；B 虽比 A 好但 CI 日志可能泄露且生命周期长；D 密钥管理复杂且仍有泄露风险。C 使用专用服务（如 HashiCorp Vault, AWS Secrets Manager）支持动态生成、自动轮换、审计日志和最小权限访问，最安全。\n\n错误选项剖析：A 是严重安全违规；B 适合低敏感信息；D 密钥本身管理仍是问题。\n\n工程实践建议：应用启动时从 Vault 拉取密钥。设置密钥短有效期。禁止密钥落地磁盘。CI/CD 中通过 OIDC 认证拉取密钥而非静态 Token。",
+      "common_mistake": "为方便将密钥写在 .env 文件并提交到 Git，导致公开泄露。"
+    },
+    {
+      "id": "engineer-senior-036",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Database", "Migration", "DevOps"],
+      "source_company": "Uber",
+      "score": 10,
+      "title": "数据库向后兼容迁移",
+      "content": "在前端发布涉及数据库 schema 变更时，为避免停机维护，应遵循什么原则？\n\nA. 先改代码，再改数据库\nB. 先改数据库，再改代码\nC. 数据库变更需向后兼容，分阶段发布\nD. 同时发布代码和数据库变更",
+      "options": [
+        { "id": "A", "text": "先改代码，再改数据库" },
+        { "id": "B", "text": "先改数据库，再改代码" },
+        { "id": "C", "text": "数据库变更需向后兼容，分阶段发布" },
+        { "id": "D", "text": "同时发布代码和数据库变更" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：数据库变更需考虑多版本代码共存（如回滚时旧代码需能读新库）。向后兼容（如加列不加约束）允许先改库，再改代码，再清理旧列。A 会导致旧代码报错；B 若不加兼容约束会导致旧代码报错；D 风险高，难以回滚。\n\n错误选项剖析：A 导致发布期间服务不可用；B 若破坏兼容性则旧版本崩溃；D 缺乏缓冲。\n\n工程实践建议：遵循‘扩展 - 迁移 - 收缩’模式。先加字段（扩展），后台迁移数据，代码适配，最后删旧字段（收缩）。确保所有变更可回滚。",
+      "common_mistake": "直接修改或删除字段，导致回滚时旧代码无法运行，被迫停机。"
+    },
+    {
+      "id": "engineer-senior-037",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["API", "Contract", "Testing"],
+      "source_company": "Pact",
+      "score": 10,
+      "title": "契约测试核心价值",
+      "content": "在微服务架构中，引入契约测试（Contract Testing）主要解决什么问题？\n\nA. 替代端到端测试\nB. 验证服务间接口兼容性\nC. 测试数据库性能\nD. 检查代码风格",
+      "options": [
+        { "id": "A", "text": "替代端到端测试" },
+        { "id": "B", "text": "验证服务间接口兼容性" },
+        { "id": "C", "text": "测试数据库性能" },
+        { "id": "D", "text": "检查代码风格" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：微服务间集成复杂，E2E 测试慢且不稳定。契约测试（如 Pact）验证消费者和提供者之间的接口约定（请求/响应格式），确保变更不破坏兼容性。它不替代 E2E，而是补充集成测试缺口。C、D 无关。\n\n错误选项剖析：A 契约测试不能覆盖业务流程，无法替代 E2E；C、D 非契约测试范畴。\n\n工程实践建议：在 CI 中运行契约验证。消费者驱动契约（CDC）模式最有效。确保契约版本化管理。结合 Mock 服务加速测试。",
+      "common_mistake": "认为有了契约测试就不需要 E2E 测试，导致业务流程漏洞。"
+    },
+    {
+      "id": "engineer-senior-038",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "Visual", "Regression"],
+      "source_company": "Percy",
+      "score": 10,
+      "title": "视觉回归测试适用场景",
+      "content": "视觉回归测试（Visual Regression Testing）最适合用于检测哪类问题？\n\nA. 接口逻辑错误\nB. 数据库连接失败\nC. UI 样式意外变更\nD. 服务器负载过高",
+      "options": [
+        { "id": "A", "text": "接口逻辑错误" },
+        { "id": "B", "text": "数据库连接失败" },
+        { "id": "C", "text": "UI 样式意外变更" },
+        { "id": "D", "text": "服务器负载过高" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：视觉回归测试通过截图对比像素差异，专门发现 CSS 样式、布局错位、颜色变化等 UI 问题。逻辑错误需单元测试，连接失败需集成测试，负载需性能测试。\n\n错误选项剖析：A、B、D 均非视觉层面问题，截图无法发现。\n\n工程实践建议：结合 Storybook 使用。设置阈值忽略微小差异（如抗锯齿）。仅对关键页面进行视觉测试以减少维护成本。动态内容需 Mock 固定。",
+      "common_mistake": "对所有页面开启视觉测试，导致因动态内容（时间/广告）产生大量误报。"
+    },
+    {
+      "id": "engineer-senior-039",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Performance", "Budget", "CI"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "性能预算门禁",
+      "content": "在 CI 流水线中引入性能预算（Performance Budget）门禁的主要目的是？\n\nA. 加快构建速度\nB. 防止性能回归\nC. 减少代码行数\nD. 节省服务器成本",
+      "options": [
+        { "id": "A", "text": "加快构建速度" },
+        { "id": "B", "text": "防止性能回归" },
+        { "id": "C", "text": "减少代码行数" },
+        { "id": "D", "text": "节省服务器成本" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：性能预算设定关键指标（如 LCP、Bundle Size）阈值。CI 中自动测量，若超标则阻断合并。这能防止无意中引入的性能退化（Regression）。A 无关，C 非直接目的，D 是间接效果。\n\n错误选项剖析：A 性能测试通常增加构建时间；C 行数少不代表性能好；D 是结果非直接目的。\n\n工程实践建议：使用 Lighthouse CI 或 Webpack Bundle Analyzer。设定合理阈值（如 P90）。允许临时豁免但需审批。监控趋势而非单次值。",
+      "common_mistake": "阈值设置过严导致频繁误报，或过松失去门禁意义。"
+    },
+    {
+      "id": "engineer-senior-040",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Accessibility", "A11y", "CI"],
+      "source_company": "Deque",
+      "score": 10,
+      "title": "无障碍自动化测试",
+      "content": "关于前端无障碍（A11y）测试，以下说法正确的是？\n\nA. 自动化工具能发现所有无障碍问题\nB. 仅需在发布前手动测试\nC. 自动化可发现约 30-50% 的问题，需结合人工\nD. 无障碍仅影响残障人士，优先级低",
+      "options": [
+        { "id": "A", "text": "自动化工具能发现所有无障碍问题" },
+        { "id": "B", "text": "仅需在发布前手动测试" },
+        { "id": "C", "text": "自动化可发现约 30-50% 的问题，需结合人工" },
+        { "id": "D", "text": "无障碍仅影响残障人士，优先级低" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：无障碍问题分技术层（如缺少 alt 属性）和语义层（如逻辑顺序）。自动化工具（如 axe-core）只能检测技术层，约 30-50%。语义层需人工键盘导航或屏幕阅读器测试。D 违背包容性设计原则，且影响 SEO 和法律合规。\n\n错误选项剖析：A 过于乐观；B 发现太晚；D 忽视合规和用户体验。\n\n工程实践建议：CI 中集成 axe-core 扫描。开发阶段使用浏览器插件实时检查。定期邀请残障人士参与用户测试。遵循 WCAG 2.1 标准。",
+      "common_mistake": "完全依赖自动化工具，认为通过扫描即合规，忽略实际可用性。"
+    },
+    {
+      "id": "engineer-senior-041",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "SCA", "Dependency"],
+      "source_company": "Snyk",
+      "score": 15,
+      "title": "软件成分分析（SCA）",
+      "content": "软件成分分析（SCA）工具在 DevOps 流程中的主要作用包括？（多选）\n\nA. 识别开源依赖中的已知漏洞\nB. 自动修复所有代码 Bug\nC. 检查许可证合规性\nD. 监控依赖版本更新\nE. 替代单元测试",
+      "options": [
+        { "id": "A", "text": "识别开源依赖中的已知漏洞" },
+        { "id": "B", "text": "自动修复所有代码 Bug" },
+        { "id": "C", "text": "检查许可证合规性" },
+        { "id": "D", "text": "监控依赖版本更新" },
+        { "id": "E", "text": "替代单元测试" }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "原理机制：SCA 专注于第三方依赖管理。A 是核心功能（CVE 匹配）；C 防止法律风险（如 GPL 污染）；D 帮助保持依赖新鲜度。B 超出范围，SCA 不修业务逻辑；E 测试类型不同，不可替代。\n\n错误选项剖析：B 代码逻辑 Bug 需静态分析或测试；E 单元测试验证业务逻辑，SCA 验证依赖安全。\n\n工程实践建议：CI 中集成 Snyk 或 Dependabot。设置漏洞严重性阈值阻断构建。定期审查许可证风险。开启自动 PR 升级依赖。",
+      "exclusion_analysis": {
+        "B": "SCA 仅针对依赖包，无法修复业务代码逻辑错误。",
+        "E": "单元测试和 SCA 是互补关系，非替代关系。"
+      }
+    },
+    {
+      "id": "engineer-senior-042",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Deployment", "ZeroDowntime", "Database"],
+      "source_company": "Amazon",
+      "score": 15,
+      "title": "零停机部署挑战",
+      "content": "实现零停机部署（Zero Downtime Deployment）时，需重点解决哪些挑战？（多选）\n\nA. 数据库 schema 兼容性\nB. 会话状态保持（Session Stickiness）\nC. 旧版本进程优雅退出\nD. 负载均衡器健康检查\nE. 彻底删除旧代码",
+      "options": [
+        { "id": "A", "text": "数据库 schema 兼容性" },
+        { "id": "B", "text": "会话状态保持（Session Stickiness）" },
+        { "id": "C", "text": "旧版本进程优雅退出" },
+        { "id": "D", "text": "负载均衡器健康检查" },
+        { "id": "E", "text": "彻底删除旧代码" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：零停机要求新旧版本共存期间服务不中断。A 需向后兼容；B 防止用户登录态丢失；C 防止请求被强行切断；D 确保流量只导向健康实例。E 是部署后清理，非部署中挑战。\n\n错误选项剖析：E 属于清理工作，不影响部署过程中的可用性。\n\n工程实践建议：数据库变更分阶段。使用 Cookie 或 Redis 集中管理会话。配置 K8s preStop hook 处理优雅退出。健康检查需包含依赖状态。\n",
+      "exclusion_analysis": {
+        "E": "删除旧代码是部署后的清理步骤，不影响部署期间的连续性。"
+      }
+    },
+    {
+      "id": "engineer-senior-043",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Cloud", "MultiRegion", "Architecture"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "多区域部署考量",
+      "content": "设计多区域（Multi-Region）部署架构时，需权衡哪些因素？（多选）\n\nA. 数据一致性延迟\nB. 成本增加\nC. 运维复杂度\nD. 单点故障风险降低\nE. 代码编写难度降低",
+      "options": [
+        { "id": "A", "text": "数据一致性延迟" },
+        { "id": "B", "text": "成本增加" },
+        { "id": "C", "text": "运维复杂度" },
+        { "id": "D", "text": "单点故障风险降低" },
+        { "id": "E", "text": "代码编写难度降低" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：多区域提高可用性（D），但带来数据同步延迟（A  CAP 定理）、资源成本翻倍（B）和运维调度复杂（C）。E 错误，分布式系统代码难度显著增加（需处理分区容忍性）。\n\n错误选项剖析：E 多区域意味着分布式系统，复杂度远高于单区域。\n\n工程实践建议：明确 RTO/RPO 目标。使用全局负载均衡（GSLB）。数据采用最终一致性或主从复制。评估成本收益比。\n",
+      "exclusion_analysis": {
+        "E": "分布式系统开发难度远高于单体，需处理网络分区和延迟。"
+      }
+    },
+    {
+      "id": "engineer-senior-044",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CDN", "Cache", "Invalidation"],
+      "source_company": "Cloudflare",
+      "score": 15,
+      "title": "CDN 缓存失效策略",
+      "content": "关于 CDN 缓存失效（Cache Invalidation），以下策略有效的有？（多选）\n\nA. 文件指纹化（Hashing）\nB. 手动 Purge API\nC. 设置短 TTL\nD. 修改文件名版本后缀\nE. 禁用 CDN 缓存",
+      "options": [
+        { "id": "A", "text": "文件指纹化（Hashing）" },
+        { "id": "B", "text": "手动 Purge API" },
+        { "id": "C", "text": "设置短 TTL" },
+        { "id": "D", "text": "修改文件名版本后缀" },
+        { "id": "E", "text": "禁用 CDN 缓存" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：A/D 通过变更 URL 强制新请求（Cache Busting）；B 主动清除边缘节点缓存；C 缩短自然过期时间。E 违背使用 CDN 初衷，虽能失效但失去加速意义。\n\n错误选项剖析：E 虽能解决缓存问题但牺牲性能，非合理策略。\n\n工程实践建议：静态资源首选指纹化。紧急修复使用 Purge API。HTML 文档设置短 TTL 或 no-cache。配置缓存标签批量失效。\n",
+      "exclusion_analysis": {
+        "E": "禁用缓存失去了 CDN 加速的意义，不是合理的失效策略。"
+      }
+    },
+    {
+      "id": "engineer-senior-045",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["GitOps", "Kubernetes", "Process"],
+      "source_company": "Weaveworks",
+      "score": 15,
+      "title": "GitOps 核心原则",
+      "content": "GitOps 方法论的核心原则包括？（多选）\n\nA. 声明式配置\nB. 版本控制为中心\nC. 自动同步\nD. 持续验证\nE. 手动执行脚本",
+      "options": [
+        { "id": "A", "text": "声明式配置" },
+        { "id": "B", "text": "版本控制为中心" },
+        { "id": "C", "text": "自动同步" },
+        { "id": "D", "text": "持续验证" },
+        { "id": "E", "text": "手动执行脚本" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：GitOps 将 Git 作为唯一事实来源。A 描述期望状态；B 所有变更通过 PR；C 代理自动拉取应用；D 监控实际与期望状态一致性。E 违背自动化原则。\n\n错误选项剖析：E GitOps 旨在消除手动脚本操作，实现自动化闭环。\n\n工程实践建议：使用 ArgoCD 或 Flux。禁止 kubectl apply 直接操作生产。所有配置变更走 Git 流程。配置漂移自动报警。\n",
+      "exclusion_analysis": {
+        "E": "GitOps 的核心是自动化，手动脚本会导致状态不一致。"
+      }
+    },
+    {
+      "id": "engineer-senior-046",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["ServiceMesh", "Frontend", "Network"],
+      "source_company": "Istio",
+      "score": 15,
+      "title": "服务网格对前端影响",
+      "content": "引入服务网格（Service Mesh）后，前端研发需关注哪些变化？（多选）\n\nA. API 网关配置\nB. 链路追踪 Header 传递\nC. 重试策略配置\nD. 数据库连接池\nE. 侧边代理资源消耗",
+      "options": [
+        { "id": "A", "text": "API 网关配置" },
+        { "id": "B", "text": "链路追踪 Header 传递" },
+        { "id": "C", "text": "重试策略配置" },
+        { "id": "D", "text": "数据库连接池" },
+        { "id": "E", "text": "侧边代理资源消耗" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：服务网格主要管理服务间通信。前端需配合网关路由（A），传递 Trace ID（B）以贯通链路，了解重试逻辑避免重复提交（C）。D 是后端数据库层；E 是基础设施层，前端无感知。\n\n错误选项剖析：D 前端不直连数据库；E 是运维关注点。\n\n工程实践建议：前端 SDK 集成 tracing 库。与后端约定重试幂等性。关注网关限流配置对前端体验影响。\n",
+      "exclusion_analysis": {
+        "D": "前端不直接管理数据库连接池。",
+        "E": "侧边代理资源是基础设施成本，前端无需直接关注。"
+      }
+    },
+    {
+      "id": "engineer-senior-047",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Edge", "Computing", "Deployment"],
+      "source_company": "Cloudflare",
+      "score": 15,
+      "title": "边缘计算部署特点",
+      "content": "将前端应用部署到边缘计算节点（Edge Computing）的特点包括？（多选）\n\nA. 更低延迟\nB. 更高并发能力\nC. 更复杂的调试\nD. 无状态限制\nE. 全球分布",
+      "options": [
+        { "id": "A", "text": "更低延迟" },
+        { "id": "B", "text": "更高并发能力" },
+        { "id": "C", "text": "更复杂的调试" },
+        { "id": "D", "text": "无状态限制" },
+        { "id": "E", "text": "全球分布" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：边缘节点靠近用户，降低延迟（A），分布式架构支持高并发（B），全球分布（E）。但边缘环境通常无持久存储，调试需远程日志（C 复杂）。D 错误，边缘函数通常强制无状态。\n\n错误选项剖析：D 边缘环境通常禁止持久化状态，需外部存储。\n\n工程实践建议：使用 Workers 或 Lambda@Edge。状态存外部 KV 或 DB。日志聚合到中心。注意冷启动影响。\n",
+      "exclusion_analysis": {
+        "D": "边缘计算环境通常要求函数无状态，以便弹性伸缩。"
+      }
+    },
+    {
+      "id": "engineer-senior-048",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Environment", "Ephemeral", "Preview"],
+      "source_company": "Vercel",
+      "score": 15,
+      "title": "临时环境（Ephemeral）价值",
+      "content": "为每个 PR 创建临时预览环境（Preview Environment）的价值包括？（多选）\n\nA. 提前验证集成效果\nB. 减少测试环境冲突\nC. 增加服务器成本\nD. 加速产品验收\nE. 替代生产环境",
+      "options": [
+        { "id": "A", "text": "提前验证集成效果" },
+        { "id": "B", "text": "减少测试环境冲突" },
+        { "id": "C", "text": "增加服务器成本" },
+        { "id": "D", "text": "加速产品验收" },
+        { "id": "E", "text": "替代生产环境" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：临时环境隔离了每个功能的测试空间，避免多人共用测试环境冲突（B），可真实体验集成效果（A），产品经理可直接访问链接验收（D）。C 是副作用非价值；E 临时环境不稳定，不可替生产。\n\n错误选项剖析：C 是成本代价，非价值；E 临时环境生命周期短，配置可能不同。\n\n工程实践建议：自动化创建和销毁环境。域名动态生成。数据库使用隔离 Schema 或 Mock。设置自动过期时间。\n",
+      "exclusion_analysis": {
+        "C": "成本增加是代价，不是价值。",
+        "E": "临时环境不具备生产级的稳定性和安全性。"
+      }
+    },
+    {
+      "id": "engineer-senior-049",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Cloud", "Cost", "Optimization"],
+      "source_company": "AWS",
+      "score": 15,
+      "title": "云资源成本优化",
+      "content": "前端相关的云资源成本优化措施包括？（多选）\n\nA. 静态资源 CDN 加速\nB. 构建产物压缩\nC. 闲置实例自动关闭\nD. 使用预留实例\nE. 增加服务器配置",
+      "options": [
+        { "id": "A", "text": "静态资源 CDN 加速" },
+        { "id": "B", "text": "构建产物压缩" },
+        { "id": "C", "text": "闲置实例自动关闭" },
+        { "id": "D", "text": "使用预留实例" },
+        { "id": "E", "text": "增加服务器配置" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：CDN 减少源站流量（A）；压缩减少传输带宽（B）；闲置关闭避免浪费（C）；预留实例比按需便宜（D）。E 增加配置会增加成本。\n\n错误选项剖析：E 直接增加成本，非优化措施。\n\n工程实践建议：开启 S3 生命周期管理。使用 Spot 实例跑 CI。监控异常流量。优化图片格式（WebP/AVIF）。\n",
+      "exclusion_analysis": {
+        "E": "增加配置通常意味着更高的费用，与优化目标相反。"
+      }
+    },
+    {
+      "id": "engineer-senior-050",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Incident", "Management", "OnCall"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "事件管理流程",
+      "content": "有效的生产事件（Incident）管理流程应包含？（多选）\n\nA. 明确的责任人（Incident Commander）\nB. 实时沟通渠道\nC. 事后复盘报告\nD. 隐瞒故障细节\nE. 自动告警通知",
+      "options": [
+        { "id": "A", "text": "明确的责任人（Incident Commander）" },
+        { "id": "B", "text": "实时沟通渠道" },
+        { "id": "C", "text": "事后复盘报告" },
+        { "id": "D", "text": "隐瞒故障细节" },
+        { "id": "E", "text": "自动告警通知" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：事件管理需有序响应。A 统一指挥；B 信息同步；C 改进预防；E 快速发现。D 违背透明原则，阻碍改进。\n\n错误选项剖析：D 隐瞒导致问题重复发生，违背 DevOps 文化。\n\n工程实践建议：建立 On-call 轮值制度。使用 PagerDuty 等工具。复盘聚焦系统改进而非追责。定义 SLA/SLO 指标。\n",
+      "exclusion_analysis": {
+        "D": "透明文化是 DevOps 核心，隐瞒故障会导致隐患累积。"
+      }
+    },
+    {
+      "id": "engineer-senior-051",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["PostMortem", "Culture", "Learning"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "无责复盘原则",
+      "content": "生产事故复盘（Post-mortem）应遵循无责（Blameless）原则，重点在于改进系统而非惩罚个人。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：若发现故意破坏或严重违规行为（如泄露密钥），则需按合规处理，但技术复盘仍聚焦系统漏洞。",
+      "explanation": "原理机制：无责复盘鼓励诚实报告错误，挖掘根本原因（Root Cause）。若惩罚个人，员工会隐瞒信息，导致系统隐患无法消除。系统应设计得容错性强，不依赖个人完美。\n\n工程实践建议：复盘报告公开共享。使用 5 Whys 分析法。制定 Action Item 并跟踪闭环。区分人为失误与流程缺陷。\n",
+      "common_mistake": "将复盘会变成批斗会，导致团队士气低落，隐瞒问题。"
+    },
+    {
+      "id": "engineer-senior-052",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["CodeOwnership", "Review", "Process"],
+      "source_company": "GitHub",
+      "score": 5,
+      "title": "CODEOWNERS 文件作用",
+      "content": "GitHub 中的 CODEOWNERS 文件可自动指定特定目录代码变更所需的审查人。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：CODEOWNERS 仅自动请求 Review，不强制阻止合并，需配合分支保护规则（Branch Protection）生效。",
+      "explanation": "原理机制：CODEOWNERS 定义代码所有权映射。当 PR 修改匹配路径时，自动添加指定人员为 Reviewer。结合分支保护可强制要求 Owner 批准才能合并，确保核心代码质量。\n\n工程实践建议：为核心模块配置 Owner。避免 Owner 过多导致审查瓶颈。定期更新 Owner 列表。配合自动化检查减少人工负担。\n",
+      "common_mistake": "配置了 CODEOWNERS 但未开启分支保护，导致审查要求可被绕过。"
+    },
+    {
+      "id": "engineer-senior-053",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Git", "CherryPick", "Risk"],
+      "source_company": "Linux",
+      "score": 5,
+      "title": "Cherry-pick 风险",
+      "content": "频繁使用 git cherry-pick 将提交从一个分支应用到另一个分支是维护代码库的最佳实践。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：紧急 Hotfix 无法等待合并流程时可临时使用，但随后应同步回主分支。",
+      "explanation": "原理机制：Cherry-pick 会创建新 Commit Hash，导致分支历史 diverge，增加后续合并冲突风险。最佳实践是通过 Merge 或 Rebase 同步分支。频繁 Cherry-pick 表明分支策略或发布流程有问题。\n\n工程实践建议：优先使用合并策略。若必须 Cherry-pick，确保双向同步。记录 Cherry-pick 原因。避免长期维护多个差异巨大的分支。\n",
+      "common_mistake": "习惯用 Cherry-pick 代替合并，导致分支间代码差异越来越大，最终无法合并。"
+    },
+    {
+      "id": "engineer-senior-054",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Git", "Submodule", "Complexity"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "Git Submodule 使用建议",
+      "content": "在现代前端工程中，推荐大量使用 Git Submodule 来管理公共组件库。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：某些特定场景需精确控制子仓库 Commit 且无法使用包管理器时，但极少见。",
+      "explanation": "原理机制：Submodule 增加克隆和更新复杂度，易导致版本不一致。现代前端推荐使用包管理器（npm/pnpm）管理依赖，或 Monorepo 管理共享代码。Submodule 容易导致开发者忘记更新子模块，引发 Bug。\n\n工程实践建议：优先使用 Monorepo 或私有 NPM 包。若必须用 Submodule，需编写脚本自动化更新。确保 CI 正确处理子模块初始化。\n",
+      "common_mistake": "使用 Submodule 导致新人克隆代码失败，或 CI 构建时拉取不到子模块代码。"
+    },
+    {
+      "id": "engineer-senior-055",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Monorepo", "TaskGraph", "Build"],
+      "source_company": "Nx",
+      "score": 5,
+      "title": "Monorepo 任务图优化",
+      "content": "在 Monorepo 中，利用任务依赖图（Task Graph）并行执行独立任务可显著缩短构建时间。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：若任务间存在隐式依赖未声明，并行执行可能导致竞争条件，需确保图准确。",
+      "explanation": "原理机制：Monorepo 包含多个项目，构建任务间存在依赖关系。通过分析依赖图，可并行执行无依赖关系的任务（如同时构建 A 和 B，若 C 依赖 A 则等待 A）。这充分利用多核 CPU 和 CI 资源。\n\n工程实践建议：使用 Nx 或 Turborepo。正确配置 project.json 依赖关系。监控任务执行水线图优化瓶颈。缓存中间产物。\n",
+      "common_mistake": "未配置依赖关系导致并行构建顺序错误，或串行执行浪费资源。"
+    },
+    {
+      "id": "engineer-senior-056",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Build", "Compression", "Performance"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "构建产物压缩策略",
+      "content": "为了加快用户加载速度，所有构建产物都应使用最高等级的压缩算法（如 brotli 11 级）。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：静态资源可预压缩使用高等级，但动态内容或构建阶段需权衡时间成本。",
+      "explanation": "原理机制：压缩等级越高，压缩率越好但消耗 CPU 时间越长。构建阶段使用最高等级会显著增加 CI 耗时。最佳实践是构建时使用中等压缩，CDN 边缘节点开启动态压缩或使用预压缩文件。\n\n工程实践建议：静态资源预压缩存 CDN。构建阶段权衡时间与体积。启用 HTTP/2 多路复用减少压缩依赖。小文件无需过度压缩。\n",
+      "common_mistake": "盲目追求最小体积，导致构建时间过长，影响发布频率。"
+    },
+    {
+      "id": "engineer-senior-057",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Security", "SourceMap", "Privacy"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "Source Map 安全部署",
+      "content": "生产环境应公开部署 Source Map 文件以便用户调试问题。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：内部系统或经过混淆脱敏的 Source Map 可受限访问，但公网系统严禁公开。",
+      "explanation": "原理机制：Source Map 包含源码映射，公开等于泄露源代码逻辑，易被逆向工程或发现安全漏洞。生产环境应禁止公开访问，仅上传至错误监控平台（如 Sentry）供内部调试。\n\n工程实践建议：构建时生成 Source Map 但不发布到 CDN。配置 Nginx 禁止访问 .map 文件。使用错误监控服务托管 Map 文件。\n",
+      "common_mistake": "误将 Source Map 随构建产物一起部署到公网目录，导致源码泄露。"
+    },
+    {
+      "id": "engineer-senior-058",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Security", "CORS", "API"],
+      "source_company": "W3C",
+      "score": 5,
+      "title": "CORS 配置原则",
+      "content": "为解决跨域问题，生产环境 API 应配置 Access-Control-Allow-Origin 为 *。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：完全公开的只读 API（如公共 CDN 数据）可允许 *，但涉及用户凭证的 API 严禁。",
+      "explanation": "原理机制：Allow-Origin: * 允许任何网站发起请求，若配合 Allow-Credentials: true 则浏览器会报错（安全机制）。若不含凭证，* 可能导致 CSRF 攻击风险增加或数据被任意站点读取。应指定具体域名白名单。\n\n工程实践建议：后端配置域名白名单。使用 Proxy 代理跨域。敏感接口强制检查 Referer/Origin。开启 CSRF Token。\n",
+      "common_mistake": "开发时图方便配 *，发布生产未修改，导致安全风险。"
+    },
+    {
+      "id": "engineer-senior-059",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Security", "CSP", "Header"],
+      "source_company": "OWASP",
+      "score": 5,
+      "title": "CSP 内容安全策略",
+      "content": "配置 Content-Security-Policy (CSP) 头可有效防止 XSS 攻击，但需避免使用 unsafe-inline。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：遗留系统迁移初期可暂时使用 nonce 或 hash 过渡，但最终目标应移除 unsafe-inline。",
+      "explanation": "原理机制：CSP 限制资源加载来源。unsafe-inline 允许内联脚本，削弱了 CSP 防 XSS 能力。最佳实践是外部脚本 + nonce/hash 或严格白名单。这能阻断大部分注入攻击。\n\n工程实践建议：逐步收紧 CSP 策略。使用报表模式（Report-Only）先观察。配合构建工具自动注入 nonce。监控违规报告。\n",
+      "common_mistake": "直接配置严格 CSP 导致业务脚本被拦截，或长期保留 unsafe-inline 形同虚设。"
+    },
+    {
+      "id": "engineer-senior-060",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Scheduler", "Algorithm"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "CI 任务调度器",
+      "content": "设计一个 CI 任务调度器，给定任务列表及每个任务的耗时和依赖关系，以及有限的并发worker 数量，计算完成所有任务的最短时间。\n\n要求：\n1. 任务需满足依赖顺序\n2. 同一时间运行任务数不超过 maxWorkers\n3. 返回总耗时",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Task {\n  id: string;\n  duration: number;\n  dependencies: string[];\n}\n\n/**\n * 计算最短完成时间\n * @param tasks - 任务列表\n * @param maxWorkers - 最大并发数\n * @returns 总耗时\n */\nfunction scheduleTasks(tasks: Task[], maxWorkers: number): number {\n  // 请在此处实现代码\n  return 0;\n}",
+      "test_cases": [
+        {
+          "input": "[{id:'A',duration:5,deps:[]}], 1",
+          "expected_output": "5",
+          "description": "单任务"
+        },
+        {
+          "input": "[{id:'A',duration:5,deps:[]},{id:'B',duration:3,deps:[]}], 2",
+          "expected_output": "5",
+          "description": "并行任务"
+        },
+        {
+          "input": "[{id:'A',duration:5,deps:[]},{id:'B',duration:3,deps:['A']}], 1",
+          "expected_output": "8",
+          "description": "串行依赖"
+        },
+        {
+          "input": "[{id:'A',duration:5,deps:[]},{id:'B',duration:3,deps:[]},{id:'C',duration:2,deps:[]}], 2",
+          "expected_output": "5",
+          "description": "并发受限"
+        }
+      ],
+      "time_complexity": "O(N log N)",
+      "space_complexity": "O(N)",
+      "explanation": "原理机制：这是带资源约束的关键路径问题。需维护就绪队列（依赖满足）和运行队列。每次任务完成释放 worker，从就绪队列取任务填入。需模拟时间推进或事件驱动。贪心策略：只要有空闲 worker 且有就绪任务立即执行。\n\n错误选型剖析：忽略并发限制导致时间估算过短；忽略依赖导致顺序错误；未处理空闲等待。\n\n工程实践建议：Jenkins/GitLab CI 内部使用类似算法。优化方向是减少关键路径长度。动态调整 worker 数量可优化总耗时。\n",
+      "reference_solution": "function scheduleTasks(tasks: Task[], maxWorkers: number): number {\n  const map = new Map(tasks.map(t => [t.id, t]));\n  const indegree = new Map();\n  const graph = new Map();\n  tasks.forEach(t => {\n    indegree.set(t.id, t.dependencies.length);\n    graph.set(t.id, []);\n  });\n  tasks.forEach(t => t.dependencies.forEach(d => graph.get(d).push(t.id)));\n  const ready = tasks.filter(t => indegree.get(t.id) === 0).map(t => ({ ...t, startTime: 0 }));\n  const running = [];\n  let time = 0;\n  while (ready.length || running.length) {\n    while (running.length < maxWorkers && ready.length) {\n      const task = ready.shift();\n      task.startTime = time;\n      running.push(task);\n    }\n    if (!running.length) break;\n    running.sort((a, b) => (a.startTime + a.duration) - (b.startTime + b.duration));\n    const finished = running.shift();\n    time = finished.startTime + finished.duration;\n    graph.get(finished.id).forEach(nextId => {\n      indegree.set(nextId, indegree.get(nextId) - 1);\n      if (indegree.get(nextId) === 0) ready.push({ ...map.get(nextId), startTime: 0 });\n    });\n  }\n  return time;\n}",
+      "common_mistake": "忽略并发数限制，简单累加关键路径时间，或未按时间顺序模拟任务完成。"
+    },
+    {
+      "id": "engineer-senior-061",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Git", "TrunkBased", "Workflow"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "主干开发模式优势",
+      "content": "相较于 GitFlow，主干开发（Trunk Based Development）的核心优势在于？\n\nA. 更适合大型发布周期管理\nB. 减少长期分支合并冲突，加速集成\nC. 严格隔离开发中与已发布代码\nD. 支持更复杂的版本分支策略",
+      "options": [
+        { "id": "A", "text": "更适合大型发布周期管理" },
+        { "id": "B", "text": "减少长期分支合并冲突，加速集成" },
+        { "id": "C", "text": "严格隔离开发中与已发布代码" },
+        { "id": "D", "text": "支持更复杂的版本分支策略" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：主干开发要求开发者频繁（每天多次）向主干提交代码，避免长生命周期分支。这显著减少了合并时的冲突（Merge Hell），确保持续集成（CI）的有效性。GitFlow 适合传统发布周期，但长分支易导致集成困难。\n\n错误选项剖析：A 是 GitFlow 优势；C 是分支隔离的特点，但主干开发强调集成；D 主干开发策略相对简单。\n\n工程实践建议：配合功能开关（Feature Flag）隐藏未完成功能。要求代码审查快速完成。主干必须随时可部署。",
+      "common_mistake": "认为主干开发不适合大型团队，实际上配合功能开关和严格 CI 更适合大规模协作。"
+    },
+    {
+      "id": "engineer-senior-062",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SRE", "SLO", "Metrics"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "SLO 与 SLA 区别",
+      "content": "关于服务等级目标（SLO）与服务等级协议（SLA），以下说法正确的是？\n\nA. SLO 是对外的法律承诺，SLA 是内部目标\nB. SLA 通常比 SLO 更严格\nC. SLO 是内部指标，SLA 是对外承诺，SLO 通常高于 SLA\nD. 两者完全相同，可互换使用",
+      "options": [
+        { "id": "A", "text": "SLO 是对外的法律承诺，SLA 是内部目标" },
+        { "id": "B", "text": "SLA 通常比 SLO 更严格" },
+        {
+          "id": "C",
+          "text": "SLO 是内部指标，SLA 是对外承诺，SLO 通常高于 SLA"
+        },
+        { "id": "D", "text": "两者完全相同，可互换使用" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：SLA（Agreement）是与用户签订的合同，违反有惩罚。SLO（Objective）是内部设定的目标，用于衡量健康度。为避免触发 SLA 惩罚，内部 SLO 通常设定得比 SLA 更严格（如 SLA 99.9%，SLO 99.95%）。\n\n错误选项剖析：A 说反了；B SLA 通常较宽松以留缓冲；D 概念不同。\n\n工程实践建议：设定错误预算（Error Budget）。当 SLO 未达标时暂停新功能发布，专注稳定性。SLI（Indicator）是具体测量指标。\n",
+      "common_mistake": "混淆 SLO 和 SLA，导致内部目标设定过低，频繁触发对外赔偿。"
+    },
+    {
+      "id": "engineer-senior-063",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "SupplyChain", "SLSA"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "SLSA 框架核心",
+      "content": "SLSA（Supply-chain Levels for Software Artifacts）框架主要关注？\n\nA. 运行时性能优化\nB. 软件供应链完整性与防篡改\nC. 前端代码风格规范\nD. 数据库查询优化",
+      "options": [
+        { "id": "A", "text": "运行时性能优化" },
+        { "id": "B", "text": "软件供应链完整性与防篡改" },
+        { "id": "C", "text": "前端代码风格规范" },
+        { "id": "D", "text": "数据库查询优化" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：SLSA 旨在防止篡改、提高完整性。它定义了从源码到构建到部署的各级别安全标准（Level 1-4）。核心是确保构建产物可追溯、未被恶意修改。A、C、D 无关。\n\n错误选项剖析：A、C、D 均非供应链安全范畴。\n\n工程实践建议：实施构建签名（Sigstore/Cosign）。隔离构建环境。记录来源谱系（Provenance）。逐步提升 SLSA 等级。",
+      "common_mistake": "仅关注依赖漏洞扫描，忽略构建过程本身的完整性保护。"
+    },
+    {
+      "id": "engineer-senior-064",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Policy", "OPA", "Governance"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "策略即代码工具",
+      "content": "在 Kubernetes 集群中，实现‘策略即代码’（Policy as Code）以强制安全合规的常用工具是？\n\nA. Prometheus\nB. OPA (Open Policy Agent)\nC. Grafana\nD. Jenkins",
+      "options": [
+        { "id": "A", "text": "Prometheus" },
+        { "id": "B", "text": "OPA (Open Policy Agent)" },
+        { "id": "C", "text": "Grafana" },
+        { "id": "D", "text": "Jenkins" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：OPA 是通用策略引擎，可集成到 K8s Admission Controller。它允许用 Rego 语言定义策略（如‘禁止 privileged 容器’），在资源创建前拦截违规请求。A 是监控，C 是可视化，D 是 CI。\n\n错误选项剖析：A、C、D 不具备策略拦截功能。\n\n工程实践建议：在 CI 阶段和 K8s Admission 阶段双重校验。策略版本化管理。避免策略过于严格阻碍开发。",
+      "common_mistake": "仅依赖人工审查配置，未自动化拦截违规资源创建。"
+    },
+    {
+      "id": "engineer-senior-065",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "ModuleFederation", "Deploy"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "模块联邦部署独立性",
+      "content": "使用 Webpack Module Federation 实现微前端时，主机应用（Host）与远程应用（Remote）的部署关系是？\n\nA. 必须同时部署\nB. 可独立部署，运行时动态加载\nC. 必须打包成一个文件\nD. 远程应用必须依赖主机版本",
+      "options": [
+        { "id": "A", "text": "必须同时部署" },
+        { "id": "B", "text": "可独立部署，运行时动态加载" },
+        { "id": "C", "text": "必须打包成一个文件" },
+        { "id": "D", "text": "远程应用必须依赖主机版本" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Module Federation 允许在运行时动态加载远程模块。主机和远程可独立构建部署，通过 URL 暴露入口文件。这实现了真正的独立交付。A、C 违背微前端初衷；D 版本应通过语义化约束而非硬依赖。\n\n错误选项剖析：A 耦合度高；C 是单体应用；D 应松散耦合。\n\n工程实践建议：约定共享依赖版本范围。使用版本哈希防止缓存问题。配置降级策略防止远程服务不可用。",
+      "common_mistake": "共享依赖版本不一致导致运行时冲突，或未处理远程加载失败。"
+    },
+    {
+      "id": "engineer-senior-066",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Kubernetes", "Probe", "Traffic"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "Readiness 与 Liveness 区别",
+      "content": "Kubernetes 中，Readiness Probe 失败与 Liveness Probe 失败的区别是？\n\nA. 两者都会重启容器\nB. Readiness 失败移除流量，Liveness 失败重启容器\nC. Readiness 失败重启容器，Liveness 失败移除流量\nD. 两者都仅移除流量",
+      "options": [
+        { "id": "A", "text": "两者都会重启容器" },
+        { "id": "B", "text": "Readiness 失败移除流量，Liveness 失败重启容器" },
+        { "id": "C", "text": "Readiness 失败重启容器，Liveness 失败移除流量" },
+        { "id": "D", "text": "两者都仅移除流量" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Readiness 探测应用是否准备好接收流量（如依赖未就绪），失败则从 Service Endpoint 移除，不重启。Liveness 探测应用是否存活（如死锁），失败则重启容器。混淆两者可能导致流量中断或重启循环。\n\n错误选项剖析：A、C、D 均描述错误。\n\n工程实践建议：启动慢的应用调大 Readiness 初始延迟。避免 Liveness 探测依赖外部服务，防止级联重启。",
+      "common_mistake": "将 Liveness 配置为依赖数据库，导致数据库抖动时应用被频繁重启。"
+    },
+    {
+      "id": "engineer-senior-067",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "Secret", "Rotation"],
+      "source_company": "AWS",
+      "score": 10,
+      "title": "密钥轮换策略",
+      "content": "关于生产环境密钥轮换（Rotation），最佳实践是？\n\nA. 每年轮换一次\nB. 仅在泄露时轮换\nC. 自动化定期轮换，支持多版本共存\nD. 手动轮换并通知所有开发者",
+      "options": [
+        { "id": "A", "text": "每年轮换一次" },
+        { "id": "B", "text": "仅在泄露时轮换" },
+        { "id": "C", "text": "自动化定期轮换，支持多版本共存" },
+        { "id": "D", "text": "手动轮换并通知所有开发者" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：定期轮换降低泄露风险。自动化减少人为错误。多版本共存（Overlap）确保轮换期间服务不中断（旧密钥仍有效直到新密钥普及）。A 周期太长；B 被动；D 效率低且易出错。\n\n错误选项剖析：A 不符合高安全标准；B 风险窗口大；D 不可扩展。\n\n工程实践建议：使用 Secrets Manager 自动轮换。应用支持热加载密钥。监控轮换失败事件。",
+      "common_mistake": "轮换时直接废除旧密钥，导致使用旧密钥的活跃连接中断。"
+    },
+    {
+      "id": "engineer-senior-068",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["IaC", "Drift", "Detection"],
+      "source_company": "HashiCorp",
+      "score": 10,
+      "title": "基础设施漂移检测",
+      "content": "基础设施漂移（Infrastructure Drift）是指？\n\nA. 代码与文档不一致\nB. 实际资源状态与 IaC 定义不一致\nC. 不同环境配置不一致\nD. 服务器时间不同步",
+      "options": [
+        { "id": "A", "text": "代码与文档不一致" },
+        { "id": "B", "text": "实际资源状态与 IaC 定义不一致" },
+        { "id": "C", "text": "不同环境配置不一致" },
+        { "id": "D", "text": "服务器时间不同步" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Drift 指有人手动在控制台修改了资源，导致 Terraform 状态文件与实际云资源不符。这会破坏 IaC 可信度。需定期运行 terraform plan 检测漂移。\n\n错误选项剖析：A 是文档问题；C 是环境一致性；D 是时间同步。\n\n工程实践建议：禁止手动修改生产资源。配置自动漂移检测告警。定期执行 terraform apply 修复漂移。",
+      "common_mistake": "忽略漂移，导致下次 apply 时意外覆盖手动修改或产生不可预知变更。"
+    },
+    {
+      "id": "engineer-senior-069",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["ServiceMesh", "Sidecar", "Performance"],
+      "source_company": "Istio",
+      "score": 10,
+      "title": "Sidecar 代理开销",
+      "content": "引入 Service Mesh Sidecar 代理的主要性能开销在于？\n\nA. 增加网络跳数（Hop）\nB. 减少带宽\nC. 增加磁盘 IO\nD. 降低 CPU 主频",
+      "options": [
+        { "id": "A", "text": "增加网络跳数（Hop）" },
+        { "id": "B", "text": "减少带宽" },
+        { "id": "C", "text": "增加磁盘 IO" },
+        { "id": "D", "text": "降低 CPU 主频" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：Sidecar 模式在每个 Pod 中注入代理容器，流量需经过代理转发，增加了本地网络跳数和延迟（通常毫秒级）。B、C、D 非主要开销来源。\n\n错误选项剖析：B 带宽不变；C 主要是内存/CPU；D 硬件主频不变。\n\n工程实践建议：评估延迟敏感度。使用 CNI 插件减少 iptables 开销。精简 Sidecar 配置。",
+      "common_mistake": "在高延迟敏感场景盲目引入 Mesh，导致性能不达标。"
+    },
+    {
+      "id": "engineer-senior-070",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["DR", "RTO", "RPO"],
+      "source_company": "AWS",
+      "score": 10,
+      "title": "灾难恢复指标",
+      "content": "灾难恢复计划中，RTO 与 RPO 的含义分别是？\n\nA. 恢复时间目标，恢复点目标\nB. 恢复点目标，恢复时间目标\nC. 资源超时，资源持久化\nD. 运行时优化，运行时保护",
+      "options": [
+        { "id": "A", "text": "恢复时间目标，恢复点目标" },
+        { "id": "B", "text": "恢复点目标，恢复时间目标" },
+        { "id": "C", "text": "资源超时，资源持久化" },
+        { "id": "D", "text": "运行时优化，运行时保护" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制：RTO（Recovery Time Objective）指业务中断允许的最大时长（多久恢复）。RPO（Recovery Point Objective）指允许丢失的最大数据量（多久备份一次）。RTO 越短成本越高，RPO 越短存储成本越高。\n\n错误选项剖析：B 说反了；C、D 无关。\n\n工程实践建议：根据业务重要性分级设定。核心系统 RTO/RPO 接近 0。定期演练恢复流程。",
+      "common_mistake": "混淆两者，导致备份策略（影响 RPO）与恢复架构（影响 RTO）设计错误。"
+    },
+    {
+      "id": "engineer-senior-071",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Tracing", "Context", "Propagation"],
+      "source_company": "OpenTelemetry",
+      "score": 15,
+      "title": "分布式链路追踪上下文",
+      "content": "实现分布式链路追踪时，需在 HTTP 请求头中传递哪些关键上下文信息？（多选）\n\nA. Trace ID\nB. Span ID\nC. Parent Span ID\nD. User Password\nE. Server IP",
+      "options": [
+        { "id": "A", "text": "Trace ID" },
+        { "id": "B", "text": "Span ID" },
+        { "id": "C", "text": "Parent Span ID" },
+        { "id": "D", "text": "User Password" },
+        { "id": "E", "text": "Server IP" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：Trace ID 标识整条链路，Span ID 标识当前操作，Parent Span ID 标识调用关系。这三者构成追踪树。D 敏感信息严禁传递；E 可通过元数据获取，非必需头。\n\n错误选项剖析：D 严重安全违规；E 非追踪核心字段。\n\n工程实践建议：遵循 W3C Trace Context 标准。使用 OpenTelemetry SDK 自动注入。确保异步任务也传递上下文。",
+      "exclusion_analysis": {
+        "D": "密码属于敏感凭证，严禁在日志或头中明文传递。",
+        "E": "IP 地址可由服务端记录，无需通过头传递以维持链路。"
+      }
+    },
+    {
+      "id": "engineer-senior-072",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Testing", "Mutation", "Quality"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "变异测试价值",
+      "content": "变异测试（Mutation Testing）的主要价值包括？（多选）\n\nA. 评估测试用例有效性\nB. 发现未覆盖的逻辑分支\nC. 替代单元测试\nD. 检测测试断言是否足够\nE. 提高代码运行速度",
+      "options": [
+        { "id": "A", "text": "评估测试用例有效性" },
+        { "id": "B", "text": "发现未覆盖的逻辑分支" },
+        { "id": "C", "text": "替代单元测试" },
+        { "id": "D", "text": "检测测试断言是否足够" },
+        { "id": "E", "text": "提高代码运行速度" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：变异测试通过修改代码（变异）看测试是否失败。若测试未失败，说明测试无效。它能发现覆盖率工具无法发现的‘假覆盖’（执行了但未断言）。C 不能替代，是补充；E 无关。\n\n错误选项剖析：C 是补充手段；E 不影响运行速度。\n\n工程实践建议：CI 中定期运行。关注存活变异体（Survived Mutants）。结合覆盖率使用。",
+      "exclusion_analysis": {
+        "C": "变异测试成本高，不能替代常规单元测试。",
+        "E": "变异测试是质量手段，与运行性能无关。"
+      }
+    },
+    {
+      "id": "engineer-senior-073",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["RFC", "Design", "Collaboration"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "RFC 设计文档流程",
+      "content": "推行 RFC（Request for Comments）设计文档流程的好处包括？（多选）\n\nA. 提前暴露设计缺陷\nB. 促进团队知识共享\nC. 减少后期返工\nD. 增加文档负担\nE. 替代代码审查",
+      "options": [
+        { "id": "A", "text": "提前暴露设计缺陷" },
+        { "id": "B", "text": "促进团队知识共享" },
+        { "id": "C", "text": "减少后期返工" },
+        { "id": "D", "text": "增加文档负担" },
+        { "id": "E", "text": "替代代码审查" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：RFC 要求在编码前书面设计并评审。这能早期发现逻辑漏洞（A），让其他人了解系统演进（B），避免写错重做（C）。D 是成本非好处；E 不能替代代码审查。\n\n错误选项剖析：D 是副作用；E 设计文档不能替代代码实现审查。\n\n工程实践建议：设定 RFC 模板。限制评审周期。重大变更必须 RFC。归档供后续参考。",
+      "exclusion_analysis": {
+        "D": "虽然增加工作量，但这是成本，不是‘好处’。",
+        "E": "代码审查关注实现细节，RFC 关注设计，两者互补。"
+      }
+    },
+    {
+      "id": "engineer-senior-074",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "RateLimit", "API"],
+      "source_company": "Cloudflare",
+      "score": 15,
+      "title": "限流策略实现",
+      "content": "防止 API 滥用的限流策略包括？（多选）\n\nA. 固定窗口计数\nB. 滑动窗口日志\nC. 令牌桶算法\nD. 漏桶算法\nE. 无限重试",
+      "options": [
+        { "id": "A", "text": "固定窗口计数" },
+        { "id": "B", "text": "滑动窗口日志" },
+        { "id": "C", "text": "令牌桶算法" },
+        { "id": "D", "text": "漏桶算法" },
+        { "id": "E", "text": "无限重试" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：A 简单但有边界突变问题；B 更平滑但成本高；C 允许突发流量；D 平滑流出。E 会加剧攻击。\n\n错误选项剖析：E 违背限流目的。\n\n工程实践建议：网关层实施限流。区分用户等级。返回 429 状态码。配合指数退避重试。\n",
+      "exclusion_analysis": {
+        "E": "无限重试会导致服务器压力更大，是攻击行为。"
+      }
+    },
+    {
+      "id": "engineer-senior-075",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Observability", "Sampling", "Cost"],
+      "source_company": "Honeycomb",
+      "score": 15,
+      "title": "观测数据采样策略",
+      "content": "为降低监控成本，对 Trace 数据进行采样时，应遵循哪些原则？（多选）\n\nA. 错误请求全量保留\nB. 慢请求全量保留\nC. 随机采样正常请求\nD. 完全关闭采样\nE. 仅采样成功请求",
+      "options": [
+        { "id": "A", "text": "错误请求全量保留" },
+        { "id": "B", "text": "慢请求全量保留" },
+        { "id": "C", "text": "随机采样正常请求" },
+        { "id": "D", "text": "完全关闭采样" },
+        { "id": "E", "text": "仅采样成功请求" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：错误和慢请求是排查重点，需全量（Head-based 或 Tail-based 采样）。正常请求量大可随机采样降低成本。D 成本高；E 丢失错误信息。\n\n错误选项剖析：D 成本不可控；E 丢失关键故障数据。\n\n工程实践建议：使用 Tail-based 采样器。动态调整采样率。确保采样决策可追溯。\n",
+      "exclusion_analysis": {
+        "D": "高流量系统全量存储成本极高。",
+        "E": "错误请求最具价值，不应丢弃。"
+      }
+    },
+    {
+      "id": "engineer-senior-076",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Compliance", "GDPR", "Automation"],
+      "source_company": "EU",
+      "score": 15,
+      "title": "合规自动化措施",
+      "content": "为满足 GDPR 等数据合规要求，工程上可采取的措施包括？（多选）\n\nA. 自动数据脱敏\nB. 用户数据删除接口\nC. 审计日志记录\nD. 硬编码用户数据\nE. 跨境数据传输加密",
+      "options": [
+        { "id": "A", "text": "自动数据脱敏" },
+        { "id": "B", "text": "用户数据删除接口" },
+        { "id": "C", "text": "审计日志记录" },
+        { "id": "D", "text": "硬编码用户数据" },
+        { "id": "E", "text": "跨境数据传输加密" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：A 保护隐私；B 满足被遗忘权；C 满足可审计性；E 满足传输安全。D 严重违规。\n\n错误选项剖析：D 违背安全与合规原则。\n\n工程实践建议：隐私设计（Privacy by Design）。自动化合规扫描。定期数据清理。\n",
+      "exclusion_analysis": {
+        "D": "硬编码数据无法管理且易泄露，严重违规。"
+      }
+    },
+    {
+      "id": "engineer-senior-077",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "Independence", "Deploy"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "微前端独立部署挑战",
+      "content": "实现微前端独立部署时，需解决哪些挑战？（多选）\n\nA. 样式隔离\nB. 依赖版本冲突\nC. 通信机制\nD. 统一登录态\nE. 代码完全复用",
+      "options": [
+        { "id": "A", "text": "样式隔离" },
+        { "id": "B", "text": "依赖版本冲突" },
+        { "id": "C", "text": "通信机制" },
+        { "id": "D", "text": "统一登录态" },
+        { "id": "E", "text": "代码完全复用" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：微前端需解决 CSS 污染（A）、JS 依赖冲突（B）、子应用间通信（C）、统一认证（D）。E 不是挑战，是目标之一，但完全复用难实现。\n\n错误选项剖析：E 是理想状态，非需解决的负面挑战，且实际上很难做到完全复用。\n\n工程实践建议：使用 Shadow DOM 或 CSS Module。约定共享库版本。使用 Custom Events 或 Props 通信。\n",
+      "exclusion_analysis": {
+        "E": "代码复用是目标，但‘完全复用’不现实且非部署挑战的核心痛点。"
+      }
+    },
+    {
+      "id": "engineer-senior-078",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Security", "SupplyChain", "Defense"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "供应链攻击防御",
+      "content": "防御软件供应链攻击（如依赖投毒）的措施包括？（多选）\n\nA. 锁定依赖版本\nB. 校验包完整性哈希\nC. 使用私有源代理\nD. 审计依赖许可证\nE. 禁用所有第三方包",
+      "options": [
+        { "id": "A", "text": "锁定依赖版本" },
+        { "id": "B", "text": "校验包完整性哈希" },
+        { "id": "C", "text": "使用私有源代理" },
+        { "id": "D", "text": "审计依赖许可证" },
+        { "id": "E", "text": "禁用所有第三方包" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：A 防止自动升级恶意版；B 确保下载未被篡改；C 缓存并扫描；D 法律合规。E 不现实。\n\n错误选项剖析：E 现代开发离不开开源。\n\n工程实践建议：使用 Snyk/Dependabot。配置 NPM 源校验。定期清理未用依赖。\n",
+      "exclusion_analysis": {
+        "E": "现代软件工程依赖开源，禁用所有不现实。"
+      }
+    },
+    {
+      "id": "engineer-senior-079",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Security", "Scan"],
+      "source_company": "GitLab",
+      "score": 15,
+      "title": "CI/CD 安全扫描集成",
+      "content": "在 CI/CD 流水线中集成安全扫描的最佳实践包括？（多选）\n\nA. SAST（静态应用安全测试）\nB. DAST（动态应用安全测试）\nC. SCA（软件成分分析）\nD. 容器镜像扫描\nE. 人工渗透测试替代",
+      "options": [
+        { "id": "A", "text": "SAST（静态应用安全测试）" },
+        { "id": "B", "text": "DAST（动态应用安全测试）" },
+        { "id": "C", "text": "SCA（软件成分分析）" },
+        { "id": "D", "text": "容器镜像扫描" },
+        { "id": "E", "text": "人工渗透测试替代" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制：A 查代码漏洞；B 查运行漏洞；C 查依赖漏洞；D 查镜像漏洞。E 自动化不能完全替代人工渗透，是互补。\n\n错误选项剖析：E 自动化扫描覆盖率高但深度不如人工，不能完全替代。\n\n工程实践建议：SAST 在构建阶段，DAST 在部署后。阻断严重漏洞。定期人工渗透。\n",
+      "exclusion_analysis": {
+        "E": "自动化工具无法发现逻辑漏洞，需人工渗透补充。"
+      }
+    },
+    {
+      "id": "engineer-senior-080",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Database", "Sharding", "Frontend"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "数据库分片对前端影响",
+      "content": "后端实施数据库分片（Sharding）后，前端研发需关注？（多选）\n\nA. 分页查询逻辑\nB. 全局 ID 生成\nC. 跨分片事务\nD. 数据库连接池\nE. SQL 语句优化",
+      "options": [
+        { "id": "A", "text": "分页查询逻辑" },
+        { "id": "B", "text": "全局 ID 生成" },
+        { "id": "C", "text": "跨分片事务" },
+        { "id": "D", "text": "数据库连接池" },
+        { "id": "E", "text": "SQL 语句优化" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：分片可能导致分页不准（需合并排序）、ID 需全局唯一、跨分片事务复杂。D、E 是后端底层细节，前端通过 API 交互无感知。\n\n错误选项剖析：D、E 是后端内部实现，前端不应直接依赖。\n\n工程实践建议：后端提供统一 API 屏蔽分片细节。前端避免依赖连续 ID。注意大数据量导出性能。\n",
+      "exclusion_analysis": {
+        "D": "连接池是后端服务管理，前端不直连 DB。",
+        "E": "SQL 优化是后端职责，前端通过 API 调用。"
+      }
+    },
+    {
+      "id": "engineer-senior-081",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Infrastructure", "Immutable", "Patching"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "不可变服务器补丁",
+      "content": "在不可变基础设施架构中，服务器安全补丁应通过在线更新安装。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：紧急零日漏洞可能需临时修复，但标准流程是重建镜像。",
+      "explanation": "原理机制：不可变基础设施核心是‘不修改运行中服务器’。补丁应通过更新基础镜像，替换旧实例实现。在线更新会导致配置漂移，违背不可变原则。\n\n工程实践建议：自动化镜像构建流水线。漏洞扫描触发镜像重建。滚动更新实例。\n",
+      "common_mistake": "习惯性地 SSH 登录服务器打补丁，导致环境不一致。"
+    },
+    {
+      "id": "engineer-senior-082",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Pipeline", "Review"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "流水线配置审查",
+      "content": "CI/CD 流水线配置文件（如 .gitlab-ci.yml）的变更无需代码审查，可直接合并。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：无，流水线拥有高权限，必须审查。",
+      "explanation": "原理机制：流水线配置拥有部署权限，恶意修改可窃取密钥或破坏生产。必须像代码一样经过 MR/PR 审查。权限应限制谁可修改流水线文件。\n\n工程实践建议：保护 CI 配置文件。审查构建脚本安全性。限制流水线变量修改权限。\n",
+      "common_mistake": "认为配置文件无关紧要，导致攻击者通过修改流水线窃取凭证。"
+    },
+    {
+      "id": "engineer-senior-083",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "Error", "Sampling"],
+      "source_company": "Sentry",
+      "score": 5,
+      "title": "前端错误采样",
+      "content": "前端错误监控 SDK 应默认开启 100% 采样率以确保不丢失任何错误。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：内部测试环境可 100%，生产环境需采样。",
+      "explanation": "原理机制：100% 采样会导致流量过大，影响用户性能且成本高昂。通常采用采样（如 10%）+ 错误全量策略。大量重复错误可聚合。\n\n工程实践建议：配置采样率。忽略已知无关错误。按错误类型差异化采样。\n",
+      "common_mistake": "生产环境全量上报，导致监控服务崩溃或产生巨额账单。"
+    },
+    {
+      "id": "engineer-senior-084",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Serverless", "Database", "Connection"],
+      "source_company": "AWS",
+      "score": 5,
+      "title": "Serverless 数据库连接",
+      "content": "在 Serverless 函数中，应建立全局数据库连接池以复用连接。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：若函数并发极高，需配合代理（如 RDS Proxy）防止连接数耗尽。",
+      "explanation": "原理机制：Serverless 容器可能复用，全局变量可保持连接。但需注意冷启动和连接数限制。若不加池化，每次请求新建连接会导致延迟和数据库压力。\n\n工程实践建议：使用 RDS Proxy。检查函数并发限制。实现连接健康检查。\n",
+      "common_mistake": "每次请求新建连接，导致数据库连接数瞬间爆满。"
+    },
+    {
+      "id": "engineer-senior-085",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["FeatureFlag", "TechDebt", "Cleanup"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "功能开关技术债务",
+      "content": "功能开关代码在全量发布后，可长期保留以便随时回滚。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：灰度期间保留，稳定后应清理。",
+      "explanation": "原理机制：长期保留开关增加代码复杂度及测试负担。回滚应通过版本回退而非开关。开关应在稳定后尽快移除（Cleanup）。\n\n工程实践建议：设定开关过期时间。自动化检测死代码。重构移除分支逻辑。\n",
+      "common_mistake": "积累大量无用开关，导致代码难以维护，逻辑分支复杂。"
+    },
+    {
+      "id": "engineer-senior-086",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Log", "Anomaly", "Detection"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "日志异常检测算法",
+      "content": "给定一个日志计数数组（每分钟请求数），检测是否存在异常突增（超过平均值的 3 倍）。\n\n要求：\n1. 返回异常点的索引数组\n2. 若无数组返回空\n3. 平均值动态计算（滑动窗口）",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "/**\n * 检测日志异常突增\n * @param logs - 每分钟请求数数组\n * @param windowSize - 滑动窗口大小\n * @returns 异常点索引数组\n */\nfunction detectAnomalies(logs: number[], windowSize: number): number[] {\n  // 请在此处实现代码\n  return [];\n}",
+      "test_cases": [
+        {
+          "input": "[10, 12, 11, 100, 13], 3",
+          "expected_output": "[3]",
+          "description": "明显突增"
+        },
+        {
+          "input": "[10, 10, 10, 10], 2",
+          "expected_output": "[]",
+          "description": "无异常"
+        },
+        {
+          "input": "[10, 20, 30, 40], 2",
+          "expected_output": "[]",
+          "description": "线性增长非突增"
+        },
+        {
+          "input": "[10, 10, 50, 10], 2",
+          "expected_output": "[2]",
+          "description": "单点突增"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：滑动窗口计算局部平均值。若当前值 > 3 * 平均，视为异常。需处理窗口不足情况。注意整数除法精度。\n\n错误选型剖析：未用滑动窗口导致基准不准；未处理边界；阈值硬编码。\n\n工程实践建议：实际场景使用标准差或机器学习。此处为简化版。需防抖动（连续多点异常）。\n",
+      "reference_solution": "function detectAnomalies(logs: number[], windowSize: number): number[] {\n  const result = [];\n  for (let i = 0; i < logs.length; i++) {\n    const start = Math.max(0, i - windowSize);\n    const slice = logs.slice(start, i);\n    if (slice.length === 0) continue;\n    const avg = slice.reduce((a, b) => a + b, 0) / slice.length;\n    if (logs[i] > avg * 3) result.push(i);\n  }\n  return result;\n}",
+      "common_mistake": "使用全局平均值而非滑动窗口，导致早期异常检测不准。"
+    },
+    {
+      "id": "engineer-senior-087",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Dependency", "Version", "Conflict"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "依赖版本冲突检测",
+      "content": "给定多个包及其依赖版本要求，检测是否存在无法解决的版本冲突。\n\n要求：\n1. 输入为包名及版本范围\n2. 若同一包要求互斥版本返回 true\n3. 简化模型：版本为数字，范围为 [min, max]",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Dep {\n  pkg: string;\n  min: number;\n  max: number;\n}\n\n/**\n * 检测版本冲突\n * @param deps - 依赖列表\n * @returns 是否存在冲突\n */\nfunction hasVersionConflict(deps: Dep[]): boolean {\n  // 请在此处实现代码\n  return false;\n}",
+      "test_cases": [
+        {
+          "input": "[{pkg:'A',min:1,max:2},{pkg:'A',min:3,max:4}]",
+          "expected_output": "true",
+          "description": "范围不交"
+        },
+        {
+          "input": "[{pkg:'A',min:1,max:3},{pkg:'A',min:2,max:4}]",
+          "expected_output": "false",
+          "description": "范围相交"
+        },
+        {
+          "input": "[{pkg:'A',min:1,max:2},{pkg:'B',min:1,max:2}]",
+          "expected_output": "false",
+          "description": "不同包"
+        },
+        {
+          "input": "[{pkg:'A',min:2,max:2},{pkg:'A',min:2,max:2}]",
+          "expected_output": "false",
+          "description": "版本相同"
+        }
+      ],
+      "time_complexity": "O(N log N)",
+      "space_complexity": "O(N)",
+      "explanation": "原理机制：按包名分组。同一包的所有依赖范围求交集。若交集为空则冲突。需排序或遍历计算最大 min 和最小 max。\n\n错误选型剖析：未分组；交集计算错误；忽略相等边界。\n\n工程实践建议：npm/yarn 内部使用更复杂算法（SemVer）。此处为简化数值模型。实际需解析 SemVer 字符串。\n",
+      "reference_solution": "function hasVersionConflict(deps: Dep[]): boolean {\n  const map = new Map<string, Dep[]>();\n  deps.forEach(d => {\n    if (!map.has(d.pkg)) map.set(d.pkg, []);\n    map.get(d.pkg)!.push(d);\n  });\n  for (const list of map.values()) {\n    let maxMin = -1;\n    let minMax = Infinity;\n    for (const d of list) {\n      maxMin = Math.max(maxMin, d.min);\n      minMax = Math.min(minMax, d.max);\n    }\n    if (maxMin > minMax) return true;\n  }\n  return false;\n}",
+      "common_mistake": "未正确计算区间交集，误判冲突。"
+    },
+    {
+      "id": "engineer-senior-088",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["RateLimit", "TokenBucket", "Algorithm"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "令牌桶限流实现",
+      "content": "实现一个简单的令牌桶限流器。\n\n要求：\n1. 固定容量 capacity\n2. 固定填充速率 rate (个/秒)\n3. 请求消耗 1 个令牌\n4. 返回是否允许请求",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "class TokenBucket {\n  capacity: number;\n  rate: number;\n  tokens: number;\n  lastTime: number;\n\n  constructor(capacity: number, rate: number) {\n    // 请在此处实现构造函数\n  }\n\n  allowRequest(): boolean {\n    // 请在此处实现方法\n    return false;\n  }\n}",
+      "test_cases": [
+        {
+          "input": "new TokenBucket(5, 1).allowRequest()",
+          "expected_output": "true",
+          "description": "初始有令牌"
+        },
+        {
+          "input": "连续调用 6 次",
+          "expected_output": "第 6 次 false",
+          "description": "超过容量"
+        },
+        {
+          "input": "等待 1 秒后调用",
+          "expected_output": "true",
+          "description": "令牌恢复"
+        },
+        {
+          "input": "capacity 0",
+          "expected_output": "false",
+          "description": "无容量"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：记录上次填充时间。当前时间 - 上次时间 = 应增加令牌数。不超过容量。请求时扣减。需处理时间流逝。\n\n错误选型剖析：未考虑时间流逝；令牌超容；并发安全问题（单线程忽略）。\n\n工程实践建议：分布式需 Redis 实现。注意时钟同步。突发流量处理能力。\n",
+      "reference_solution": "class TokenBucket {\n  capacity: number; rate: number; tokens: number; lastTime: number;\n  constructor(capacity: number, rate: number) {\n    this.capacity = capacity; this.rate = rate;\n    this.tokens = capacity; this.lastTime = Date.now();\n  }\n  allowRequest(): boolean {\n    const now = Date.now();\n    const delta = (now - this.lastTime) / 1000 * this.rate;\n    this.tokens = Math.min(this.capacity, this.tokens + delta);\n    this.lastTime = now;\n    if (this.tokens >= 1) { this.tokens--; return true; }\n    return false;\n  }\n}",
+      "common_mistake": "未动态补充令牌，或补充超过容量。"
+    },
+    {
+      "id": "engineer-senior-089",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["CI/CD", "Parallel", "Optimization"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "流水线并行阶段计算",
+      "content": "给定 CI 流水线各阶段耗时及依赖，计算理论最短总耗时（假设资源无限）。\n\n要求：\n1. 输入阶段列表及耗时\n2. 输入依赖关系\n3. 返回关键路径长度",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Stage {\n  id: string;\n  duration: number;\n  deps: string[];\n}\n\n/**\n * 计算关键路径\n * @param stages - 阶段列表\n * @returns 最短总耗时\n */\nfunction calculateCriticalPath(stages: Stage[]): number {\n  // 请在此处实现代码\n  return 0;\n}",
+      "test_cases": [
+        {
+          "input": "[{id:'A',dur:5,deps:[]}]",
+          "expected_output": "5",
+          "description": "单阶段"
+        },
+        {
+          "input": "[{id:'A',dur:5,deps:[]},{id:'B',dur:3,deps:[]}]",
+          "expected_output": "5",
+          "description": "并行"
+        },
+        {
+          "input": "[{id:'A',dur:5,deps:[]},{id:'B',dur:3,deps:['A']}]",
+          "expected_output": "8",
+          "description": "串行"
+        },
+        {
+          "input": "[{id:'A',dur:5,deps:[]},{id:'B',dur:10,deps:[]},{id:'C',dur:2,deps:['A','B']}]",
+          "expected_output": "12",
+          "description": "汇聚"
+        }
+      ],
+      "time_complexity": "O(V+E)",
+      "space_complexity": "O(V)",
+      "explanation": "原理机制：动态规划或最长路径算法。每个节点的最早完成时间 = max(依赖节点完成时间) + 自身耗时。最终取最大值。\n\n错误选型剖析：简单累加；未取依赖最大值；忽略无依赖节点。\n\n工程实践建议：识别瓶颈阶段。并行化独立阶段。优化关键路径任务。\n",
+      "reference_solution": "function calculateCriticalPath(stages: Stage[]): number {\n  const map = new Map(stages.map(s => [s.id, s]));\n  const memo = new Map<string, number>();\n  function getFinish(id: string): number {\n    if (memo.has(id)) return memo.get(id)!;\n    const s = map.get(id)!;\n    const maxDep = s.deps.length ? Math.max(...s.deps.map(getFinish)) : 0;\n    const res = maxDep + s.duration;\n    memo.set(id, res);\n    return res;\n  }\n  return Math.max(...stages.map(s => getFinish(s.id)));\n}",
+      "common_mistake": "未正确处理多依赖汇聚情况，只加了其中一个依赖时间。"
+    },
+    {
+      "id": "engineer-senior-090",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["Artifact", "Dedup", "Storage"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "构建产物去重算法",
+      "content": "给定一组构建产物文件路径及内容哈希，计算存储去重后的总大小。\n\n要求：\n1. 相同哈希仅计一次大小\n2. 输入包含路径、大小、哈希\n3. 返回去重后总字节数",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Artifact {\n  path: string;\n  size: number;\n  hash: string;\n}\n\n/**\n * 计算去重后大小\n * @param artifacts - 产物列表\n * @returns 总字节数\n */\nfunction calculateDedupSize(artifacts: Artifact[]): number {\n  // 请在此处实现代码\n  return 0;\n}",
+      "test_cases": [
+        {
+          "input": "[{path:'a',size:10,hash:'1'}]",
+          "expected_output": "10",
+          "description": "单文件"
+        },
+        {
+          "input": "[{path:'a',size:10,hash:'1'},{path:'b',size:10,hash:'1'}]",
+          "expected_output": "10",
+          "description": "完全重复"
+        },
+        {
+          "input": "[{path:'a',size:10,hash:'1'},{path:'b',size:20,hash:'2'}]",
+          "expected_output": "30",
+          "description": "无重复"
+        },
+        { "input": "[]", "expected_output": "0", "description": "空列表" }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(N)",
+      "explanation": "原理机制：使用 Set 或 Map 存储已见哈希。遍历列表，若哈希未出现则累加大小并记录。相同哈希视为同一内容，仅存一份。\n\n错误选型剖析：累加所有大小；未处理空列表；哈希碰撞忽略（假设哈希唯一）。\n\n工程实践建议：内容寻址存储（CAS）。Git 对象存储原理。减少 CI 存储成本。\n",
+      "reference_solution": "function calculateDedupSize(artifacts: Artifact[]): number {\n  const seen = new Set<string>();\n  let total = 0;\n  for (const a of artifacts) {\n    if (!seen.has(a.hash)) {\n      seen.add(a.hash);\n      total += a.size;\n    }\n  }\n  return total;\n}",
+      "common_mistake": "直接累加所有文件大小，未根据哈希去重。"
+    },
+    {
+      "id": "engineer-senior-091",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "Hydration", "CI"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "SSR 水合 mismatch 检测",
+      "content": "在 SSR 项目的 CI 流水线中，如何有效检测服务端渲染与客户端水合（Hydration）不一致的问题？\n\nA. 仅依靠单元测试覆盖组件\nB. 在 CI 中启动 Node 服务进行 E2E 抓取对比\nC. 依赖生产环境用户报错监控\nD. 手动比对 HTML 字符串",
+      "options": [
+        { "id": "A", "text": "仅依靠单元测试覆盖组件" },
+        { "id": "B", "text": "在 CI 中启动 Node 服务进行 E2E 抓取对比" },
+        { "id": "C", "text": "依赖生产环境用户报错监控" },
+        { "id": "D", "text": "手动比对 HTML 字符串" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Hydration Mismatch 通常由服务端与客户端环境差异（如时间戳、随机 ID、window 对象访问）导致。单元测试无法模拟真实 SSR 环境。生产监控发现太晚。最佳实践是在 CI 中启动临时 SSR 服务，使用 Puppeteer/Playwright 抓取 HTML 并与客户端渲染结果对比，或检查控制台 warning。\n\n错误选项剖析：A 无法捕捉环境差异；C 风险过高，影响用户体验；D 效率低且不可持续。\n\n工程实践建议：使用 nextjs 的 hydration 检查工具。在 CI 中配置 strict 模式报错。避免在服务端渲染中使用 Date.now() 或 Math.random()，改用 useEffect 填充动态内容。",
+      "common_mistake": "认为单元测试足够，忽略服务端与浏览器环境的本质差异导致上线后白屏。"
+    },
+    {
+      "id": "engineer-senior-092",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "Memory", "Serverless"],
+      "source_company": "AWS",
+      "score": 10,
+      "title": "SSR 节点内存泄漏防护",
+      "content": "在 Serverless 环境部署 SSR 应用（如 Next.js on Lambda）时，防止内存泄漏导致冷启动频繁的关键措施是？\n\nA. 增加 Lambda 内存配置\nB. 禁用所有缓存\nC. 避免全局变量积累，复用模块实例\nD. 每次请求重启容器",
+      "options": [
+        { "id": "A", "text": "增加 Lambda 内存配置" },
+        { "id": "B", "text": "禁用所有缓存" },
+        { "id": "C", "text": "避免全局变量积累，复用模块实例" },
+        { "id": "D", "text": "每次请求重启容器" }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制：Serverless 容器会复用。若在全局作用域积累数据（如未清理的缓存、事件监听器），会导致内存随请求增长直至 OOM 重启，失去复用优势。A 仅延缓问题；B 降低性能；D 违背 Serverless 初衷。\n\n错误选项剖析：A 治标不治本；B 影响性能；D 成本极高且慢。\n\n工程实践建议：检查全局变量使用。使用 WeakMap 存储缓存。定期监控内存指标。利用 Provisioned Concurrency 减少冷启动。",
+      "common_mistake": "在全局 scope 定义数组或对象并在请求中 push 数据，导致内存无限增长。"
+    },
+    {
+      "id": "engineer-senior-093",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "ModuleFederation", "Build"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "模块联邦共享依赖冲突",
+      "content": "使用 Webpack Module Federation 时，若主机与远程应用共享的 React 版本不一致，最佳解决策略是？\n\nA. 强制所有应用升级至最新版\nB. 配置 singleton: true 且 eager: true\nC. 每个应用打包独立 React 副本\nD. 忽略版本警告",
+      "options": [
+        { "id": "A", "text": "强制所有应用升级至最新版" },
+        { "id": "B", "text": "配置 singleton: true 且 eager: true" },
+        { "id": "C", "text": "每个应用打包独立 React 副本" },
+        { "id": "D", "text": "忽略版本警告" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：React 等库需单例运行，否则 Hook 状态会错乱。singleton: true 确保只加载一份实例。eager: true 确保主机启动时立即加载共享域，避免异步加载导致的多实例问题。A 成本高；C 增加体积且仍有风险；D 会导致运行时错误。\n\n错误选项剖析：A 协调成本高；C 违背共享初衷且可能出错；D 必然报错。\n\n工程实践建议：统一锁定共享依赖版本。使用 semver 范围允许小版本兼容。在主机中预加载共享库。",
+      "common_mistake": "未配置 singleton，导致多个 React 实例共存，Hook 报错 Invalid Hook Call。"
+    },
+    {
+      "id": "engineer-senior-094",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "CSS", "Isolation"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "微前端样式隔离构建影响",
+      "content": "在微前端架构中，采用 CSS Modules 或 Shadow DOM 进行样式隔离，对构建流程的主要影响是？\n\nA. 构建速度显著加快\nB. 需配置特殊的 PostCSS 插件处理作用域\nC. 无需任何配置变更\nD. 自动全局清除无用样式",
+      "options": [
+        { "id": "A", "text": "构建速度显著加快" },
+        { "id": "B", "text": "需配置特殊的 PostCSS 插件处理作用域" },
+        { "id": "C", "text": "无需任何配置变更" },
+        { "id": "D", "text": "自动全局清除无用样式" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：CSS Modules 需生成哈希类名，Shadow DOM 需封装样式。这需要在构建工具（Webpack/Vite）中配置相应的 loader 或插件（如 postcss-modules）。A 错误，处理哈希可能稍慢；C 错误，默认不隔离；D 需额外工具（如 PurgeCSS）。\n\n错误选项剖析：A 通常稍慢或持平；C 无法实现隔离；D 非内置功能。\n\n工程实践建议：统一子应用构建配置模板。注意第三方库样式穿透问题。避免全局样式污染。",
+      "common_mistake": "忽略构建配置，导致样式类名冲突或 Shadow DOM 内样式失效。"
+    },
+    {
+      "id": "engineer-senior-095",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "CodeReview", "Quality"],
+      "source_company": "GitHub",
+      "score": 10,
+      "title": "AI 代码审查局限性",
+      "content": "引入 AI 助手（如 Copilot）进行代码审查（Code Review）时，主要风险是？\n\nA. 审查速度过快\nB. 产生幻觉，批准存在安全漏洞的代码\nC. 无法理解注释\nD. 支持语言太少",
+      "options": [
+        { "id": "A", "text": "审查速度过快" },
+        { "id": "B", "text": "产生幻觉，批准存在安全漏洞的代码" },
+        { "id": "C", "text": "无法理解注释" },
+        { "id": "D", "text": "支持语言太少" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：LLM 基于概率生成，可能自信地错误判断（幻觉）。它可能忽略上下文依赖，批准看似正确实则有害的代码（如 SQL 注入、逻辑漏洞）。A 是优势；C 能理解；D 支持主流语言。\n\n错误选项剖析：A 是优点；C 现代模型能理解；D 支持广泛。\n\n工程实践建议：AI 仅作为辅助，必须有人工复核。配置安全扫描工具互补。不信任 AI 的安全判断。",
+      "common_mistake": "完全依赖 AI 审查，导致严重逻辑漏洞或安全隐患流入生产。"
+    },
+    {
+      "id": "engineer-senior-096",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Security", "Prompt"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "AI 生成代码安全扫描",
+      "content": "针对 AI 生成的代码，CI 流水线应额外增加哪项安全检查？\n\nA. 检查代码格式\nB. 扫描硬编码密钥与敏感信息\nC. 统计代码行数\nD. 检查注释语言",
+      "options": [
+        { "id": "A", "text": "检查代码格式" },
+        { "id": "B", "text": "扫描硬编码密钥与敏感信息" },
+        { "id": "C", "text": "统计代码行数" },
+        { "id": "D", "text": "检查注释语言" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：AI 模型训练数据包含公开代码，可能模仿生成包含硬编码密钥、API Token 的代码片段。这是特有安全风险。A、C、D 是常规检查，非 AI 特有高风险。\n\n错误选项剖析：A、C、D 虽重要但非 AI 引入的特有高危风险。\n\n工程实践建议：集成 GitLeaks 或类似工具。禁止 AI 直接提交代码。审查 AI 生成的依赖引入。",
+      "common_mistake": "认为 AI 生成的代码天然安全，忽略其可能泄露训练数据中的敏感信息。"
+    },
+    {
+      "id": "engineer-senior-097",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Ops", "Cost"],
+      "source_company": "OpenAI",
+      "score": 10,
+      "title": "AI 流水线成本控制",
+      "content": "在 CI/CD 中集成 AI 任务（如自动生成测试用例）时，控制成本的最佳策略是？\n\nA. 每次提交都调用最大模型\nB. 设置 Token 预算与降级策略\nC. 禁用所有 AI 功能\nD. 仅本地运行模型",
+      "options": [
+        { "id": "A", "text": "每次提交都调用最大模型" },
+        { "id": "B", "text": "设置 Token 预算与降级策略" },
+        { "id": "C", "text": "禁用所有 AI 功能" },
+        { "id": "D", "text": "仅本地运行模型" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：AI API 按 Token 收费。无限制调用会导致成本爆炸。需设置预算阈值，超限后降级为小模型或跳过。A 成本不可控；C 因噎废食；D 本地模型效果可能差且慢。\n\n错误选项剖析：A 成本极高；C 放弃效率提升；D 资源消耗大。\n\n工程实践建议：监控 API 调用成本。使用缓存减少重复请求。仅在关键路径使用大模型。",
+      "common_mistake": "未设置限额，导致某次大规模重构触发大量 AI 调用，产生意外账单。"
+    },
+    {
+      "id": "engineer-senior-098",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "ISR", "Cache"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "增量静态再生失效策略",
+      "content": "使用 ISR（Incremental Static Regeneration）时，触发特定页面重新生成的最佳方式是？\n\nA. 等待 TTL 过期\nB. 调用 On-Demand Revalidation API\nC. 手动删除缓存文件\nD. 重启服务器",
+      "options": [
+        { "id": "A", "text": "等待 TTL 过期" },
+        { "id": "B", "text": "调用 On-Demand Revalidation API" },
+        { "id": "C", "text": "手动删除缓存文件" },
+        { "id": "D", "text": "重启服务器" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：ISR 允许后台更新静态页。等待 TTL 会导致数据延迟。On-Demand Revalidation 允许在 CMS 更新内容后立即触发特定页面再生，兼顾性能与时效。C、D 粗暴且影响全局。\n\n错误选项剖析：A 数据不及时；C、D 操作风险大且影响广。\n\n工程实践建议：在 CMS Webhook 中调用 Revalidation API。设置合理 fallback 策略。监控再生失败率。",
+      "common_mistake": "仅依赖 TTL，导致用户看到旧数据，或频繁重启导致服务中断。"
+    },
+    {
+      "id": "engineer-senior-099",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "Sandbox", "Performance"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "微前端沙箱性能开销",
+      "content": "微前端框架（如 qiankun）使用 Proxy 沙箱隔离全局变量，主要性能开销在于？\n\nA. 内存占用增加\nB. 属性访问拦截与递归代理\nC. 网络请求延迟\nD. 构建时间增加",
+      "options": [
+        { "id": "A", "text": "内存占用增加" },
+        { "id": "B", "text": "属性访问拦截与递归代理" },
+        { "id": "C", "text": "网络请求延迟" },
+        { "id": "D", "text": "构建时间增加" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：Proxy 需拦截所有属性读写以隔离 window 对象。深层嵌套对象若递归代理，开销显著。A 是结果非原因；C、D 无关。\n\n错误选项剖析：A 是表现；C、D 非运行时开销。\n\n工程实践建议：避免全局变量频繁访问。使用快照沙箱替代 Proxy 沙箱（若兼容）。优化子应用代码减少全局依赖。",
+      "common_mistake": "在循环中频繁访问被代理的全局对象，导致页面卡顿。"
+    },
+    {
+      "id": "engineer-senior-100",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Testing", "Generation"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "AI 生成测试用例有效性",
+      "content": "关于 AI 自动生成单元测试，以下说法正确的是？\n\nA. 覆盖率 100% 代表测试质量高\nB. 需人工审查断言逻辑的正确性\nC. 可完全替代手工编写测试\nD. 无需维护生成的测试代码",
+      "options": [
+        { "id": "A", "text": "覆盖率 100% 代表测试质量高" },
+        { "id": "B", "text": "需人工审查断言逻辑的正确性" },
+        { "id": "C", "text": "可完全替代手工编写测试" },
+        { "id": "D", "text": "无需维护生成的测试代码" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制：AI 可能生成通过但无意义的断言（如 assert true）。覆盖率不衡量逻辑正确性。需人工审查断言是否验证了业务规则。C、D 违背工程常识。\n\n错误选项剖析：A 覆盖率易造假；C 目前不可靠；D 代码需随业务演进。\n\n工程实践建议：将 AI 生成作为草稿。重点审查边界条件测试。结合变异测试验证用例有效性。",
+      "common_mistake": "盲目合并 AI 生成的测试，导致测试套件脆弱且无法发现真实 Bug。"
+    },
+    {
+      "id": "engineer-senior-101",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "Streaming", "Performance"],
+      "source_company": "React",
+      "score": 15,
+      "title": "SSR 流式渲染优化",
+      "content": "使用 React 18+ 流式 SSR（Selective Hydration）时，提升首屏体验的措施包括？（多选）\n\nA. 使用 Suspense 分块加载组件\nB. 优先发送 HTML 头部\nC. 延迟加载非关键区域\nD. 禁用所有 JavaScript\nE. 增加服务器 CPU 核心",
+      "options": [
+        { "id": "A", "text": "使用 Suspense 分块加载组件" },
+        { "id": "B", "text": "优先发送 HTML 头部" },
+        { "id": "C", "text": "延迟加载非关键区域" },
+        { "id": "D", "text": "禁用所有 JavaScript" },
+        { "id": "E", "text": "增加服务器 CPU 核心" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：流式 SSR 允许分块发送 HTML。Suspense 标记边界，优先发送关键内容（A、B）。非关键区域延迟水合（C）。D 违背交互需求；E 是硬件方案非代码优化。\n\n错误选项剖析：D 丧失 SPA 优势；E 成本高且非根本解决。\n\n工程实践建议：合理划分 Suspense 边界。配置优先加载序列。监控 TTFB 与 FCP 指标。",
+      "exclusion_analysis": {
+        "D": "禁用 JS 退化为静态页，失去 SSR 交互优势。",
+        "E": "硬件升级不能解决渲染阻塞逻辑问题。"
+      }
+    },
+    {
+      "id": "engineer-senior-102",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "Deployment", "Version"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "微前端版本兼容性管理",
+      "content": "微前端独立部署时，为避免主机与子应用版本不兼容，应采取哪些措施？（多选）\n\nA. 语义化版本约束\nB. 接口契约测试\nC. 强制同步发布\nD. 运行时版本检测与降级\nE. 共享全局状态",
+      "options": [
+        { "id": "A", "text": "语义化版本约束" },
+        { "id": "B", "text": "接口契约测试" },
+        { "id": "C", "text": "强制同步发布" },
+        { "id": "D", "text": "运行时版本检测与降级" },
+        { "id": "E", "text": "共享全局状态" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：独立部署需松散耦合。语义化版本（A）管理依赖。契约测试（B）确保接口兼容。运行时检测（D）防止崩溃。C 违背独立部署初衷；E 增加耦合。\n\n错误选项剖析：C 回到单体发布模式；E 增加耦合风险。\n\n工程实践建议：定义清晰的通信协议。使用 API Gateway 管理版本。保留旧版本接口过渡期。",
+      "exclusion_analysis": {
+        "C": "强制同步发布失去了微前端独立交付的价值。",
+        "E": "共享全局状态会导致耦合，难以独立演进。"
+      }
+    },
+    {
+      "id": "engineer-senior-103",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Pipeline", "Integration"],
+      "source_company": "GitLab",
+      "score": 15,
+      "title": "AI 集成到 CI 流水线场景",
+      "content": "以下哪些场景适合将 AI 能力集成到 CI/CD 流水线中？（多选）\n\nA. 自动生成 Commit Message\nB. 智能识别失败日志原因\nC. 自动修复所有编译错误\nD. 代码风格建议\nE. 替代人工审批发布",
+      "options": [
+        { "id": "A", "text": "自动生成 Commit Message" },
+        { "id": "B", "text": "智能识别失败日志原因" },
+        { "id": "C", "text": "自动修复所有编译错误" },
+        { "id": "D", "text": "代码风格建议" },
+        { "id": "E", "text": "替代人工审批发布" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：AI 擅长文本生成与模式识别。生成 Commit 信息（A）、分析日志（B）、风格建议（D）是成熟场景。C 风险高，可能引入新错；E 责任重大，需人工确认。\n\n错误选项剖析：C 自动修复可能掩盖深层问题；E 发布需责任人确认。\n\n工程实践建议：AI 建议需人工确认。记录 AI 操作日志。设置人工介入阈值。",
+      "exclusion_analysis": {
+        "C": "自动修复代码风险极高，可能导致逻辑错误。",
+        "E": "发布审批涉及业务风险，不能完全自动化。"
+      }
+    },
+    {
+      "id": "engineer-senior-104",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["SSR", "Security", "XSS"],
+      "source_company": "OWASP",
+      "score": 15,
+      "title": "SSR 应用 XSS 防护",
+      "content": "SSR 应用相比 SPA，需额外注意哪些 XSS 攻击面？（多选）\n\nA. 服务端注入 HTML 未转义\nB. 序列化数据包含脚本\nC. 客户端 DOM 操作\nD. 第三方组件服务端渲染\nE. 数据库直接查询",
+      "options": [
+        { "id": "A", "text": "服务端注入 HTML 未转义" },
+        { "id": "B", "text": "序列化数据包含脚本" },
+        { "id": "C", "text": "客户端 DOM 操作" },
+        { "id": "D", "text": "第三方组件服务端渲染" },
+        { "id": "E", "text": "数据库直接查询" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：SSR 在服务端拼接 HTML，若数据未转义直接注入（A、B），会导致服务端 XSS。第三方组件若不可信（D）也有风险。C 是 SPA 通用风险；E 是 SQL 注入。\n\n错误选项剖析：C 是客户端风险，非 SSR 特有；E 是数据库层。\n\n工程实践建议：使用框架自带转义机制。配置 CSP 头。审查第三方 SSR 组件。",
+      "exclusion_analysis": {
+        "C": "客户端 DOM 操作是通用风险，非 SSR 特有风险点。",
+        "E": "数据库查询属于 SQL 注入范畴，非 XSS。"
+      }
+    },
+    {
+      "id": "engineer-senior-105",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Privacy", "Compliance"],
+      "source_company": "EU",
+      "score": 15,
+      "title": "AI 研发合规风险",
+      "content": "在研发流程中使用公共 AI 模型，需警惕哪些合规风险？（多选）\n\nA. 代码知识产权泄露\nB. 敏感数据上传训练\nC. 生成代码版权纠纷\nD. 模型响应延迟\nE. 服务不可用",
+      "options": [
+        { "id": "A", "text": "代码知识产权泄露" },
+        { "id": "B", "text": "敏感数据上传训练" },
+        { "id": "C", "text": "生成代码版权纠纷" },
+        { "id": "D", "text": "模型响应延迟" },
+        { "id": "E", "text": "服务不可用" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：公共 AI 可能将输入数据用于训练（A、B），导致机密泄露。生成代码可能侵犯第三方版权（C）。D、E 是稳定性问题，非合规。\n\n错误选项剖析：D、E 属服务质量，非法律合规。\n\n工程实践建议：使用企业私有部署模型。配置数据脱敏。审查生成代码许可证。",
+      "exclusion_analysis": {
+        "D": "延迟是性能问题，不涉及合规。",
+        "E": "不可用是可用性问题，不涉及合规。"
+      }
+    },
+    {
+      "id": "engineer-senior-106",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Build", "Optimization", "MFE"],
+      "source_company": "Webpack",
+      "score": 15,
+      "title": "微前端构建优化策略",
+      "content": "优化微前端子应用构建体积与速度的策略包括？（多选）\n\nA. 共享依赖外部化\nB. 按需加载路由组件\nC. 禁用 SourceMap 生产环境\nD. 所有代码打包成一个文件\nE. 使用持久化缓存",
+      "options": [
+        { "id": "A", "text": "共享依赖外部化" },
+        { "id": "B", "text": "按需加载路由组件" },
+        { "id": "C", "text": "禁用 SourceMap 生产环境" },
+        { "id": "D", "text": "所有代码打包成一个文件" },
+        { "id": "E", "text": "使用持久化缓存" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：外部化共享依赖减少重复（A）。路由懒加载减少首屏（B）。生产禁用 Map 减小体积（C）。缓存加速构建（E）。D 导致加载慢且无法缓存。\n\n错误选项剖析：D 违背优化原则，单文件过大。\n\n工程实践建议：配置 externals。开启 splitChunks。使用 esbuild/swc 加速编译。",
+      "exclusion_analysis": {
+        "D": "单文件过大导致加载慢，且无法利用浏览器缓存。"
+      }
+    },
+    {
+      "id": "engineer-senior-107",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "SSR", "Metrics"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "SSR 性能监控指标",
+      "content": "评估 SSR 应用性能时，应重点关注哪些指标？（多选）\n\nA. TTFB (Time To First Byte)\nB. FCP (First Contentful Paint)\nC. Hydration Time\nD. 服务器 CPU 使用率\nE. 数据库连接数",
+      "options": [
+        { "id": "A", "text": "TTFB (Time To First Byte)" },
+        { "id": "B", "text": "FCP (First Contentful Paint)" },
+        { "id": "C", "text": "Hydration Time" },
+        { "id": "D", "text": "服务器 CPU 使用率" },
+        { "id": "E", "text": "数据库连接数" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：SSR 性能核心在于服务端响应速度（TTFB）、内容可见性（FCP）及交互就绪时间（Hydration）。D、E 是后端资源指标，非前端体验直接指标。\n\n错误选项剖析：D、E 是基础设施指标，不直接反映用户感知。\n\n工程实践建议：使用 RUM 监控真实用户数据。设置 TTFB 报警。优化服务端渲染逻辑。\n",
+      "exclusion_analysis": {
+        "D": "CPU 是服务器资源，不直接代表前端性能体验。",
+        "E": "数据库连接数是后端指标。"
+      }
+    },
+    {
+      "id": "engineer-senior-108",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Refactor", "Legacy"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "AI 辅助遗留系统重构",
+      "content": "使用 AI 辅助重构遗留前端代码时，正确的实践包括？（多选）\n\nA. 小步提交，逐步替换\nB. 保持原有测试用例通过\nC. 一次性全量重构\nD. 人工审查关键逻辑\nE. 忽略类型定义",
+      "options": [
+        { "id": "A", "text": "小步提交，逐步替换" },
+        { "id": "B", "text": "保持原有测试用例通过" },
+        { "id": "C", "text": "一次性全量重构" },
+        { "id": "D", "text": "人工审查关键逻辑" },
+        { "id": "E", "text": "忽略类型定义" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制：重构需降低风险。小步提交（A）易回滚。测试通过（B）保证行为不变。人工审查（D）确保逻辑正确。C 风险极大；E 导致类型安全丧失。\n\n错误选项剖析：C 容易导致系统崩溃；E 降低代码质量。\n\n工程实践建议：先补充测试覆盖。使用 AI 生成迁移脚本。分模块逐步替换。\n",
+      "exclusion_analysis": {
+        "C": "大爆炸式重构风险极高，一旦失败难以回滚。",
+        "E": "类型定义是重构的重要保障，不应忽略。"
+      }
+    },
+    {
+      "id": "engineer-senior-109",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Edge", "SSR", "Deployment"],
+      "source_company": "Cloudflare",
+      "score": 15,
+      "title": "边缘 SSR 部署限制",
+      "content": "将 SSR 应用部署到边缘节点（Edge）时，需考虑哪些限制？（多选）\n\nA. 运行时环境兼容性\nB. 持久化存储不可用\nC. 执行超时限制严格\nD. 无法访问外部 API\nE. 全球分布延迟低",
+      "options": [
+        { "id": "A", "text": "运行时环境兼容性" },
+        { "id": "B", "text": "持久化存储不可用" },
+        { "id": "C", "text": "执行超时限制严格" },
+        { "id": "D", "text": "无法访问外部 API" },
+        { "id": "E", "text": "全球分布延迟低" }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制：边缘环境通常基于 V8 Isolates，Node API 支持有限（A）。无本地磁盘（B）。超时短（如 50ms-1s）（C）。优势是延迟低（E）。D 错误，可访问外部 API 但需注意延迟。\n\n错误选项剖析：D 可以访问，但需考虑网络延迟。\n\n工程实践建议：使用边缘兼容的库。状态存外部 KV。优化冷启动。\n",
+      "exclusion_analysis": {
+        "D": "边缘函数可以访问外部 API，只是需注意网络开销。"
+      }
+    },
+    {
+      "id": "engineer-senior-110",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["AI", "Documentation", "Maintenance"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "AI 生成文档维护",
+      "content": "利用 AI 自动生成项目文档时，需解决哪些问题？（多选）\n\nA. 文档与代码不同步\nB. 生成内容准确性验证\nC. 敏感信息泄露\nD. 文档格式美观\nE. 生成速度过快",
+      "options": [
+        { "id": "A", "text": "文档与代码不同步" },
+        { "id": "B", "text": "生成内容准确性验证" },
+        { "id": "C", "text": "敏感信息泄露" },
+        { "id": "D", "text": "文档格式美观" },
+        { "id": "E", "text": "生成速度过快" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制：代码变动后文档需更新（A）。AI 可能胡说（B）。代码含敏感信息需过滤（C）。D 是次要；E 是优势。\n\n错误选项剖析：D 格式可调整；E 是优点。\n\n工程实践建议：CI 中自动触发文档生成。人工审核关键章节。扫描敏感词。\n",
+      "exclusion_analysis": {
+        "D": "格式美观可通过模板解决，非核心问题。",
+        "E": "速度快是优势，不是需解决的问题。"
+      }
+    },
+    {
+      "id": "engineer-senior-111",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["SSR", "Hydration", "Algorithm"],
+      "source_company": "React",
+      "score": 20,
+      "title": "水合差异检测算法",
+      "content": "实现一个简化版的水合差异检测函数。给定服务端 HTML 字符串和客户端 DOM 结构，检测是否存在标签或文本内容不匹配。\n\n要求：\n1. 忽略属性差异，仅检测标签名和文本\n2. 返回第一个不匹配的路径\n3. 若匹配返回 null",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Node {\n  tag: string;\n  text?: string;\n  children?: Node[];\n}\n\n/**\n * 检测水合差异\n * @param serverHTML - 服务端 HTML 结构\n * @param clientDOM - 客户端 DOM 结构\n * @returns 不匹配路径或 null\n */\nfunction detectHydrationMismatch(serverHTML: Node, clientDOM: Node): string | null {\n  // 请在此处实现代码\n  return null;\n}",
+      "test_cases": [
+        {
+          "input": "{tag:'div'}, {tag:'div'}",
+          "expected_output": "null",
+          "description": "完全匹配"
+        },
+        {
+          "input": "{tag:'div'}, {tag:'span'}",
+          "expected_output": "'/'",
+          "description": "根标签不匹配"
+        },
+        {
+          "input": "{tag:'div', children:[{tag:'p'}]}, {tag:'div', children:[{tag:'span'}]}",
+          "expected_output": "'/0'",
+          "description": "子节点不匹配"
+        },
+        {
+          "input": "{tag:'div', text:'hi'}, {tag:'div', text:'hello'}",
+          "expected_output": "'/text'",
+          "description": "文本不匹配"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(H)",
+      "explanation": "原理机制：递归遍历树结构。比较当前节点 tag 和 text。若不同返回当前路径。若相同继续遍历子节点。路径用索引表示。\n\n错误选型剖析：未递归子节点；未处理文本节点；路径记录错误。\n\n工程实践建议：React 内部使用更复杂的算法处理属性。此处简化为核心结构对比。用于 CI 自动化检测。\n",
+      "reference_solution": "function detectHydrationMismatch(serverHTML: Node, clientDOM: Node, path = ''): string | null {\n  if (serverHTML.tag !== clientDOM.tag) return path || '/';\n  if (serverHTML.text !== clientDOM.text) return (path || '/') + '/text';\n  const sChildren = serverHTML.children || [];\n  const cChildren = clientDOM.children || [];\n  for (let i = 0; i < Math.max(sChildren.length, cChildren.length); i++) {\n    const res = detectHydrationMismatch(sChildren[i], cChildren[i], (path || '/') + '/' + i);\n    if (res) return res;\n  }\n  return null;\n}",
+      "common_mistake": "忽略子节点递归，或路径拼接逻辑错误。"
+    },
+    {
+      "id": "engineer-senior-112",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["AI", "Token", "Budget"],
+      "source_company": "OpenAI",
+      "score": 20,
+      "title": "AI Token 预算调度器",
+      "content": "设计一个 AI 任务调度器，给定任务列表及预估 Token 消耗，在总预算限制下最大化完成任务数。\n\n要求：\n1. 任务不可拆分\n2. 总 Token 不超过 budget\n3. 返回选中的任务 ID 列表",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface Task {\n  id: string;\n  tokens: number;\n}\n\n/**\n * 最大化任务完成数\n * @param tasks - 任务列表\n * @param budget - 总 Token 预算\n * @returns 选中任务 ID 列表\n */\nfunction maximizeTasks(tasks: Task[], budget: number): string[] {\n  // 请在此处实现代码\n  return [];\n}",
+      "test_cases": [
+        {
+          "input": "[{id:'A',tokens:10}], 10",
+          "expected_output": "['A']",
+          "description": "单任务刚好"
+        },
+        {
+          "input": "[{id:'A',tokens:10},{id:'B',tokens:20}], 15",
+          "expected_output": "['A']",
+          "description": "选小任务"
+        },
+        {
+          "input": "[{id:'A',tokens:10},{id:'B',tokens:10}], 20",
+          "expected_output": "['A','B']",
+          "description": "全选"
+        },
+        { "input": "[], 10", "expected_output": "[]", "description": "无任务" }
+      ],
+      "time_complexity": "O(N log N)",
+      "space_complexity": "O(N)",
+      "explanation": "原理机制：贪心算法。优先选择 Token 消耗少的任务，能在有限预算内完成更多任务数量。排序后累加直到超预算。\n\n错误选型剖析：未排序直接选；超预算未停止；未处理空列表。\n\n工程实践建议：实际场景需考虑任务优先级。此处仅优化数量。用于 CI 成本管控。\n",
+      "reference_solution": "function maximizeTasks(tasks: Task[], budget: number): string[] {\n  tasks.sort((a, b) => a.tokens - b.tokens);\n  const result = [];\n  let total = 0;\n  for (const t of tasks) {\n    if (total + t.tokens <= budget) {\n      total += t.tokens;\n      result.push(t.id);\n    } else break;\n  }\n  return result;\n}",
+      "common_mistake": "未排序导致先选了大任务，剩余预算无法完成更多小任务。"
+    },
+    {
+      "id": "engineer-senior-113",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "Scope", "Resolver"],
+      "source_company": "Webpack",
+      "score": 20,
+      "title": "共享依赖版本解析器",
+      "content": "实现一个简单的共享依赖版本解析器。给定多个应用请求的同一依赖的版本范围，判断是否存在兼容版本。\n\n要求：\n1. 版本为数字\n2. 范围为 [min, max]\n3. 返回兼容版本或 null",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface VersionRange {\n  appId: string;\n  min: number;\n  max: number;\n}\n\n/**\n * 寻找兼容版本\n * @param ranges - 版本范围列表\n * @returns 兼容版本或 null\n */\nfunction findCompatibleVersion(ranges: VersionRange[]): number | null {\n  // 请在此处实现代码\n  return null;\n}",
+      "test_cases": [
+        {
+          "input": "[{min:1,max:2},{min:1,max:3}]",
+          "expected_output": "1",
+          "description": "有交集"
+        },
+        {
+          "input": "[{min:1,max:2},{min:3,max:4}]",
+          "expected_output": "null",
+          "description": "无交集"
+        },
+        {
+          "input": "[{min:2,max:2}]",
+          "expected_output": "2",
+          "description": "单应用"
+        },
+        { "input": "[]", "expected_output": "null", "description": "空列表" }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：求所有区间的交集。交集左边界为 max(mins)，右边界为 max(maxs)。若左<=右则有解，返回左边界。\n\n错误选型剖析：未求交集；边界计算错误；未处理空列表。\n\n工程实践建议：Module Federation 内部使用更复杂的 SemVer 逻辑。此处简化为数值区间。用于构建时冲突检测。\n",
+      "reference_solution": "function findCompatibleVersion(ranges: VersionRange[]): number | null {\n  if (ranges.length === 0) return null;\n  let maxMin = -1;\n  let minMax = Infinity;\n  for (const r of ranges) {\n    maxMin = Math.max(maxMin, r.min);\n    minMax = Math.min(minMax, r.max);\n  }\n  return maxMin <= minMax ? maxMin : null;\n}",
+      "common_mistake": "交集逻辑搞反，或忘记检查左边界是否小于右边界。"
+    },
+    {
+      "id": "engineer-senior-114",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["SSR", "Stream", "Chunk"],
+      "source_company": "NodeJS",
+      "score": 20,
+      "title": "流式响应分块计算器",
+      "content": "给定总 HTML 大小和每块最大字节数，计算需要分多少块发送，以及最后一块的大小。\n\n要求：\n1. 返回块数和最后一块大小\n2. 每块不超过 maxSize\n3. 若总大小为 0 返回 0 块",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface StreamResult {\n  chunks: number;\n  lastChunkSize: number;\n}\n\n/**\n * 计算分块信息\n * @param totalSize - 总字节数\n * @param maxSize - 每块最大字节\n * @returns 分块结果\n */\nfunction calculateStreamChunks(totalSize: number, maxSize: number): StreamResult {\n  // 请在此处实现代码\n  return { chunks: 0, lastChunkSize: 0 };\n}",
+      "test_cases": [
+        {
+          "input": "100, 50",
+          "expected_output": "{chunks:2, lastChunkSize:50}",
+          "description": "整除"
+        },
+        {
+          "input": "101, 50",
+          "expected_output": "{chunks:3, lastChunkSize:1}",
+          "description": "有余数"
+        },
+        {
+          "input": "0, 50",
+          "expected_output": "{chunks:0, lastChunkSize:0}",
+          "description": "空内容"
+        },
+        {
+          "input": "10, 50",
+          "expected_output": "{chunks:1, lastChunkSize:10}",
+          "description": "小于限额"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：数学计算。块数 = ceil(total / max)。最后一块 = total % max（若为 0 且总>0 则为 max）。\n\n错误选型剖析：未处理整除情况；未处理 0；浮点数精度问题。\n\n工程实践建议：SSR 流式传输需合理分块以平衡 TTFB 与吞吐量。避免块过小增加 overhead。\n",
+      "reference_solution": "function calculateStreamChunks(totalSize: number, maxSize: number): StreamResult {\n  if (totalSize === 0) return { chunks: 0, lastChunkSize: 0 };\n  const chunks = Math.ceil(totalSize / maxSize);\n  const lastChunkSize = totalSize % maxSize === 0 ? maxSize : totalSize % maxSize;\n  return { chunks, lastChunkSize };\n}",
+      "common_mistake": "取余为 0 时最后一块大小误判为 0，实际应为 maxSize。"
+    },
+    {
+      "id": "engineer-senior-115",
+      "type": "algorithm",
+      "difficulty": "senior",
+      "tags": ["AI", "Cache", "Prompt"],
+      "source_company": "OpenSource",
+      "score": 20,
+      "title": "AI 提示词缓存匹配",
+      "content": "为减少 AI Token 消耗，实现一个提示词缓存系统。给定新提示词和缓存列表，查找是否存在相似度超过阈值的缓存。\n\n要求：\n1. 简化相似度为字符串完全匹配\n2. 返回缓存结果或 null\n3. 支持过期时间检查",
+      "options": [],
+      "correct_answer": "见代码实现",
+      "code_template": "interface CacheItem {\n  prompt: string;\n  response: string;\n  expireAt: number;\n}\n\n/**\n * 查找缓存\n * @param prompt - 当前提示词\n * @param cache - 缓存列表\n * @param now - 当前时间\n * @returns 缓存响应或 null\n */\nfunction findCache(prompt: string, cache: CacheItem[], now: number): string | null {\n  // 请在此处实现代码\n  return null;\n}",
+      "test_cases": [
+        {
+          "input": "'hello', [{prompt:'hello',response:'hi',expireAt:100}], 50",
+          "expected_output": "'hi'",
+          "description": "命中未过期"
+        },
+        {
+          "input": "'hello', [{prompt:'hello',response:'hi',expireAt:50}], 60",
+          "expected_output": "null",
+          "description": "已过期"
+        },
+        {
+          "input": "'world', [{prompt:'hello',response:'hi',expireAt:100}], 50",
+          "expected_output": "null",
+          "description": "未命中"
+        },
+        {
+          "input": "'hello', [], 50",
+          "expected_output": "null",
+          "description": "空缓存"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "explanation": "原理机制：遍历缓存。检查 prompt 是否相等且 expireAt > now。找到即返回。实际场景可用哈希或向量相似度。\n\n错误选型剖析：未检查过期时间；未检查 prompt 内容；未处理空数组。\n\n工程实践建议：CI 中缓存 AI 生成结果。使用哈希加速匹配。定期清理过期缓存。\n",
+      "reference_solution": "function findCache(prompt: string, cache: CacheItem[], now: number): string | null {\n  for (const item of cache) {\n    if (item.prompt === prompt && item.expireAt > now) {\n      return item.response;\n    }\n  }\n  return null;\n}",
+      "common_mistake": "忽略过期时间检查，导致返回 stale 数据。"
+    },
+    {
+      "id": "engineer-senior-116",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["SSR", "SEO", "Deployment"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "SSR 与 SEO 关系",
+      "content": "使用 SSR 一定能保证搜索引擎完美收录所有动态内容。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：若 SSR 内容依赖客户端 JS 进一步渲染，或 robots.txt 禁止，搜索引擎仍可能无法收录。",
+      "explanation": "原理机制：SSR 提供初始 HTML，利于 SEO。但若关键内容需客户端交互后加载（如无限滚动），或 meta 标签动态生成错误，搜索引擎可能无法抓取。此外，搜索引擎对 JS 执行能力有限。\n\n工程实践建议：确保关键内容在首屏 HTML 中。使用 prerender 服务。检查 robots.txt。提交 Sitemap。\n",
+      "common_mistake": "认为上了 SSR 就万事大吉，忽略客户端渲染内容对 SEO 的影响。"
+    },
+    {
+      "id": "engineer-senior-117",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["MicroFrontend", "Sandbox", "Security"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "微前端沙箱安全性",
+      "content": "微前端沙箱机制能完全防止子应用窃取主机 Cookie。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：若子应用与主机同域，JS 仍可访问 document.cookie，沙箱主要隔离 window 对象。",
+      "explanation": "原理机制：JS 沙箱主要隔离全局变量（window）。若同域，Cookie 是共享的。防止 Cookie 窃取需靠 HttpOnly 标志或子域隔离。\n\n工程实践建议：敏感 Cookie 设 HttpOnly。子应用部署不同子域。使用 Token 而非 Cookie 认证。\n",
+      "common_mistake": "混淆 JS 沙箱与浏览器安全域概念，误以为沙箱能隔离所有资源。"
+    },
+    {
+      "id": "engineer-senior-118",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["AI", "Code", "Ownership"],
+      "source_company": "Legal",
+      "score": 5,
+      "title": "AI 生成代码版权",
+      "content": "目前法律明确规定 AI 生成的代码版权归开发者所有。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：各国法律不同，目前多数地区（如美国）倾向于不保护纯 AI 生成内容，或有争议。",
+      "explanation": "原理机制：版权法通常保护人类智力成果。纯 AI 生成内容版权归属尚存争议，部分案例判定无版权。企业需关注合规风险。\n\n工程实践建议：人工修改 AI 代码以主张版权。查阅当地法律。避免核心逻辑完全依赖 AI。\n",
+      "common_mistake": "误以为 AI 生成物天然拥有版权，导致知识产权纠纷。"
+    },
+    {
+      "id": "engineer-senior-119",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["SSR", "Node", "Cluster"],
+      "source_company": "NodeJS",
+      "score": 5,
+      "title": "Node.js 集群模式",
+      "content": "在 SSR 生产环境，应使用 Node.js Cluster 模式或多进程管理以利用多核 CPU。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "例外情况：若部署在 Serverless 或容器化环境（如 K8s），通常通过多实例而非 Cluster 实现。",
+      "explanation": "原理机制：Node.js 单线程。Cluster 模块可 fork 多进程利用多核。生产环境必须多进程/多实例以应对并发。\n\n工程实践建议：使用 PM2 管理进程。K8s 中通过 ReplicaSet 扩展实例。监控进程重启情况。\n",
+      "common_mistake": "单进程部署生产环境，导致 CPU 利用率低且单点故障。"
+    },
+    {
+      "id": "engineer-senior-120",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["AI", "Testing", "Coverage"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "AI 测试覆盖率",
+      "content": "AI 生成的测试用例能自动保证业务逻辑覆盖率达到 100%。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "例外情况：AI 可能遗漏复杂边界条件或业务特定规则，需人工补充。",
+      "explanation": "原理机制：AI 基于模式生成，无法完全理解业务语义。可能生成大量重复测试或遗漏关键分支。覆盖率需人工审查保证。\n\n工程实践建议：结合变异测试。人工补充边界用例。定期审查测试有效性。\n",
+      "common_mistake": "盲目信任 AI 生成的测试报告，忽略实际业务场景覆盖。"
+    }
+  ]
+}

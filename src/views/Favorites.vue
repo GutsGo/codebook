@@ -56,7 +56,6 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { fetchCategories } from "@/data/questions";
-import { resolveDataUrl } from "@/utils/assets";
 import type { Question, CategoryData, MistakeRecord } from "@/types/question";
 const router = useRouter();
 const progressStore = useProgressStore();

@@ -5112,6 +5112,2081 @@
       "exclusion_analysis": {
         "E": "旧模式非趋势"
       }
+    },
+    {
+      "id": "framework-senior-151",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Router", "Guard", "Permission"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "路由守卫权限控制模型",
+      "content": "在大型 SPA 应用中实现路由权限控制，最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "在前端硬编码所有权限判断逻辑"
+        },
+        {
+          "id": "B",
+          "text": "后端返回权限菜单，前端动态生成路由表"
+        },
+        {
+          "id": "C",
+          "text": "每个组件内部单独判断权限"
+        },
+        {
+          "id": "D",
+          "text": "仅靠 URL 参数控制访问"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：路由权限控制需前后端配合。后端掌握权限数据，返回用户可访问的菜单/路由列表，前端据此动态挂载路由。这确保权限变更无需重新部署前端。\n正确选型分析：选项 B 准确，这是企业级应用标准方案，权限集中管理，前端仅做展示控制。\n错误选型剖析：A 硬编码导致权限变更需发版；C 组件内判断分散且易遗漏；D URL 参数可被篡改，无安全性。\n工程实践建议：配合路由守卫（beforeEach）拦截未授权访问；403 页面友好提示；权限变更需重新登录或刷新路由表；敏感操作后端二次校验。",
+      "wrong_options_analysis": {
+        "A": "硬编码导致权限变更需发版",
+        "C": "组件内判断分散且易遗漏",
+        "D": "URL 参数可被篡改，无安全性"
+      }
+    },
+    {
+      "id": "framework-senior-152",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Router", "404", "SPA"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "SPA 刷新 404 问题排查",
+      "content": "Vue/React 路由使用 History 模式，刷新页面出现 404，根本原因是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "前端路由配置错误"
+        },
+        {
+          "id": "B",
+          "text": "服务器未配置 fallback 到 index.html"
+        },
+        {
+          "id": "C",
+          "text": "浏览器缓存问题"
+        },
+        {
+          "id": "D",
+          "text": "CDN 未刷新"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：History 路由使用真实 URL 路径（如 /user/123）。刷新时浏览器向服务器请求该路径，若服务器未配置 fallback，会返回 404。前端路由从未生效。\n正确选型分析：选项 B 准确，需在 Nginx/Apache 配置 try_files $uri /index.html，将所有路径指向入口文件。\n错误选型剖析：A 前端配置正确也会 404；C/D 非根本原因，清除缓存仍会复现。\n工程实践建议：Nginx 配置 location / { try_files $uri $uri/ /index.html; }；SSR 项目需服务端路由匹配；CDN 需配置转发规则；Hash 模式可避免此问题但 URL 不友好。",
+      "wrong_options_analysis": {
+        "A": "前端配置正确也会 404",
+        "C": "非根本原因",
+        "D": "非根本原因"
+      }
+    },
+    {
+      "id": "framework-senior-153",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Router", "DeepLink", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "实现深度链接解析器",
+      "content": "实现一个函数 `parseDeepLink`，解析 App 深度链接并转换为前端路由参数。",
+      "code_template": "interface DeepLinkResult {\n  route: string;\n  params: Record<string, string>;\n  query: Record<string, string>;\n}\n\nfunction parseDeepLink(url: string, scheme: string): DeepLinkResult | null {\n  // 请实现解析逻辑\n  // 支持 scheme://host/path?query 格式\n  return null;\n}",
+      "test_cases": [
+        {
+          "input": "scheme='myapp', url='myapp://user/123?from=notification'",
+          "expected_output": "{ route: '/user/123', params: { id: '123' }, query: { from: 'notification' } }",
+          "description": "标准深度链接解析"
+        },
+        {
+          "input": "scheme='myapp', url='https://example.com/user/123'",
+          "expected_output": "null 或降级处理",
+          "description": "Web URL 降级"
+        },
+        {
+          "input": "scheme='myapp', url='invalid://'",
+          "expected_output": "null",
+          "description": "无效链接处理"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需验证 scheme 匹配",
+        "需解析路径参数和查询参数",
+        "需处理 URL 编码"
+      ],
+      "explanation": "原理机制说明：深度链接用于从外部（推送/短信）唤起 App 并定位到具体页面。需解析 scheme、路径、参数，映射到前端路由。\n正确选型分析：使用 URL 对象或正则解析。验证 scheme 后提取 pathname 和 search。路径参数需根据路由模式匹配。\n错误选型剖析：常见错误是未验证 scheme 导致安全漏洞；或未处理 URL 编码导致参数乱码。\n工程实践建议：Web 端配合 Universal Link/App Link；处理 App 未安装降级到 H5；记录来源渠道用于分析；注意 XSS 风险，参数需转义。",
+      "correct_answer": "见代码实现，核心是 URL 解析与 scheme 验证。"
+    },
+    {
+      "id": "framework-senior-154",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Router", "Transition", "Animation"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "路由过渡动画实现方案",
+      "content": "实现 Vue/React 路由页面过渡动画，可行方案包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Vue: <transition> 包裹 <router-view>"
+        },
+        {
+          "id": "B",
+          "text": "React: React Transition Group 库"
+        },
+        {
+          "id": "C",
+          "text": "CSS @view-transition API"
+        },
+        {
+          "id": "D",
+          "text": "手动监听路由变化添加动画类"
+        },
+        {
+          "id": "E",
+          "text": "服务器端渲染动画"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：路由过渡需监听路由变化，在组件挂载/卸载时触发动画。Vue 内置 transition 组件，React 需第三方库，新浏览器支持 view-transition。\n正确选型分析：A/B/C/D 均可实现。A 是 Vue 标准方案；B 是 React 生态方案；C 是新兴原生 API；D 是底层手动实现。\n错误选型剖析：E 错误，动画是客户端行为，SSR 无法实现交互动画。\n工程实践建议：Vue 使用 transition 配合 name 属性；React 使用 framer-motion 或 React Transition Group；注意性能，避免复杂动画阻塞渲染；移动端优先使用 transform/opacity。",
+      "exclusion_analysis": {
+        "E": "动画是客户端行为，SSR 无法实现"
+      }
+    },
+    {
+      "id": "framework-senior-155",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Component", "Compound", "Pattern"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "复合组件模式核心特征",
+      "content": "复合组件模式（Compound Components）的核心特征是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有状态集中在父组件，子组件通过 Context 共享"
+        },
+        {
+          "id": "B",
+          "text": "每个子组件独立管理自己的状态"
+        },
+        {
+          "id": "C",
+          "text": "使用 props 逐层传递所有数据"
+        },
+        {
+          "id": "D",
+          "text": "子组件必须是纯函数组件"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：复合组件模式将相关组件组合使用（如 Select/Option），父组件管理共享状态，子组件通过 Context 隐式访问，避免 props drilling。\n正确选型分析：选项 A 准确，这是复合组件的核心——隐式状态共享，提升 API 灵活性。\n错误选型剖析：B 违背复合组件初衷；C 是 props drilling，正是要避免的；D 非必须，类组件也可实现。\n工程实践建议：典型应用：Select/Option、Tabs/TabPanel、Form/Field；使用 Context 传递状态和方法；支持子组件任意顺序和嵌套；提供便捷复合组件导出。",
+      "wrong_options_analysis": {
+        "B": "违背复合组件初衷",
+        "C": "是 props drilling，正是要避免的",
+        "D": "非必须，类组件也可实现"
+      }
+    },
+    {
+      "id": "framework-senior-156",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Component", "Select", "Implementation"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "实现复合组件 Select",
+      "content": "使用复合组件模式实现一个 Select 组件，支持 <Select><Option value=\"1\">A</Option></Select> 语法。",
+      "code_template": "// 请实现 Select 和 Option 组件\n// 要求：\n// 1. Select 管理选中状态\n// 2. Option 通过 Context 注册自己\n// 3. 点击 Option 更新 Select 状态\n// 4. 支持键盘导航\n\ninterface SelectContextType {\n  selectedValue: any;\n  onSelect: (value: any) => void;\n  registerOption: (option: { value: any; label: string }) => void;\n}",
+      "test_cases": [
+        {
+          "input": "点击 Option",
+          "expected_output": "Select 显示选中值，Option 高亮",
+          "description": "基本选择功能"
+        },
+        {
+          "input": "键盘上下键导航",
+          "expected_output": "焦点在 Option 间移动",
+          "description": "键盘无障碍"
+        },
+        {
+          "input": "Option 动态增减",
+          "expected_output": "Select 状态正确更新",
+          "description": "动态注册"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "使用 Context 传递状态",
+        "Option 自动注册到 Select",
+        "支持受控和非受控模式",
+        "需处理无障碍属性"
+      ],
+      "explanation": "原理机制说明：复合组件关键是 Context + 隐式注册。Select 提供 Context，Option 在 mount 时调用 registerOption 注册自己，Select 维护 options 列表。\n正确选型分析：使用 useRef 存 options 列表，useEffect 中 Option 注册/注销。点击时更新 selectedValue。\n错误选型剖析：常见错误是 Option 通过 props 传回 Select，违背复合组件原则；或未处理 Option 卸载时注销。\n工程实践建议：配合 useId 生成唯一标识；支持搜索过滤；虚拟滚动优化大量 Option；确保 ARIA 属性完整。",
+      "correct_answer": "见代码实现，核心是 Context 共享状态与自动注册机制。"
+    },
+    {
+      "id": "framework-senior-157",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Component", "RenderProps", "Hooks"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "Render Props vs Hooks 对比",
+      "content": "React Hooks 普及后，Render Props 模式的使用场景是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "完全被 Hooks 取代，不再使用"
+        },
+        {
+          "id": "B",
+          "text": "需要灵活控制子组件渲染内容时仍有用"
+        },
+        {
+          "id": "C",
+          "text": "性能优于 Hooks"
+        },
+        {
+          "id": "D",
+          "text": "仅用于类组件"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：Hooks 解决了大部分状态复用问题，但 Render Props 在需要控制渲染结构时仍有优势。例如需要决定何时/如何渲染子元素。\n正确选型分析：选项 B 准确，Render Props 提供渲染控制权，Hooks 无法完全替代。\n错误选型剖析：A 错误，仍有特定场景；C 性能相近；D 函数组件也可用。\n工程实践建议：状态复用优先 Hooks；渲染控制用 Render Props 或 Children 函数；避免嵌套过深（Callback Hell）；可结合使用。",
+      "wrong_options_analysis": {
+        "A": "仍有特定场景",
+        "C": "性能相近",
+        "D": "函数组件也可用"
+      }
+    },
+    {
+      "id": "framework-senior-158",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["StateMachine", "XState", "Component"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "状态机在组件中的应用",
+      "content": "在复杂组件中引入状态机（如 XState）的优势包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "明确定义所有可能状态，避免非法状态"
+        },
+        {
+          "id": "B",
+          "text": "可视化状态流转，便于理解和调试"
+        },
+        {
+          "id": "C",
+          "text": "自动处理状态切换的副作用"
+        },
+        {
+          "id": "D",
+          "text": "减少 useState 的使用数量"
+        },
+        {
+          "id": "E",
+          "text": "完全取代 Redux"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：状态机将组件状态建模为有限状态图，明确状态、事件、动作。适合复杂交互（如表单、播放器、上传组件）。\n正确选型分析：A/B/C 正确。状态机强制定义所有状态，提供可视化工具，支持 entry/exit 动作。\n错误选型剖析：D 不是主要目的；E 错误，状态机管理组件状态，Redux 管理全局状态，职责不同。\n工程实践建议：复杂交互组件优先状态机；简单状态用 useState；配合 useMachine Hook；编写状态图测试用例；避免过度设计简单场景。",
+      "exclusion_analysis": {
+        "D": "不是主要目的",
+        "E": "职责不同，状态机非全局状态管理"
+      }
+    },
+    {
+      "id": "framework-senior-159",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["ReactNative", "Bridge", "Architecture"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React Native 桥接机制",
+      "content": "React Native 中 JS 与 Native 通信的核心机制是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接函数调用"
+        },
+        {
+          "id": "B",
+          "text": "异步消息队列（Bridge）"
+        },
+        {
+          "id": "C",
+          "text": "共享内存"
+        },
+        {
+          "id": "D",
+          "text": "WebSocket"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：React Native 使用 Bridge 在 JS 线程和 Native 线程间传递序列化消息。JS 调用 Native 模块时，消息入队，Native 处理后回调。\n正确选型分析：选项 B 准确，这是 RN 核心架构，异步通信保证 UI 线程不被阻塞。\n错误选型剖析：A 错误，跨线程不能直接调用；C 错误，JS 和 Native 内存隔离；D 错误，Bridge 非网络协议。\n工程实践建议：避免频繁 Bridge 调用（如滚动中）；批量合并消息；新架构 Fabric 使用 JSI 直接调用提升性能；注意序列化开销。",
+      "wrong_options_analysis": {
+        "A": "跨线程不能直接调用",
+        "C": "JS 和 Native 内存隔离",
+        "D": "Bridge 非网络协议"
+      }
+    },
+    {
+      "id": "framework-senior-160",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["JSBridge", "WebView", "Implementation"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "实现 JSBridge 通信层",
+      "content": "实现一个 JSBridge 类，支持 H5 与 Native 双向通信，包含调用、回调、超时处理。",
+      "code_template": "interface BridgeCall {\n  module: string;\n  method: string;\n  params: any;\n  callbackId: string;\n}\n\nclass JSBridge {\n  private callbacks: Map<string, (result: any) => void> = new Map();\n  \n  // H5 调用 Native\n  call(module: string, method: string, params: any, callback?: (result: any) => void): void {\n    // 请实现\n  }\n  \n  // Native 回调 H5\n  onCallback(callbackId: string, result: any): void {\n    // 请实现\n  }\n}",
+      "test_cases": [
+        {
+          "input": "H5 调用 Native 方法",
+          "expected_output": "生成唯一 callbackId，注入到 WebView",
+          "description": "基本调用"
+        },
+        {
+          "input": "Native 返回结果",
+          "expected_output": "触发对应 callback，清理缓存",
+          "description": "回调处理"
+        },
+        {
+          "input": "超时未响应",
+          "expected_output": "触发超时错误，清理缓存",
+          "description": "超时处理"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需生成唯一 callbackId",
+        "需处理超时（如 5 秒）",
+        "需防止内存泄漏",
+        "需处理 Native 主动推送"
+      ],
+      "explanation": "原理机制说明：JSBridge 核心是回调映射表。H5 调用时生成 callbackId 并存入 Map，Native 执行后通过 postMessage 回传 callbackId 和结果，H5 查找并执行回调。\n正确选型分析：使用 Date.now() + 随机数生成唯一 ID。setTimeout 处理超时。回调执行后删除 Map 项防泄漏。\n错误选型剖析：常见错误是未清理回调导致内存泄漏；或 callbackId 冲突；或未处理超时。\n工程实践建议：封装通用 SDK；支持 Promise 风格调用；记录调用日志便于排查；注意 Android/iOS 差异；处理 WebView 销毁时清理。",
+      "correct_answer": "见代码实现，核心是 callbackId 映射与超时清理。"
+    },
+    {
+      "id": "framework-senior-161",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Flutter", "Hybrid", "Navigation"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Flutter 混合栈管理",
+      "content": "Flutter 与 Native 混合开发时，页面栈管理的最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Flutter 和 Native 各自管理自己的栈"
+        },
+        {
+          "id": "B",
+          "text": "统一由 Native 管理页面栈，Flutter 作为视图嵌入"
+        },
+        {
+          "id": "C",
+          "text": "统一由 Flutter 管理所有页面"
+        },
+        {
+          "id": "D",
+          "text": "不使用页面栈，全部用弹窗"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：混合栈问题源于 Flutter 和 Native 各有路由系统。最佳方案是 Native 统一管理栈，Flutter 页面作为容器内嵌，跳转通过渠道消息通知 Native。\n正确选型分析：选项 B 准确，这是业界主流方案（如 FlutterBoost），确保返回键、状态栏等行为一致。\n错误选型剖析：A 会导致返回键行为混乱；C 难以集成现有 Native 页面；D 违背导航规范。\n工程实践建议：使用 FlutterBoost 等成熟方案；定义统一路由协议；处理页面间数据传递；注意 Flutter 引擎复用优化启动速度。",
+      "wrong_options_analysis": {
+        "A": "会导致返回键行为混乱",
+        "C": "难以集成现有 Native 页面",
+        "D": "违背导航规范"
+      }
+    },
+    {
+      "id": "framework-senior-162",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "Error", "SDK"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "前端错误监控 SDK 设计",
+      "content": "设计前端错误监控 SDK，需捕获的错误类型包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "JavaScript 运行时错误（window.onerror）"
+        },
+        {
+          "id": "B",
+          "text": "Promise 未捕获拒绝（unhandledrejection）"
+        },
+        {
+          "id": "C",
+          "text": "资源加载错误（img/script 404）"
+        },
+        {
+          "id": "D",
+          "text": "框架错误（React/Vue 错误边界）"
+        },
+        {
+          "id": "E",
+          "text": "用户操作日志（点击/输入）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：错误监控需覆盖所有错误来源。window.onerror 捕获同步错误，unhandledrejection 捕获 Promise 错误，资源错误监听 error 事件，框架错误用 ErrorBoundary。\n正确选型分析：A/B/C/D 均为错误类型。E 是行为日志，辅助定位但非错误本身。\n错误选型剖析：E 虽有价值，但属于行为追踪范畴，非错误捕获。\n工程实践建议：SDK 需自动采集错误堆栈、URL、用户信息；支持 sourcemap 解析；上报前采样过滤；注意隐私脱敏；配合后端告警系统。",
+      "exclusion_analysis": {
+        "E": "属于行为追踪范畴，非错误捕获"
+      }
+    },
+    {
+      "id": "framework-senior-163",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Monitoring", "SDK", "Implementation"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "实现前端监控 SDK 核心",
+      "content": "实现一个简化版监控 SDK，支持错误捕获和性能数据上报。",
+      "code_template": "interface MonitorConfig {\n  appId: string;\n  reportUrl: string;\n  sampleRate?: number;\n}\n\nclass FrontendMonitor {\n  constructor(config: MonitorConfig) {}\n  \n  // 捕获错误\n  captureError(error: Error, extra?: Record<string, any>): void {\n    // 请实现\n  }\n  \n  // 上报性能数据\n  reportPerformance(metrics: Record<string, number>): void {\n    // 请实现\n  }\n  \n  // 批量上报\n  flush(): void {\n    // 请实现\n  }\n}",
+      "test_cases": [
+        {
+          "input": "捕获 JS 错误",
+          "expected_output": "错误信息存入队列，满足条件时上报",
+          "description": "错误捕获"
+        },
+        {
+          "input": "上报性能数据",
+          "expected_output": "性能指标存入队列",
+          "description": "性能上报"
+        },
+        {
+          "input": "页面卸载前",
+          "expected_output": "调用 flush 发送剩余数据",
+          "description": "数据保活"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需实现采样逻辑",
+        "需批量上报减少请求",
+        "需处理页面卸载场景",
+        "需避免影响主线程性能"
+      ],
+      "explanation": "原理机制说明：监控 SDK 核心是数据采集、缓存、上报。错误捕获后存入队列，达到阈值或页面卸载时批量发送。使用 sendBeacon 保证卸载时数据送达。\n正确选型分析：队列存储待上报数据。sampleRate 控制采样比例。beforeunload 事件触发 flush。使用 navigator.sendBeacon 或 Image 上报。\n错误选型剖析：常见错误是每条数据立即上报导致请求过多；或未处理页面卸载数据丢失；或阻塞主线程。\n工程实践建议：使用 requestIdleCallback 上报避免阻塞；压缩数据减少体积；失败重试机制；支持动态配置开关；注意用户隐私合规。",
+      "correct_answer": "见代码实现，核心是队列缓存与批量上报策略。"
+    },
+    {
+      "id": "framework-senior-164",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "Tracing", "Performance"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "前端链路追踪核心",
+      "content": "实现前端链路追踪（Tracing），最关键的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "记录每个请求的唯一 traceId 并透传"
+        },
+        {
+          "id": "B",
+          "text": "记录所有用户点击行为"
+        },
+        {
+          "id": "C",
+          "text": "每秒上报一次性能数据"
+        },
+        {
+          "id": "D",
+          "text": "监控所有 API 响应时间"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：链路追踪核心是唯一标识（traceId）贯穿整个请求链路。前端生成 traceId，通过请求头透传到后端，串联前后端日志，实现全链路问题定位。\n正确选型分析：选项 A 准确，traceId 是链路追踪的基础。\n错误选型剖析：B 是行为分析；C 频率过高无意义；D 是监控指标，非链路追踪核心。\n工程实践建议：traceId 生成使用 UUID 或雪花算法；通过 X-Trace-Id 请求头透传；配合后端 APM 系统；注意 traceId 在跨域请求中的传递。",
+      "wrong_options_analysis": {
+        "B": "是行为分析",
+        "C": "频率过高无意义",
+        "D": "是监控指标，非链路追踪核心"
+      }
+    },
+    {
+      "id": "framework-senior-165",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Migration", "Vue2", "Vue3"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Vue2 迁 Vue3 策略",
+      "content": "大型 Vue2 项目迁移到 Vue3，推荐策略包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 Vue 3 兼容构建版本逐步迁移"
+        },
+        {
+          "id": "B",
+          "text": "按业务模块分批次迁移"
+        },
+        {
+          "id": "C",
+          "text": "先迁移工具库和基础组件"
+        },
+        {
+          "id": "D",
+          "text": "一次性全部重写"
+        },
+        {
+          "id": "E",
+          "text": "使用自动化 codemod 工具辅助"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制说明：大型项目迁移需渐进式。Vue3 提供兼容版本支持部分 Vue2 语法。按模块迁移降低风险，先迁移基础层再业务层。codemod 自动转换部分语法。\n正确选型分析：A/B/C/E 正确。渐进式迁移可保证业务连续性，降低风险。\n错误选型剖析：D 风险极高，易引入大量 Bug，业务中断时间长。\n工程实践建议：先升级依赖到 Vue2.7（支持部分 Vue3 特性）；建立迁移 checklist；编写自动化测试保障；使用 @vue/codemod 工具；灰度发布验证。",
+      "exclusion_analysis": {
+        "D": "风险极高，易引入大量 Bug"
+      }
+    },
+    {
+      "id": "framework-senior-166",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Migration", "Class", "Hooks"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "Class 组件迁 Hooks 策略",
+      "content": "React Class 组件迁移到 Hooks，最合适的顺序是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "从最底层工具组件开始"
+        },
+        {
+          "id": "B",
+          "text": "从最顶层页面组件开始"
+        },
+        {
+          "id": "C",
+          "text": "随机选择组件迁移"
+        },
+        {
+          "id": "D",
+          "text": "只迁移新组件，旧组件保持不变"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Hooks 迁移应自底向上。底层组件依赖少，迁移风险低，迁移后可被上层 Class 组件使用（Hooks 组件可被 Class 调用）。\n正确选型分析：选项 A 准确，底层组件迁移后收益最大，复用范围广。\n错误选型剖析：B 顶层依赖多，迁移成本高；C 无策略易混乱；D 导致技术栈分裂，维护成本高。\n工程实践建议：制定迁移规范；使用 eslint 检查 Class 组件；优先迁移无状态组件；复杂 Class 组件可暂保留；配合 TypeScript 提升类型安全。",
+      "wrong_options_analysis": {
+        "B": "顶层依赖多，迁移成本高",
+        "C": "无策略易混乱",
+        "D": "导致技术栈分裂，维护成本高"
+      }
+    },
+    {
+      "id": "framework-senior-167",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Migration", "Adapter", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "实现双框架共存适配器",
+      "content": "实现一个适配器，使 Vue2 组件能在 Vue3 项目中运行（简化版）。",
+      "code_template": "// 请实现一个包装函数\n// 使 Vue2 选项式 API 组件能在 Vue3 中挂载\n\nfunction createVue2Adapter(vue2Component: any): any {\n  // 请实现适配逻辑\n  // 需处理生命周期、props、events 的兼容\n  return {};\n}",
+      "test_cases": [
+        {
+          "input": "Vue2 组件含 data/methods",
+          "expected_output": "在 Vue3 中正常渲染",
+          "description": "基本兼容"
+        },
+        {
+          "input": "Vue2 组件含生命周期钩子",
+          "expected_output": "生命周期正确触发",
+          "description": "生命周期适配"
+        },
+        {
+          "input": "Vue2 组件含$emit",
+          "expected_output": "事件正确触发",
+          "description": "事件适配"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "需映射 Vue2 生命周期到 Vue3",
+        "需处理 props 定义差异",
+        "需处理 this 上下文",
+        "需处理$attrs/$listeners"
+      ],
+      "explanation": "原理机制说明：双框架共存需适配层。Vue2 选项式 API 与 Vue3 组合式 API 有差异，需转换生命周期、props、events。可使用 vue-demi 或自定义包装器。\n正确选型分析：创建 Vue3 组件，在 setup 中初始化 Vue2 实例，映射生命周期钩子，转发 props 和 events。\n错误选型剖析：常见错误是生命周期映射不完整；或 this 上下文丢失；或响应式系统不兼容。\n工程实践建议：生产环境使用官方迁移构建版本；限制共存时间，制定下线计划；注意性能开销；测试覆盖核心场景。",
+      "correct_answer": "见代码实现，核心是生命周期映射与上下文代理。"
+    },
+    {
+      "id": "framework-senior-168",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Migration", "Risk", "Testing"],
+      "source_company": "Alibaba",
+      "score": 5,
+      "title": "迁移风险控制",
+      "content": "大型应用框架迁移时，自动化测试覆盖率应达到 80% 以上才能开始迁移。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：高测试覆盖率是迁移安全网，可快速发现回归 Bug。\n例外：若无法达到，需增加人工测试和灰度发布比例。",
+      "explanation": "原理机制说明：框架迁移是高风险操作，自动化测试是核心保障。80% 覆盖率是业界推荐基线，确保核心逻辑有测试保护。\n正确选型分析：描述正确，测试覆盖率不足会导致迁移后 Bug 频发。\n错误选型剖析：若选错误，可能低估迁移风险。\n工程实践建议：迁移前先补充测试；优先覆盖核心业务流；使用 E2E 测试保障关键路径；建立回滚机制；灰度发布逐步验证。",
+      "knowledge_point": "Migration_Testing_Requirement"
+    },
+    {
+      "id": "framework-senior-169",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Hybrid", "Performance", "Optimization"],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": "WebView 性能优化",
+      "content": "优化 Hybrid App 中 WebView 加载性能，可行方案包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "预加载 WebView 实例"
+        },
+        {
+          "id": "B",
+          "text": "离线包缓存资源"
+        },
+        {
+          "id": "C",
+          "text": "首屏 SSR 渲染"
+        },
+        {
+          "id": "D",
+          "text": "复用 WebView 实例"
+        },
+        {
+          "id": "E",
+          "text": "增加 WebView 数量提升并发"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：WebView 启动耗时是 Hybrid 性能瓶颈。预加载、离线包、SSR、实例复用均可减少加载时间。\n正确选型分析：A/B/C/D 正确。预加载提前初始化；离线包减少网络请求；SSR 减少白屏；复用避免重复创建。\n错误选型剖析：E 错误，WebView 是重量级对象，增加数量会消耗更多内存，降低性能。\n工程实践建议：建立离线包更新机制；预加载池管理；监控 WebView 启动耗时；注意内存泄漏；配合 Native 预渲染。",
+      "exclusion_analysis": {
+        "E": "WebView 是重量级对象，增加数量会消耗更多内存"
+      }
+    },
+    {
+      "id": "framework-senior-170",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Component", "Modal", "Teleport"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "Modal 组件架构设计",
+      "content": "设计一个高灵活性 Modal 组件，最佳架构是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 Teleport 渲染到 body，Context 管理状态"
+        },
+        {
+          "id": "B",
+          "text": "在每个使用位置直接渲染"
+        },
+        {
+          "id": "C",
+          "text": "使用全局单例管理所有 Modal"
+        },
+        {
+          "id": "D",
+          "text": "使用 iframe 隔离"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Modal 需突破父容器 overflow 限制，Teleport 渲染到 body 是标准方案。Context 管理打开/关闭状态，支持多实例堆叠。\n正确选型分析：选项 A 准确，Teleport 解决层级问题，Context 解决状态共享。\n错误选型剖析：B 受父容器限制；C 单例不支持多 Modal；D iframe 过重且通信复杂。\n工程实践建议：支持 z-index 管理；处理滚动锁定；键盘 Esc 关闭；焦点陷阱（Focus Trap）；动画过渡；无障碍支持。",
+      "wrong_options_analysis": {
+        "B": "受父容器限制",
+        "C": "单例不支持多 Modal",
+        "D": "iframe 过重且通信复杂"
+      }
+    },
+    {
+      "id": "framework-senior-171",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["JSBridge", "Security", "Validation"],
+      "source_company": "Tencent",
+      "score": 5,
+      "title": "JSBridge 安全校验",
+      "content": "JSBridge 通信时，Native 端无需验证 H5 来源，可直接执行调用。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "原理：H5 页面可能被注入或伪造，Native 需验证来源域名、签名等。\n例外：内部可信环境可简化，但生产环境必须校验。",
+      "explanation": "原理机制说明：JSBridge 是安全高风险点。恶意 H5 可能调用 Native 敏感接口（如支付、通讯录）。Native 端必须验证来源、权限、参数。\n正确选型分析：描述错误，必须校验。\n错误选型剖析：若选正确，存在严重安全漏洞。\n工程实践建议：白名单验证域名；接口权限控制；参数校验和过滤；敏感操作需用户确认；日志审计；使用 HTTPS。",
+      "knowledge_point": "JSBridge_Security_Validation"
+    },
+    {
+      "id": "framework-senior-172",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Monitoring", "Performance", "Metrics"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "性能数据上报时机",
+      "content": "前端性能数据（如 FCP、LCP）上报的最佳时机是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "页面加载完成后立即上报"
+        },
+        {
+          "id": "B",
+          "text": "页面卸载时统一上报"
+        },
+        {
+          "id": "C",
+          "text": "指标可用时立即上报 + 页面卸载前补报"
+        },
+        {
+          "id": "D",
+          "text": "定时每秒上报"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制说明：性能指标在不同时间点可用。LCP 可能在页面加载后数秒才确定。最佳策略是指标可用时上报，同时页面卸载前补报防止数据丢失。\n正确选型分析：选项 C 准确，平衡及时性和完整性。\n错误选型剖析：A 可能遗漏延迟指标；B 数据延迟且可能丢失；D 频率过高浪费资源。\n工程实践建议：使用 PerformanceObserver 监听指标；sendBeacon 保证卸载时送达；采样减少上报量；注意用户隐私合规。",
+      "wrong_options_analysis": {
+        "A": "可能遗漏延迟指标",
+        "B": "数据延迟且可能丢失",
+        "D": "频率过高浪费资源"
+      }
+    },
+    {
+      "id": "framework-senior-173",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Migration", "jQuery", "React"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "jQuery 迁 React 策略",
+      "content": "jQuery 老项目迁移到 React，推荐策略包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用微前端逐步替换页面"
+        },
+        {
+          "id": "B",
+          "text": "新功能用 React 开发，旧功能保持不变"
+        },
+        {
+          "id": "C",
+          "text": "在 React 中直接操作 DOM 兼容 jQuery 逻辑"
+        },
+        {
+          "id": "D",
+          "text": "使用 refs 封装 jQuery 插件"
+        },
+        {
+          "id": "E",
+          "text": "一次性全部重写"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：jQuery 到 React 是范式转变（命令式到声明式）。渐进式迁移降低风险。微前端可独立部署；新功能新写；必要插件用 ref 封装。\n正确选型分析：A/B/D 正确。渐进式迁移保证业务连续性。\n错误选型剖析：C 违背 React 原则，应避免直接 DOM 操作；E 风险过高。\n工程实践建议：制定迁移优先级（高频页面优先）；建立 React 组件库；培训团队 React 思维；保留 jQuery 文档便于对照；设置迁移里程碑。",
+      "exclusion_analysis": {
+        "C": "违背 React 原则，应避免直接 DOM 操作",
+        "E": "风险过高"
+      }
+    },
+    {
+      "id": "framework-senior-174",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Monitoring", "Sampler", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "实现上报采样器",
+      "content": "实现一个采样器，按配置比例上报数据，支持白名单全量上报。",
+      "code_template": "interface SamplerConfig {\n  sampleRate: number; // 0-1\n  whitelist?: string[]; // 全量上报的 userId 或特征\n}\n\nclass Sampler {\n  constructor(config: SamplerConfig) {}\n  \n  shouldReport(userId?: string): boolean {\n    // 请实现采样逻辑\n    return false;\n  }\n}",
+      "test_cases": [
+        {
+          "input": "sampleRate=0.1, 普通用户",
+          "expected_output": "约 10% 概率返回 true",
+          "description": "基本采样"
+        },
+        {
+          "input": "userId 在白名单",
+          "expected_output": "始终返回 true",
+          "description": "白名单全量"
+        },
+        {
+          "input": "sampleRate=0, 普通用户",
+          "expected_output": "始终返回 false",
+          "description": "零采样"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需保证采样分布均匀",
+        "需支持动态调整采样率",
+        "需处理 userId 缺失场景"
+      ],
+      "explanation": "原理机制说明：采样用于减少上报数据量，降低成本。核心是随机数生成 + 阈值对比。白名单用户（如 VIP、内部员工）全量上报便于问题排查。\n正确选型分析：Math.random() < sampleRate 判断。先检查白名单，再执行采样。userId 缺失时用随机采样。\n错误选型剖析：常见错误是采样不均匀（如用 userId 哈希取模可能导致分布偏差）；或未处理白名单优先级。\n工程实践建议：使用稳定哈希保证同一用户采样一致；支持服务端动态配置采样率；记录采样率便于数据分析；注意隐私合规。",
+      "correct_answer": "见代码实现，核心是随机采样与白名单优先级。"
+    },
+    {
+      "id": "framework-senior-175",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Router", "Lazy", "Loading"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "路由懒加载优化",
+      "content": "React/Vue 路由懒加载，最佳实践是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有路由都懒加载"
+        },
+        {
+          "id": "B",
+          "text": "按业务模块分组懒加载"
+        },
+        {
+          "id": "C",
+          "text": "仅首页懒加载"
+        },
+        {
+          "id": "D",
+          "text": "不使用懒加载"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：懒加载减少首屏包体积。但过度拆分导致请求过多。按业务模块分组（如用户模块、订单模块）平衡首屏和后续加载。\n正确选型分析：选项 B 准确，模块化分组是最佳平衡点。\n错误选型剖析：A 请求过多影响体验；C 优化不足；D 首屏体积过大。\n工程实践建议：配合 Preload 预加载可能访问的页面；设置 Loading 组件；监控各 Chunk 大小；公共依赖提取到 vendor；使用 HTTP/2 多路复用。",
+      "wrong_options_analysis": {
+        "A": "请求过多影响体验",
+        "C": "优化不足",
+        "D": "首屏体积过大"
+      }
+    },
+    {
+      "id": "framework-senior-176",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["ReactNative", "Performance", "Bridge"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "RN Bridge 性能瓶颈",
+      "content": "React Native 中频繁调用 Bridge（如滚动时）会导致性能问题。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：Bridge 通信需序列化消息，频繁调用会阻塞线程。\n例外：新架构 Fabric 使用 JSI 直接调用，性能大幅提升。",
+      "explanation": "原理机制说明：Bridge 是 RN 性能瓶颈。滚动等高频事件若每次调用 Bridge，会导致帧率下降。应使用 Native 驱动动画或批量处理。\n正确选型分析：描述正确，这是 RN 经典性能问题。\n错误选型剖析：若选错误，可能导致性能优化方向错误。\n工程实践建议：滚动用 Native Driver；批量合并 Bridge 调用；迁移到新架构 Fabric；避免在 render 中调用 Bridge。",
+      "knowledge_point": "RN_Bridge_Performance_Limit"
+    },
+    {
+      "id": "framework-senior-177",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Component", "Accessibility", "Modal"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Modal 无障碍要求",
+      "content": "符合无障碍标准的 Modal 组件必须满足？",
+      "options": [
+        {
+          "id": "A",
+          "text": "打开时焦点自动进入 Modal"
+        },
+        {
+          "id": "B",
+          "text": "关闭时焦点返回触发元素"
+        },
+        {
+          "id": "C",
+          "text": "支持 Esc 键关闭"
+        },
+        {
+          "id": "D",
+          "text": "焦点陷阱（Focus Trap）限制在 Modal 内"
+        },
+        {
+          "id": "E",
+          "text": "必须有动画效果"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：Modal 无障碍核心是焦点管理。打开时聚焦 Modal，关闭时返回原位置，Tab 键循环限制在 Modal 内，Esc 关闭是标准交互。\n正确选型分析：A/B/C/D 均为 WCAG 要求。E 动画是体验优化，非无障碍必须。\n错误选型剖析：E 非无障碍强制要求。\n工程实践建议：使用 aria-modal=\"true\"；管理 aria-hidden；测试屏幕阅读器；提供关闭按钮；确保颜色对比度。",
+      "exclusion_analysis": {
+        "E": "动画是体验优化，非无障碍必须"
+      }
+    },
+    {
+      "id": "framework-senior-178",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Migration", "MicroFrontend", "Strategy"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "微前端辅助迁移",
+      "content": "使用微前端架构辅助老项目迁移的核心优势是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "新旧项目可独立部署，渐进式替换"
+        },
+        {
+          "id": "B",
+          "text": "性能自动提升"
+        },
+        {
+          "id": "C",
+          "text": "代码自动转换"
+        },
+        {
+          "id": "D",
+          "text": "无需测试"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：微前端允许新旧应用共存于同一页面，按路由或模块逐步替换。旧项目作为子应用运行，新项目独立开发部署，降低迁移风险。\n正确选型分析：选项 A 准确，这是微前端在迁移场景的核心价值。\n错误选型剖析：B 微前端有性能开销；C 代码需手动迁移；D 测试必不可少。\n工程实践建议：使用 qiankun/Module Federation；定义清晰边界；统一登录态和样式；制定迁移计划；监控性能影响。",
+      "wrong_options_analysis": {
+        "B": "微前端有性能开销",
+        "C": "代码需手动迁移",
+        "D": "测试必不可少"
+      }
+    },
+    {
+      "id": "framework-senior-179",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Router", "Permission", "Implementation"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "实现动态路由权限控制",
+      "content": "实现一个函数 `filterRoutesByPermission`，根据用户权限过滤路由表。",
+      "code_template": "interface Route {\n  path: string;\n  permission?: string;\n  children?: Route[];\n}\n\nfunction filterRoutesByPermission(\n  routes: Route[],\n  permissions: string[]\n): Route[] {\n  // 请实现递归过滤逻辑\n  // 无 permission 或 permission 在列表中则保留\n  return [];\n}",
+      "test_cases": [
+        {
+          "input": "routes 含权限，permissions 匹配",
+          "expected_output": "保留匹配的路由",
+          "description": "权限匹配"
+        },
+        {
+          "input": "routes 含权限，permissions 不匹配",
+          "expected_output": "过滤掉该路由",
+          "description": "权限不匹配"
+        },
+        {
+          "input": "子路由权限与父路由不同",
+          "expected_output": "独立判断，可能父保留子过滤",
+          "description": "嵌套权限"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需递归处理子路由",
+        "子路由被过滤后父路由若无可显示子路由也应过滤",
+        "需处理 permission 为空情况"
+      ],
+      "explanation": "原理机制说明：动态路由权限控制是后台系统核心功能。递归遍历路由树，检查每个路由的 permission 是否在用户权限列表中。子路由全过滤后父路由也应隐藏。\n正确选型分析：递归过滤，保留无 permission 或 permission 匹配的路由。过滤后检查 children 是否为空，空则过滤父路由。\n错误选型剖析：常见错误是未处理子路由全过滤后父路由的清理；或未处理 permission 为空（公开路由）情况。\n工程实践建议：权限数据从后端获取；配合路由守卫二次校验；缓存过滤结果；注意权限变更需重新过滤；记录访问日志。",
+      "correct_answer": "见代码实现，核心是递归过滤与空子路由清理。"
+    },
+    {
+      "id": "framework-senior-180",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Architecture", "Future", "Integration"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "前端架构融合趋势",
+      "content": "未来前端架构演进中，以下哪些融合趋势是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Web 与 Native 能力边界模糊（PWA/Capacitor）"
+        },
+        {
+          "id": "B",
+          "text": "服务端与客户端渲染融合（RSC/Islands）"
+        },
+        {
+          "id": "C",
+          "text": "多框架共存标准化（Module Federation）"
+        },
+        {
+          "id": "D",
+          "text": "监控与开发工具一体化（DevTools + APM）"
+        },
+        {
+          "id": "E",
+          "text": "完全回归服务端渲染（无客户端 JS）"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：前端架构正走向融合。Web 与 Native 通过 PWA/Capacitor 融合；SSR 与 CSR 通过 RSC 融合；多框架通过联邦模块共存；监控与开发工具整合提升效率。\n正确选型分析：A/B/C/D 正确，均代表当前演进方向。\n错误选型剖析：E 错误，完全无客户端 JS 无法支持复杂交互，混合渲染才是趋势。\n工程实践建议：关注 W3C 新标准；评估 RSC 适用场景；建立统一监控平台；保持技术敏感度，避免过度追新。",
+      "exclusion_analysis": {
+        "E": "完全无客户端 JS 无法支持复杂交互，混合渲染才是趋势"
+      }
+    },
+    {
+      "id": "framework-senior-181",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Fiber", "Architecture"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "Fiber 节点数据结构",
+      "content": "React Fiber 节点中，用于实现链表遍历的关键字段是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "child, sibling, return"
+        },
+        {
+          "id": "B",
+          "text": "parent, next, prev"
+        },
+        {
+          "id": "C",
+          "text": "firstChild, lastChild, nextSibling"
+        },
+        {
+          "id": "D",
+          "text": "root, leaf, branch"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：React Fiber 使用链表结构替代递归栈。child 指向第一个子节点，sibling 指向下一个兄弟节点，return 指向父节点。这三个指针实现深度优先遍历，支持中断和恢复。\n正确选型分析：选项 A 准确，这是 Fiber 架构的核心数据结构设计，支持可中断渲染。\n错误选型剖析：B 是双向链表结构，Fiber 使用单向；C 是 DOM 树结构；D 非标准命名。\n工程实践建议：理解 Fiber 链表有助于调试渲染问题；使用 React DevTools 查看 Fiber 树；避免在 render 中产生副作用影响遍历。",
+      "wrong_options_analysis": {
+        "B": "Fiber 使用单向链表非双向",
+        "C": "这是 DOM 树结构非 Fiber",
+        "D": "非标准命名"
+      }
+    },
+    {
+      "id": "framework-senior-182",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Hooks", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "Hooks 链表存储机制",
+      "content": "React Hooks 在内部使用什么数据结构存储状态？",
+      "options": [
+        {
+          "id": "A",
+          "text": "数组"
+        },
+        {
+          "id": "B",
+          "text": "对象哈希表"
+        },
+        {
+          "id": "C",
+          "text": "单向链表"
+        },
+        {
+          "id": "D",
+          "text": "Map"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "原理机制说明：React Hooks 内部使用单向链表存储。每个 Hook 节点包含 memoizedState（状态）、next（下一个 Hook）。这确保 Hook 调用顺序稳定，支持动态条件渲染时的状态对应。\n正确选型分析：选项 C 准确，链表结构是 Hooks 顺序依赖的基础。\n错误选型剖析：A 数组无法高效插入删除；B 对象无法保证顺序；D Map 是 ES6 数据结构，React 内部用链表。\n工程实践建议：严格遵守 Hooks 调用顺序规则；避免条件调用 Hook；使用 eslint-plugin-react-hooks 检查；理解链表有助于调试状态错乱问题。",
+      "wrong_options_analysis": {
+        "A": "数组无法高效插入删除",
+        "B": "对象无法保证顺序",
+        "D": "React 内部用链表非 Map"
+      }
+    },
+    {
+      "id": "framework-senior-183",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["React", "Hooks", "Implementation"],
+      "source_company": "Meta",
+      "score": 15,
+      "title": "实现简化版 useState",
+      "content": "实现一个简化版 useState Hook，理解 Hooks 链表存储原理。",
+      "code_template": "interface HookNode {\n  memoizedState: any;\n  next: HookNode | null;\n}\n\nlet currentHook: HookNode | null = null;\nlet firstHook: HookNode | null = null;\n\nfunction useState<T>(initialState: T): [T, (newState: T) => void] {\n  // 请实现逻辑\n  // 需维护 Hook 链表\n  // 返回 [state, setState]\n  return [initialState as T, () => {}];\n}",
+      "test_cases": [
+        {
+          "input": "首次调用 useState(0)",
+          "expected_output": "返回 [0, setState 函数]，创建新节点",
+          "description": "初始状态"
+        },
+        {
+          "input": "调用 setState(1)",
+          "expected_output": "更新 memoizedState 为 1",
+          "description": "状态更新"
+        },
+        {
+          "input": "第二次渲染调用 useState",
+          "expected_output": "复用已有节点，返回更新后的值",
+          "description": "状态复用"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需维护全局 Hook 链表",
+        "需区分挂载和更新阶段",
+        "setState 需触发重渲染模拟"
+      ],
+      "explanation": "原理机制说明：useState 核心是链表节点存储状态。首次渲染创建节点，后续渲染按顺序遍历复用。setState 更新 memoizedState 并调度重渲染。\n正确选型分析：使用全局指针 currentHook 遍历链表。挂载时创建新节点，更新时移动指针读取已有状态。\n错误选型剖析：常见错误是未区分挂载/更新阶段导致状态错乱；或未维护链表指针导致顺序错误。\n工程实践建议：此实现帮助理解 Hooks 原理；实际 React 有复杂调度逻辑；注意闭包陷阱；多 Hook 时顺序必须一致。",
+      "correct_answer": "见代码实现，核心是链表节点创建与遍历复用。"
+    },
+    {
+      "id": "framework-senior-184",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Vue", "Reactivity", "Effect"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Vue 副作用函数调度",
+      "content": "Vue 3 中，当响应式数据变化时，触发副作用函数执行的机制是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "直接同步调用所有依赖的副作用"
+        },
+        {
+          "id": "B",
+          "text": "将副作用放入队列，批量异步执行"
+        },
+        {
+          "id": "C",
+          "text": "使用 setTimeout 延迟执行"
+        },
+        {
+          "id": "D",
+          "text": "仅执行第一个注册的副作用"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：Vue 3 使用 effect 队列机制。数据变化时，trigger 将相关 effect 放入队列，通过 nextTick 批量异步执行。这避免同一 tick 内多次更新导致的重复渲染。\n正确选型分析：选项 B 准确，这是 Vue 性能优化的核心，类似 React 批处理。\n错误选型剖析：A 同步执行会导致性能问题；C setTimeout 是宏任务太慢；D 违背响应式原则。\n工程实践建议：理解队列机制有助于调试更新时序；使用 flush: 'post' 控制执行时机；避免在 effect 中修改依赖导致无限循环。",
+      "wrong_options_analysis": {
+        "A": "同步执行会导致性能问题",
+        "C": "setTimeout 是宏任务太慢",
+        "D": "违背响应式原则"
+      }
+    },
+    {
+      "id": "framework-senior-185",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Vue", "Reactivity", "Proxy"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Vue Proxy 拦截操作",
+      "content": "Vue 3 使用 Proxy 实现响应式，可拦截的操作包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "get - 读取属性"
+        },
+        {
+          "id": "B",
+          "text": "set - 设置属性"
+        },
+        {
+          "id": "C",
+          "text": "deleteProperty - 删除属性"
+        },
+        {
+          "id": "D",
+          "text": "has - in 操作符"
+        },
+        {
+          "id": "E",
+          "text": "ownKeys - Object.keys"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D", "E"],
+      "explanation": "原理机制说明：Vue 3 的 reactive 使用 Proxy 拦截多种操作。get 用于依赖收集（track），set/deleteProperty 用于触发更新（trigger），has/ownKeys 用于迭代器响应式。\n正确选型分析：A/B/C/D/E 均正确，Vue 实现了完整的 Proxy 拦截器覆盖。\n错误选型剖析：无错误选项，Vue 3 响应式系统确实拦截所有这些操作。\n工程实践建议：理解拦截器有助于调试响应式失效；注意 Proxy 无法拦截非对象类型；使用 shallowRef 避免深层代理开销；注意 Map/Set 特殊处理。",
+      "exclusion_analysis": {
+        "all": "所有选项均为 Vue Proxy 拦截的操作"
+      }
+    },
+    {
+      "id": "framework-senior-186",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["React", "Reconciliation", "Key"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "React Diff 算法复杂度",
+      "content": "React Diff 算法的时间复杂度是 O(n³)，其中 n 是节点数量。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "原理：React 通过启发式规则将 Diff 复杂度从 O(n³) 优化到 O(n)。\n例外：最坏情况下（如无 key 列表重排）可能退化，但通常保持线性。",
+      "explanation": "原理机制说明：传统 Diff 算法是 O(n³)，但 React 采用三层启发式优化：1) 仅同层对比 2) 不同类型直接重建 3) key 辅助列表对比。这使得实际复杂度为 O(n)。\n正确选型分析：描述错误，React 已优化到 O(n)。\n错误选型剖析：若选正确，误解了 React 性能优化机制。\n工程实践建议：使用 key 确保列表 Diff 效率；避免深层嵌套；理解优化原理有助于编写高性能组件；注意 key 稳定性。",
+      "knowledge_point": "React_Diff_Complexity"
+    },
+    {
+      "id": "framework-senior-187",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Scheduler", "Lane"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "Lane 模型位运算",
+      "content": "React Lane 模型使用位运算表示优先级，31 个 lane 中最高优先级是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "0b0000000000000000000000000000001 (SyncLane)"
+        },
+        {
+          "id": "B",
+          "text": "0b1000000000000000000000000000000 (最高位)"
+        },
+        {
+          "id": "C",
+          "text": "0b0000000000000000000000000000010 (InputContinuous)"
+        },
+        {
+          "id": "D",
+          "text": "0b1111111111111111111111111111111 (全 1)"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：React Lane 使用 31 位二进制数表示优先级，最低位（第 0 位）优先级最高。SyncLane 是 0b1，代表同步任务，不可中断。位数越小优先级越高。\n正确选型分析：选项 A 准确，SyncLane 是最高优先级，确保用户交互即时响应。\n错误选型剖析：B 最高位优先级最低；C 是连续输入优先级低于同步；D 全 1 无效。\n工程实践建议：理解 Lane 位运算有助于调试优先级问题；useTransition 使用低优先级 Lane；避免阻塞同步任务；配合 Profiler 分析。",
+      "wrong_options_analysis": {
+        "B": "最高位优先级最低",
+        "C": "连续输入优先级低于同步",
+        "D": "全 1 无效"
+      }
+    },
+    {
+      "id": "framework-senior-188",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Vue", "Reactivity", "Implementation"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "实现依赖收集系统",
+      "content": "实现 Vue 风格的依赖收集系统，包含 track 和 trigger 函数。",
+      "code_template": "type Dep = Set<() => void>;\ntype KeyToDepMap = Map<any, Dep>;\n\nconst targetMap = new WeakMap<any, KeyToDepMap>();\nlet activeEffect: (() => void) | null = null;\n\nfunction track(target: object, key: string | symbol): void {\n  // 请实现依赖收集\n}\n\nfunction trigger(target: object, key: string | symbol): void {\n  // 请实现触发更新\n}",
+      "test_cases": [
+        {
+          "input": "effect 中读取 target.key，调用 track",
+          "expected_output": "effect 被收集到 target.key 的依赖集合",
+          "description": "依赖收集"
+        },
+        {
+          "input": "设置 target.key，调用 trigger",
+          "expected_output": "所有收集的 effect 被执行",
+          "description": "触发更新"
+        },
+        {
+          "input": "无 activeEffect 时调用 track",
+          "expected_output": "不收集依赖",
+          "description": "边界条件"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(n)",
+      "constraints": [
+        "需使用 WeakMap 防止内存泄漏",
+        "需处理 activeEffect 为空情况",
+        "需支持同一属性多个依赖"
+      ],
+      "explanation": "原理机制说明：Vue 响应式核心是 track/trigger。track 在 get 时收集当前 activeEffect 到 targetMap，trigger 在 set 时从 targetMap 取出 effects 执行。WeakMap 确保对象可被 GC。\n正确选型分析：targetMap 是 WeakMap<target, Map<key, Set<effect>>>。track 创建嵌套结构，trigger 遍历执行。\n错误选型剖析：常见错误是未检查 activeEffect 导致无效收集；或未使用 WeakMap 导致内存泄漏。\n工程实践建议：此实现是 Vue3 响应式核心；理解有助于调试响应式问题；注意 effect 清理逻辑；避免循环依赖。",
+      "correct_answer": "见代码实现，核心是 WeakMap 嵌套结构与依赖集合管理。"
+    },
+    {
+      "id": "framework-senior-189",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Concurrent", "Rendering"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "可中断渲染实现机制",
+      "content": "React 实现可中断渲染的关键技术是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "requestIdleCallback 时间切片"
+        },
+        {
+          "id": "B",
+          "text": "Web Worker 多线程"
+        },
+        {
+          "id": "C",
+          "text": "Async/Await 异步函数"
+        },
+        {
+          "id": "D",
+          "text": "Generator 生成器"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：React 使用 requestIdleCallback（降级为 MessageChannel）实现时间切片。每个时间片执行一部分 Fiber 工作，空闲时继续，高优先级任务可打断。这是并发渲染的基础。\n正确选型分析：选项 A 准确，时间切片是可中断渲染的核心机制。\n错误选型剖析：B React 是单线程；C 异步函数无法中断同步代码；D Generator 未用于渲染调度。\n工程实践建议：理解时间切片有助于优化长任务；使用 useTransition 标记低优先级更新；避免阻塞主线程；配合 Scheduler 调试。",
+      "wrong_options_analysis": {
+        "B": "React 是单线程",
+        "C": "异步函数无法中断同步代码",
+        "D": "Generator 未用于渲染调度"
+      }
+    },
+    {
+      "id": "framework-senior-190",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Vue", "Compiler", "Optimization"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "Vue 3 编译时优化",
+      "content": "Vue 3 编译器在编译阶段做的优化包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "静态节点提升（Hoisting）"
+        },
+        {
+          "id": "B",
+          "text": "补丁标志（PatchFlags）生成"
+        },
+        {
+          "id": "C",
+          "text": "事件侦听器缓存"
+        },
+        {
+          "id": "D",
+          "text": "树结构扁平化"
+        },
+        {
+          "id": "E",
+          "text": "自动代码分割"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：Vue 3 编译器在构建时分析模板，生成优化代码。静态节点提升到渲染函数外避免重复创建；PatchFlags 标记动态部分跳过静态对比；事件缓存避免重复创建函数。\n正确选型分析：A/B/C 正确，这是 Vue3 编译优化三大核心。\n错误选型剖析：D 树结构保持层级；E 代码分割是打包工具职责。\n工程实践建议：编写模板时利用编译器优化；避免动态表达式破坏静态分析；使用 v-once 标记完全静态内容；查看编译输出理解优化。",
+      "exclusion_analysis": {
+        "D": "树结构保持层级非扁平化",
+        "E": "代码分割是打包工具职责"
+      }
+    },
+    {
+      "id": "framework-senior-191",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["React", "Batching", "Async"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "React 18 自动批处理范围",
+      "content": "React 18 的自动批处理适用于所有异步回调，包括 setTimeout 和 Promise。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：React 18 扩展了批处理范围，覆盖所有 React 管理的更新。\n例外：原生事件、setTimeout、Promise、setInterval 均被覆盖。",
+      "explanation": "原理机制说明：React 17 及之前仅事件处理中批处理。React 18 使用自动批处理，所有 setState 无论在哪里调用都会批量合并，减少重渲染次数。\n正确选型分析：描述正确，这是 React 18 重要改进。\n错误选型剖析：若选错误，可能基于旧版本知识。\n工程实践建议：依赖批处理顺序的代码需调整；使用 flushSync 强制同步（谨慎）；理解批处理有助于性能优化；注意状态合并更新。",
+      "knowledge_point": "React18_Auto_Batching"
+    },
+    {
+      "id": "framework-senior-192",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Angular", "ChangeDetection", "Zone"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "Zone.js 变更检测触发",
+      "content": "Angular 中 Zone.js 触发变更检测的机制是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "拦截所有异步操作，完成后触发检测"
+        },
+        {
+          "id": "B",
+          "text": "定时轮询检查数据变化"
+        },
+        {
+          "id": "C",
+          "text": "开发者手动调用 detectChanges"
+        },
+        {
+          "id": "D",
+          "text": "仅 HTTP 请求后触发"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Zone.js 通过 Monkey Patch 拦截所有异步 API（setTimeout、Promise、事件等）。异步任务完成后，Zone 通知 Angular 触发变更检测，更新视图。\n正确选型分析：选项 A 准确，这是 Angular 自动变更检测的核心。\n错误选型剖析：B 是脏检查机制；C 是 OnPush 手动模式；D 范围太窄。\n工程实践建议：理解 Zone 有助于优化性能；runOutsideAngular 减少不必要检测；配合 OnPush 策略；注意 Zone 性能开销。",
+      "wrong_options_analysis": {
+        "B": "是脏检查机制非 Angular",
+        "C": "是 OnPush 手动模式",
+        "D": "范围太窄"
+      }
+    },
+    {
+      "id": "framework-senior-193",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["React", "Fiber", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "实现 Fiber 节点创建",
+      "content": "实现一个简化版 Fiber 节点创建函数，理解 Fiber 数据结构。",
+      "code_template": "interface FiberNode {\n  tag: number; // 节点类型\n  key: string | null;\n  type: any; // 组件类型\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  return: FiberNode | null;\n  props: any;\n  stateNode: any; // DOM 实例\n}\n\nfunction createFiber(\n  tag: number,\n  key: string | null,\n  type: any,\n  props: any\n): FiberNode {\n  // 请实现 Fiber 节点创建\n  return {} as FiberNode;\n}",
+      "test_cases": [
+        {
+          "input": "创建 DOM 类型 Fiber",
+          "expected_output": "返回包含 child/sibling/return 的节点",
+          "description": "基本创建"
+        },
+        {
+          "input": "创建组件类型 Fiber",
+          "expected_output": "tag 不同，结构相同",
+          "description": "组件节点"
+        },
+        {
+          "input": "带 key 的列表项",
+          "expected_output": "key 被正确存储",
+          "description": "Key 处理"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "需初始化所有指针为 null",
+        "需正确设置 tag 类型",
+        "需存储 props 和 stateNode"
+      ],
+      "explanation": "原理机制说明：Fiber 节点是 React 渲染的基本单元。createFiber 工厂函数创建节点，初始化链表指针（child/sibling/return）、类型、属性等。这是 reconciler 的基础。\n正确选型分析：返回对象包含所有 Fiber 字段，指针初始为 null，后续构建时连接。\n错误选型剖析：常见错误是指针未初始化；或遗漏关键字段如 stateNode；或 tag 类型错误。\n工程实践建议：此实现帮助理解 React 内部结构；实际代码更复杂含 effect 标记；配合 workLoop 理解遍历；注意内存管理。",
+      "correct_answer": "见代码实现，核心是 Fiber 节点字段初始化与指针设置。"
+    },
+    {
+      "id": "framework-senior-194",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Solid", "Signals", "Reactivity"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "SolidJS Signals 原理",
+      "content": "SolidJS 的 Signals 响应式系统核心特点是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "基于 getter/setter 的细粒度依赖追踪"
+        },
+        {
+          "id": "B",
+          "text": "基于 Proxy 的对象代理"
+        },
+        {
+          "id": "C",
+          "text": "基于 Virtual DOM 的 Diff"
+        },
+        {
+          "id": "D",
+          "text": "基于轮询的状态检查"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：SolidJS 使用 Signals（信号量）实现响应式。通过 getter 收集依赖，setter 通知更新。细粒度到具体值，更新时直接操作 DOM，无需 VDOM Diff。\n正确选型分析：选项 A 准确，这是 Solid 高性能的核心。\n错误选型剖析：B 是 Vue 方案；C 是 React/Vue 方案；D 性能差非现代方案。\n工程实践建议：Solid 适合高性能场景；注意闭包捕获信号值；使用 createMemo 处理派生状态；理解编译时优化。",
+      "wrong_options_analysis": {
+        "B": "是 Vue 方案",
+        "C": "是 React/Vue 方案",
+        "D": "性能差非现代方案"
+      }
+    },
+    {
+      "id": "framework-senior-195",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Effect", "Lifecycle"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "useEffect 执行时机",
+      "content": "React useEffect 的执行时机包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "组件首次挂载后"
+        },
+        {
+          "id": "B",
+          "text": "依赖项变化后的渲染完成后"
+        },
+        {
+          "id": "C",
+          "text": "组件卸载前（清理函数）"
+        },
+        {
+          "id": "D",
+          "text": "每次渲染前"
+        },
+        {
+          "id": "E",
+          "text": "依赖项变化前的渲染前"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：useEffect 是异步副作用 Hook。在 DOM 变更后异步执行，包括首次挂载、依赖变化后。清理函数在卸载前或下次 effect 前执行。\n正确选型分析：A/B/C 正确。Effect 在渲染提交后执行，确保可访问 DOM。\n错误选型剖析：D 是 render 阶段，effect 在之后；E 时机错误，是变化后非变化前。\n工程实践建议：正确设置依赖数组；清理函数防止内存泄漏；避免在 effect 中同步更新状态；使用 useLayoutEffect 需同步时。",
+      "exclusion_analysis": {
+        "D": "Effect 在渲染后非渲染前",
+        "E": "是变化后非变化前"
+      }
+    },
+    {
+      "id": "framework-senior-196",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Vue", "NextTick", "Microtask"],
+      "source_company": "Alibaba",
+      "score": 5,
+      "title": "Vue nextTick 实现原理",
+      "content": "Vue 的 nextTick 内部实现优先使用 Promise 微任务，确保在 DOM 更新后执行。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：微任务在宏任务之前执行，确保在下次渲染前。\n例外：旧环境降级为 MutationObserver 或 setTimeout。",
+      "explanation": "原理机制说明：Vue nextTick 使用 Promise.then（微任务）确保回调在 DOM 更新后、下一次渲染前执行。微任务优先级高于宏任务，保证时序。\n正确选型分析：描述正确，这是 Vue 异步更新的核心。\n错误选型剖析：若选错误，可能混淆了微任务与宏任务。\n工程实践建议：修改数据后获取更新 DOM 用 nextTick；避免滥用导致事件循环碎片；SSR 环境需特殊处理；理解微任务队列。",
+      "knowledge_point": "Vue_NextTick_Microtask"
+    },
+    {
+      "id": "framework-senior-197",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Context", "Provider"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "Context Provider 更新传播",
+      "content": "当 Context Provider 的 value 变化时，哪些组件会重渲染？",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有消费该 Context 的组件"
+        },
+        {
+          "id": "B",
+          "text": "仅直接子组件"
+        },
+        {
+          "id": "C",
+          "text": "仅使用了 value 中变化属性的组件"
+        },
+        {
+          "id": "D",
+          "text": "所有后代组件无论是否消费"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：React Context 无内置选择器机制。Provider value 变化时，所有 useContext 或 Context.Consumer 都会重渲染，无论是否使用变化的属性。\n正确选型分析：选项 A 准确，这是 Context 性能陷阱的根源。\n错误选型剖析：B 范围太窄；C 是理想但非默认行为；D 范围太广。\n工程实践建议：拆分 Context 减少影响范围；配合 useMemo 稳定 value；高频更新用 Zustand/Jotai；使用 Context Selector 库优化。",
+      "wrong_options_analysis": {
+        "B": "范围太窄",
+        "C": "是理想但非默认行为",
+        "D": "范围太广"
+      }
+    },
+    {
+      "id": "framework-senior-198",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Vue", "Computed", "Implementation"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "实现计算属性缓存",
+      "content": "实现一个简化版 computed，支持依赖缓存和脏检查。",
+      "code_template": "interface ComputedRef<T> {\n  value: T;\n  _dirty: boolean;\n  _value: T | undefined;\n  effect: () => void;\n}\n\nfunction computed<T>(getter: () => T): ComputedRef<T> {\n  // 请实现逻辑\n  // 需支持缓存\n  // 依赖变化时标记_dirty\n  return {} as ComputedRef<T>;\n}",
+      "test_cases": [
+        {
+          "input": "首次访问.value",
+          "expected_output": "执行 getter，缓存结果",
+          "description": "初始计算"
+        },
+        {
+          "input": "依赖未变化再次访问",
+          "expected_output": "返回缓存值，不执行 getter",
+          "description": "缓存命中"
+        },
+        {
+          "input": "依赖变化后访问",
+          "expected_output": "重新执行 getter，更新缓存",
+          "description": "缓存失效"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "需使用 effect 追踪依赖",
+        "需实现脏检查标志",
+        "需缓存计算结果"
+      ],
+      "explanation": "原理机制说明：computed 核心是懒执行 + 缓存。首次访问执行 getter 并缓存，依赖变化时标记_dirty，下次访问时重新计算。effect 用于追踪依赖。\n正确选型分析：使用 scheduler 标记_dirty，getter 访问时检查_dirty 决定是否重算。\n错误选型剖析：常见错误是未实现脏检查导致每次都算；或未追踪依赖导致不更新。\n工程实践建议：此实现是 Vue computed 核心；理解有助于优化计算逻辑；避免计算函数产生副作用；注意循环依赖。",
+      "correct_answer": "见代码实现，核心是脏检查标志与缓存机制。"
+    },
+    {
+      "id": "framework-senior-199",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Suspense", "Boundary"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "Suspense 边界嵌套行为",
+      "content": "嵌套多个 Suspense 边界时，加载状态的显示规则是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "显示最内层未就绪的 Suspense fallback"
+        },
+        {
+          "id": "B",
+          "text": "显示最外层的 Suspense fallback"
+        },
+        {
+          "id": "C",
+          "text": "同时显示所有 fallback"
+        },
+        {
+          "id": "D",
+          "text": "随机显示一个 fallback"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Suspense 边界嵌套时，React 会找到最内层未就绪的边界显示其 fallback。这允许细粒度加载状态，不同部分独立显示加载 UI。\n正确选型分析：选项 A 准确，这是 Suspense 设计的核心行为。\n错误选型剖析：B 违背细粒度原则；C 会导致 UI 混乱；D 无此逻辑。\n工程实践建议：合理嵌套 Suspense 实现渐进式加载；配合 use 钩子读取数据；注意 SSR 流式渲染配合；避免过度嵌套增加复杂度。",
+      "wrong_options_analysis": {
+        "B": "违背细粒度原则",
+        "C": "会导致 UI 混乱",
+        "D": "无此逻辑"
+      }
+    },
+    {
+      "id": "framework-senior-200",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Vue", "KeepAlive", "Cache"],
+      "source_company": "Alibaba",
+      "score": 12,
+      "title": "KeepAlive 缓存机制",
+      "content": "Vue KeepAlive 组件缓存的关键机制包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "缓存组件实例而非 DOM"
+        },
+        {
+          "id": "B",
+          "text": "使用 LRU 算法管理缓存容量"
+        },
+        {
+          "id": "C",
+          "text": "通过 include/exclude 控制缓存范围"
+        },
+        {
+          "id": "D",
+          "text": "触发 activated/deactivated 生命周期"
+        },
+        {
+          "id": "E",
+          "text": "自动清理未使用的缓存"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：KeepAlive 缓存组件实例（含状态），使用 LRU 限制数量，include/exclude 过滤组件，切换时触发 activated/deactivated 钩子。\n正确选型分析：A/B/C/D 正确。缓存实例保持状态，LRU 防止内存无限增长。\n错误选型剖析：E 错误，KeepAlive 不会自动清理，需手动或达到 max 上限。\n工程实践建议：设置 max 防止内存泄漏；配合 include 精确控制；注意 deactivated 中清理定时器；避免缓存敏感数据组件。",
+      "exclusion_analysis": {
+        "E": "KeepAlive 不会自动清理，需手动或达到 max 上限"
+      }
+    },
+    {
+      "id": "framework-senior-201",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["React", "StrictMode", "DoubleInvoke"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "StrictMode 双重调用范围",
+      "content": "React StrictMode 的双重调用仅发生在开发环境，且仅针对函数组件。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：StrictMode 是开发工具，生产环境自动禁用。\n例外：类组件的 constructor/render 也会双重调用。",
+      "explanation": "原理机制说明：StrictMode 在开发环境故意双重调用组件（挂载 - 卸载 - 挂载），检测副作用清理是否彻底。生产环境自动移除，无性能影响。\n正确选型分析：描述基本正确，主要针对函数组件的 useEffect 等。\n错误选型剖析：若选错误，可能担心生产环境性能。\n工程实践建议：始终包裹应用使用 StrictMode；确保 effect 清理函数正确；不要依赖双重调用行为；生产环境无开销。",
+      "knowledge_point": "React_StrictMode_DoubleInvoke"
+    },
+    {
+      "id": "framework-senior-202",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Svelte", "Compiler", "Runtime"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "Svelte 编译时框架特点",
+      "content": "Svelte 作为编译时框架，与 React/Vue 的主要区别是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "构建时生成命令式 DOM 操作代码，无运行时 VDOM"
+        },
+        {
+          "id": "B",
+          "text": "使用 Virtual DOM 优化渲染"
+        },
+        {
+          "id": "C",
+          "text": "需要运行时库支持响应式"
+        },
+        {
+          "id": "D",
+          "text": "组件必须在浏览器中编译"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Svelte 在构建阶段将组件编译为高效的命令式 DOM 操作代码，无 VDOM 开销，运行时无框架库。这是其体积小、性能高的原因。\n正确选型分析：选项 A 准确，这是 Svelte 核心创新。\n错误选型剖析：B 是 React/Vue；C Svelte 运行时极小；D 构建时编译。\n工程实践建议：Svelte 适合包体积敏感场景；理解编译输出有助于调试；注意生态相对较小；学习曲线平缓。",
+      "wrong_options_analysis": {
+        "B": "是 React/Vue 方案",
+        "C": "Svelte 运行时极小",
+        "D": "构建时编译"
+      }
+    },
+    {
+      "id": "framework-senior-203",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["React", "WorkLoop", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "实现简化版 WorkLoop",
+      "content": "实现一个简化版 React WorkLoop，理解调度与执行流程。",
+      "code_template": "interface FiberNode {\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  workInProgress: boolean;\n}\n\nlet workInProgress: FiberNode | null = null;\n\nfunction workLoop(): void {\n  // 请实现遍历逻辑\n  // 需处理 child/sibling/return 指针\n  // 模拟可中断调度\n}",
+      "test_cases": [
+        {
+          "input": "遍历 Fiber 树",
+          "expected_output": "按深度优先顺序访问节点",
+          "description": "基本遍历"
+        },
+        {
+          "input": "时间片到期",
+          "expected_output": "暂停并保存 workInProgress",
+          "description": "可中断"
+        },
+        {
+          "input": "无更多工作",
+          "expected_output": "完成渲染提交",
+          "description": "完成流程"
+        }
+      ],
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "需实现深度优先遍历",
+        "需支持中断恢复",
+        "需正确更新 workInProgress 指针"
+      ],
+      "explanation": "原理机制说明：WorkLoop 是 React 渲染的核心循环。遍历 Fiber 链表，执行每个节点的工作。时间片到期时暂停，下次从 workInProgress 继续。这是并发渲染的基础。\n正确选型分析：使用 while 循环遍历，检查时间片，更新 child/sibling/return 指针。\n错误选型剖析：常见错误是指针更新逻辑错误导致死循环；或未实现中断逻辑。\n工程实践建议：此实现帮助理解 React 调度；实际代码含优先级判断；配合 Scheduler 使用；注意边界条件处理。",
+      "correct_answer": "见代码实现，核心是 Fiber 链表遍历与中断调度。"
+    },
+    {
+      "id": "framework-senior-204",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Qwik", "Resumability", "Hydration"],
+      "source_company": "Builder.io",
+      "score": 12,
+      "title": "Qwik 可恢复性原理",
+      "content": "Qwik 框架的 Resumability（可恢复性）与传统 Hydration 的核心区别是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "序列化应用状态到 HTML，按需加载事件处理程序"
+        },
+        {
+          "id": "B",
+          "text": "重新执行整个组件树构建 VDOM"
+        },
+        {
+          "id": "C",
+          "text": "使用 Web Worker 预加载所有代码"
+        },
+        {
+          "id": "D",
+          "text": "完全不需要客户端 JavaScript"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Qwik Resumability 将应用状态和组件图序列化到 HTML，客户端恢复执行上下文。事件处理程序按需懒加载，实现零水合。\n正确选型分析：选项 A 准确，这是 Qwik 性能优化的核心。\n错误选型剖析：B 是传统 Hydration；C 非 Qwik 机制；D 错误，仍需 JS 但按需加载。\n工程实践建议：Qwik 适合内容型网站；注意序列化数据大小；理解可恢复性概念；评估生态成熟度。",
+      "wrong_options_analysis": {
+        "B": "是传统 Hydration",
+        "C": "非 Qwik 机制",
+        "D": "仍需 JS 但按需加载"
+      }
+    },
+    {
+      "id": "framework-senior-205",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Reconciliation", "Diff"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "React Diff 启发式规则",
+      "content": "React Diff 算法使用的启发式优化规则包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "仅对比同层级节点"
+        },
+        {
+          "id": "B",
+          "text": "不同类型元素直接重建子树"
+        },
+        {
+          "id": "C",
+          "text": "使用 key 优化列表对比"
+        },
+        {
+          "id": "D",
+          "text": "跨层级移动节点复用"
+        },
+        {
+          "id": "E",
+          "text": "对比所有节点对找最优解"
+        }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：React Diff 通过三层启发式将 O(n³) 优化到 O(n)：1) 同层对比 2) 类型不同直接重建 3) key 辅助列表。牺牲部分场景最优解换取性能。\n正确选型分析：A/B/C 正确，这是 React 官方文档明确的优化策略。\n错误选型剖析：D React 不跨层级复用；E 是传统 Diff 算法，React 已优化。\n工程实践建议：使用稳定 key 优化列表；避免跨层级移动 DOM；理解优化原理编写高效组件；配合 Profiler 验证。",
+      "exclusion_analysis": {
+        "D": "React 不跨层级复用",
+        "E": "是传统 Diff 算法，React 已优化"
+      }
+    },
+    {
+      "id": "framework-senior-206",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Vue", "Reactivity", "Array"],
+      "source_company": "Alibaba",
+      "score": 5,
+      "title": "Vue 3 数组响应式",
+      "content": "Vue 3 使用 Proxy 后，数组索引直接赋值和 length 修改都能触发响应式更新。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "原理：Proxy 可拦截数组索引设置和 length 变化。\n例外：Vue 2 使用 defineProperty 无法监听这些操作。",
+      "explanation": "原理机制说明：Vue 3 Proxy 可拦截数组所有操作，包括索引赋值、length 修改、push/pop 等方法。这是相比 Vue 2 的重大改进。\n正确选型分析：描述正确，Proxy 解决了 Vue 2 数组响应式限制。\n错误选型剖析：若选错误，可能基于 Vue 2 经验。\n工程实践建议：Vue 3 可直接使用数组方法；无需 Vue.set；注意 Proxy 无法 polyfill；旧浏览器需降级方案。",
+      "knowledge_point": "Vue3_Proxy_Array_Reactivity"
+    },
+    {
+      "id": "framework-senior-207",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["React", "Concurrent", "Features"],
+      "source_company": "Meta",
+      "score": 12,
+      "title": "并发特性优先级控制",
+      "content": "React 并发特性中，用于标记低优先级更新的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "useTransition"
+        },
+        {
+          "id": "B",
+          "text": "useEffect"
+        },
+        {
+          "id": "C",
+          "text": "useMemo"
+        },
+        {
+          "id": "D",
+          "text": "useCallback"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：useTransition 将状态更新标记为过渡（低优先级），允许高优先级任务（如输入）打断。这是并发渲染的核心 API。\n正确选型分析：选项 A 准确，useTransition 返回 isPending 和 startTransition。\n错误选型剖析：B 是副作用 Hook；C 是缓存计算；D 是缓存函数。\n工程实践建议：搜索框、列表过滤等场景使用；配合 Suspense 显示加载状态；避免用于关键交互；理解优先级概念。",
+      "wrong_options_analysis": {
+        "B": "是副作用 Hook",
+        "C": "是缓存计算",
+        "D": "是缓存函数"
+      }
+    },
+    {
+      "id": "framework-senior-208",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Vue", "Watch", "Implementation"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "实现 watch 效果函数",
+      "content": "实现一个简化版 watch，监听响应式数据变化并执行回调。",
+      "code_template": "interface WatchOptions {\n  deep?: boolean;\n  immediate?: boolean;\n  flush?: 'pre' | 'post' | 'sync';\n}\n\nfunction watch<T>(\n  source: () => T,\n  callback: (newVal: T, oldVal: T) => void,\n  options?: WatchOptions\n): () => void {\n  // 请实现逻辑\n  // 需支持依赖追踪\n  // 需支持回调执行时机\n  return () => {};\n}",
+      "test_cases": [
+        {
+          "input": "数据变化",
+          "expected_output": "callback 被调用，传入新旧值",
+          "description": "基本监听"
+        },
+        {
+          "input": "immediate: true",
+          "expected_output": "立即执行一次 callback",
+          "description": "立即执行"
+        },
+        {
+          "input": "调用返回的卸载函数",
+          "expected_output": "停止监听，callback 不再触发",
+          "description": "清理监听"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "constraints": [
+        "需使用 effect 追踪依赖",
+        "需支持立即执行选项",
+        "需返回卸载函数清理"
+      ],
+      "explanation": "原理机制说明：watch 基于 effect 实现。创建 effect 时不立即执行，依赖变化时对比新旧值执行回调。返回停止函数清理 effect。\n正确选型分析：使用 effect 的 scheduler 选项控制执行时机，保存旧值对比。\n错误选型剖析：常见错误是未保存旧值；或未实现卸载清理；或 immediate 逻辑错误。\n工程实践建议：此实现是 Vue watch 核心；理解有助于调试响应式；注意 deep 选项性能开销；避免无限循环。",
+      "correct_answer": "见代码实现，核心是 effect 调度与新旧值对比。"
+    },
+    {
+      "id": "framework-senior-209",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Angular", "Signals", "Migration"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "Angular Signals 演进",
+      "content": "Angular 16+ 引入 Signals 的主要目的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "提供细粒度响应式，减少对 Zone.js 的依赖"
+        },
+        {
+          "id": "B",
+          "text": "完全取代 RxJS"
+        },
+        {
+          "id": "C",
+          "text": "提升 TypeScript 类型支持"
+        },
+        {
+          "id": "D",
+          "text": "简化依赖注入系统"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Angular Signals 提供细粒度响应式追踪，变更检测可精确到具体信号，减少 Zone.js 脏检查开销。这是 Angular 性能优化的关键演进。\n正确选型分析：选项 A 准确，Signals 允许 Zoneless 模式。\n错误选型剖析：B Signals 与 RxJS 互补；C 非主要目的；D 无关。\n工程实践建议：新组件优先使用 Signals；逐步迁移旧组件；配合 OnPush 策略；理解信号与 observable 区别。",
+      "wrong_options_analysis": {
+        "B": "Signals 与 RxJS 互补",
+        "C": "非主要目的",
+        "D": "无关"
+      }
+    },
+    {
+      "id": "framework-senior-210",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Framework", "Performance", "Comparison"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "框架性能对比维度",
+      "content": "对比 React/Vue/Solid/Angular 性能时，应关注的维度包括？",
+      "options": [
+        {
+          "id": "A",
+          "text": "首次加载时间（Bundle Size + Parse）"
+        },
+        {
+          "id": "B",
+          "text": "运行时内存占用"
+        },
+        {
+          "id": "C",
+          "text": "更新操作延迟（Update Latency）"
+        },
+        {
+          "id": "D",
+          "text": "内存回收效率（GC Pressure）"
+        },
+        {
+          "id": "E",
+          "text": "GitHub Star 数量"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：框架性能对比需多维评估。加载时间影响首屏，内存占用影响长期运行，更新延迟影响交互，GC 压力影响流畅度。\n正确选型分析：A/B/C/D 均为技术性能指标，可量化测量。\n错误选型剖析：E 是流行度指标，与性能无关。\n工程实践建议：使用 JS Framework Benchmark 对比；结合真实用户监控；避免微优化；选择适合场景的框架而非盲目追新。",
+      "exclusion_analysis": {
+        "E": "是流行度指标，与性能无关"
+      }
     }
   ]
 }

@@ -156,30 +156,129 @@
         <!-- Algorithm -->
         <template v-else-if="question.type === 'algorithm'">
           <div class="algo-area">
-            <div
-              class="code-template"
-              v-if="question.code_template && !hasAnswered"
-            >
-              <h4>模板代码：</h4>
-              <pre><code>{{ question.code_template }}</code></pre>
-            </div>
-            <div class="algo-meta" v-if="!hasAnswered">
-              <p>
-                ⏱ 时间复杂度要求:
-                <strong>{{ question.time_complexity }}</strong>
-              </p>
-              <p>
-                💾 空间复杂度要求:
-                <strong>{{ question.space_complexity }}</strong>
-              </p>
-            </div>
-            <button
-              v-if="!hasAnswered"
-              class="submit-multi-btn"
-              @click="revealAlgorithm"
-            >
-              查看参考答案并自评
-            </button>
+            <template v-if="!hasAnswered">
+              <div v-if="isMobile" class="mobile-algo-placeholder pixel-card">
+                <p>
+                  💻 移动端（小屏）不支持代码编辑功能，请在 PC
+                  端作答或直接查看参考答案。
+                </p>
+                <button
+                  class="pixel-btn primary-btn submit-multi-btn"
+                  @click="revealAlgorithm"
+                >
+                  直接查看参考答案
+                </button>
+              </div>
+
+              <div v-else class="editor-container">
+                <div class="algo-meta">
+                  <span class="meta-item"
+                    >⏱ 预期时间复杂度:
+                    <strong>{{ question.time_complexity }}</strong></span
+                  >
+                  <span class="meta-item"
+                    >💾 预期空间复杂度:
+                    <strong>{{ question.space_complexity }}</strong></span
+                  >
+                </div>
+
+                <div
+                  class="code-editor-wrapper"
+                  style="
+                    height: 350px;
+                    margin-bottom: 1rem;
+                    border: 1px solid var(--theme-border-color);
+                    border-radius: 4px;
+                    overflow: hidden;
+                    text-align: left;
+                  "
+                >
+                  <vue-monaco-editor
+                    v-model:value="userCode"
+                    :theme="editorTheme"
+                    language="typescript"
+                    :options="{
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      scrollBeyondLastLine: false,
+                    }"
+                    @beforeMount="handleEditorBeforeMount"
+                    @mount="handleEditorMount"
+                  />
+                </div>
+
+                <div
+                  class="test-cases-section"
+                  v-if="question.test_cases?.length"
+                >
+                  <div
+                    class="section-title"
+                    style="font-weight: 800; margin-bottom: 0.5rem"
+                  >
+                    测试用例预期：
+                  </div>
+                  <div
+                    v-for="(tc, idx) in question.test_cases"
+                    :key="idx"
+                    class="tc-item pixel-card"
+                    style="
+                      padding: 1rem;
+                      margin-bottom: 0.5rem;
+                      text-align: left;
+                      background: var(--theme-card-inner);
+                    "
+                  >
+                    <div class="tc-desc">
+                      <strong>描述:</strong> {{ tc.description }}
+                    </div>
+                    <div
+                      class="tc-expected"
+                      style="
+                        font-size: 0.9rem;
+                        color: var(--theme-text-light);
+                        margin-top: 0.3rem;
+                      "
+                    >
+                      <strong>期望:</strong> {{ tc.expected_output }}
+                    </div>
+                    <div
+                      v-if="testResults[idx]"
+                      class="tc-result"
+                      :class="testResults[idx].pass ? 'text-ok' : 'text-fail'"
+                      style="margin-top: 0.5rem; font-weight: bold"
+                    >
+                      执行结果: {{ testResults[idx].msg }}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="algo-actions"
+                  style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                    margin-top: 1.5rem;
+                  "
+                >
+                  <button
+                    class="pixel-btn primary-btn submit-multi-btn"
+                    style="margin-top: 0"
+                    @click="runTestCases"
+                    :disabled="testingCode"
+                  >
+                    {{ testingCode ? "运行中..." : "▶ 运行测试代码" }}
+                  </button>
+                  <button
+                    class="pixel-btn secondary-btn submit-multi-btn"
+                    style="margin-top: 0"
+                    @click="revealAlgorithm"
+                  >
+                    查看参考答案并自评
+                  </button>
+                </div>
+              </div>
+            </template>
 
             <div v-if="hasAnswered" class="algo-self-eval">
               <p class="eval-title">答案已展开，请根据您的解答自我评估：</p>
@@ -301,12 +400,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, shallowRef, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useQuizStore } from "@/stores/useQuizStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useProgressStore } from "@/stores/useProgressStore";
+import { useThemeStore } from "@/stores/useThemeStore";
 import type { Question } from "@/types/question";
+import { VueMonacoEditor } from "@guolao/vue-monaco-editor";
+import { useWindowSize } from "@vueuse/core";
 
 const props = defineProps<{ question: Question; categoryId: string }>();
 const emit = defineEmits<{
@@ -316,13 +418,110 @@ const emit = defineEmits<{
 const quizStore = useQuizStore();
 const progressStore = useProgressStore();
 const settingsStore = useSettingsStore();
+const themeStore = useThemeStore();
 const router = useRouter();
+
+const { width } = useWindowSize();
+const isMobile = computed(() => width.value < 768);
+
+const editorTheme = computed(() => {
+  return themeStore.currentTheme + "-theme";
+});
 
 const hasAnswered = ref(false);
 const selectedOption = ref<string | null>(null);
 const selectedMulti = ref<string[]>([]);
 const isCorrect = ref<boolean | null>(null);
 const animState = ref<"idle" | "right" | "wrong">("idle");
+
+// 算法题状态
+const userCode = ref("");
+const testingCode = ref(false);
+const testResults = ref<{ pass: boolean; msg: string }[]>([]);
+const monacoInstance = shallowRef<any>(null);
+const monacoEditor = shallowRef<any>(null);
+
+function handleEditorBeforeMount(monaco: any) {
+  monaco.editor.defineTheme("modern-theme", {
+    base: "vs",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#ffffff",
+    },
+  });
+  monaco.editor.defineTheme("clay-theme", {
+    base: "vs",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#fafaf7",
+    },
+  });
+  monaco.editor.defineTheme("pixel-theme", {
+    base: "vs",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#fff8e7",
+      "editor.lineHighlightBackground": "#f0e8d5",
+    },
+  });
+}
+
+function handleEditorMount(editor: any, monaco: any) {
+  monacoEditor.value = editor;
+  monacoInstance.value = monaco;
+}
+
+async function runTestCases() {
+  const q = props.question as any;
+  if (q.type !== "algorithm" || !q.test_cases) return;
+
+  testingCode.value = true;
+  testResults.value = [];
+
+  try {
+    let jsCode = userCode.value;
+
+    // 使用 Monaco TS Worker 获取编译后的 JS 代码
+    if (monacoInstance.value && monacoEditor.value) {
+      const model = monacoEditor.value.getModel();
+      const worker =
+        await monacoInstance.value.languages.typescript.getTypeScriptWorker();
+      const client = await worker(model.uri);
+      const emitResult = await client.getEmitOutput(model.uri.toString());
+      if (emitResult.outputFiles && emitResult.outputFiles[0]) {
+        jsCode = emitResult.outputFiles[0].text;
+      }
+    }
+
+    // 循环测试用例进行校验
+    for (const tc of q.test_cases) {
+      const wrappedCode = `
+        return (async () => {
+          ${jsCode};
+          ${tc.input};
+          return "无运行时抛错 (验证通过)";
+        })();
+      `;
+      try {
+        const fn = new Function(wrappedCode);
+        const res = await fn();
+        testResults.value.push({ pass: true, msg: res || "执行正常" });
+      } catch (err: any) {
+        testResults.value.push({ pass: false, msg: String(err) });
+      }
+    }
+  } catch (err: any) {
+    testResults.value.push({
+      pass: false,
+      msg: "编译/执行器异常：" + String(err),
+    });
+  } finally {
+    testingCode.value = false;
+  }
+}
 
 const isFavorite = computed(() =>
   progressStore.isFavorite(props.categoryId, String(props.question.id)),
@@ -365,6 +564,11 @@ watch(
     selectedMulti.value = [];
     isCorrect.value = null;
     animState.value = "idle";
+
+    if (props.question.type === "algorithm") {
+      userCode.value = (props.question as any).code_template || "";
+      testResults.value = [];
+    }
   },
   { immediate: true },
 );

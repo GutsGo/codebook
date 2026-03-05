@@ -95,6 +95,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 import QuestionCard from "@/components/QuestionCard.vue";
 import { fetchCategories, fetchQuestionsByLevel } from "@/data/questions";
 import type { Question } from "@/types/question";
+import { useWindowSize } from "@vueuse/core";
 
 const props = defineProps<{ category: string; level: string }>();
 const router = useRouter();
@@ -110,6 +111,7 @@ const hasNextLevel = ref(false);
 const nextLevelId = ref("");
 const timeSpent = ref(0);
 let timerRef: number;
+const { width } = useWindowSize();
 
 const currentIndex = computed(() => quizStore.currentQuestionIndex);
 const currentQuestion = computed(() => questions.value[currentIndex.value]);
@@ -117,7 +119,10 @@ const currentQuestion = computed(() => questions.value[currentIndex.value]);
 onMounted(async () => {
   quizStore.resetQuiz();
   try {
-    const q = await fetchQuestionsByLevel(props.category, props.level);
+    let q = await fetchQuestionsByLevel(props.category, props.level);
+    if (width.value < 768) {
+      q = q.filter((item) => item.type !== "algorithm");
+    }
     questions.value = [...q].sort(() => Math.random() - 0.5);
   } catch (e) {
     console.error(e);

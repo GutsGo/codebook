@@ -41,6 +41,24 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/Statistics.vue"),
     meta: { title: "CodeBook - 统计中心" },
   },
+  {
+    path: "/srs",
+    name: "SrsGame",
+    component: () => import("@/views/SrsGame.vue"),
+    meta: { title: "CodeBook - 无限刷题复习" },
+  },
+  {
+    path: "/notes",
+    name: "Notes",
+    component: () => import("@/views/Notes.vue"),
+    meta: { title: "CodeBook - 我的笔记" },
+  },
+  {
+    path: "/backup",
+    name: "Backup",
+    component: () => import("@/views/Backup.vue"),
+    meta: { title: "CodeBook - 云备份与恢复" },
+  },
 ];
 
 const router = createRouter({

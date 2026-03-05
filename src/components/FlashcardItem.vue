@@ -261,7 +261,16 @@ function getDifficultyLabel(level: number | string) {
   border: var(--theme-border-width) solid var(--theme-border-color);
   border-radius: var(--theme-radius-md);
   box-shadow: var(--theme-shadow-card);
-  /* 移除 overflow: hidden，从而让胶带装饰可以自然溢出边框 */
+  /* 确保背面在不翻转时不接收事件，正面在翻转后不接收事件 */
+  pointer-events: none;
+}
+
+.flashcard-container:not(.is-flipped) .flashcard-front {
+  pointer-events: auto;
+}
+
+.flashcard-container.is-flipped .flashcard-back {
+  pointer-events: auto;
 }
 
 .flashcard-front {
@@ -514,7 +523,8 @@ function getDifficultyLabel(level: number | string) {
   /* 此遮罩用来确保点击正面非按钮区域能翻面 */
 }
 .card-header,
-.hints-section {
+.hints-section,
+.interactive {
   position: relative;
   z-index: 2;
 }

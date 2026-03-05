@@ -194,6 +194,33 @@ export const useProgressStore = defineStore("progress", () => {
     return record?.content || "";
   }
 
+  // --- 闪卡相关的独立存储 ---
+  const flashcardFavorites = useLocalStorage<MistakeRecord[]>(
+    "codebook_flashcard_favorites",
+    [],
+  );
+
+  function toggleFlashcardFavorite(categoryId: string, cardId: string) {
+    const index = flashcardFavorites.value.findIndex(
+      (f) => f.categoryId === categoryId && f.questionId === cardId,
+    );
+    if (index >= 0) {
+      flashcardFavorites.value.splice(index, 1);
+    } else {
+      flashcardFavorites.value.unshift({
+        categoryId,
+        questionId: cardId, // 使用 questionId 字段来存储 cardId 以复用类型，虽名字为 questionId，实际是 cardId
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  function isFlashcardFavorite(categoryId: string, cardId: string) {
+    return flashcardFavorites.value.some(
+      (f) => f.categoryId === categoryId && f.questionId === cardId,
+    );
+  }
+
   return {
     unlockedLevels,
     totalScore,
@@ -210,5 +237,8 @@ export const useProgressStore = defineStore("progress", () => {
     notes,
     saveNote,
     getNote,
+    flashcardFavorites,
+    toggleFlashcardFavorite,
+    isFlashcardFavorite,
   };
 });

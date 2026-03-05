@@ -136,6 +136,9 @@ export interface SrsRecord {
   questionId: string;
   level: number; // 0: 没见过/忘记, 1: 模糊, 2: 简单
   nextReviewTime: number; // 毫秒级时间戳
+  interval?: number; // 存储上次的间隔（毫秒），用于推导下一次
+  easeFactor?: number; // 掌握容易度因子，SM-2默认2.5
+  repetitions?: number; // 连续正确的次数
 }
 
 export interface NoteRecord {

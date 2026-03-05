@@ -1,2190 +1,2918 @@
 {
   "file_metadata": {
-    "version": "1.0",
-    "category": "Architecture/MicroFrontend",
-    "generated_at": "2024-01-15T10:00:00Z",
-    "total_questions": 60,
+    "version": "1.0.0",
+    "category": "Frontend Architecture",
+    "generated_at": "2023-10-27T10:00:00Z",
+    "total_questions": 30,
     "target_level": "Senior",
-    "continuation": false,
-    "id_range": "001-060"
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
   },
   "questions": [
     {
       "id": "arch-senior-001",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "微前端",
-        "iframe"
-      ],
+      "tags": ["qiankun", "Sandbox", "Proxy"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "iframe微前端Portal API设计",
-      "content": "在iframe微前端方案中，Portal API的核心设计目标是解决什么问题？",
+      "score": 10,
+      "title": "qiankun JS 沙箱机制原理",
+      "content": "qiankun 在主流浏览器中默认使用 Proxy 实现 JS 沙箱，关于 ProxySandbox 的实现细节，以下说法错误的是？",
       "options": [
         {
           "id": "A",
-          "text": "解决iframe的JS隔离问题"
+          "text": "通过 Proxy 拦截 window 对象的 get/set 操作，实现变量隔离"
         },
         {
           "id": "B",
-          "text": "解决iframe的用户体验割裂问题，保留JS隔离同时实现渲染层融合"
+          "text": "子应用修改全局变量只会影响当前沙箱内的 proxy 对象，不会影响真实 window"
         },
         {
           "id": "C",
-          "text": "解决iframe的SEO问题"
+          "text": "ProxySandbox 在旧版浏览器（不支持 Proxy）中会自动降级为 iframe 沙箱"
         },
         {
           "id": "D",
-          "text": "解决iframe的性能问题"
+          "text": "激活沙箱时会将修改过的变量记录快照，卸载时还原 window 对象"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "Portal API是HTML早期提案，核心目标是解决iframe的用户体验割裂问题。传统iframe虽然提供了完美的JS隔离，但其独立的浏览上下文导致视觉体验不连贯。Portal API的设计思路是将iframe内容提升到主文档渲染层，实现无缝的视觉体验。",
-      "knowledge_point": "MicroFrontend_Portal_API",
-      "common_mistake": "容易误选A。",
+      "correct_answer": "C",
+      "explanation": "原理机制说明：qiankun 的 ProxySandbox 利用 ES6 Proxy 拦截对 window 对象的访问，创建一个虚假的 window 对象供子应用使用。\n正确选型分析：A、B、D 均正确描述了 Proxy 沙箱的行为，包括拦截、隔离和快照还原机制。\n错误选型剖析：C 选项错误，qiankun 在不支持 Proxy 的浏览器中会启用 LegacySandbox（基于修改全局变量快照），而不是自动降级为 iframe。iframe 是另一种隔离方案（如 wujie 默认），但 qiankun 的 JS 沙箱降级策略并非 iframe。\n工程实践建议：在需要支持 IE11 时需注意 Proxy _polyfill 或接受 LegacySandbox 的局限性，避免依赖 iframe 隔离特性。",
       "wrong_options_analysis": {
-        "A": "JS隔离是iframe的优势",
-        "C": "SEO不是Portal API的目标",
-        "D": "主要解决体验问题"
+        "B": "这是沙箱的核心目的，描述正确。",
+        "D": "这是快照机制的核心，描述正确。"
       }
     },
     {
       "id": "arch-senior-002",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "postMessage",
-        "安全"
-      ],
-      "source_company": "ByteDance",
-      "score": 8,
-      "title": "postMessage安全机制",
-      "content": "在微前端中使用postMessage通信时，哪种安全策略是必须实现的？",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "Webpack", "Dependency"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "Module Federation 依赖共享陷阱",
+      "content": "在使用 Webpack 5 Module Federation 进行微前端架构时，关于 shared 依赖配置，以下哪些情况可能导致运行时错误或版本冲突？",
       "options": [
         {
           "id": "A",
-          "text": "只使用HTTPS"
+          "text": "主机和远程应用共享了 react，但主机版本为 16，远程要求 18，且 eager 设置为 true"
         },
         {
           "id": "B",
-          "text": "严格校验event.origin并建立白名单机制"
+          "text": "多个远程应用都暴露了相同的工具库，但版本号不一致，主机未指定 requiredVersion"
         },
         {
           "id": "C",
-          "text": "对所有消息加密"
+          "text": "共享库设置了 singleton: true，但不同应用实例化了多次"
         },
         {
           "id": "D",
-          "text": "限制只能在同域使用"
+          "text": "远程应用未将 react 列入 shared，导致打包进远程 bundle，主机也引入了 react"
+        },
+        {
+          "id": "E",
+          "text": "使用了 shareScope 默认值，未区分不同环境的依赖隔离"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "postMessage的安全风险主要包括缺少origin验证。必须实现的安全策略：origin严格校验这是第一道防线；结构化消息协议防止重放攻击；MessageChannel点对点通信。",
-      "knowledge_point": "MicroFrontend_Security",
-      "common_mistake": "容易误选C。",
-      "wrong_options_analysis": {
-        "A": "HTTPS无法防止恶意消息",
-        "C": "加密不能解决消息源验证问题",
-        "D": "违背微前端跨域通信初衷"
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：Module Federation 通过运行时动态加载共享依赖，版本匹配遵循 semver 规则。\n正确选型分析：A 会导致版本不兼容崩溃；B 会导致加载不确定版本；D 会导致重复加载 react，破坏单例原则（如 Context 失效）。\n错误选型剖析：C 选项 singleton: true 正是为了防止多次实例化，配置正确不会导致错误；E 选项 shareScope 默认全局共享，通常无需特殊区分，除非有特定隔离需求。\n工程实践建议：务必锁定核心库（react/vue）为 singleton，设置严格的 requiredVersion，并使用 stats 分析重复依赖。",
+      "exclusion_analysis": {
+        "C": "singleton 正是为解决此问题设计。",
+        "E": "默认 shareScope 通常够用，非必然错误源。"
       }
     },
     {
       "id": "arch-senior-003",
-      "type": "multiple_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Shadow DOM",
-        "CSS"
-      ],
+      "tags": ["iframe", "Security", "Isolation"],
       "source_company": "Tencent",
-      "score": 10,
-      "title": "Shadow DOM样式隔离",
-      "content": "关于Shadow DOM的样式隔离，哪些说法正确？",
+      "score": 5,
+      "title": "iframe 沙箱安全性辨析",
+      "content": "使用 iframe 作为微前端沙箱方案（如 wujie 部分模式）可以完全隔离 JS 和 CSS，因此不需要担心 XSS 攻击从子应用传播到主应用。",
       "options": [
-        {
-          "id": "A",
-          "text": "内部样式会泄漏到外部"
-        },
-        {
-          "id": "B",
-          "text": "CSS自定义属性可以穿透Shadow Boundary"
-        },
-        {
-          "id": "C",
-          "text": "::part选择器可以控制内部元素样式"
-        },
-        {
-          "id": "D",
-          "text": "CSS变量更新会触发重计算"
-        },
-        {
-          "id": "E",
-          "text": "外部CSS规则自动应用"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "Shadow DOM通过Shadow Boundary实现样式隔离。CSS自定义属性具有继承特性可以穿透Shadow Boundary。::part选择器是规范提供的样式穿透机制。每次CSS变量更新都会触发整个Shadow Tree的重计算。",
-      "knowledge_point": "Shadow_DOM_CSS",
-      "exclusion_analysis": {
-        "A": "内部样式不泄漏到外部",
-        "E": "外部样式不渗透内部"
-      }
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：虽然 iframe 提供了强大的 DOM 和 JS 隔离，但无法完全阻断 XSS。如果主应用与子应用存在通信（postMessage），或者子应用被注入恶意脚本窃取 cookie（若同域），攻击仍可能发生。此外，iframe 本身若未设置 sandbox 属性，仍可能执行危险操作。完全隔离不等于绝对安全，仍需 CSP 策略配合。",
+      "explanation": "原理机制说明：iframe 确实提供了独立的执行上下文，但安全是多层面的。\n正确选型分析：选 B，因为 iframe 不能防止所有 XSS，尤其是涉及通信渠道或同域 Cookie 泄露时。\n错误选型剖析：认为 iframe 绝对安全是常见误解，忽略了 postMessage 监听器和同域策略风险。\n工程实践建议：即使使用 iframe，也应配置 sandbox 属性（如 allow-scripts 但不允许 allow-same-origin），并实施严格的 CSP。",
+      "knowledge_point": "iframe_sandbox_security"
     },
     {
       "id": "arch-senior-004",
-      "type": "single_choice",
+      "type": "algorithm",
       "difficulty": "expert",
-      "tags": [
-        "JS沙箱",
-        "Proxy"
-      ],
-      "source_company": "Alibaba",
-      "score": 10,
-      "title": "qiankun Proxy沙箱",
-      "content": "ProxySandbox相比LegacySandbox的核心优势是什么？",
-      "options": [
+      "tags": ["EventBus", "Communication", "Implementation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "微前端命名空间事件总线实现",
+      "content": "请实现一个支持命名空间隔离的发布订阅事件总线，防止微应用间事件名冲突，并支持通配符监听。",
+      "code_template": "interface EventBus {\n  on(namespace: string, event: string, cb: Function): void;\n  emit(namespace: string, event: string, data?: any): void;\n  off(namespace: string, event: string, cb?: Function): void;\n}\n// 请补充实现类 MicroEventBus",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "性能更好"
+          "input": "on('app1', 'click', cb1); emit('app1', 'click');",
+          "expected_output": "cb1 called",
+          "description": "正常命名空间触发"
         },
         {
-          "id": "B",
-          "text": "支持多实例并行运行，完全不修改真实window"
+          "input": "on('app1', 'click', cb1); emit('app2', 'click');",
+          "expected_output": "cb1 not called",
+          "description": "不同命名空间隔离"
         },
         {
-          "id": "C",
-          "text": "兼容性更好支持IE"
-        },
-        {
-          "id": "D",
-          "text": "隔离级别更高"
+          "input": "on('app1', '*', cb1); emit('app1', 'click');",
+          "expected_output": "cb1 called",
+          "description": "通配符监听"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "ProxySandbox创建fakeWindow对象，所有修改操作在fakeWindow上进行，通过Proxy拦截属性访问，完全不修改真实window，支持多实例并行。LegacySandbox会修改真实window但能恢复，只适合单实例场景。",
-      "knowledge_point": "qiankun_JS_Sandbox",
-      "common_mistake": "容易误选A。",
-      "wrong_options_analysis": {
-        "A": "Proxy拦截有性能开销",
-        "C": "Proxy是ES6特性IE不支持",
-        "D": "Proxy沙箱仍有边界情况"
-      }
+      "time_complexity": "O(1) for emit/on average",
+      "space_complexity": "O(N) where N is number of listeners",
+      "correct_answer": "见代码实现，需维护 Map<string, Map<string, Function[]>> 结构",
+      "explanation": "原理机制说明：通过双层 Map 结构，第一层 key 为 namespace，第二层 key 为 event name，实现隔离。\n正确选型分析：实现需处理通配符 '*' 的特殊逻辑，在 emit 时检查是否存在 '*' 监听器。\n错误选型剖析：常见错误是忽略 namespace 导致全局污染，或通配符逻辑覆盖特定事件监听。\n工程实践建议：在微前端通信中，强制要求所有事件携带应用前缀，或使用此类封装强制隔离，避免隐式耦合。",
+      "constraints": ["不能使用全局变量", "需处理异步边界"]
     },
     {
       "id": "arch-senior-005",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "CSS隔离"
-      ],
-      "source_company": "Meituan",
-      "score": 8,
-      "title": "CSS隔离方案选择",
-      "content": "团队水平参差不齐，需兼顾开发效率和隔离效果。哪种方案最合适？",
+      "tags": ["wujie", "iframe", "Proxy"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "wujie 核心架构优势",
+      "content": "相比 qiankun，微前端框架 wujie 的核心架构差异在于？",
       "options": [
-        {
-          "id": "A",
-          "text": "BEM命名规范"
-        },
+        { "id": "A", "text": "完全基于 iframe 隔离，无 JS 沙箱" },
         {
           "id": "B",
-          "text": "CSS Modules加自动前缀由构建工具处理"
+          "text": "iframe 承载 DOM，Proxy 劫持 window，结合两者优势"
         },
-        {
-          "id": "C",
-          "text": "手动确保类名不重复"
-        },
-        {
-          "id": "D",
-          "text": "强制使用CSS-in-JS"
-        }
+        { "id": "C", "text": "基于 Web Components 实现样式隔离" },
+        { "id": "D", "text": "强制要求子应用使用 Vite 构建" }
       ],
       "correct_answer": "B",
-      "explanation": "CSS Modules加自动前缀是最佳平衡：编译时生成唯一哈希类名完全消除命名冲突，支持TypeScript类型安全，配合PostCSS插件自动添加子应用前缀。",
-      "knowledge_point": "MicroFrontend_CSS",
-      "common_mistake": "容易误选A。",
+      "explanation": "原理机制说明：wujie 采用 iframe 作为 DOM 容器解决样式隔离，同时使用 Proxy 劫持 window 对象解决 JS 执行上下文问题，使子应用代码感觉不到 iframe 的存在。\n正确选型分析：B 准确描述了 wujie 的 'iframe + Proxy' 双沙箱机制。\n错误选型剖析：A 错误，wujie 有 JS 沙箱；C 错误，主要靠 iframe；D 错误，构建工具无关。\n工程实践建议：选择 wujie 适合对样式隔离要求极高且希望保留 JS 执行性能的场景，但需注意 iframe 跨域通信成本。",
       "wrong_options_analysis": {
-        "A": "BEM依赖人工约定难以保证执行",
-        "C": "手动管理不可靠",
-        "D": "强制技术栈统一违背微前端原则"
+        "A": "wujie 包含 JS 沙箱逻辑。",
+        "C": "样式隔离主要靠 iframe 天然特性。",
+        "D": "构建工具不限。"
       }
     },
     {
       "id": "arch-senior-006",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "状态管理"
-      ],
-      "source_company": "ByteDance",
-      "score": 10,
-      "title": "微前端状态共享",
-      "content": "多个子应用需要共享用户登录状态。哪些方案可以正确实现？",
+      "tags": ["Style Isolation", "CSS", "Shadow DOM"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "微前端样式隔离方案对比",
+      "content": "在微前端架构中，以下哪些方案可以有效解决子应用样式污染主应用的问题？",
       "options": [
         {
           "id": "A",
-          "text": "直接订阅同一个全局Redux store"
+          "text": "使用 CSS Modules 或 Scoped CSS 编译时添加哈希前缀"
         },
-        {
-          "id": "B",
-          "text": "主应用维护状态通过props传递"
-        },
+        { "id": "B", "text": "子应用包裹在 Shadow DOM 中" },
         {
           "id": "C",
-          "text": "使用事件驱动模式"
+          "text": "约定所有子应用 CSS 类名带上应用前缀（如 .app1-btn）"
         },
-        {
-          "id": "D",
-          "text": "使用CustomEvent加localStorage"
-        },
-        {
-          "id": "E",
-          "text": "每个子应用通过API同步"
-        }
+        { "id": "D", "text": "主应用使用 iframe 加载子应用整个页面" },
+        { "id": "E", "text": "运行时使用 PostCSS 插件动态重写选择器" }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "直接共享Redux store会导致僵尸节点问题。主应用维护状态通过props传递数据流清晰。事件驱动模式解耦支持跨框架。CustomEvent加localStorage方案浏览器原生支持刷新后状态持久。",
-      "knowledge_point": "MicroFrontend_State",
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：样式隔离核心在于阻断 CSS 选择器作用域泄露。\n正确选型分析：A 编译时隔离，B 浏览器原生隔离，C 规范约束，D 物理隔离，均有效。\n错误选型剖析：E 选项运行时重写性能开销极大且实现复杂，通常不作为首选方案，虽理论可行但工程上极少使用。\n工程实践建议：推荐组合使用，如 qiankun 中建议子应用开启 CSS Modules 并避免使用全局标签选择器（如 body h1）。",
       "exclusion_analysis": {
-        "A": "僵尸节点问题",
-        "E": "API同步增加网络开销"
+        "E": "性能损耗大，非主流实践。"
       }
     },
     {
       "id": "arch-senior-007",
       "type": "single_choice",
-      "difficulty": "expert",
-      "tags": [
-        "Module Federation"
-      ],
-      "source_company": "Alibaba",
-      "score": 10,
-      "title": "Module Federation版本协商",
-      "content": "Host依赖React 18.2，Remote依赖React 17.0。哪种配置能让两个应用正常协作？",
+      "difficulty": "senior",
+      "tags": ["single-spa", "Lifecycle"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "single-spa 生命周期钩子",
+      "content": "在 single-spa 框架中，子应用必须实现的生命周期钩子不包括？",
       "options": [
-        {
-          "id": "A",
-          "text": "都配置singleton: true"
-        },
-        {
-          "id": "B",
-          "text": "不设置singleton各自加载"
-        },
-        {
-          "id": "C",
-          "text": "配置版本别名区分不同版本各自单例"
-        },
-        {
-          "id": "D",
-          "text": "强制统一使用React 18.2"
-        }
+        { "id": "A", "text": "bootstrap" },
+        { "id": "B", "text": "mount" },
+        { "id": "C", "text": "update" },
+        { "id": "D", "text": "unmount" }
       ],
       "correct_answer": "C",
-      "explanation": "通过版本别名区分不同版本，各自保持单例。React的Context、Hooks都依赖于唯一的React实例。关键限制是Context不能跨React实例传递。",
-      "knowledge_point": "Module_Federation_Version",
-      "common_mistake": "容易误选A。",
+      "explanation": "原理机制说明：single-spa 标准生命周期为 bootstrap（初始化）、mount（挂载）、unmount（卸载）。\n正确选型分析：update 不是 standard lifecycle hook，状态更新通常由子应用内部框架（如 React/Vue）管理。\n错误选型剖析：A、B、D 均为必需钩子，用于控制子应用加载和销毁。\n工程实践建议：在 bootstrap 中加载公共资源，mount 中渲染 DOM，unmount 中清理事件监听和定时器，防止内存泄漏。",
       "wrong_options_analysis": {
-        "A": "singleton只保证单例版本冲突需额外配置",
-        "B": "会导致多React实例",
-        "D": "强制统一版本不现实"
+        "A": "必需，只执行一次。",
+        "B": "必需，每次激活执行。",
+        "D": "必需，每次切换执行。"
       }
     },
     {
       "id": "arch-senior-008",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Headless UI"
-      ],
-      "source_company": "OpenSource",
-      "score": 8,
-      "title": "Headless UI设计模式",
-      "content": "Headless UI组件的核心理念是什么？",
+      "tags": ["Performance", "Micro-frontend"],
+      "source_company": "Meituan",
+      "score": 5,
+      "title": "微前端性能必然劣化论",
+      "content": "引入微前端架构后，由于增加了沙箱和通信开销，首屏加载性能（FCP）必然比单体应用差。",
       "options": [
-        {
-          "id": "A",
-          "text": "提供无样式的轻量级组件"
-        },
-        {
-          "id": "B",
-          "text": "将逻辑与样式完全分离，允许任意设计系统复用逻辑"
-        },
-        {
-          "id": "C",
-          "text": "提供更快的渲染性能"
-        },
-        {
-          "id": "D",
-          "text": "简化组件API"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "Headless UI核心理念：组件只负责逻辑，完全不包含样式，样式由消费者完全控制。这种分离使得同一套逻辑可以适应任何设计系统。",
-      "knowledge_point": "Headless_UI_Pattern",
-      "common_mistake": "容易误选A。",
-      "wrong_options_analysis": {
-        "A": "轻量级是副作用核心价值是逻辑复用",
-        "C": "性能不是设计目标",
-        "D": "API可能更复杂"
-      }
+      "boundary_conditions": "边界条件说明：虽然微前端有额外开销，但通过模块联邦（Module Federation）共享依赖、子应用按需加载、预加载（prefetch）策略，微前端的首屏性能可以优于庞大的单体应用。单体应用 bundle 过大导致的解析执行瓶颈可能更严重。",
+      "explanation": "原理机制说明：性能取决于实现策略，而非架构本身。\n正确选型分析：选 B，合理的微前端架构可以通过拆分大 bundle 优化加载。\n错误选型剖析：认为必然差是忽略了构建优化和缓存策略的潜力。\n工程实践建议：利用 webpack externals 共享核心库，配置 qiankun prefetch 预加载活跃应用，监控 FCP 指标。",
+      "knowledge_point": "micro_frontend_performance"
     },
     {
       "id": "arch-senior-009",
-      "type": "multiple_choice",
-      "difficulty": "senior",
-      "tags": [
-        "Compound Components"
-      ],
-      "source_company": "Tencent",
-      "score": 10,
-      "title": "Compound Components模式",
-      "content": "该模式的优势和注意事项有哪些？",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Dependency", "Version", "Logic"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "依赖版本冲突检测算法",
+      "content": "设计一个函数，检测多个微应用共享依赖的版本是否兼容。输入为依赖名和版本数组，输出是否兼容及冲突版本。",
+      "code_template": "interface DepConflict {\n  name: string;\n  versions: string[];\n  compatible: boolean;\n}\nfunction checkDeps(deps: Record<string, string[]>): DepConflict[];",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "API简洁子组件无需接收大量props"
+          "input": "{ react: ['16.0.0', '16.8.0'] }",
+          "expected_output": "compatible: true",
+          "description": " semver 兼容"
         },
         {
-          "id": "B",
-          "text": "Context更新会导致所有消费者重渲染"
+          "input": "{ react: ['16.0.0', '18.0.0'] }",
+          "expected_output": "compatible: false",
+          "description": "主版本冲突"
         },
         {
-          "id": "C",
-          "text": "子组件必须在Provider内使用"
-        },
-        {
-          "id": "D",
-          "text": "完全替代Props Drilling"
-        },
-        {
-          "id": "E",
-          "text": "配合TypeScript可以实现精准的类型推导"
+          "input": "{ react: ['16.0.0'] }",
+          "expected_output": "compatible: true",
+          "description": "单一版本"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "Compound Components模式父组件创建Context并作为Provider，子组件通过useContext访问共享状态。优势包括API简洁、灵活性高、关注点分离、类型安全。劣势是Context更新导致重渲染、必须在Provider内使用。",
-      "knowledge_point": "Compound_Components",
-      "exclusion_analysis": {
-        "D": "适合结构固定的组件不是所有场景最佳"
-      }
+      "time_complexity": "O(N*M) where N=deps, M=versions",
+      "space_complexity": "O(1)",
+      "correct_answer": "需实现 semver 比较逻辑，判断主版本号是否一致",
+      "explanation": "原理机制说明：基于 semver 规范，主版本不一致通常视为不兼容。\n正确选型分析：需解析版本号字符串，比较 major 版本。\n错误选型剖析：忽略 pre-release 版本或 build metadata 可能导致误判。\n工程实践建议：在 CI 流程中加入此检查，阻止不兼容的共享依赖合并到主分支。",
+      "constraints": ["不使用第三方 semver 库"]
     },
     {
       "id": "arch-senior-010",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "受控组件"
-      ],
-      "source_company": "ByteDance",
-      "score": 8,
-      "title": "受控与非受控组件",
-      "content": "设计同时支持受控和非受控模式的Input组件，哪种实现正确？",
+      "tags": ["qiankun", "Global Variable"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "qiankun 全局变量污染防护",
+      "content": "qiankun 如何防止子应用修改 window 上的全局变量影响主应用？",
       "options": [
-        {
-          "id": "A",
-          "text": "同时维护value和内部state"
-        },
-        {
-          "id": "B",
-          "text": "通过判断value !== undefined确定是否受控，受控时完全忽略内部状态"
-        },
-        {
-          "id": "C",
-          "text": "始终维护内部state"
-        },
-        {
-          "id": "D",
-          "text": "使用useSyncExternalStore"
-        }
+        { "id": "A", "text": "禁用所有 window 属性写入" },
+        { "id": "B", "text": "使用 Proxy 记录修改，卸载时还原" },
+        { "id": "C", "text": "强制子应用使用 strict mode" },
+        { "id": "D", "text": "将 window 对象替换为 undefined" }
       ],
       "correct_answer": "B",
-      "explanation": "受控/非受控兼容设计：通过判断value !== undefined确定是否受控。受控模式下完全忽略内部状态，非受控模式下维护内部状态。关键原则是受控时不要同步更新internalValue。",
-      "knowledge_point": "Controlled_Uncontrolled",
-      "common_mistake": "容易误选C。",
+      "explanation": "原理机制说明：qiankun 的快照沙箱或 Proxy 沙箱都会记录子应用对 window 的修改。\n正确选型分析：B 描述了快照还原机制，确保卸载后环境干净。\n错误选型剖析：A 会导致子应用无法运行；C 无法防止运行时修改；D 会导致报错。\n工程实践建议：子应用应避免直接挂载全局变量，推荐使用 props 传递全局配置。",
       "wrong_options_analysis": {
-        "A": "每次渲染比较会导致状态不一致",
-        "C": "受控时维护内部状态是多余的",
-        "D": "useSyncExternalStore不适用"
+        "A": "不可行，子应用需访问 window。",
+        "C": "strict mode 不阻止 window 修改。",
+        "D": "破坏运行环境。"
       }
     },
     {
       "id": "arch-senior-011",
-      "type": "single_choice",
+      "type": "multiple_choice",
       "difficulty": "expert",
-      "tags": [
-        "Clean Architecture"
-      ],
-      "source_company": "Google",
-      "score": 10,
-      "title": "Clean Architecture前端落地",
-      "content": "关于依赖方向的说法哪个正确？",
+      "tags": ["Communication", "Props", "State"],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": "微应用间通信模式",
+      "content": "在微前端架构中，以下哪些是推荐的应用间通信模式？",
       "options": [
-        {
-          "id": "A",
-          "text": "UI层依赖业务逻辑层业务逻辑层依赖数据层"
-        },
-        {
-          "id": "B",
-          "text": "所有层都依赖核心实体层内层定义接口由外层实现"
-        },
-        {
-          "id": "C",
-          "text": "各层可以相互引用"
-        },
-        {
-          "id": "D",
-          "text": "前端不需要Clean Architecture"
-        }
+        { "id": "A", "text": "主应用通过 props 下发全局状态（如 userInfo）" },
+        { "id": "B", "text": "使用自定义事件总线（EventBus）进行松耦合通信" },
+        { "id": "C", "text": "子应用直接访问 window.mainAppData" },
+        { "id": "D", "text": "使用 URL query 参数传递敏感信息" },
+        { "id": "E", "text": "通过 LocalStorage 轮询检测状态变化" }
       ],
-      "correct_answer": "B",
-      "explanation": "Clean Architecture核心原则：依赖方向从外向内，内层不知道外层的存在，外层依赖内层定义的接口。这是同心圆分层严格限制依赖方向。",
-      "knowledge_point": "Clean_Architecture",
-      "common_mistake": "容易误选A。",
-      "wrong_options_analysis": {
-        "A": "是同心圆结构不是链式依赖",
-        "C": "依赖方向必须单向",
-        "D": "前端B端应用有复杂业务逻辑"
+      "correct_answer": ["A", "B"],
+      "explanation": "原理机制说明：通信应遵循单向数据流或发布订阅模式，避免紧耦合。\n正确选型分析：A 是 qiankun 推荐方式，B 适合跨应用通知。\n错误选型剖析：C 造成强耦合且难以测试；D 不安全且长度有限；E 性能差且实时性低。\n工程实践建议：优先使用 props 传递必要数据，复杂交互使用 EventBus，避免共享内存依赖。",
+      "exclusion_analysis": {
+        "C": "破坏沙箱隔离原则。",
+        "D": "安全隐患。",
+        "E": "性能反模式。"
       }
     },
     {
       "id": "arch-senior-012",
-      "type": "multiple_choice",
-      "difficulty": "expert",
-      "tags": [
-        "微前端",
-        "决策"
-      ],
-      "source_company": "Alibaba",
-      "score": 12,
-      "title": "微前端引入决策",
-      "content": "哪些场景适合引入微前端？",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Module Federation", "Runtime"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Module Federation 运行时机制",
+      "content": "Module Federation 的远程模块加载发生在什么阶段？",
       "options": [
-        {
-          "id": "A",
-          "text": "团队规模小于5人"
-        },
-        {
-          "id": "B",
-          "text": "多个独立团队需要独立部署"
-        },
-        {
-          "id": "C",
-          "text": "技术栈需要渐进式迁移"
-        },
-        {
-          "id": "D",
-          "text": "对首屏性能要求极高"
-        },
-        {
-          "id": "E",
-          "text": "遗留系统需要增量升级"
-        },
-        {
-          "id": "F",
-          "text": "功能耦合紧密"
-        }
+        { "id": "A", "text": "构建时静态链接" },
+        { "id": "B", "text": "浏览器运行时动态请求" },
+        { "id": "C", "text": "Node.js 服务端渲染时" },
+        { "id": "D", "text": "Webpack 编译时打包进 vendor" }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "适合场景：多团队独立开发，技术栈渐进式迁移，遗留系统增量升级。不适合：团队规模小、性能要求极高、功能耦合紧密。",
-      "knowledge_point": "MicroFrontend_Decision",
-      "exclusion_analysis": {
-        "A": "复杂度超过收益",
-        "D": "额外开销不可接受",
-        "F": "拆分导致频繁跨应用修改"
+      "correct_answer": "B",
+      "explanation": "原理机制说明：MF 核心特性是运行时动态加载远程 entry。\n正确选型分析：B 正确，通过 remoteEntry.js 动态获取。\n错误选型剖析：A 是传统 dll 方式；C 不全面；D 违背联邦初衷。\n工程实践建议：需确保远程服务高可用，否则会导致主应用加载失败，建议增加降级策略。",
+      "wrong_options_analysis": {
+        "A": "MF 是动态的。",
+        "C": "主要发生在客户端。",
+        "D": "远程模块不打包进本地。"
       }
     },
     {
       "id": "arch-senior-013",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "低代码"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "低代码Schema设计",
-      "content": "x-setter扩展字段的作用是什么？",
+      "tags": ["micro-app", "Framework"],
+      "source_company": "JD",
+      "score": 5,
+      "title": "micro-app 框架无关性",
+      "content": "京东 micro-app 方案要求子应用必须使用 React 框架开发。",
       "options": [
-        {
-          "id": "A",
-          "text": "定义组件的setter方法"
-        },
-        {
-          "id": "B",
-          "text": "指定属性编辑器组件，将属性类型映射到可视化配置界面"
-        },
-        {
-          "id": "C",
-          "text": "设置属性的默认值"
-        },
-        {
-          "id": "D",
-          "text": "定义属性校验规则"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "x-setter指定属性编辑器组件，将属性类型映射到可视化配置界面。常见Setter类型包括SelectSetter、BooleanSetter、ColorSetter等。",
-      "knowledge_point": "LowCode_Schema",
-      "common_mistake": "容易误选C。",
-      "wrong_options_analysis": {
-        "A": "是编辑时配置不是运行时方法",
-        "C": "default字段设置默认值",
-        "D": "校验规则使用JSON Schema原生约束"
-      }
+      "boundary_conditions": "边界条件说明：micro-app 基于 Web Components 实现，理论上支持任何能编译为 HTML/JS/CSS 的框架（Vue, Angular, jQuery 等）。虽然官方示例多为 React，但核心容器不限制子应用技术栈。",
+      "explanation": "原理机制说明：Web Components 是浏览器原生标准，与框架无关。\n正确选型分析：选 B，micro-app 支持多框架。\n错误选型剖析：混淆了官方示例偏好与核心能力限制。\n工程实践建议：利用其框架无关性整合遗留 jQuery 系统，降低迁移成本。",
+      "knowledge_point": "micro_app_compatibility"
     },
     {
       "id": "arch-senior-014",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "低代码",
-        "撤销重做"
-      ],
-      "source_company": "Tencent",
-      "score": 8,
-      "title": "低代码撤销重做",
-      "content": "命令模式相比状态快照方案的主要优势是什么？",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Route", "Matching", "Gateway"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "微前端路由匹配算法",
+      "content": "实现一个简单的路由匹配函数，根据 URL 路径判断属于哪个微应用（支持前缀匹配）。",
+      "code_template": "interface AppConfig { name: string; baseRule: string; }\nfunction matchApp(path: string, apps: AppConfig[]): AppConfig | null;",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "实现更简单"
+          "input": "path='/app1/home', apps=[{name:'app1', baseRule:'/app1'}]",
+          "expected_output": "app1",
+          "description": "前缀匹配成功"
         },
         {
-          "id": "B",
-          "text": "内存占用更小只记录操作差异而非完整状态"
+          "input": "path='/app2/home', apps=[{name:'app1', baseRule:'/app1'}]",
+          "expected_output": "null",
+          "description": "无匹配"
         },
         {
-          "id": "C",
-          "text": "支持更细粒度的操作"
-        },
-        {
-          "id": "D",
-          "text": "可以跨会话持久化"
+          "input": "path='/app1', apps=[{name:'app1', baseRule:'/app1'}]",
+          "expected_output": "app1",
+          "description": "精确匹配"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "命令模式优势：内存占用小只记录操作差异而非完整状态；支持命令合并；可扩展添加命令元数据。状态快照方案每次保存完整Schema快照内存占用大。",
-      "knowledge_point": "LowCode_Undo_Redo",
-      "common_mistake": "容易误选C。",
-      "wrong_options_analysis": {
-        "A": "命令模式实现更复杂",
-        "C": "两种方案都支持细粒度撤销",
-        "D": "两种方案都可以持久化"
-      }
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "correct_answer": "遍历 apps 数组，使用 startsWith 判断",
+      "explanation": "原理机制说明：微前端路由通常基于路径前缀分发请求。\n正确选型分析：需处理最长前缀匹配优先原则，避免短前缀误匹配。\n错误选型剖析：忽略顺序可能导致匹配错误，如 /app 匹配了 /app1 的请求。\n工程实践建议：配置路由时确保前缀互斥，或按长度降序排列规则。",
+      "constraints": ["需处理最长前缀优先"]
     },
     {
       "id": "arch-senior-015",
-      "type": "true_false",
-      "difficulty": "senior",
-      "tags": [
-        "single-spa"
-      ],
-      "source_company": "OpenSource",
-      "score": 6,
-      "title": "single-spa生命周期",
-      "content": "已挂载应用失活时会依次调用unmount和unload钩子。",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "XSS", "CSP"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "微前端 XSS 防护策略",
+      "content": "在微前端架构中，防止子应用 XSS 攻击影响主应用的最有效手段是？",
       "options": [
-        {
-          "id": "A",
-          "text": "正确"
-        },
+        { "id": "A", "text": "主应用安装杀毒软件" },
         {
           "id": "B",
-          "text": "错误"
-        }
+          "text": "配置 Content-Security-Policy (CSP) 限制脚本来源"
+        },
+        { "id": "C", "text": "禁止子应用使用 eval 函数" },
+        { "id": "D", "text": "所有输入框强制转义" }
       ],
       "correct_answer": "B",
-      "explanation": "错误。当MOUNTED应用失活时只会调用unmount生命周期，状态变为NOT_MOUNTED，不会自动调用unload。unload是完全卸载操作需要手动调用。",
-      "knowledge_point": "single_spa_Lifecycle",
-      "boundary_conditions": "LOADING_SOURCE_CODE状态路由变化才进入unload流程"
+      "explanation": "原理机制说明：CSP 是浏览器层面的安全策略，可限制脚本执行来源。\n正确选型分析：B 能有效阻断非法脚本加载和执行。\n错误选型剖析：A 无关；C 难以完全禁止且不影响外部脚本；D 仅防输入型 XSS，防不住资源型。\n工程实践建议：主应用应设置严格的 CSP header，子应用需配合白名单，使用 nonce 或 hash 策略。",
+      "wrong_options_analysis": {
+        "A": "客户端无法控制。",
+        "C": "无法完全管控第三方库。",
+        "D": "覆盖不全。"
+      }
     },
     {
       "id": "arch-senior-016",
-      "type": "single_choice",
+      "type": "multiple_choice",
       "difficulty": "expert",
-      "tags": [
-        "Module Federation"
-      ],
-      "source_company": "ByteDance",
-      "score": 10,
-      "title": "Module Federation加载流程",
-      "content": "init和get方法的调用顺序是什么？",
+      "tags": ["State Management", "Redux", "Zustand"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "跨应用状态管理方案",
+      "content": "关于微前端架构中的全局状态管理，以下哪些实践是合理的？",
       "options": [
-        {
-          "id": "A",
-          "text": "get先调用"
-        },
-        {
-          "id": "B",
-          "text": "init必须先调用建立共享关系get后调用获取模块"
-        },
-        {
-          "id": "C",
-          "text": "顺序无关"
-        },
-        {
-          "id": "D",
-          "text": "init只需首次调用"
-        }
+        { "id": "A", "text": "主应用维护全局 Store，通过 props 下发" },
+        { "id": "B", "text": "使用独立的微应用专门管理状态（State Service）" },
+        { "id": "C", "text": "所有子应用共享同一个 Redux Store 实例" },
+        { "id": "D", "text": "使用 LocalStorage 作为唯一状态源" },
+        { "id": "E", "text": "通过 Custom Events 同步关键状态变更" }
       ],
-      "correct_answer": "B",
-      "explanation": "正确流程：Host启动初始化share scope；填充共享模块；加载remoteEntry.js；调用init建立共享关系；调用get获取模块。init必须在get之前建立共享关系。",
-      "knowledge_point": "Module_Federation_Container",
-      "common_mistake": "容易误选D。",
-      "wrong_options_analysis": {
-        "A": "顺序相反",
-        "C": "顺序有严格要求",
-        "D": "关键是必须在任何get之前调用"
+      "correct_answer": ["A", "B", "E"],
+      "explanation": "原理机制说明：状态管理需平衡一致性与隔离性。\n正确选型分析：A 是标准做法；B 适合复杂场景；E 适合松耦合通知。\n错误选型剖析：C 破坏隔离，导致状态混乱；D 性能差且无响应式。\n工程实践建议：避免共享 mutable 状态对象，优先传递不可数据快照。",
+      "exclusion_analysis": {
+        "C": "违反微前端隔离原则。",
+        "D": "无法实现响应式更新。"
       }
     },
     {
       "id": "arch-senior-017",
-      "type": "multiple_choice",
+      "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "插件系统",
-        "Tapable"
-      ],
-      "source_company": "OpenSource",
-      "score": 10,
-      "title": "前端插件系统钩子",
-      "content": "哪些Hook类型适合对应场景？",
+      "tags": ["qiankun", "Prefetch"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "qiankun 预加载策略",
+      "content": "qiankun 的 prefetch 策略默认在什么时候触发子应用资源加载？",
       "options": [
-        {
-          "id": "A",
-          "text": "SyncHook适合日志记录"
-        },
+        { "id": "A", "text": "主应用加载完成后立即加载所有子应用" },
         {
           "id": "B",
-          "text": "SyncBailHook适合权限校验"
+          "text": "主应用空闲时（requestIdleCallback）加载可见路由对应的子应用"
         },
-        {
-          "id": "C",
-          "text": "SyncWaterfallHook适合数据转换流水线"
-        },
-        {
-          "id": "D",
-          "text": "AsyncParallelHook适合并行任务"
-        },
-        {
-          "id": "E",
-          "text": "所有钩子都必须异步"
-        }
+        { "id": "C", "text": "用户点击菜单时才开始加载" },
+        { "id": "D", "text": "服务端预渲染时加载" }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "SyncHook适合日志记录；SyncBailHook熔断机制适合权限校验；SyncWaterfallHook流水线处理适合数据转换；AsyncParallelHook并行执行适合并行加载资源。同步钩子更简单高效。",
-      "knowledge_point": "Plugin_System_Hooks",
-      "exclusion_analysis": {
-        "E": "同步钩子更简单高效"
+      "correct_answer": "B",
+      "explanation": "原理机制说明：qiankun 利用浏览器空闲时间预加载，避免阻塞主线程。\n正确选型分析：B 描述了 default 策略（基于路由可见性）。\n错误选型剖析：A 会拖慢首屏；C 是按需加载非预加载；D 是 SSR 范畴。\n工程实践建议：在生产环境可关闭 prefetch 或改为手动触发，节省用户流量。",
+      "wrong_options_analysis": {
+        "A": "性能灾难。",
+        "C": "这是 lazy load。",
+        "D": "无关。"
       }
     },
     {
       "id": "arch-senior-018",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Repository Pattern"
-      ],
+      "tags": ["Web Components", "Style"],
       "source_company": "Google",
-      "score": 8,
-      "title": "Repository Pattern前端",
-      "content": "在前端实现Repository Pattern哪种做法正确？",
+      "score": 5,
+      "title": "Web Components 样式隔离局限性",
+      "content": "使用 Web Components 的 Shadow DOM 可以完全阻止外部 CSS 影响内部样式，包括 inherit 属性。",
       "options": [
-        {
-          "id": "A",
-          "text": "返回fetch的原始Response"
-        },
-        {
-          "id": "B",
-          "text": "返回领域模型实例业务层只依赖抽象接口"
-        },
-        {
-          "id": "C",
-          "text": "必须是单例"
-        },
-        {
-          "id": "D",
-          "text": "只能在服务端使用"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "正确实现：Repository返回领域模型实例。定义仓储接口包含findById等方法；实现类通过fetch调用API返回领域模型；业务层通过构造函数注入接口。",
-      "knowledge_point": "Repository_Pattern",
-      "common_mistake": "容易误选C。",
-      "wrong_options_analysis": {
-        "A": "违背封装原则",
-        "C": "可以是多实例",
-        "D": "前端B端应用同样需要"
-      }
+      "boundary_conditions": "边界条件说明：Shadow DOM 确实隔离了大部分样式，但部分可继承属性（如 font-family, color）仍会从外部穿透进来，除非在 host 上显式重置。此外，::part 伪元素允许外部样式影响内部特定部分。",
+      "explanation": "原理机制说明：Shadow DOM 提供强隔离，但继承属性例外。\n正确选型分析：选 B，inherit 属性会穿透。\n错误选型剖析：忽略 CSS 继承机制。\n工程实践建议：在 Shadow Root 宿主元素上重置所有继承属性，确保视觉一致性。",
+      "knowledge_point": "shadow_dom_inheritance"
     },
     {
       "id": "arch-senior-019",
-      "type": "single_choice",
+      "type": "algorithm",
       "difficulty": "expert",
-      "tags": [
-        "JS沙箱",
-        "Zone.js"
-      ],
-      "source_company": "Alibaba",
-      "score": 10,
-      "title": "JS沙箱异步上下文",
-      "content": "Zone.js方案的核心原理是什么？",
-      "options": [
+      "tags": ["Loading", "Priority", "Queue"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "微应用资源加载优先级队列",
+      "content": "实现一个资源加载器，支持优先级排序，高优先级资源优先加载，同优先级按 FIFO。",
+      "code_template": "class Loader {\n  load(url: string, priority: number): Promise<any>;\n}",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "重写所有异步API保存当前执行上下文回调执行时恢复"
+          "input": "load('a.js', 1); load('b.js', 2);",
+          "expected_output": "b.js finishes first",
+          "description": "高优先级优先"
         },
         {
-          "id": "B",
-          "text": "使用Web Worker隔离"
+          "input": "load('a.js', 1); load('b.js', 1);",
+          "expected_output": "a.js finishes first",
+          "description": "同优先级 FIFO"
         },
         {
-          "id": "C",
-          "text": "禁止使用setTimeout"
-        },
-        {
-          "id": "D",
-          "text": "使用Proxy拦截"
+          "input": "load('a.js', 1);",
+          "expected_output": "success",
+          "description": "单任务"
         }
       ],
-      "correct_answer": "A",
-      "explanation": "Zone.js原理：Monkey Patch所有异步API在异步任务创建时保存当前Zone回调执行时恢复Zone。覆盖setTimeout、Promise、fetch等API。",
-      "knowledge_point": "JS_Sandbox_Async",
-      "common_mistake": "容易误选C。",
-      "wrong_options_analysis": {
-        "B": "Web Worker是另一种方案",
-        "C": "禁止使用不现实",
-        "D": "需要的是上下文传递而非阻止"
-      }
+      "time_complexity": "O(log N) for insert",
+      "space_complexity": "O(N)",
+      "correct_answer": "使用优先队列（堆）管理任务",
+      "explanation": "原理机制说明：微前端需保障核心应用资源优先加载。\n正确选型分析：使用最小堆实现优先级队列。\n错误选型剖析：简单数组排序无法处理动态插入。\n工程实践建议：将主应用壳资源设为最高优先级，子应用业务资源次之。",
+      "constraints": ["需支持并发限制"]
     },
     {
       "id": "arch-senior-020",
-      "type": "multiple_choice",
+      "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "微前端",
-        "预加载"
-      ],
-      "source_company": "Meituan",
+      "tags": ["Legacy", "Integration", "Http"],
+      "source_company": "Bank",
       "score": 10,
-      "title": "微前端预加载策略",
-      "content": "哪些是合理的预加载策略？",
+      "title": "遗留系统微前端改造",
+      "content": "将老旧 jQuery 系统集成到微前端架构，最合适的适配方式是？",
       "options": [
-        {
-          "id": "A",
-          "text": "首屏同步加载所有子应用"
-        },
-        {
-          "id": "B",
-          "text": "用户hover时触发预加载"
-        },
-        {
-          "id": "C",
-          "text": "使用requestIdleCallback空闲时预加载"
-        },
-        {
-          "id": "D",
-          "text": "根据网络条件动态调整"
-        },
-        {
-          "id": "E",
-          "text": "预加载所有资源"
-        }
+        { "id": "A", "text": "重写为 React 应用" },
+        { "id": "B", "text": "使用 qiankun/micro-app 的 iframe 模式或适配层" },
+        { "id": "C", "text": "通过后端反向代理合并 HTML" },
+        { "id": "D", "text": "放弃微前端，维持原状" }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "合理策略：hover预加载利用用户思考时间；requestIdleCallback利用浏览器空闲时间；网络自适应根据navigator.connection调整。首屏加载所有子应用浪费带宽。",
-      "knowledge_point": "MicroFrontend_Preload",
-      "exclusion_analysis": {
-        "A": "首屏加载所有浪费带宽",
-        "E": "预加载所有资源命中率低"
+      "correct_answer": "B",
+      "explanation": "原理机制说明：老旧系统改造成本高风险大，应利用微前端兼容能力。\n正确选型分析：B 利用沙箱隔离旧代码，最小化改动。\n错误选型剖析：A 成本过高；C 无法解决 JS 冲突；D 不符合架构演进目标。\n工程实践建议：使用 http 模式加载旧系统 HTML，注意清理全局变量污染。",
+      "wrong_options_analysis": {
+        "A": "ROI 太低。",
+        "C": "无法解决运行时冲突。",
+        "D": "技术债累积。"
       }
     },
     {
       "id": "arch-senior-021",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目21",
-      "content": "这是第21道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Deployment", "CI/CD", "Version"],
+      "source_company": "Meituan",
+      "score": 12,
+      "title": "微前端独立部署策略",
+      "content": "关于微前端子应用的独立部署，以下哪些是必须考虑的因素？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "子应用资源路径需支持动态 publicPath" },
+        { "id": "B", "text": "主应用需感知子应用版本更新机制" },
+        { "id": "C", "text": "所有子应用必须同时发布" },
+        { "id": "D", "text": "需处理跨域资源共享（CORS）" },
+        { "id": "E", "text": "子应用构建产物必须包含 hash" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第21道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_21",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "原理机制说明：独立部署核心是解耦发布流程。\n正确选型分析：A 确保资源加载正确；B 确保用户获取新版本；D 确保资源可 fetch；E 确保缓存更新。\n错误选型剖析：C 违背微前端独立演进优势。\n工程实践建议：使用 JSON 配置文件管理子应用版本，主应用拉取配置动态挂载。",
+      "exclusion_analysis": {
+        "C": "应支持独立发布。"
+      }
     },
     {
       "id": "arch-senior-022",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
+      "tags": ["Error Handling", "Boundary"],
+      "source_company": "OpenSource",
       "score": 8,
-      "title": "架构设计题目22",
-      "content": "这是第22道架构设计面试题的详细内容描述。",
+      "title": "微前端错误边界处理",
+      "content": "当某个子应用加载失败或运行时崩溃，主应用应如何响应？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
+        { "id": "A", "text": "主应用随之崩溃" },
         {
           "id": "B",
-          "text": "选项B描述正确答案"
+          "text": "捕获错误，显示降级 UI，不影响主应用及其他子应用"
         },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "C", "text": "自动刷新整个页面" },
+        { "id": "D", "text": "忽略错误，继续执行" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第22道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_22",
-      "common_mistake": ""
+      "explanation": "原理机制说明：微前端核心价值之一是故障隔离。\n正确选型分析：B 符合架构容错设计。\n错误选型剖析：A 失去微前端意义；C 体验差；D 可能导致状态不一致。\n工程实践建议：实现全局 error handler，监控子应用生命周期错误，提供重试按钮。",
+      "wrong_options_analysis": {
+        "A": "不可接受。",
+        "C": "干扰用户。",
+        "D": "隐患大。"
+      }
     },
     {
       "id": "arch-senior-023",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "tags": ["Dependency", "Version"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目23",
-      "content": "这是第23道架构设计面试题的详细内容描述。",
+      "score": 5,
+      "title": "共享依赖版本一致性",
+      "content": "在 Module Federation 中，所有子应用共享的依赖库版本必须完全一致（包括 patch 版本）。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第23道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_23",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：semver 允许 minor/patch 版本兼容。只要主版本一致且 API 兼容，通常可以共享。强制完全一致会增加维护成本。但 React 等库建议严格一致以避免 Hook 错误。",
+      "explanation": "原理机制说明：semver 规范允许兼容版本共享。\n正确选型分析：选 B，minor/patch 可不同。\n错误选型剖析：过度约束版本会降低灵活性。\n工程实践建议：核心库（React）锁死版本，工具库（lodash）可放宽范围。",
+      "knowledge_point": "semver_compatibility"
     },
     {
       "id": "arch-senior-024",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目24",
-      "content": "这是第24道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Circuit Breaker", "Fetch", "Resilience"],
+      "source_company": "Netfix",
+      "score": 15,
+      "title": "远程模块加载熔断器",
+      "content": "实现一个简单的熔断器，当远程模块连续加载失败 N 次后，暂停请求一段时间。",
+      "code_template": "class CircuitBreaker {\n  constructor(threshold: number, timeout: number);\n  request(fn: Function): Promise<any>;\n}",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "fail 5 times",
+          "expected_output": "state: OPEN",
+          "description": "触发熔断"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "wait timeout",
+          "expected_output": "state: HALF_OPEN",
+          "description": "恢复试探"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "success",
+          "expected_output": "state: CLOSED",
+          "description": "恢复正常"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第24道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_24",
-      "common_mistake": ""
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "correct_answer": "维护状态机（CLOSED/OPEN/HALF_OPEN）",
+      "explanation": "原理机制说明：防止级联故障，保护主应用不因子应用挂了而不可用。\n正确选型分析：需实现状态流转逻辑。\n错误选型剖析：忽略超时恢复机制会导致永久不可用。\n工程实践建议：在 fetch remoteEntry.js 时包裹此逻辑，降级显示静态内容。",
+      "constraints": ["需处理并发请求"]
     },
     {
       "id": "arch-senior-025",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "tags": ["qiankun", "Umi", "Plugin"],
       "source_company": "Alibaba",
       "score": 8,
-      "title": "架构设计题目25",
-      "content": "这是第25道架构设计面试题的详细内容描述。",
+      "title": "qiankun 与 umi 集成",
+      "content": "qiankun 官方推荐子应用使用什么框架构建以获得最佳体验？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "必须使用 umi" },
+        { "id": "B", "text": "推荐 umi，但支持任意构建工具" },
+        { "id": "C", "text": "必须使用 Create React App" },
+        { "id": "D", "text": "必须使用 Vite" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第25道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_25",
-      "common_mistake": ""
+      "explanation": "原理机制说明：qiankun 源于 umi 生态，集成最顺畅，但本质是运行时框架。\n正确选型分析：B 准确描述了兼容性。\n错误选型剖析：A/C/D 过于绝对。\n工程实践建议：非 umi 项目需手动配置 entry 和 lifecycle 导出。",
+      "wrong_options_analysis": {
+        "A": "非强制。",
+        "C": "支持但非必须。",
+        "D": "支持但需插件。"
+      }
     },
     {
       "id": "arch-senior-026",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目26",
-      "content": "这是第26道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Monitoring", "Trace", "Performance"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "微前端全链路监控",
+      "content": "在微前端架构中，实现全链路性能监控需要采集哪些关键指标？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "主应用 FCP/LCP" },
+        { "id": "B", "text": "子应用加载耗时（从路由匹配到 mount 完成）" },
+        { "id": "C", "text": "子应用 JS 错误率及堆栈" },
+        { "id": "D", "text": "沙箱创建与销毁开销" },
+        { "id": "E", "text": "用户鼠标移动轨迹" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第26道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_26",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：监控需覆盖主应用、子应用及架构层开销。\n正确选型分析：A/B/C/D 均直接反映架构健康度。\n错误选型剖析：E 属于行为分析，非性能监控核心。\n工程实践建议：使用 Performance API 埋点，区分应用来源标签。",
+      "exclusion_analysis": {
+        "E": "隐私相关且非性能指标。"
+      }
     },
     {
       "id": "arch-senior-027",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目27",
-      "content": "这是第27道架构设计面试题的详细内容描述。",
+      "tags": ["Module Federation", "Container"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Module Federation 容器初始化",
+      "content": "Module Federation 的 remoteContainer 初始化是同步还是异步的？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "同步，立即返回实例" },
+        { "id": "B", "text": "异步，需 await loadRemoteEntry" },
+        { "id": "C", "text": "由服务端决定" },
+        { "id": "D", "text": "仅在构建时确定" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第27道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_27",
-      "common_mistake": ""
+      "explanation": "原理机制说明：远程 entry 需网络请求，必然是异步。\n正确选型分析：B 正确，需等待脚本加载执行。\n错误选型剖析：A 违背网络 IO 特性；C/D 描述不准确。\n工程实践建议：在路由加载前预初始化容器，避免交互时卡顿。",
+      "wrong_options_analysis": {
+        "A": "网络请求无法同步。",
+        "C": "客户端行为。",
+        "D": "运行时动态。"
+      }
     },
     {
       "id": "arch-senior-028",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目28",
-      "content": "这是第28道架构设计面试题的详细内容描述。",
+      "tags": ["Architecture", "Suitability"],
+      "source_company": "Consulting",
+      "score": 5,
+      "title": "微前端适用性判断",
+      "content": "微前端架构适用于所有规模的前端项目，包括小型后台管理系统。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第28道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_28",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：微前端引入复杂度（部署、通信、一致性），小型项目收益无法覆盖成本。仅适用于多团队协作、巨型应用拆分或遗留系统整合场景。",
+      "explanation": "原理机制说明：架构选型需权衡 ROI。\n正确选型分析：选 B，小项目无需微前端。\n错误选型剖析：过度设计是常见误区。\n工程实践建议：单体优先，当团队规模>5 人或应用体量过大时再考虑拆分。",
+      "knowledge_point": "architecture_decision"
     },
     {
       "id": "arch-senior-029",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目29",
-      "content": "这是第29道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["CSS", "Hash", "Scope"],
+      "source_company": "OpenSource",
+      "score": 15,
+      "title": "CSS 作用域哈希生成器",
+      "content": "实现一个函数，根据文件路径和内容生成唯一的 CSS 类名前缀哈希。",
+      "code_template": "function generateHash(filePath: string, content: string): string;",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "'a.css', 'body{}'",
+          "expected_output": "string (e.g. _a1b2)",
+          "description": "生成哈希"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "'a.css', 'body{}'",
+          "expected_output": "same as before",
+          "description": "一致性"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "'b.css', 'body{}'",
+          "expected_output": "different",
+          "description": "不同文件不同哈希"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第29道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_29",
-      "common_mistake": ""
+      "time_complexity": "O(L) where L is content length",
+      "space_complexity": "O(1)",
+      "correct_answer": "使用 md5 或 murmurhash 算法截取前几位",
+      "explanation": "原理机制说明：确保不同文件样式不冲突。\n正确选型分析：需结合路径和内容，防止内容相同路径不同冲突。\n错误选型剖析：仅用路径可能导致内容变更后哈希不变。\n工程实践建议：在构建 pipeline 中集成此逻辑，自动注入 class 名。",
+      "constraints": ["哈希长度固定 8 位"]
     },
     {
       "id": "arch-senior-030",
       "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目30",
-      "content": "这是第30道架构设计面试题的详细内容描述。",
+      "difficulty": "expert",
+      "tags": ["Future", "Server Components", "RSC"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "React Server Components 对微前端影响",
+      "content": "React Server Components (RSC) 的普及对微前端架构的主要影响是？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "完全取代微前端，不再需要 JS 沙箱" },
+        { "id": "B", "text": "简化部分数据获取逻辑，但运行时隔离仍需微前端" },
+        { "id": "C", "text": "导致微前端性能大幅下降" },
+        { "id": "D", "text": "无任何影响" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第30道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_30",
-      "common_mistake": ""
+      "explanation": "原理机制说明：RSC 解决服务端渲染和数据获取，但多应用集成、独立部署、技术栈异构仍需微前端。\n正确选型分析：B 客观描述了互补关系。\n错误选型剖析：A 过于绝对；C 无依据；D 忽略架构演进。\n工程实践建议：未来架构可能是 RSC + 微前端，服务端组合 + 客户端隔离。",
+      "wrong_options_analysis": {
+        "A": "客户端隔离需求仍在。",
+        "C": "可能优化性能。",
+        "D": "有影响。"
+      }
     },
     {
       "id": "arch-senior-031",
       "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "difficulty": "expert",
+      "tags": ["qiankun", "Snapshot", "Memory"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目31",
-      "content": "这是第31道架构设计面试题的详细内容描述。",
+      "score": 10,
+      "title": "qiankun 快照沙箱内存泄漏风险",
+      "content": "在使用 qiankun 的 LegacySandbox（快照沙箱）时，以下哪种操作最可能导致内存泄漏？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "子应用频繁修改 window 对象上的大量属性" },
+        { "id": "B", "text": "子应用未正确实现 unmount 生命周期" },
+        { "id": "C", "text": "主应用未清理子应用注册表" },
+        { "id": "D", "text": "子应用使用了 setTimeout 定时器" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第31道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_31",
-      "common_mistake": ""
+      "correct_answer": "A",
+      "explanation": "原理机制说明：LegacySandbox 通过记录修改前后的 window 属性快照来实现隔离。每次修改都会增加快照对象的大小。\n正确选型分析：A 选项正确，频繁修改大量 window 属性会导致快照对象膨胀，且旧快照若未被 GC 会导致泄漏。\n错误选型剖析：B 是通用泄漏原因，非快照沙箱特有；C 是主应用逻辑错误；D 定时器需手动清除，与沙箱机制无直接强关联。\n工程实践建议：优先使用 ProxySandbox，避免在子应用中随意挂载全局变量，定期监控 window 对象大小。",
+      "wrong_options_analysis": {
+        "B": "生命周期问题所有框架都存在。",
+        "C": "属于主应用管理范畴。",
+        "D": "定时器需手动清除，非沙箱特有。"
+      }
     },
     {
       "id": "arch-senior-032",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目32",
-      "content": "这是第32道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "ShareScope", "Isolation"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "Module Federation ShareScope 隔离策略",
+      "content": "关于 Module Federation 的 shareScope 配置，以下哪些场景需要自定义 shareScope 名称？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "多个主应用共用同一组远程模块，但依赖版本不同" },
+        { "id": "B", "text": "同一主应用内不同业务线需要隔离依赖环境" },
+        { "id": "C", "text": "希望所有应用共享默认的全局依赖" },
+        { "id": "D", "text": "远程模块需要访问主应用特定的私有库" },
+        { "id": "E", "text": "为了优化构建速度，减少共享依赖检查" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第32道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_32",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：shareScope 决定了共享依赖的作用域，默认是 default。\n正确选型分析：A 需要隔离版本冲突；B 需要业务隔离；D 需要特定上下文。\n错误选型剖析：C 使用默认即可；E 自定义 scope 可能增加复杂度，不一定优化构建。\n工程实践建议：仅在确实需要隔离依赖树时自定义 shareScope，避免过度拆分导致共享失效。",
+      "exclusion_analysis": {
+        "C": "默认 scope 即为此目的。",
+        "E": "通常不会优化构建速度。"
+      }
     },
     {
       "id": "arch-senior-033",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目33",
-      "content": "这是第33道架构设计面试题的详细内容描述。",
+      "tags": ["iframe", "Performance", "Communication"],
+      "source_company": "Tencent",
+      "score": 5,
+      "title": "iframe 跨域通信性能瓶颈",
+      "content": "使用 postMessage 进行主应用与 iframe 子应用通信时，大数据量传输会阻塞主线程。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第33道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_33",
-      "common_mistake": ""
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件说明：postMessage 是同步操作（发送端），数据序列化（structured clone）发生在主线程。大数据量（如大对象、图片 Base64）会导致主线程卡顿。此外，跨域 iframe 通信无法直接共享内存，必须复制数据。",
+      "explanation": "原理机制说明：postMessage 涉及数据序列化和复制，开销与数据大小成正比。\n正确选型分析：选 A，大数据量确实会阻塞。\n错误选型剖析：认为异步发送就不阻塞是误解，序列化过程是同步的。\n工程实践建议：避免传输大对象，使用 URL 或 ID 引用，或采用 SharedArrayBuffer（需跨域隔离头）优化。",
+      "knowledge_point": "iframe_postmessage_performance"
     },
     {
       "id": "arch-senior-034",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
+      "tags": ["single-spa", "Activity Function"],
+      "source_company": "OpenSource",
       "score": 8,
-      "title": "架构设计题目34",
-      "content": "这是第34道架构设计面试题的详细内容描述。",
+      "title": "single-spa 活动函数逻辑",
+      "content": "single-spa 的 activity function 主要作用是什么？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "决定子应用是否应该被激活加载" },
+        { "id": "B", "text": "定义子应用的路由规则" },
+        { "id": "C", "text": "处理子应用的生命周期错误" },
+        { "id": "D", "text": "配置子应用的共享依赖" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第34道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_34",
-      "common_mistake": ""
+      "correct_answer": "A",
+      "explanation": "原理机制说明：activity function 接收 location 对象，返回 boolean 决定应用是否 active。\n正确选型分析：A 准确描述了其核心职责。\n错误选型剖析：B 是路由配置的一部分，但 activity function 是判断逻辑；C 是 error handler；D 是构建配置。\n工程实践建议：在 activity function 中实现精细化的路由匹配，避免多个应用同时激活导致冲突。",
+      "wrong_options_analysis": {
+        "B": "路由规则是输入，activity 是判断。",
+        "C": "错误处理由生命周期钩子负责。",
+        "D": "依赖配置在构建时。"
+      }
     },
     {
       "id": "arch-senior-035",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目35",
-      "content": "这是第35道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Dependency", "Graph", "Resolution"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "微应用依赖加载顺序解析",
+      "content": "实现一个函数，根据依赖关系图计算微应用的加载顺序（拓扑排序），确保依赖先于使用者加载。",
+      "code_template": "interface DepNode { id: string; deps: string[]; }\nfunction resolveLoadOrder(nodes: DepNode[]): string[];",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "[{id:'A', deps:[]}, {id:'B', deps:['A']}]",
+          "expected_output": "['A', 'B']",
+          "description": "简单依赖"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "[{id:'A', deps:['B']}, {id:'B', deps:['A']}]",
+          "expected_output": "throw Error",
+          "description": "循环依赖"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "[{id:'A', deps:[]}]",
+          "expected_output": "['A']",
+          "description": "单节点"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第35道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_35",
-      "common_mistake": ""
+      "time_complexity": "O(V+E)",
+      "space_complexity": "O(V)",
+      "correct_answer": "使用 Kahn 算法或 DFS 进行拓扑排序，检测环",
+      "explanation": "原理机制说明：微前端加载需遵循依赖树顺序，避免运行时找不到模块。\n正确选型分析：拓扑排序是标准解法，需处理循环依赖报错。\n错误选型剖析：简单排序无法处理复杂依赖图。\n工程实践建议：在构建阶段预计算加载顺序，运行时按序注入 script 标签。",
+      "constraints": ["需检测循环依赖", "返回有序 ID 数组"]
     },
     {
       "id": "arch-senior-036",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目36",
-      "content": "这是第36道架构设计面试题的详细内容描述。",
+      "tags": ["wujie", "Lifecycle", "Sync"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "wujie 子应用生命周期同步",
+      "content": "wujie 如何保证子应用生命周期与主应用路由状态同步？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "监听主应用路由变化，动态创建/销毁 iframe" },
+        { "id": "B", "text": "子应用轮询主应用状态" },
+        { "id": "C", "text": "使用 URL hash 参数传递状态" },
+        { "id": "D", "text": "依赖浏览器 history API 原生事件" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第36道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_36",
-      "common_mistake": ""
+      "correct_answer": "A",
+      "explanation": "原理机制说明：wujie 主应用监听路由，控制子应用容器的挂载和卸载。\n正确选型分析：A 描述了主动控制机制。\n错误选型剖析：B 性能差；C 不实时；D 不足以控制生命周期。\n工程实践建议：确保主应用路由配置与子应用 base 路径一致，避免同步延迟。",
+      "wrong_options_analysis": {
+        "B": "轮询效率低。",
+        "C": "参数传递非控制机制。",
+        "D": "需上层框架封装。"
+      }
     },
     {
       "id": "arch-senior-037",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目37",
-      "content": "这是第37道架构设计面试题的详细内容描述。",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Shadow DOM", "CSS", "Inheritance"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Shadow DOM 全局样式穿透",
+      "content": "在 Shadow DOM 内部，使用 @import 引入的外部 CSS 文件可以不受 Shadow DOM 隔离限制，直接影响外部页面。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第37道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_37",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：Shadow DOM 内部的样式（包括 @import）仅作用于 Shadow Root 内部。外部页面无法被内部样式影响，除非使用 ::part 或 :host 显式暴露。隔离是双向的。",
+      "explanation": "原理机制说明：Shadow DOM 提供强样式封装。\n正确选型分析：选 B，内部样式无法影响外部。\n错误选型剖析：混淆了 iframe 和 Shadow DOM 的某些特性，或误解了 @import 的作用域。\n工程实践建议：利用此特性封装组件样式，但需注意继承属性的重置。",
+      "knowledge_point": "shadow_dom_style_scope"
     },
     {
       "id": "arch-senior-038",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目38",
-      "content": "这是第38道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "Remote", "Loading"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "远程模块加载失败处理",
+      "content": "当 Module Federation 远程入口文件（remoteEntry.js）加载失败时，以下哪些降级策略是合理的？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "显示静态 fallback 组件" },
+        { "id": "B", "text": "重试加载指定次数" },
+        { "id": "C", "text": "自动切换到备份 CDN 域名" },
+        { "id": "D", "text": "强制刷新整个主应用页面" },
+        { "id": "E", "text": "记录错误日志并通知运维" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第38道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_38",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "原理机制说明：远程依赖网络，必须具备容错能力。\n正确选型分析：A 保障用户体验；B 应对网络抖动；C 应对单点故障；E 便于排查。\n错误选型剖析：D 体验最差，且可能无限循环刷新。\n工程实践建议：实现全局 RemoteLoader 组件，统一处理加载状态和错误边界。",
+      "exclusion_analysis": {
+        "D": "破坏用户体验，可能导致死循环。"
+      }
     },
     {
       "id": "arch-senior-039",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目39",
-      "content": "这是第39道架构设计面试题的详细内容描述。",
+      "tags": ["Routing", "Conflict", "Base"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "微前端路由冲突解决",
+      "content": "当两个子应用的路由前缀配置重叠时（如 /app 和 /app/detail），会发生什么？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "后注册的应用覆盖先注册的应用" },
+        { "id": "B", "text": "主应用报错，无法启动" },
+        { "id": "C", "text": "取决于路由匹配算法（通常最长前缀优先）" },
+        { "id": "D", "text": "两个应用同时激活渲染" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第39道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_39",
-      "common_mistake": ""
+      "correct_answer": "C",
+      "explanation": "原理机制说明：路由匹配通常遵循最长匹配原则或注册顺序。\n正确选型分析：C 描述了常见路由库行为。\n错误选型剖析：A 不一定，取决于实现；B 通常不会报错但行为未定义；D 会导致 DOM 冲突。\n工程实践建议：严格规划路由命名空间，避免前缀重叠，或在网关层做路由分发。",
+      "wrong_options_analysis": {
+        "A": "取决于具体框架实现。",
+        "B": "运行时才可能发现。",
+        "D": "通常互斥激活。"
+      }
     },
     {
       "id": "arch-senior-040",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Error", "Tracking", "Aggregation"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目40",
-      "content": "这是第40道架构设计面试题的详细内容描述。",
-      "options": [
+      "score": 15,
+      "title": "跨应用错误聚合算法",
+      "content": "实现一个错误收集器，能够区分错误来源的子应用，并限制上报频率。",
+      "code_template": "interface ErrorEvent { app: string; msg: string; time: number; }\nclass ErrorTracker {\n  collect(event: ErrorEvent): void;\n}",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "collect 10 same errors in 1s",
+          "expected_output": "report 1 time",
+          "description": "频率限制"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "collect different app errors",
+          "expected_output": "report all",
+          "description": "区分应用"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "collect error after 1s",
+          "expected_output": "report",
+          "description": "时间窗口重置"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第40道题目的详细解析，包含原理分析、正确选型分析、错误选型剖析和工程实践建议。",
-      "knowledge_point": "Architecture_Point_40",
-      "common_mistake": ""
+      "time_complexity": "O(1)",
+      "space_complexity": "O(N)",
+      "correct_answer": "使用滑动窗口或令牌桶算法限制频率",
+      "explanation": "原理机制说明：微前端错误量大，需降噪。\n正确选型分析：按应用维度独立计数，时间窗口内去重。\n错误选型剖析：全局限制可能饿死某些应用的上报。\n工程实践建议：关键错误（如白屏）不受限，普通错误限流。",
+      "constraints": ["需区分 app 维度", "支持时间窗口配置"]
     },
     {
       "id": "arch-senior-041",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目41",
-      "content": "这是第41道架构设计面试题的详细内容描述。",
+      "tags": ["Sandbox", "Performance", "Proxy"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Proxy 沙箱性能开销",
+      "content": "相比直接访问 window，使用 Proxy 沙箱带来的主要性能开销在于？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "内存占用增加" },
+        { "id": "B", "text": "每次属性访问都有拦截函数调用开销" },
+        { "id": "C", "text": "网络请求变慢" },
+        { "id": "D", "text": "CSS 渲染阻塞" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第41道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_41",
-      "common_mistake": ""
+      "explanation": "原理机制说明：Proxy 拦截了所有操作，增加了调用栈深度。\n正确选型分析：B 是核心开销来源，尤其是频繁访问全局变量时。\n错误选型剖析：A 有影响但非主要运行时开销；C/D 无关。\n工程实践建议：避免在循环中频繁访问沙箱 window，缓存常用全局引用。",
+      "wrong_options_analysis": {
+        "A": "内存开销存在但非运行时瓶颈。",
+        "C": "与网络无关。",
+        "D": "与渲染无关。"
+      }
     },
     {
       "id": "arch-senior-042",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目42",
-      "content": "这是第42道架构设计面试题的详细内容描述。",
+      "tags": ["Cookie", "Domain", "Security"],
+      "source_company": "Tencent",
+      "score": 5,
+      "title": "微前端 Cookie 共享策略",
+      "content": "在主应用 domain 为 a.com，子应用 domain 为 sub.a.com 的情况下，Cookie 无法自动共享。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第42道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_42",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：若主应用设置 Cookie 时 domain 设为 .a.com，则子应用 sub.a.com 可读取。若设为 a.com 则不可。默认情况下同源策略允许父域向子域共享（需正确设置 domain 属性）。",
+      "explanation": "原理机制说明：Cookie 作用域由 domain 属性决定。\n正确选型分析：选 B，配置正确可共享。\n错误选型剖析：忽略 Cookie domain 配置灵活性。\n工程实践建议：统一设置 Cookie domain 为顶级域名，注意 HttpOnly 和 Secure 标志。",
+      "knowledge_point": "cookie_domain_scope"
     },
     {
       "id": "arch-senior-043",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目43",
-      "content": "这是第43道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Service Worker", "Cache", "Offline"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "Service Worker 在微前端中的应用",
+      "content": "在微前端架构中引入 Service Worker，以下哪些场景是合理的？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "缓存主应用和子应用的静态资源" },
+        { "id": "B", "text": "拦截子应用 API 请求进行 Mock" },
+        { "id": "C", "text": "实现离线访问能力" },
+        { "id": "D", "text": "替代主应用的路由功能" },
+        { "id": "E", "text": "统一处理所有子应用的身份认证 Token" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第43道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_43",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：SW 位于网络层，可拦截请求和缓存。\n正确选型分析：A 加速加载；B 便于调试；C 增强可用性。\n错误选型剖析：D 路由应在应用层；E 认证逻辑应在业务层，SW 仅透传。\n工程实践建议：注意 SW 更新策略，避免缓存旧版本子应用代码。",
+      "exclusion_analysis": {
+        "D": "路由是应用逻辑。",
+        "E": "认证涉及业务逻辑，SW 不适合处理复杂逻辑。"
+      }
     },
     {
       "id": "arch-senior-044",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "tags": ["Build", "Runtime", "Integration"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目44",
-      "content": "这是第44道架构设计面试题的详细内容描述。",
+      "score": 10,
+      "title": "构建时集成 vs 运行时集成",
+      "content": "Module Federation 属于哪种集成方式？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "纯构建时集成" },
+        { "id": "B", "text": "纯运行时集成" },
+        { "id": "C", "text": "构建时配置，运行时加载" },
+        { "id": "D", "text": "服务端集成" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第44道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_44",
-      "common_mistake": ""
+      "correct_answer": "C",
+      "explanation": "原理机制说明：MF 在构建时生成 remoteEntry 配置，运行时动态 fetch 代码。\n正确选型分析：C 准确描述了混合特性。\n错误选型剖析：A 是传统 npm 包；B 忽略构建配置；D 不准确。\n工程实践建议：利用构建时配置锁定接口契约，运行时保持部署灵活。",
+      "wrong_options_analysis": {
+        "A": "代码是动态加载的。",
+        "B": "需要构建配置。",
+        "D": "主要发生在客户端。"
+      }
     },
     {
       "id": "arch-senior-045",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目45",
-      "content": "这是第45道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Cache", "LRU", "Strategy"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "远程模块 LRU 缓存策略",
+      "content": "实现一个 LRU 缓存管理器，用于存储已加载的远程模块实例，限制最大缓存数量。",
+      "code_template": "class ModuleCache {\n  constructor(maxSize: number);\n  get(key: string): any;\n  set(key: string, value: any): void;\n}",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "set 1, get 1",
+          "expected_output": "value 1",
+          "description": "正常存取"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "set 1..N+1, get 1",
+          "expected_output": "undefined",
+          "description": "超出容量淘汰"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "get existing",
+          "expected_output": "update priority",
+          "description": "访问更新优先级"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第45道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_45",
-      "common_mistake": ""
+      "time_complexity": "O(1)",
+      "space_complexity": "O(N)",
+      "correct_answer": "使用 Map + 双向链表实现 O(1) 存取",
+      "explanation": "原理机制说明：微前端远程模块加载耗时，缓存可提升切换速度。\n正确选型分析：标准 LRU 实现，确保最近使用的保留。\n错误选型剖析：简单数组查找效率低。\n工程实践建议：缓存 key 应包含版本号，避免版本更新后使用旧代码。",
+      "constraints": ["get/set 必须 O(1)", "需处理并发访问"]
     },
     {
       "id": "arch-senior-046",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目46",
-      "content": "这是第46道架构设计面试题的详细内容描述。",
+      "tags": ["Testing", "E2E", "Mock"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "微前端端到端测试难度",
+      "content": "微前端架构下，端到端测试（E2E）可以完全复用单体应用的测试脚本，无需任何修改。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第46道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_46",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：微前端涉及多应用部署、跨域、异步加载等特性，测试需等待子应用加载完成，且需 Mock 远程服务。单体测试脚本通常假设所有资源立即可用。",
+      "explanation": "原理机制说明：架构变化导致测试环境复杂度增加。\n正确选型分析：选 B，需适配加载时序和依赖 Mock。\n错误选型剖析：忽略异步加载和部署独立性带来的影响。\n工程实践建议：使用 Cypress/Playwright，增加等待子应用渲染完成的断言。",
+      "knowledge_point": "micro_frontend_testing"
     },
     {
       "id": "arch-senior-047",
       "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目47",
-      "content": "这是第47道架构设计面试题的详细内容描述。",
+      "difficulty": "expert",
+      "tags": ["Auth", "Token", "Propagation"],
+      "source_company": "Bank",
+      "score": 10,
+      "title": "微前端认证 Token 传递",
+      "content": "在主应用和子应用跨域部署的情况下，最安全的 Token 传递方式是？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "放在 URL 参数中" },
+        { "id": "B", "text": "放在 localStorage 中，子应用读取" },
+        { "id": "C", "text": "通过 HttpOnly Cookie 自动携带" },
+        { "id": "D", "text": "通过 postMessage 显式发送" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第47道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_47",
-      "common_mistake": ""
+      "correct_answer": "C",
+      "explanation": "原理机制说明：HttpOnly Cookie 防 XSS，且浏览器自动携带。\n正确选型分析：C 最安全，无需代码干预。\n错误选型剖析：A 易泄露；B 易被 XSS 窃取；D 需额外代码且仍有 XSS 风险。\n工程实践建议：配置 CORS credentials: include，后端校验 Cookie。",
+      "wrong_options_analysis": {
+        "A": "日志中可能泄露。",
+        "B": "JS 可访问，不安全。",
+        "D": "不如 Cookie 自动携带方便安全。"
+      }
     },
     {
       "id": "arch-senior-048",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Memory", "Leak", "Detection"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目48",
-      "content": "这是第48道架构设计面试题的详细内容描述。",
+      "score": 12,
+      "title": "微前端内存泄漏检测指标",
+      "content": "检测微前端应用内存泄漏时，应重点关注哪些指标？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "JS Heap Size 随切换次数持续增长" },
+        { "id": "B", "text": "DOM 节点数量未随卸载减少" },
+        { "id": "C", "text": "Event Listener 数量持续增加" },
+        { "id": "D", "text": "CPU 使用率瞬间峰值" },
+        { "id": "E", "text": "网络请求失败率" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第48道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_48",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：内存泄漏表现为资源无法回收。\n正确选型分析：A/B/C 直接反映内存和对象引用未释放。\n错误选型剖析：D 是性能问题；E 是网络问题。\n工程实践建议：使用 Chrome Performance Monitor 监控，切换路由多次观察趋势。",
+      "exclusion_analysis": {
+        "D": "CPU 峰值不一定是泄漏。",
+        "E": "与内存无直接关系。"
+      }
     },
     {
       "id": "arch-senior-049",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "tags": ["qiankun", "PublicPath", "Asset"],
       "source_company": "Alibaba",
       "score": 8,
-      "title": "架构设计题目49",
-      "content": "这是第49道架构设计面试题的详细内容描述。",
+      "title": "qiankun 资源路径配置",
+      "content": "qiankun 子应用打包后，如何确保静态资源（图片/字体）路径正确？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "使用绝对路径" },
+        { "id": "B", "text": "配置 webpack publicPath 为动态值" },
+        { "id": "C", "text": "所有资源上传到主应用服务器" },
+        { "id": "D", "text": "禁止使用静态资源" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第49道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_49",
-      "common_mistake": ""
+      "explanation": "原理机制说明：子应用部署路径可能变化，需动态确定资源根路径。\n正确选型分析：B 是标准做法，运行时确定 publicPath。\n错误选型剖析：A 缺乏灵活性；C 增加主应用负担；D 不现实。\n工程实践建议：在 entry 文件中设置 __webpack_public_path__ 为当前域名。",
+      "wrong_options_analysis": {
+        "A": "硬编码路径难维护。",
+        "C": "违背独立部署原则。",
+        "D": "不可行。"
+      }
     },
     {
       "id": "arch-senior-050",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目50",
-      "content": "这是第50道架构设计面试题的详细内容描述。",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "Version", "Compatibility"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Module Federation 版本回滚",
+      "content": "Module Federation 支持远程模块版本自动回滚到上一个稳定版本。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第50道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_50",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：MF 本身只是加载机制，不具备版本管理逻辑。若远程入口指向最新文件，加载失败即失败。需配合外部配置中心或网关实现版本切换和回滚。",
+      "explanation": "原理机制说明：MF 是加载协议，非发布系统。\n正确选型分析：选 B，需外部系统支持。\n错误选型剖析：混淆了加载机制与运维能力。\n工程实践建议：维护远程入口 manifest 文件，通过配置切换版本 URL。",
+      "knowledge_point": "mf_version_control"
     },
     {
       "id": "arch-senior-051",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目51",
-      "content": "这是第51道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["CSS", "Isolation", "Prefix"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "CSS 类名自动加前缀工具",
+      "content": "实现一个函数，遍历 CSS AST，给所有类名选择器添加应用前缀。",
+      "code_template": "function prefixCss(css: string, prefix: string): string;",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "'.btn{}', 'app1'",
+          "expected_output": "'.app1-btn{}'",
+          "description": "类名前缀"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "'#id{}', 'app1'",
+          "expected_output": "'#id{}'",
+          "description": "ID 不变"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "'.btn .text{}', 'app1'",
+          "expected_output": "'.app1-btn .app1-text{}'",
+          "description": "多个类名"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第51道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_51",
-      "common_mistake": ""
+      "time_complexity": "O(N)",
+      "space_complexity": "O(N)",
+      "correct_answer": "使用正则或 CSS 解析库处理选择器",
+      "explanation": "原理机制说明：构建时样式隔离方案，防止冲突。\n正确选型分析：需准确识别类名选择器，避免误伤属性选择器。\n错误选型剖析：简单字符串替换可能破坏内容。\n工程实践建议：使用 postcss-prefix-selector 插件，测试覆盖各种选择器组合。",
+      "constraints": ["不能破坏属性选择器", "处理伪类"]
     },
     {
       "id": "arch-senior-052",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目52",
-      "content": "这是第52道架构设计面试题的详细内容描述。",
+      "tags": ["Context", "React", "Isolation"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React Context 跨应用共享",
+      "content": "在微前端架构中，主应用和子应用能否直接共享 React Context？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
+        { "id": "A", "text": "能，只要 React 版本一致" },
+        { "id": "B", "text": "不能，因为 ReactDOM 渲染容器隔离" },
+        { "id": "C", "text": "能，通过 window 传递 Context 对象" },
         {
           "id": "D",
-          "text": "选项D描述"
+          "text": "不能，除非使用 Module Federation 共享 React 实例"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第52道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_52",
-      "common_mistake": ""
+      "correct_answer": "D",
+      "explanation": "原理机制说明：Context 依赖 React 实例一致性。\n正确选型分析：D 正确，需共享同一 React 副本。\n错误选型剖析：A 版本一致不够，实例需一致；B 不绝对；C 对象传递无效。\n工程实践建议：通过 MF shared 配置强制共享 react/react-dom 单例。",
+      "wrong_options_analysis": {
+        "A": "实例不同无法消费。",
+        "B": "共享实例后可行。",
+        "C": "Context 依赖内部链路。"
+      }
     },
     {
       "id": "arch-senior-053",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目53",
-      "content": "这是第53道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["SSR", "Micro-frontend", "Hydration"],
+      "source_company": "Vercel",
+      "score": 12,
+      "title": "微前端服务端渲染挑战",
+      "content": "实现微前端 SSR 时，主要面临哪些技术挑战？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "多个应用 HTML 片段拼接" },
+        { "id": "B", "text": "客户端水合（Hydration）顺序协调" },
+        { "id": "C", "text": "样式冲突与提取" },
+        { "id": "D", "text": "各子应用数据预取并行化" },
+        { "id": "E", "text": "浏览器兼容性" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第53道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_53",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：SSR 需服务端组装，客户端激活。\n正确选型分析：A/B/C/D 均为核心难点。\n错误选型剖析：E 是通用问题，非微前端 SSR 特有。\n工程实践建议：使用 Edge Middleware 组装 HTML，确保 CSS 内联顺序。",
+      "exclusion_analysis": {
+        "E": "SSR 本身即解决部分兼容性问题。"
+      }
     },
     {
       "id": "arch-senior-054",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目54",
-      "content": "这是第54道架构设计面试题的详细内容描述。",
+      "tags": ["iframe", "Sandbox", "Attribute"],
+      "source_company": "W3C",
+      "score": 5,
+      "title": "iframe sandbox 属性效果",
+      "content": "给 iframe 添加 sandbox 属性后，默认情况下子应用无法执行任何 JavaScript。",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第54道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_54",
-      "common_mistake": ""
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件说明：sandbox 属性默认限制所有权限。需显式添加 allow-scripts 才能执行 JS。若同时添加 allow-same-origin 则可能绕过部分隔离。",
+      "explanation": "原理机制说明：sandbox 是白名单机制。\n正确选型分析：选 A，默认全禁。\n错误选型剖析：忽略默认严格模式。\n工程实践建议：仅开启必要权限，如 allow-scripts allow-forms，避免 allow-same-origin。",
+      "knowledge_point": "iframe_sandbox_attribute"
     },
     {
       "id": "arch-senior-055",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目55",
-      "content": "这是第55道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "Best Practice", "Micro-frontend"],
+      "source_company": "OWASP",
+      "score": 12,
+      "title": "微前端安全最佳实践",
+      "content": "以下哪些是微前端架构推荐的安全实践？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "子应用部署独立的 CSP 策略" },
+        { "id": "B", "text": "主应用校验子应用资源完整性（SRI）" },
+        { "id": "C", "text": "禁止子应用访问 localStorage" },
+        { "id": "D", "text": "通信数据加密传输" },
+        { "id": "E", "text": "定期扫描子应用依赖漏洞" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第55道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_55",
-      "common_mistake": ""
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "原理机制说明：纵深防御策略。\n正确选型分析：A/B/D/E 均增强安全性。\n错误选型剖析：C 过于严格，可能影响功能，应限制而非禁止。\n工程实践建议：建立安全网关，统一审计子应用资源。",
+      "exclusion_analysis": {
+        "C": "业务可能需要存储，应管控而非禁止。"
+      }
     },
     {
       "id": "arch-senior-056",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目56",
-      "content": "这是第56道架构设计面试题的详细内容描述。",
+      "tags": ["Module Federation", "Version", "Strategy"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Module Federation 版本升级策略",
+      "content": "当远程应用升级版本时，主应用如何无感知获取新版本？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
+        { "id": "A", "text": "主应用重新构建发布" },
         {
           "id": "B",
-          "text": "选项B描述正确答案"
+          "text": "远程入口文件 URL 不变，内容更新，浏览器缓存失效"
         },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "C", "text": "手动通知主应用开发者" },
+        { "id": "D", "text": "无法无感知，必须同步发布" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第56道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_56",
-      "common_mistake": ""
+      "explanation": "原理机制说明：MF 优势在于运行时动态加载。\n正确选型分析：B 描述了独立部署特性，需配合缓存策略。\n错误选型剖析：A 违背 MF 初衷；C 效率低；D 错误。\n工程实践建议：remoteEntry.js 设置不缓存或短缓存，业务代码长缓存。",
+      "wrong_options_analysis": {
+        "A": "无需主应用构建。",
+        "C": "自动化流程。",
+        "D": "支持独立发布。"
+      }
     },
     {
       "id": "arch-senior-057",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目57",
-      "content": "这是第57道架构设计面试题的详细内容描述。",
-      "options": [
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Router", "Matching", "Optimization"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "路由匹配树优化算法",
+      "content": "当微应用数量达到上百个时，线性遍历路由表性能下降。请设计一个基于前缀树（Trie）的路由匹配算法。",
+      "code_template": "class RouteTrie {\n  register(path: string, appId: string): void;\n  match(path: string): string | null;\n}",
+      "test_cases": [
         {
-          "id": "A",
-          "text": "选项A描述"
+          "input": "register('/app1'), match('/app1/home')",
+          "expected_output": "app1",
+          "description": "前缀匹配"
         },
         {
-          "id": "B",
-          "text": "选项B描述正确答案"
+          "input": "register('/app'), match('/app1')",
+          "expected_output": "null/app",
+          "description": "精确优先"
         },
         {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
+          "input": "match('/unknown')",
+          "expected_output": "null",
+          "description": "无匹配"
         }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第57道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_57",
-      "common_mistake": ""
+      "time_complexity": "O(L) where L is path length",
+      "space_complexity": "O(N*L)",
+      "correct_answer": "构建 Trie 树，节点存储 appId，匹配时遍历树",
+      "explanation": "原理机制说明：大量路由需优化匹配效率。\n正确选型分析：Trie 树将匹配复杂度降为路径长度。\n错误选型剖析：数组遍历为 O(N)。\n工程实践建议：仅在路由数量极大时使用，一般场景数组足够。",
+      "constraints": ["支持动态注册", "处理通配符"]
     },
     {
       "id": "arch-senior-058",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
+      "tags": ["qiankun", "Prefetch", "Strategy"],
       "source_company": "Alibaba",
       "score": 8,
-      "title": "架构设计题目58",
-      "content": "这是第58道架构设计面试题的详细内容描述。",
+      "title": "qiankun 预加载策略配置",
+      "content": "qiankun 的 prefetch 配置为 'all' 时，会发生什么？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "立即加载所有子应用资源" },
+        { "id": "B", "text": "主应用空闲时加载所有注册子应用" },
+        { "id": "C", "text": "仅加载当前路由子应用" },
+        { "id": "D", "text": "不加载任何资源" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第58道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_58",
-      "common_mistake": ""
+      "explanation": "原理机制说明：'all' 策略利用空闲时间预加载全部。\n正确选型分析：B 准确描述了行为。\n错误选型剖析：A 会阻塞主线程；C 是 'network' 策略；D 是 false。\n工程实践建议：子应用较多时慎用 'all'，避免占用用户带宽。",
+      "wrong_options_analysis": {
+        "A": "不是立即，是空闲时。",
+        "C": "那是按需。",
+        "D": "那是关闭。"
+      }
     },
     {
       "id": "arch-senior-059",
-      "type": "single_choice",
-      "difficulty": "senior",
-      "tags": [
-        "架构设计"
-      ],
-      "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目59",
-      "content": "这是第59道架构设计面试题的详细内容描述。",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Migration", "Legacy", "Strategy"],
+      "source_company": "Consulting",
+      "score": 12,
+      "title": "遗留系统微前端迁移策略",
+      "content": "将单体遗留系统迁移至微前端架构，以下哪些策略是推荐的？",
       "options": [
-        {
-          "id": "A",
-          "text": "选项A描述"
-        },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "A", "text": "绞杀者模式，逐步替换功能模块" },
+        { "id": "B", "text": "大爆炸式重构，一次性全部拆分" },
+        { "id": "C", "text": "使用 iframe 包裹旧系统作为子应用" },
+        { "id": "D", "text": "保持旧系统不动，新功能用微前端开发" },
+        { "id": "E", "text": "强制旧系统升级技术栈" }
       ],
-      "correct_answer": "B",
-      "explanation": "这是第59道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_59",
-      "common_mistake": ""
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "原理机制说明：迁移需降低风险，平滑演进。\n正确选型分析：A 渐进式；C 低成本集成；D 增量开发。\n错误选型剖析：B 风险极高；E 成本过高。\n工程实践建议：优先隔离新业务，旧业务维持原状或逐步剥离。",
+      "exclusion_analysis": {
+        "B": "风险不可控。",
+        "E": "ROI 低。"
+      }
     },
     {
       "id": "arch-senior-060",
-      "type": "single_choice",
+      "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "架构设计"
+      "tags": ["Web Components", "Support", "Polyfill"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "Web Components 兼容性",
+      "content": "现代微前端方案基于 Web Components 实现时，在 IE11 中无需任何 Polyfill 即可运行。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：IE11 不支持 Custom Elements 和 Shadow DOM 等关键 API。必须引入 Web Components Polyfill 才能运行，且性能会有损耗。部分微前端框架因此放弃 IE 支持。",
+      "explanation": "原理机制说明：Web Components 是较新标准。\n正确选型分析：选 B，IE11 需 Polyfill。\n错误选型剖析：忽略浏览器内核差异。\n工程实践建议：若需支持 IE，考虑 iframe 方案或放弃微前端。",
+      "knowledge_point": "web_components_compatibility"
+    },
+    {
+      "id": "arch-senior-061",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["qiankun", "Patching", "Internal"],
       "source_company": "Alibaba",
-      "score": 8,
-      "title": "架构设计题目60",
-      "content": "这是第60道架构设计面试题的详细内容描述。",
+      "score": 10,
+      "title": "qiankun 动态补丁机制",
+      "content": "qiankun 在处理子应用动态添加的全局事件监听器时，使用了什么机制进行清理？",
       "options": [
         {
           "id": "A",
-          "text": "选项A描述"
+          "text": "重写 addEventListener 记录调用栈，卸载时遍历移除"
         },
-        {
-          "id": "B",
-          "text": "选项B描述正确答案"
-        },
-        {
-          "id": "C",
-          "text": "选项C描述"
-        },
-        {
-          "id": "D",
-          "text": "选项D描述"
-        }
+        { "id": "B", "text": "依赖浏览器自动回收" },
+        { "id": "C", "text": "强制子应用手动调用 removeEventListener" },
+        { "id": "D", "text": "使用 WeakMap 弱引用自动清理" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：qiankun 通过 patching 机制劫持了 window.addEventListener/removeEventListener。\n正确选型分析：A 正确，框架会记录子应用添加的所有监听器，在 unmount 阶段统一移除，防止内存泄漏。\n错误选型剖析：B 错误，全局监听器不会自动回收；C 不可靠，依赖开发者自觉；D WeakMap 无法监听移除事件。\n工程实践建议：即使有框架保障，子应用仍应在 unmount 中手动清理关键监听器，双重保险。",
+      "wrong_options_analysis": {
+        "B": "全局事件引用会阻止 GC。",
+        "C": "人为约束不可靠。",
+        "D": "WeakMap 无法解决事件监听引用。"
+      }
+    },
+    {
+      "id": "arch-senior-062",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Module Federation", "Eager", "Startup"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Module Federation Eager 配置影响",
+      "content": "在 Module Federation 配置中将 shared 依赖设置为 eager: true 会产生什么影响？",
+      "options": [
+        { "id": "A", "text": "依赖包会被打包进主机 bundle，不再异步加载" },
+        { "id": "B", "text": "依赖包会被延迟到空闲时加载" },
+        { "id": "C", "text": "依赖包会被排除在打包之外" },
+        { "id": "D", "text": "依赖包会被复制到每个子应用" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：eager 选项控制共享依赖的加载时机。\n正确选型分析：A 正确，eager: true 意味着该依赖被视为主机必须依赖，同步打包进主机，避免运行时请求。\n错误选型剖析：B 是 prefetch 行为；C 是 externals 行为；D 是未共享行为。\n工程实践建议：仅对核心小库（如 lodash）使用 eager，大库（如 react）慎用，避免主机包过大。",
+      "wrong_options_analysis": {
+        "B": "eager 是同步的。",
+        "C": "eager 会打包。",
+        "D": "共享目的是避免复制。"
+      }
+    },
+    {
+      "id": "arch-senior-063",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["CI/CD", "Independence", "Pipeline"],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "微前端独立 CI/CD 流水线",
+      "content": "为实现微前端子应用的独立部署，CI/CD 流水线设计需满足哪些条件？",
+      "options": [
+        { "id": "A", "text": "子应用仓库独立，触发构建不影响主应用" },
+        { "id": "B", "text": "构建产物自动上传至 CDN 并更新版本清单" },
+        { "id": "C", "text": "主应用需重新构建才能感知子应用更新" },
+        { "id": "D", "text": "支持灰度发布和版本回滚机制" },
+        { "id": "E", "text": "集成自动化契约测试验证接口兼容性" }
+      ],
+      "correct_answer": ["A", "B", "D", "E"],
+      "explanation": "原理机制说明：独立部署核心是解耦构建和发布流程。\n正确选型分析：A 保证代码隔离；B 保证资源可达；D 保证发布安全；E 保证集成稳定。\n错误选型剖析：C 违背微前端独立演进优势，主应用应动态拉取配置。\n工程实践建议：使用配置中心管理子应用入口 URL，主应用运行时读取，实现完全解耦。",
+      "exclusion_analysis": {
+        "C": "主应用不应因子应用更新而重构。"
+      }
+    },
+    {
+      "id": "arch-senior-064",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Testing", "Contract", "Integration"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "微前端契约测试必要性",
+      "content": "在微前端架构中，由于子应用独立部署，因此不需要进行主应用与子应用间的契约测试。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
       ],
       "correct_answer": "B",
-      "explanation": "这是第60道题目的详细解析。",
-      "knowledge_point": "Architecture_Point_60",
-      "common_mistake": ""
+      "boundary_conditions": "边界条件说明：独立部署增加了集成风险。若子应用修改了暴露的接口（props/events）或路由规则，主应用可能崩溃。契约测试（如 Pact）可确保接口兼容性，防止回归错误。",
+      "explanation": "原理机制说明：分布式系统需保证接口契约稳定。\n正确选型分析：选 B，契约测试至关重要。\n错误选型剖析：忽略集成测试会导致线上故障。\n工程实践建议：在 CI 流程中加入契约验证，子应用变更需通过主应用兼容检查。",
+      "knowledge_point": "contract_testing_importance"
+    },
+    {
+      "id": "arch-senior-065",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Dynamic Import", "Error", "Retry"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "动态导入重试机制实现",
+      "content": "实现一个支持指数退避重试的动态 import 函数，处理网络波动导致的加载失败。",
+      "code_template": "function importWithRetry(url: string, retries: number, delay: number): Promise<any>;",
+      "test_cases": [
+        {
+          "input": "success on 1st try",
+          "expected_output": "resolve module",
+          "description": "正常加载"
+        },
+        {
+          "input": "fail 2 times, success 3rd",
+          "expected_output": "resolve module",
+          "description": "重试成功"
+        },
+        {
+          "input": "fail all retries",
+          "expected_output": "reject error",
+          "description": "重试失败"
+        }
+      ],
+      "time_complexity": "O(R) where R is retries",
+      "space_complexity": "O(1)",
+      "correct_answer": "使用递归或循环配合 setTimeout 实现退避",
+      "explanation": "原理机制说明：网络请求具有不确定性，重试可提高成功率。\n正确选型分析：需实现指数退避（delay * 2^attempt）。\n错误选型剖析：固定延迟重试效果不如指数退避。\n工程实践建议：仅对幂等请求重试，POST 请求需谨慎，避免重复提交。",
+      "constraints": ["需实现指数退避", "捕获 import 错误"]
+    },
+    {
+      "id": "arch-senior-066",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["CSS-in-JS", "Isolation", "Conflict"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "CSS-in-JS 微前端样式冲突",
+      "content": "当主应用和子应用都使用 styled-components 时，可能导致什么问题？",
+      "options": [
+        { "id": "A", "text": "样式完全隔离，无冲突" },
+        { "id": "B", "text": "生成重复的 style 标签，增加 DOM 大小" },
+        { "id": "C", "text": "类名哈希冲突导致样式覆盖" },
+        { "id": "D", "text": "运行时性能大幅提升" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：styled-components 会在运行时注入 style 标签。\n正确选型分析：B 正确，多个实例会导致重复注入，增加 DOM 节点和内存。\n错误选型剖析：A 错误，样式表是全局的；C 类名有哈希不易冲突；D 性能会下降。\n工程实践建议：共享 styled-components 实例，或配置 StyleSheetManager 统一注入点。",
+      "wrong_options_analysis": {
+        "A": "style 标签全局生效。",
+        "C": "哈希算法通常足够安全。",
+        "D": "重复注入降低性能。"
+      }
+    },
+    {
+      "id": "arch-senior-067",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Web Workers", "Communication", "Sharing"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "微前端 Web Workers 共享策略",
+      "content": "在微前端架构中，多个子应用共享同一个 Web Worker 的优势包括？",
+      "options": [
+        { "id": "A", "text": "减少线程创建开销" },
+        { "id": "B", "text": "共享 Worker 内存中的数据缓存" },
+        { "id": "C", "text": "简化跨应用通信逻辑" },
+        { "id": "D", "text": "避免 Worker 数量超过浏览器限制" },
+        { "id": "E", "text": "自动同步所有子应用状态" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：Worker 创建和通信有成本，且浏览器有数量限制。\n正确选型分析：A 节省资源；B 利用共享内存；D 避免达到上限。\n错误选型剖析：C 通信逻辑可能更复杂需路由；E 状态同步需额外逻辑。\n工程实践建议：建立 Worker 池，主应用管理 Worker 生命周期，子应用通过消息总线访问。",
+      "exclusion_analysis": {
+        "C": "需设计消息路由协议。",
+        "E": "状态同步非自动。"
+      }
+    },
+    {
+      "id": "arch-senior-068",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["i18n", "Resource", "Loading"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "微前端国际化资源加载",
+      "content": "微前端架构下，各子应用国际化语言包的最佳加载策略是？",
+      "options": [
+        { "id": "A", "text": "主应用统一加载所有语言包" },
+        {
+          "id": "B",
+          "text": "子应用按需加载各自语言包，主应用传递当前语言标识"
+        },
+        { "id": "C", "text": "硬编码在子应用代码中" },
+        { "id": "D", "text": "仅支持英文，忽略国际化" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：语言包体积大，统一加载浪费流量。\n正确选型分析：B 最优，子应用自治，主应用协调语言状态。\n错误选型剖析：A 包体积过大；C 无法动态切换；D 不可接受。\n工程实践建议：主应用监听语言切换事件，通知子应用重新加载资源或更新 Context。",
+      "wrong_options_analysis": {
+        "A": "浪费带宽和内存。",
+        "C": "失去动态切换能力。",
+        "D": "不符合全球化需求。"
+      }
+    },
+    {
+      "id": "arch-senior-069",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Feature Flags", "Scope", "Management"],
+      "source_company": "Netflix",
+      "score": 5,
+      "title": "微前端特性开关管理",
+      "content": "微前端架构中，特性开关（Feature Flags）应仅由主应用统一管理，子应用无权控制。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：全局特性由主应用管理，但子应用内部特性应由子应用自治。完全集中管理会导致主应用耦合过重，失去微前端灵活性。应采用分层管理策略。",
+      "explanation": "原理机制说明：权限分离是微前端核心原则。\n正确选型分析：选 B，子应用需有内部开关自主权。\n错误选型剖析：过度集中导致主应用成为瓶颈。\n工程实践建议：主应用传递全局开关，子应用维护局部开关，通过 props 合并。",
+      "knowledge_point": "feature_flag_hierarchy"
+    },
+    {
+      "id": "arch-senior-070",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Bundle", "Budget", "Analysis"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "子应用包体积预算检查器",
+      "content": "实现一个函数，检查子应用构建产物是否超过体积预算，超过则返回警告信息。",
+      "code_template": "interface Asset { name: string; size: number; }\nfunction checkBudget(assets: Asset[], budget: number): string[];",
+      "test_cases": [
+        {
+          "input": "assets=[{size:500}], budget=1000",
+          "expected_output": "[]",
+          "description": "未超标"
+        },
+        {
+          "input": "assets=[{size:1500}], budget=1000",
+          "expected_output": "['warning']",
+          "description": "超标"
+        },
+        {
+          "input": "assets=[], budget=1000",
+          "expected_output": "[]",
+          "description": "无资源"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "correct_answer": "遍历累加 size 并与 budget 比较",
+      "explanation": "原理机制说明：控制包体积是性能优化关键。\n正确选型分析：需支持按文件或总和检查。\n错误选型剖析：忽略 gzip 后大小可能误判。\n工程实践建议：在 CI 中集成此检查，阻止超标代码合并，结合 webpack-bundle-analyzer 使用。",
+      "constraints": ["支持按类型过滤", "考虑 gzip 大小"]
+    },
+    {
+      "id": "arch-senior-071",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Network", "Waterfall", "Optimization"],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "微前端网络瀑布流优化",
+      "content": "优化微前端加载网络瀑布流的最有效手段是？",
+      "options": [
+        { "id": "A", "text": "串行加载所有子应用资源" },
+        { "id": "B", "text": "并行加载关键资源，非关键资源延迟" },
+        { "id": "C", "text": "将所有资源合并为一个大文件" },
+        { "id": "D", "text": "禁用浏览器缓存" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：网络并发能力有限，需调度优先级。\n正确选型分析：B 利用 HTTP2 多路复用，优先加载关键路径。\n错误选型剖析：A 浪费并发能力；C 失去缓存优势；D 增加加载时间。\n工程实践建议：使用 preload 预加载关键子应用，利用 HTTP2 Server Push 推送核心库。",
+      "wrong_options_analysis": {
+        "A": "串行太慢。",
+        "C": "违背微前端初衷。",
+        "D": "缓存是性能关键。"
+      }
+    },
+    {
+      "id": "arch-senior-072",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Compatibility", "Matrix", "Policy"],
+      "source_company": "Microsoft",
+      "score": 12,
+      "title": "微前端浏览器兼容性矩阵",
+      "content": "制定微前端浏览器兼容性策略时，需考虑哪些因素？",
+      "options": [
+        { "id": "A", "text": "主应用与子应用最低兼容版本一致" },
+        { "id": "B", "text": "Polyfill 由主应用统一注入还是子应用自理" },
+        { "id": "C", "text": "新特性（如 ES6）的降级方案" },
+        { "id": "D", "text": "不同子应用可设定不同兼容标准" },
+        { "id": "E", "text": "完全依赖用户浏览器升级" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：兼容性需统一标准，避免环境差异。\n正确选型分析：A 保证基线；B 避免重复 Polyfill；C 保证功能可用。\n错误选型剖析：D 会导致主应用环境不一致；E 不可控。\n工程实践建议：使用 core-js 按需 Polyfill，主应用检测环境动态加载补丁。",
+      "exclusion_analysis": {
+        "D": "运行环境是共享的。",
+        "E": "企业环境往往滞后。"
+      }
+    },
+    {
+      "id": "arch-senior-073",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Documentation", "Contract", "API"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "微前端接口文档管理",
+      "content": "微前端主应用与子应用的通信接口文档应如何管理？",
+      "options": [
+        { "id": "A", "text": "口头约定，无需文档" },
+        { "id": "B", "text": "使用 Swagger/OpenAPI 标准定义 Props 和 Events" },
+        { "id": "C", "text": "写在代码注释中，不对外公开" },
+        { "id": "D", "text": "每次变更直接修改代码" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：接口契约需明确且可验证。\n正确选型分析：B 提供标准化描述，便于生成类型定义和文档。\n错误选型剖析：A/C/D 易导致沟通误差和集成错误。\n工程实践建议：维护独立的 API 仓库，子应用变更需更新文档并通知主应用团队。",
+      "wrong_options_analysis": {
+        "A": "极易出错。",
+        "C": "难以协作。",
+        "D": "缺乏版本控制。"
+      }
+    },
+    {
+      "id": "arch-senior-074",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Team", "Workflow", "Ownership"],
+      "source_company": "Spotify",
+      "score": 5,
+      "title": "微前端团队所有权模型",
+      "content": "微前端架构下，子应用的代码所有权应归属于主应用团队，以便统一管理。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：微前端核心优势之一是团队自治。子应用应由对应业务团队全权负责（开发、部署、运维），主应用团队仅提供基础设施和规范。集中所有权会扼杀敏捷性。",
+      "explanation": "原理机制说明：康威定律在架构中的体现。\n正确选型分析：选 B，子应用团队应自治。\n错误选型剖析：集中管理导致瓶颈，违背微前端初衷。\n工程实践建议：建立平台团队提供工具链，业务团队专注子应用逻辑。",
+      "knowledge_point": "team_autonomy"
+    },
+    {
+      "id": "arch-senior-075",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["CDN", "Cost", "Optimization"],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "CDN 流量成本优化算法",
+      "content": "设计一个算法，根据用户地理位置分配最近的 CDN 节点，同时考虑节点成本权重。",
+      "code_template": "interface Node { id: string; location: string; cost: number; }\nfunction selectNode(userLoc: string, nodes: Node[]): string;",
+      "test_cases": [
+        {
+          "input": "user='CN', nodes=[{loc:'CN', cost:1}, {loc:'US', cost:0.5}]",
+          "expected_output": "CN node id",
+          "description": "优先延迟"
+        },
+        {
+          "input": "user='CN', nodes=[{loc:'US', cost:0.1}]",
+          "expected_output": "US node id",
+          "description": "无就近节点"
+        },
+        {
+          "input": "nodes=[]",
+          "expected_output": "null",
+          "description": "无可用节点"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "correct_answer": "计算距离与成本的加权得分，选最优",
+      "explanation": "原理机制说明：平衡用户体验与运营成本。\n正确选型分析：需定义权重公式（如 距离*0.7 + 成本*0.3）。\n错误选型剖析：仅看成本会导致体验差。\n工程实践建议：使用 DNS 智能解析或 Edge 函数动态调度，定期更新节点权重。",
+      "constraints": ["需定义权重公式", "处理空列表"]
+    },
+    {
+      "id": "arch-senior-076",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Observability", "Tracing", "ID"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "微前端全链路追踪 ID 传递",
+      "content": "在微前端架构中，如何实现主应用与子应用间的链路追踪 ID（Trace ID）传递？",
+      "options": [
+        { "id": "A", "text": "通过 URL 参数显式传递" },
+        { "id": "B", "text": "通过 HTTP Header 自动传递（需配置 CORS）" },
+        { "id": "C", "text": "通过 window 对象全局变量传递" },
+        { "id": "D", "text": "无需传递，各应用独立生成" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：链路追踪需贯穿整个请求链。\n正确选型分析：B 最标准，符合 W3C Trace Context 规范。\n错误选型剖析：A 污染 URL；C 仅限前端内部；D 无法串联链路。\n工程实践建议：主应用生成 Trace ID，注入 fetch/XHR 拦截器，子应用继承该 ID 上报日志。",
+      "wrong_options_analysis": {
+        "A": "不安全且冗长。",
+        "C": "仅限前端上下文。",
+        "D": "失去全链路意义。"
+      }
+    },
+    {
+      "id": "arch-senior-077",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Import Maps", "Standard", "Resolution"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "Import Maps 在微前端中的应用",
+      "content": "使用 Import Maps 标准可以解决微前端中的哪些问题？",
+      "options": [
+        { "id": "A", "text": "统一依赖版本解析路径" },
+        { "id": "B", "text": "替代 Webpack Module Federation" },
+        { "id": "C", "text": "简化 bare specifier 导入（如 import 'react'）" },
+        { "id": "D", "text": "实现运行时动态依赖切换" },
+        { "id": "E", "text": "完全消除构建步骤" }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "原理机制说明：Import Maps 是浏览器原生依赖映射标准。\n正确选型分析：A 统一路径；C 支持裸导入；D 动态修改 map 可切换版本。\n错误选型剖析：B 不能完全替代 MF 的代码分割能力；E 仍需构建优化。\n工程实践建议：结合 SystemJS 使用，作为 MF 的补充方案，特别是在无构建场景。",
+      "exclusion_analysis": {
+        "B": "MF 功能更强大。",
+        "E": "构建仍有必要。"
+      }
+    },
+    {
+      "id": "arch-senior-078",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["React 18", "Concurrent", "Rendering"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "React 18 并发特性对微前端影响",
+      "content": "React 18 的 Concurrent Rendering 特性在微前端子应用中使用时，需注意什么？",
+      "options": [
+        { "id": "A", "text": "无需注意，完全兼容" },
+        { "id": "B", "text": "需确保主应用也使用 React 18，避免版本冲突" },
+        { "id": "C", "text": "会导致子应用渲染阻塞主应用" },
+        { "id": "D", "text": "自动优化所有性能问题" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：React 版本不一致可能导致行为差异或 Hook 错误。\n正确选型分析：B 正确，多实例 React 需版本一致以确保行为可预测。\n错误选型剖析：A 忽略版本差异；C 并发旨在减少阻塞；D 不能自动解决所有问题。\n工程实践建议：通过 MF shared 强制共享 React 18 实例，统一开启并发模式。",
+      "wrong_options_analysis": {
+        "A": "版本差异有风险。",
+        "C": "并发是为了非阻塞。",
+        "D": "需手动优化。"
+      }
+    },
+    {
+      "id": "arch-senior-079",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Vue 3", "Instance", "Isolation"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "Vue 3 应用实例隔离",
+      "content": "在微前端中运行多个 Vue 3 子应用时，每个子应用必须创建独立的 createApp 实例。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件说明：Vue 3 的全局配置（如 directives, components）挂载在 app 实例上。若共享实例会导致配置污染。每个子应用需独立 mount 到不同容器。",
+      "explanation": "原理机制说明：Vue 3 架构支持多实例。\n正确选型分析：选 A，必须隔离实例。\n错误选型剖析：共享实例会导致全局污染。\n工程实践建议：子应用导出 createApp 函数，主应用调用挂载，确保配置独立。",
+      "knowledge_point": "vue3_instance_isolation"
+    },
+    {
+      "id": "arch-senior-080",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Design System", "Versioning", "Consistency"],
+      "source_company": "IBM",
+      "score": 10,
+      "title": "微前端设计系统版本管理",
+      "content": "多个微应用共享同一套设计系统（UI Kit）时，最佳版本管理策略是？",
+      "options": [
+        { "id": "A", "text": "各应用独立升级，无需协调" },
+        { "id": "B", "text": "锁定主版本，统一升级周期，避免视觉不一致" },
+        { "id": "C", "text": "禁止升级，永远使用初始版本" },
+        { "id": "D", "text": "每个应用复制一份源码" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：设计系统需保持视觉和交互一致性。\n正确选型分析：B 平衡了灵活性与一致性，主版本变更需协调。\n错误选型剖析：A 导致界面割裂；C 技术债务累积；D 维护成本极高。\n工程实践建议：使用 Monorepo 管理设计系统，发布 Major 版本时提供迁移指南。",
+      "wrong_options_analysis": {
+        "A": "视觉风格会不统一。",
+        "C": "无法享受新特性。",
+        "D": "违背复用原则。"
+      }
+    },
+    {
+      "id": "arch-senior-081",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["PWA", "Offline", "Strategy"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "微前端 PWA 离线策略",
+      "content": "在微前端架构中实现 PWA 离线能力，需解决哪些挑战？",
+      "options": [
+        { "id": "A", "text": "主应用与子应用 Service Worker 注册冲突" },
+        { "id": "B", "text": "离线缓存版本一致性管理" },
+        { "id": "C", "text": "跨域资源缓存策略配置" },
+        { "id": "D", "text": "离线状态下子应用路由跳转处理" },
+        { "id": "E", "text": "必须所有子应用同时支持离线" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：PWA 在微前端中复杂度倍增。\n正确选型分析：A 需统一注册点；B 需原子更新；C 需 CORS 配置；D 需降级页面。\n错误选型剖析：E 不必所有子应用都支持，可部分离线。\n工程实践建议：主应用统一管理 SW，子应用注册缓存路由，支持渐进式离线。",
+      "exclusion_analysis": {
+        "E": "可逐步推进。"
+      }
+    },
+    {
+      "id": "arch-senior-082",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Analytics", "Tracking", "Consistency"],
+      "source_company": "Adobe",
+      "score": 15,
+      "title": "跨应用用户行为追踪去重",
+      "content": "实现一个追踪器，确保用户在不同微应用间跳转时，同一会话内的行为不重复上报。",
+      "code_template": "class Tracker {\n  track(event: string, appId: string): void;\n}",
+      "test_cases": [
+        {
+          "input": "track('click', 'app1'); track('click', 'app1');",
+          "expected_output": "report 1 time",
+          "description": "短时间重复去重"
+        },
+        {
+          "input": "track('click', 'app1'); track('view', 'app2');",
+          "expected_output": "report 2 times",
+          "description": "不同事件上报"
+        },
+        {
+          "input": "track('click', 'app1'); wait 5min; track('click', 'app1');",
+          "expected_output": "report 2 times",
+          "description": "时间窗口外上报"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(N)",
+      "correct_answer": "使用滑动窗口记录事件指纹，重复则忽略",
+      "explanation": "原理机制说明：避免数据污染，准确统计 UV/PV。\n正确选型分析：需生成事件指纹（事件 + 时间 + 应用）。\n错误选型剖析：全局去重会丢失跨应用行为。\n工程实践建议：sessionId 贯穿全链路，前端去重 + 后端校验双重保障。",
+      "constraints": ["需定义时间窗口", "支持 sessionId"]
+    },
+    {
+      "id": "arch-senior-083",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Resilience", "Auto-healing", "Recovery"],
+      "source_company": "Netflix",
+      "score": 10,
+      "title": "微前端自动恢复机制",
+      "content": "当子应用连续加载失败时，最合理的自动恢复策略是？",
+      "options": [
+        { "id": "A", "text": "无限重试直到成功" },
+        { "id": "B", "text": "切换至备用 CDN 域名，并降级显示静态内容" },
+        { "id": "C", "text": "强制用户清除缓存" },
+        { "id": "D", "text": "直接隐藏子应用区域" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：高可用架构需具备自愈能力。\n正确选型分析：B 提供多重保障，切换源 + 降级内容。\n错误选型剖析：A 可能导致死循环；C 体验差；D 功能缺失。\n工程实践建议：配置多 CDN 源，监控加载失败率，自动触发切换逻辑。",
+      "wrong_options_analysis": {
+        "A": "可能永久失败。",
+        "C": "用户成本高。",
+        "D": "影响业务功能。"
+      }
+    },
+    {
+      "id": "arch-senior-084",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Monorepo", "Polyrepo", "Strategy"],
+      "source_company": "Google",
+      "score": 5,
+      "title": "微前端代码仓库策略",
+      "content": "微前端架构必须采用 Polyrepo（多仓库）策略，不能使用 Monorepo（单仓库）。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：微前端强调运行时独立，而非代码仓库独立。Monorepo 便于共享代码和统一依赖管理，配合独立构建发布流程，同样可实现微前端架构。",
+      "explanation": "原理机制说明：仓库结构与部署架构正交。\n正确选型分析：选 B，Monorepo 也可行。\n错误选型剖析：混淆了代码管理与运行时架构。\n工程实践建议：小型团队可用 Monorepo 降低维护成本，大型团队可用 Polyrepo 隔离权限。",
+      "knowledge_point": "repo_strategy"
+    },
+    {
+      "id": "arch-senior-085",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Accessibility", "a11y", "Context"],
+      "source_company": "BBC",
+      "score": 8,
+      "title": "微前端无障碍访问（a11y）",
+      "content": "在微前端架构中，如何保证整体页面的无障碍访问一致性？",
+      "options": [
+        { "id": "A", "text": "各子应用自行负责，主应用不干预" },
+        { "id": "B", "text": "主应用设定 a11y 规范，子应用遵循并定期审计" },
+        { "id": "C", "text": "仅主应用支持 a11y，子应用忽略" },
+        { "id": "D", "text": "禁用所有动态内容以保证安全" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：无障碍需全局视角，焦点管理尤为重要。\n正确选型分析：B 确保标准统一，主应用需协调焦点切换。\n错误选型剖析：A 导致体验割裂；C 功能不可用；D 不可行。\n工程实践建议：主应用监听路由变化，将焦点重置到子应用容器，确保读屏器连贯。",
+      "wrong_options_analysis": {
+        "A": "焦点管理需主应用配合。",
+        "C": "子应用是主要内容。",
+        "D": "牺牲功能性。"
+      }
+    },
+    {
+      "id": "arch-senior-086",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Debugging", "Proxy", "Tools"],
+      "source_company": "Chrome",
+      "score": 12,
+      "title": "微前端调试工具链",
+      "content": "开发微前端应用时，以下哪些调试工具或技巧是推荐的？",
+      "options": [
+        { "id": "A", "text": "使用 Source Map 定位子应用源码" },
+        { "id": "B", "text": "利用 Chrome Performance 面板分析加载瀑布" },
+        { "id": "C", "text": "配置 Hosts 文件本地代理远程子应用" },
+        { "id": "D", "text": "使用 React/Vue DevTools 检查多实例状态" },
+        { "id": "E", "text": "禁用所有沙箱以便调试" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：调试需穿透沙箱和跨域限制。\n正确选型分析：A 定位代码；B 分析性能；C 本地联调；D 检查状态。\n错误选型剖析：E 会掩盖真实环境问题，不建议。\n工程实践建议：搭建本地开发网关，统一转发请求，模拟生产环境沙箱。",
+      "exclusion_analysis": {
+        "E": "沙箱是核心特性，不可禁用。"
+      }
+    },
+    {
+      "id": "arch-senior-087",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Serverless", "Edge", "Integration"],
+      "source_company": "Vercel",
+      "score": 10,
+      "title": "Serverless 边缘计算与微前端",
+      "content": "将微前端主应用部署在 Edge Serverless 上的主要优势是？",
+      "options": [
+        { "id": "A", "text": "降低首屏延迟，就近返回 HTML 壳" },
+        { "id": "B", "text": "完全替代子应用后端服务" },
+        { "id": "C", "text": "减少前端代码体积" },
+        { "id": "D", "text": "自动修复子应用 Bug" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Edge 节点分布广，可加速静态资源。\n正确选型分析：A 正确，边缘节点返回主应用 HTML，减少 RTT。\n错误选型剖析：B 子应用后端独立；C 代码体积不变；D 无法修复逻辑 Bug。\n工程实践建议：使用 Edge Middleware 动态注入子应用配置脚本，实现个性化组装。",
+      "wrong_options_analysis": {
+        "B": "后端服务独立。",
+        "C": "部署位置不影响体积。",
+        "D": "无法修复代码。"
+      }
+    },
+    {
+      "id": "arch-senior-088",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Testing", "Visual", "Regression"],
+      "source_company": "Percy",
+      "score": 5,
+      "title": "微前端视觉回归测试",
+      "content": "微前端架构下，视觉回归测试只需针对主应用进行，子应用无需单独测试。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：子应用独立部署，其 UI 变更可能不影响主应用框架但影响自身内容。需分别进行子应用独立测试和集成后的全链路视觉测试。",
+      "explanation": "原理机制说明：视觉测试需覆盖所有渲染单元。\n正确选型分析：选 B，子应用需独立测试。\n错误选型剖析：忽略子应用内部 UI 变更。\n工程实践建议：CI 中并行运行子应用视觉测试，合并后运行集成测试。",
+      "knowledge_point": "visual_testing_scope"
+    },
+    {
+      "id": "arch-senior-089",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Resource", "Hint", "Preload"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "动态资源预加载提示生成器",
+      "content": "根据用户路由历史，预测下一个可能访问的子应用，并生成 link preload 标签。",
+      "code_template": "function generatePreload(history: string[], candidates: string[]): string[];",
+      "test_cases": [
+        {
+          "input": "history=['/home', '/app1'], candidates=['app1', 'app2']",
+          "expected_output": "['app2']",
+          "description": "预测下一个"
+        },
+        {
+          "input": "history=[], candidates=['app1']",
+          "expected_output": "['app1']",
+          "description": "默认预加载"
+        },
+        {
+          "input": "candidates=[]",
+          "expected_output": "[]",
+          "description": "无候选"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "correct_answer": "基于频率或马尔可夫链预测，返回 top N",
+      "explanation": "原理机制说明：预加载可提升感知性能。\n正确选型分析：需分析历史路径模式。\n错误选型剖析：盲目预加载浪费带宽。\n工程实践建议：限制预加载数量（如 2 个），仅在空闲时插入 DOM，避免阻塞主资源。",
+      "constraints": ["限制最大预加载数", "避免重复"]
+    },
+    {
+      "id": "arch-senior-090",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Future", "Isolated Declarations", "TypeScript"],
+      "source_company": "Microsoft",
+      "score": 10,
+      "title": "TypeScript Isolated Declarations 对微前端影响",
+      "content": "TypeScript 5.5 引入的 Isolated Declarations 特性对微前端类型共享有何帮助？",
+      "options": [
+        { "id": "A", "text": "无需编译即可生成类型声明，加速构建" },
+        { "id": "B", "text": "自动合并所有子应用类型" },
+        { "id": "C", "text": "消除所有类型错误" },
+        { "id": "D", "text": "替代运行时类型检查" }
+      ],
+      "correct_answer": "A",
+      "explanation": "原理机制说明：Isolated Declarations 允许快速生成 .d.ts 文件。\n正确选型分析：A 正确，减少类型计算开销，加速子应用独立构建。\n错误选型剖析：B 类型不自动合并；C 不能消除逻辑错误；D 运行时仍需校验。\n工程实践建议：在微前端 monorepo 中启用，提升 CI 构建速度，便于类型分发。",
+      "wrong_options_analysis": {
+        "B": "类型需显式共享。",
+        "C": "编译器无法理解逻辑。",
+        "D": "类型 erased 后无运行时。"
+      }
+    },
+    {
+      "id": "arch-senior-091",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Redux", "Middleware", "Isolation"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "Redux Middleware 微前端隔离",
+      "content": "在微前端架构中，多个子应用共享同一个 Redux Store 实例时，如何通过 Middleware 实现 Action 隔离？",
+      "options": [
+        { "id": "A", "text": "无法隔离，必须每个子应用独立 Store" },
+        { "id": "B", "text": "在 Middleware 中给 Action 添加应用前缀命名空间" },
+        { "id": "C", "text": "使用 Redux Saga 监听特定路径" },
+        { "id": "D", "text": "通过 Redux DevTools 过滤 Action" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：共享 Store 会导致 Action 全局可见，可能引发状态冲突。\n正确选型分析：B 正确，通过 Middleware 拦截 dispatch，自动为 Action Type 添加前缀（如 '@@app1/LOGIN'），实现逻辑隔离。\n错误选型剖析：A 过于绝对，共享 Store 可减少重复数据；C Saga 是副作用管理，非隔离核心；D 仅是调试工具。\n工程实践建议：编写 namespaceMiddleware，在子应用初始化时注入，确保 Action 和 Reducer 都遵循命名空间规范。",
+      "wrong_options_analysis": {
+        "A": "共享 Store 可优化内存。",
+        "C": "Saga 不解决命名冲突。",
+        "D": "DevTools 不影响运行时。"
+      }
+    },
+    {
+      "id": "arch-senior-092",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Zustand", "Proxy", "Scope"],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "Zustand 多实例状态隔离",
+      "content": "Zustand 默认创建单例 Store，在微前端多实例场景下，以下哪些方案可实现状态隔离？",
+      "options": [
+        { "id": "A", "text": "每个子应用调用 create 创建独立 Store 实例" },
+        { "id": "B", "text": "使用 Zustand 的 scope 配置项（如有）" },
+        { "id": "C", "text": "将 Store 创建函数作为 Props 下发给子应用" },
+        { "id": "D", "text": "利用 Context 包裹 Provider 传递 Store" },
+        { "id": "E", "text": "强制所有子应用共享同一状态" }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "explanation": "原理机制说明：Zustand create 默认返回单例，需手动管理实例化。\n正确选型分析：A 直接创建多实例；C 主应用控制实例创建；D 通过 React Context 隔离作用域。\n错误选型剖析：B Zustand 原生无 scope 配置；E 违背隔离原则。\n工程实践建议：子应用导出 createStore 工厂函数，主应用按需实例化并注入 Provider，避免全局变量污染。",
+      "exclusion_analysis": {
+        "B": "Zustand 无此原生配置。",
+        "E": "会导致状态耦合。"
+      }
+    },
+    {
+      "id": "arch-senior-093",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Store", "Factory", "Isolation"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "隔离 Store 工厂实现",
+      "content": "实现一个 Store 工厂函数，确保每次调用返回独立的 Store 实例，且支持中间件注入。",
+      "code_template": "interface Store<T> { getState: () => T; dispatch: (action: any) => void; }\nfunction createStoreFactory<T>(reducer: any, initialState: T): () => Store<T>;",
+      "test_cases": [
+        {
+          "input": "const factory = createStoreFactory(...); const s1 = factory(); const s2 = factory();",
+          "expected_output": "s1 !== s2",
+          "description": "实例隔离"
+        },
+        {
+          "input": "s1.dispatch({type:'INC'}); s2.getState()",
+          "expected_output": "s2 state unchanged",
+          "description": "状态独立"
+        },
+        {
+          "input": "factory with middleware",
+          "expected_output": "middleware applied",
+          "description": "支持中间件"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "correct_answer": "闭包包裹 state，每次调用返回新对象",
+      "explanation": "原理机制说明：微前端需避免单例模式导致的状态共享。\n正确选型分析：利用工厂函数闭包，每次调用生成独立 state 上下文。\n错误选型剖析：全局变量存储实例会导致泄漏。\n工程实践建议：将此工厂集成到微前端框架生命周期中，应用卸载时销毁实例。",
+      "constraints": ["不能使用全局变量", "需支持订阅机制"]
+    },
+    {
+      "id": "arch-senior-094",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["React", "Context", "MFE"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "React Context 跨应用共享限制",
+      "content": "只要主应用和子应用都使用了 React，就可以直接通过 Context 共享状态，无需额外配置。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：Context 依赖 React 实例一致性。若主应用和子应用打包了不同的 React 副本（即使版本相同），Context 无法传递。必须通过 Module Federation 共享 react 单例，或通过 props 显式传递 Context 值。",
+      "explanation": "原理机制说明：React 内部使用引用相等性判断 Context。\n正确选型分析：选 B，需共享 React 实例。\n错误选型剖析：忽略多副本 React 导致 Context 失效。\n工程实践建议：在 webpack shared 配置中锁定 react 为 singleton: true。",
+      "knowledge_point": "react_context_instance"
+    },
+    {
+      "id": "arch-senior-095",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["FP", "Composition", "Layout"],
+      "source_company": "FunctionalWorks",
+      "score": 10,
+      "title": "函数式组合构建微前端布局",
+      "content": "使用函数式编程（FP）思想构建微前端布局系统，核心优势是？",
+      "options": [
+        { "id": "A", "text": "减少代码行数" },
+        {
+          "id": "B",
+          "text": "通过 Function Composition 实现布局逻辑复用与解耦"
+        },
+        { "id": "C", "text": "自动优化性能" },
+        { "id": "D", "text": "替代 CSS 布局" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：FP 强调纯函数和组合。\n正确选型分析：B 正确，将 Header/Footer/Sidebar 抽象为高阶组件或函数，通过 compose 组合，便于动态替换。\n错误选型剖析：A 非核心目标；C 需手动优化；D 无关。\n工程实践建议：使用 lodash/fp 或 ramda 库，定义 layout pipeline，支持运行时动态插拔布局模块。",
+      "wrong_options_analysis": {
+        "A": "代码量不一定减少。",
+        "C": "组合可能增加调用栈。",
+        "D": "布局逻辑非样式。"
+      }
+    },
+    {
+      "id": "arch-senior-096",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["FP", "Monad", "Error"],
+      "source_company": "HaskellCorp",
+      "score": 12,
+      "title": "Monad 在微前端异步加载中的应用",
+      "content": "引入 Monad（如 Either/Option）处理微前端资源加载，主要解决哪些问题？",
+      "options": [
+        { "id": "A", "text": "统一错误处理流程，避免 try/catch 嵌套" },
+        { "id": "B", "text": "显式表达加载成功或失败的状态" },
+        { "id": "C", "text": "自动重试失败请求" },
+        { "id": "D", "text": "简化链式调用逻辑" },
+        { "id": "E", "text": "消除所有运行时错误" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：Monad 封装上下文和副作用。\n正确选型分析：A 统一处理；B 类型安全；D 链式调用。\n错误选型剖析：C 需额外逻辑；E 不可能消除所有错误。\n工程实践建议：使用 fp-ts 库，将 fetch 结果映射为 Either<Error, Data》，在 pipeline 末端统一处理错误 UI。",
+      "exclusion_analysis": {
+        "C": "重试需结合策略模式。",
+        "E": "无法消除物理错误。"
+      }
+    },
+    {
+      "id": "arch-senior-097",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["FP", "Pipe", "Data"],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "数据转换管道实现",
+      "content": "实现一个 pipe 函数，支持多个纯函数顺序执行，用于处理微前端接口数据转换。",
+      "code_template": "function pipe<T>(...fns: ((arg: T) => T)[]): (arg: T) => T;",
+      "test_cases": [
+        {
+          "input": "pipe(f1, f2)(data)",
+          "expected_output": "f2(f1(data))",
+          "description": "顺序执行"
+        },
+        {
+          "input": "pipe()",
+          "expected_output": "identity function",
+          "description": "空管道"
+        },
+        {
+          "input": "pipe(f1)(data)",
+          "expected_output": "f1(data)",
+          "description": "单函数"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(1)",
+      "correct_answer": "reduce 遍历函数数组，依次调用",
+      "explanation": "原理机制说明：FP 核心工具，用于构建数据处理流。\n正确选型分析：使用 reduce 累积结果。\n错误选型剖析：递归可能导致栈溢出。\n工程实践建议：在 API 响应拦截器中使用 pipe 清洗数据，确保子应用接收格式统一。",
+      "constraints": ["需支持泛型", "处理异常"]
+    },
+    {
+      "id": "arch-senior-098",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Pattern", "Adapter", "Legacy"],
+      "source_company": "IBM",
+      "score": 10,
+      "title": "适配器模式整合遗留系统",
+      "content": "使用适配器模式（Adapter Pattern）接入 jQuery 遗留系统到微前端架构，主要目的是？",
+      "options": [
+        { "id": "A", "text": "提升 jQuery 运行性能" },
+        { "id": "B", "text": "统一遗留系统与现代框架的接口契约" },
+        { "id": "C", "text": "自动转换 jQuery 代码为 React" },
+        { "id": "D", "text": "消除所有 jQuery 依赖" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：适配器用于接口兼容。\n正确选型分析：B 正确，封装旧系统生命周期和方法，使其符合微前端标准。\n错误选型剖析：A 性能不变；C 无法自动转换；D 适配器本身依赖旧库。\n工程实践建议：编写 LegacyAdapter 类，实现 mount/unmount 接口，内部调用 jQuery 初始化逻辑。",
+      "wrong_options_analysis": {
+        "A": "适配器有额外开销。",
+        "C": "需人工重构。",
+        "D": "适配器是为了共存。"
+      }
+    },
+    {
+      "id": "arch-senior-099",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Pattern", "Strategy", "Loading"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "策略模式动态切换加载方案",
+      "content": "使用策略模式（Strategy Pattern）可以根据网络环境动态切换微应用加载策略（如 CDN  vs 本地）。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "A",
+      "boundary_conditions": "边界条件说明：策略模式定义一系列算法并封装。在微前端中，可定义 LoadStrategy 接口，实现 CDNStrategy/LocalStrategy，运行时根据 navigator.onLine 或速度测试切换。",
+      "explanation": "原理机制说明：策略模式支持运行时算法替换。\n正确选型分析：选 A，符合模式定义。\n错误选型剖析：忽略模式的灵活性。\n工程实践建议：默认 CDN 失败自动降级为本地备份，提升可用性。",
+      "knowledge_point": "strategy_pattern_loading"
+    },
+    {
+      "id": "arch-senior-100",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Multi-tenant", "CSS", "Isolation"],
+      "source_company": "SaaS Corp",
+      "score": 12,
+      "title": "多租户微前端样式隔离",
+      "content": "在 SaaS 多租户微前端架构中，实现租户级样式定制的方案包括？",
+      "options": [
+        { "id": "A", "text": "CSS Variables 动态注入租户主题" },
+        { "id": "B", "text": "构建时生成多套 CSS 文件按需加载" },
+        { "id": "C", "text": "使用 CSS Modules 哈希隔离" },
+        { "id": "D", "text": "运行时 Less/Sass 编译" },
+        { "id": "E", "text": "强制所有租户使用同一套样式" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：多租户需兼顾隔离与定制。\n正确选型分析：A 灵活 runtime；B 性能好；C 基础隔离。\n错误选型剖析：D 运行时编译性能差；E 无法满足定制。\n工程实践建议：优先 CSS Variables，复杂定制使用构建时分支，避免运行时编译开销。",
+      "exclusion_analysis": {
+        "D": "阻塞渲染。",
+        "E": "违背 SaaS 需求。"
+      }
+    },
+    {
+      "id": "arch-senior-101",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Multi-tenant", "Config", "Injection"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "多租户配置注入机制",
+      "content": "微前端主应用如何向子应用安全注入租户特定配置（如 API 域名）？",
+      "options": [
+        { "id": "A", "text": "写入 window.tenantConfig 全局变量" },
+        { "id": "B", "text": "通过 props 初始化参数传递" },
+        { "id": "C", "text": "子应用请求配置中心接口" },
+        { "id": "D", "text": "硬编码在子应用构建产物中" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：配置需隔离且可控。\n正确选型分析：B 最安全，遵循数据流单向原则，便于测试。\n错误选型剖析：A 全局污染；C 增加请求延迟；D 无法动态切换租户。\n工程实践建议：主应用从认证服务获取配置，挂载子应用时通过 props 下发，子应用只读使用。",
+      "wrong_options_analysis": {
+        "A": "破坏沙箱隔离。",
+        "C": "增加耦合和延迟。",
+        "D": "失去灵活性。"
+      }
+    },
+    {
+      "id": "arch-senior-102",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Config", "Merge", "Priority"],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "多层配置合并算法",
+      "content": "实现一个配置合并函数，支持 默认配置 < 租户配置 < 用户配置 的优先级覆盖。",
+      "code_template": "function mergeConfig(defaults: any, tenant: any, user: any): any;",
+      "test_cases": [
+        {
+          "input": "defaults={a:1}, tenant={a:2}, user={}",
+          "expected_output": "{a:2}",
+          "description": "租户覆盖默认"
+        },
+        {
+          "input": "defaults={a:1}, tenant={a:2}, user={a:3}",
+          "expected_output": "{a:3}",
+          "description": "用户覆盖租户"
+        },
+        {
+          "input": "defaults={a:1}, tenant={}, user={}",
+          "expected_output": "{a:1}",
+          "description": "使用默认"
+        }
+      ],
+      "time_complexity": "O(N)",
+      "space_complexity": "O(N)",
+      "correct_answer": "深拷贝并按优先级递归合并",
+      "explanation": "原理机制说明：多租户场景配置层级复杂。\n正确选型分析：需处理对象深合并，避免浅拷贝覆盖。\n错误选型剖析：Object.assign 是浅合并。\n工程实践建议：使用 lodash.merge 或自研递归合并，确保嵌套对象正确覆盖。",
+      "constraints": ["需深合并", "处理 null 值"]
+    },
+    {
+      "id": "arch-senior-103",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["LowCode", "Schema", "Loading"],
+      "source_company": "Amis",
+      "score": 10,
+      "title": "低代码页面微前端加载",
+      "content": "将低代码平台生成的页面作为微前端子应用加载，核心挑战是？",
+      "options": [
+        { "id": "A", "text": "Schema 解析性能" },
+        { "id": "B", "text": "动态组件依赖管理与沙箱隔离" },
+        { "id": "C", "text": "数据库连接配置" },
+        { "id": "D", "text": "编辑器同步问题" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：低代码页面动态性强，依赖不确定。\n正确选型分析：B 正确，需动态加载组件库并确保在沙箱内运行。\n错误选型剖析：A 通常不是瓶颈；C 后端问题；D 编辑器问题。\n工程实践建议：预加载常用组件库，使用 Module Federation 动态暴露组件，配合沙箱运行渲染引擎。",
+      "wrong_options_analysis": {
+        "A": "JSON 解析很快。",
+        "C": "前端不直连 DB。",
+        "D": "运行时无关。"
+      }
+    },
+    {
+      "id": "arch-senior-104",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["SSR", "Hydration", "Mismatch"],
+      "source_company": "Vercel",
+      "score": 12,
+      "title": "微前端 SSR 水合不匹配处理",
+      "content": "微前端 SSR 架构中，导致 Hydration Mismatch 的常见原因包括？",
+      "options": [
+        { "id": "A", "text": "服务端与客户端时间戳不一致" },
+        { "id": "B", "text": "子应用动态加载导致 DOM 结构差异" },
+        { "id": "C", "text": "浏览器插件注入额外节点" },
+        { "id": "D", "text": "随机 ID 生成逻辑不一致" },
+        { "id": "E", "text": "CSS 样式加载延迟" }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "原理机制说明：SSR 要求服务端 HTML 与客户端初始 DOM 一致。\n正确选型分析：A/B/D 均会导致结构或内容不一致。\n错误选型剖析：C 浏览器插件影响较小；E 样式不影响结构。\n工程实践建议：服务端统一生成随机种子，禁用动态内容直到水合完成，使用 suppressHydrationWarning。",
+      "exclusion_analysis": {
+        "C": "通常不影响核心结构。",
+        "E": "样式不阻塞水合。"
+      }
+    },
+    {
+      "id": "arch-senior-105",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Edge", "Computing", "MFE"],
+      "source_company": "Cloudflare",
+      "score": 5,
+      "title": "边缘计算组装微前端",
+      "content": "使用 Edge Computing（如 Cloudflare Workers）组装微前端 HTML 片段，可以完全替代客户端路由。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：边缘计算可加速首屏 HTML 组装（ESI），但交互逻辑仍需客户端 JS 接管。完全替代客户端路由会导致交互体验下降（每次跳转请求服务端）。通常采用 边缘组装 + 客户端接管 混合模式。",
+      "explanation": "原理机制说明：边缘计算优化首屏，客户端优化交互。\n正确选型分析：选 B，不能完全替代。\n错误选型剖析：忽略客户端交互必要性。\n工程实践建议：边缘节点返回带子应用占位符的 HTML，客户端激活后接管路由。",
+      "knowledge_point": "edge_computing_limit"
+    },
+    {
+      "id": "arch-senior-106",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Migration", "Strangler", "Pattern"],
+      "source_company": "ThoughtWorks",
+      "score": 10,
+      "title": "绞杀者模式迁移步骤",
+      "content": "使用绞杀者模式（Strangler Fig Pattern）迁移单体应用到微前端，第一步应该是？",
+      "options": [
+        { "id": "A", "text": "重写整个后端 API" },
+        { "id": "B", "text": "建立反向代理网关，拦截特定路由" },
+        { "id": "C", "text": "删除旧系统代码" },
+        { "id": "D", "text": "培训所有开发人员" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：绞杀者模式核心是渐进式替换。\n正确选型分析：B 正确，通过网关将新流量导向新应用，旧流量保留。\n错误选型剖析：A 成本过高；C 风险大；D 非技术步骤。\n工程实践建议：配置 Nginx 或 API 网关，按路径分流，逐步扩大新应用范围，直至旧系统废弃。",
+      "wrong_options_analysis": {
+        "A": "后端可逐步迁移。",
+        "C": "最后一步才删除。",
+        "D": "并行进行。"
+      }
+    },
+    {
+      "id": "arch-senior-107",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Governance", "Platform", "Features"],
+      "source_company": "Internal Tool",
+      "score": 12,
+      "title": "微前端治理平台功能",
+      "content": "构建企业级微前端治理平台，核心功能模块应包括？",
+      "options": [
+        { "id": "A", "text": "应用注册与版本管理" },
+        { "id": "B", "text": "依赖冲突检测与扫描" },
+        { "id": "C", "text": "统一监控与日志聚合" },
+        { "id": "D", "text": "自动化部署流水线" },
+        { "id": "E", "text": "强制代码风格统一" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：治理平台保障架构健康度。\n正确选型分析：A/B/C/D 均为核心基础设施。\n错误选型剖析：E 属于 Lint 工具范畴，非治理平台核心。\n工程实践建议：平台提供 SDK 和 CLI，自动化接入规范，减少人工干预。",
+      "exclusion_analysis": {
+        "E": "代码风格由 CI 检查。"
+      }
+    },
+    {
+      "id": "arch-senior-108",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Graph", "Cycle", "Dependency"],
+      "source_company": "Google",
+      "score": 15,
+      "title": "微应用依赖环检测",
+      "content": "实现一个函数，检测微应用依赖图中是否存在循环依赖，并返回环路径。",
+      "code_template": "function findCycle(deps: Record<string, string[]>): string[] | null;",
+      "test_cases": [
+        {
+          "input": "{A:[B], B:[C], C:[A]}",
+          "expected_output": "['A', 'B', 'C', 'A']",
+          "description": "存在环"
+        },
+        {
+          "input": "{A:[B], B:[C]}",
+          "expected_output": "null",
+          "description": "无环"
+        },
+        {
+          "input": "{A:[]}",
+          "expected_output": "null",
+          "description": "单节点"
+        }
+      ],
+      "time_complexity": "O(V+E)",
+      "space_complexity": "O(V)",
+      "correct_answer": "DFS 遍历，记录访问栈",
+      "explanation": "原理机制说明：循环依赖会导致加载死锁。\n正确选型分析：DFS 三色标记法或记录路径栈。\n错误选型剖析：BFS 难以记录路径。\n工程实践建议：在构建阶段运行此检测，阻止循环依赖代码合并。",
+      "constraints": ["返回完整环路径", "处理不连通图"]
+    },
+    {
+      "id": "arch-senior-109",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Module Federation", "ShareScope", "Deep"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Module Federation 共享作用域深层机制",
+      "content": "Module Federation 的 shareScope 在运行时存储在哪里？",
+      "options": [
+        { "id": "A", "text": "LocalStorage" },
+        { "id": "B", "text": "webpackShareScopes 全局变量" },
+        { "id": "C", "text": "Service Worker 缓存" },
+        { "id": "D", "text": "服务端 Session" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：MF 需在运行时共享依赖实例。\n正确选型分析：B 正确，webpack 注入全局变量 __webpack_share_scopes__。\n错误选型剖析：A 持久化不适合运行时实例；C 网络层；D 服务端。\n工程实践建议：避免手动操作此全局变量，通过配置管理共享，防止意外覆盖。",
+      "wrong_options_analysis": {
+        "A": "实例无法序列化。",
+        "C": "SW 无法访问内存。",
+        "D": "运行时在客户端。"
+      }
+    },
+    {
+      "id": "arch-senior-110",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Web Components", "Iframe", "Legacy"],
+      "source_company": "Microsoft",
+      "score": 5,
+      "title": "Web Components 替代 iframe 集成遗留系统",
+      "content": "对于完全未改造的遗留系统（如 JSP/ASP），使用 Web Components 比 iframe 更适合集成到微前端。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：未改造遗留系统通常包含全局脚本和样式，Web Components 无法隔离其内部全局污染。iframe 提供完整的浏览器上下文隔离，更适合黑盒遗留系统。Web Components 适合封装改造后的组件。",
+      "explanation": "原理机制说明：隔离级别决定适用场景。\n正确选型分析：选 B，iframe 隔离更彻底。\n错误选型剖析：高估 Web Components 隔离能力。\n工程实践建议：遗留系统首选 iframe 或独立域名部署，通过网关聚合。",
+      "knowledge_point": "legacy_integration_choice"
+    },
+    {
+      "id": "arch-senior-111",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Database", "Tenant", "Backend"],
+      "source_company": "SaaS Corp",
+      "score": 10,
+      "title": "微前端多租户后端适配",
+      "content": "微前端多租户架构中，前端如何配合后端实现数据隔离？",
+      "options": [
+        { "id": "A", "text": "前端存储租户 ID，每个请求携带" },
+        { "id": "B", "text": "依赖 Cookie/Token 中的租户声明，后端解析" },
+        { "id": "C", "text": "前端直接查询不同数据库" },
+        { "id": "D", "text": "不同租户使用不同前端域名" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：数据隔离核心在后端，前端透传身份。\n正确选型分析：B 最安全，避免前端篡改租户 ID。\n错误选型剖析：A 可被篡改；C 前端无权直连 DB；D 成本高。\n工程实践建议：使用 JWT 包含 tenant_id  claim，网关层校验，后端基于上下文隔离数据。",
+      "wrong_options_analysis": {
+        "A": "不安全，易伪造。",
+        "C": "架构错误。",
+        "D": "维护成本高。"
+      }
+    },
+    {
+      "id": "arch-senior-112",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Performance", "Budget", "Enforcement"],
+      "source_company": "Google",
+      "score": 12,
+      "title": "微前端性能预算执行策略",
+      "content": "确保微前端子应用不超出性能预算（Performance Budget）的手段包括？",
+      "options": [
+        { "id": "A", "text": "CI 阶段构建产物大小检查" },
+        { "id": "B", "text": "运行时 Lighthouse 自动化测试" },
+        { "id": "C", "text": "限制子应用可引入的依赖白名单" },
+        { "id": "D", "text": "超标自动回滚部署" },
+        { "id": "E", "text": "仅靠开发人员自觉" }
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "原理机制说明：性能需制度化保障。\n正确选型分析：A/B/C/D 均为硬性约束手段。\n错误选型剖析：E 不可靠。\n工程实践建议：建立性能门禁，超标构建失败，结合 RUM 数据持续监控。",
+      "exclusion_analysis": {
+        "E": "人性不可靠。"
+      }
+    },
+    {
+      "id": "arch-senior-113",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Cache", "Version", "Invalidation"],
+      "source_company": "Cloudflare",
+      "score": 15,
+      "title": "缓存版本失效策略实现",
+      "content": "实现一个缓存管理器，支持基于版本号的资源失效，旧版本资源自动清理。",
+      "code_template": "class CacheManager { set(key, value, version); get(key); invalidate(version); }",
+      "test_cases": [
+        {
+          "input": "set('a', 1, 1); get('a')",
+          "expected_output": "1",
+          "description": "正常获取"
+        },
+        {
+          "input": "invalidate(1); get('a')",
+          "expected_output": "undefined",
+          "description": "版本失效"
+        },
+        {
+          "input": "set('a', 2, 2); get('a')",
+          "expected_output": "2",
+          "description": "新版本"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(N)",
+      "correct_answer": "Map 存储 key-value-version，清理时遍历",
+      "explanation": "原理机制说明：微前端资源更新需清理旧缓存。\n正确选型分析：维护版本索引，失效时移除。\n错误选型剖析：仅覆盖不清理会导致内存泄漏。\n工程实践建议：结合 Service Worker 缓存策略，版本更新时主动清理旧 cache storage。",
+      "constraints": ["支持批量失效", "内存限制"]
+    },
+    {
+      "id": "arch-senior-114",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Team", "Structure", "Conway"],
+      "source_company": "Spotify",
+      "score": 8,
+      "title": "康威定律与微前端团队",
+      "content": "根据康威定律，微前端架构最适合的团队结构是？",
+      "options": [
+        { "id": "A", "text": "按职能划分（前端组/后端组）" },
+        { "id": "B", "text": "按业务领域划分的跨职能小队（Squad）" },
+        { "id": "C", "text": "集中式架构委员会" },
+        { "id": "D", "text": "外包团队" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：康威定律指出系统结构反映组织沟通结构。\n正确选型分析：B 正确，跨职能小队独立负责子应用全生命周期，匹配微前端自治特性。\n错误选型剖析：A 导致沟通成本高；C 决策慢；D 质量难控。\n工程实践建议：每个 Squad 拥有独立代码库、部署流水线和测试责任。",
+      "wrong_options_analysis": {
+        "A": "职能墙阻碍交付。",
+        "C": "成为瓶颈。",
+        "D": "不适合核心架构。"
+      }
+    },
+    {
+      "id": "arch-senior-115",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Testing", "Integration", "Mock"],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "微前端集成测试 Mock 策略",
+      "content": "微前端集成测试时，所有子应用必须真实部署，不能使用 Mock 服务。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：全真实部署成本高且不稳定。集成测试应混合使用：核心链路真实部署，依赖子应用使用 Mock 或 Stub，确保测试聚焦当前变更范围。",
+      "explanation": "原理机制说明：测试需平衡真实性与效率。\n正确选型分析：选 B，Mock 是必要手段。\n错误选型剖析：全真实部署难以维护。\n工程实践建议：使用契约测试保证 Mock 与真实行为一致，定期运行全链路 E2E。",
+      "knowledge_point": "integration_testing_mock"
+    },
+    {
+      "id": "arch-senior-116",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Security", "Supply Chain", "Audit"],
+      "source_company": "Snyk",
+      "score": 12,
+      "title": "微前端供应链安全审计",
+      "content": "微前端架构引入大量第三方子应用，供应链安全审计需关注？",
+      "options": [
+        { "id": "A", "text": "子应用依赖包漏洞扫描" },
+        { "id": "B", "text": "子应用构建环境可信度" },
+        { "id": "C", "text": "远程入口文件完整性校验（SRI）" },
+        { "id": "D", "text": "子应用代码混淆程度" },
+        { "id": "E", "text": "开发人员个人电脑安全" }
+      ],
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "原理机制说明：供应链攻击通过依赖或构建环节注入。\n正确选型分析：A 查漏洞；B 查环境；C 查篡改。\n错误选型剖析：D 混淆与安全无关；E 属内部安全。\n工程实践建议：CI 集成 Snyk/Dependabot，远程资源强制开启 SRI 哈希校验。",
+      "exclusion_analysis": {
+        "D": "混淆不影响安全性。",
+        "E": "非架构层面。"
+      }
+    },
+    {
+      "id": "arch-senior-117",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Evolution", "Monolith", "Step"],
+      "source_company": "ThoughtWorks",
+      "score": 10,
+      "title": "单体向微前端演进关键决策",
+      "content": "单体应用向微前端演进过程中，最关键的架构决策点是？",
+      "options": [
+        { "id": "A", "text": "选择哪种微前端框架" },
+        { "id": "B", "text": "界定子应用边界（业务域划分）" },
+        { "id": "C", "text": "购买多少服务器" },
+        { "id": "D", "text": "确定代码规范" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：边界划分错误会导致分布式单体。\n正确选型分析：B 正确，基于业务领域（DDD）划分边界，确保低耦合。\n错误选型剖析：A 工具可换；C 资源问题；D 次要。\n工程实践建议：使用事件风暴（Event Storming）识别业务边界，避免按技术层划分。",
+      "wrong_options_analysis": {
+        "A": "框架是实施细节。",
+        "C": "云原生可弹性。",
+        "D": "规范可迭代。"
+      }
+    },
+    {
+      "id": "arch-senior-118",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Documentation", "Living", "Code"],
+      "source_company": "OpenSource",
+      "score": 5,
+      "title": "微前端文档即代码",
+      "content": "微前端架构文档应独立维护，无需与代码版本关联。",
+      "options": [
+        { "id": "A", "text": "正确" },
+        { "id": "B", "text": "错误" }
+      ],
+      "correct_answer": "B",
+      "boundary_conditions": "边界条件说明：文档与代码脱节是常见痛点。微前端接口契约多，文档应随代码版本更新（如 Swagger 自动生成），或采用 Docs as Code 策略，确保文档准确性。",
+      "explanation": "原理机制说明：文档需保持同步。\n正确选型分析：选 B，文档应版本化。\n错误选型剖析：独立维护易过时。\n工程实践建议：将 API 文档纳入 CI 流程，接口变更需同步更新文档否则构建失败。",
+      "knowledge_point": "docs_as_code"
+    },
+    {
+      "id": "arch-senior-119",
+      "type": "algorithm",
+      "difficulty": "expert",
+      "tags": ["Rollback", "Version", "Strategy"],
+      "source_company": "Netflix",
+      "score": 15,
+      "title": "灰度发布版本回滚算法",
+      "content": "实现一个灰度发布控制器，支持按比例流量切换，检测到错误率超标自动回滚。",
+      "code_template": "class CanaryController { setRatio(ratio); checkHealth(); rollback(); }",
+      "test_cases": [
+        {
+          "input": "setRatio(0.1); checkHealth() OK",
+          "expected_output": "increase ratio",
+          "description": "健康则扩容"
+        },
+        {
+          "input": "checkHealth() Fail",
+          "expected_output": "rollback to 0",
+          "description": "失败则回滚"
+        },
+        {
+          "input": "ratio 1.0",
+          "expected_output": "full release",
+          "description": "全量发布"
+        }
+      ],
+      "time_complexity": "O(1)",
+      "space_complexity": "O(1)",
+      "correct_answer": "状态机管理发布阶段，监控指标触发转移",
+      "explanation": "原理机制说明：灰度发布降低上线风险。\n正确选型分析：需维护当前比例和阈值，自动决策。\n错误选型剖析：手动回滚太慢。\n工程实践建议：结合监控系统 API，错误率超过 1% 自动触发回滚指令。",
+      "constraints": ["支持自动回滚", "记录操作日志"]
+    },
+    {
+      "id": "arch-senior-120",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Future", "Qwik", "Resumability"],
+      "source_company": "Builder.io",
+      "score": 10,
+      "title": "可恢复性（Resumability）对微前端启示",
+      "content": "Qwik 框架的可恢复性特性（Resumability）对微前端架构的主要启示是？",
+      "options": [
+        { "id": "A", "text": "完全消除 JavaScript 加载" },
+        { "id": "B", "text": "按需加载事件处理程序，减少初始包体积" },
+        { "id": "C", "text": "替代所有微前端框架" },
+        { "id": "D", "text": "强制使用服务端渲染" }
+      ],
+      "correct_answer": "B",
+      "explanation": "原理机制说明：Resumability 序列化应用状态，按需加载交互代码。\n正确选型分析：B 正确，极大优化微前端初始加载性能，仅加载交互所需代码。\n错误选型剖析：A 不可能完全消除；C 互补非替代；D 非强制。\n工程实践建议：关注 Qwik 微前端集成方案，利用其细粒度懒加载特性优化子应用性能。",
+      "wrong_options_analysis": {
+        "A": "仍需 JS 交互。",
+        "C": "架构模式不同。",
+        "D": "支持多种渲染。"
+      }
     }
   ]
 }

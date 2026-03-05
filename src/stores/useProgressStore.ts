@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed } from "vue";
 import { useLocalStorage } from "@vueuse/core";
-import type { MistakeRecord } from "@/types/question";
+import type { MistakeRecord, NoteRecord } from "@/types/question";
 
 export interface LevelProgress {
   score: number;
@@ -14,7 +14,7 @@ export interface LevelProgress {
 export const useProgressStore = defineStore("progress", () => {
   // 按照 categoryId_levelId 作为 key 保存各关卡的最佳成绩和解锁进度
   const unlockedLevels = useLocalStorage<Record<string, LevelProgress>>(
-    "factopia_levels",
+    "codebook_levels",
     {},
   );
 
@@ -45,12 +45,15 @@ export const useProgressStore = defineStore("progress", () => {
 
   // 错题本：存储错误题目的记录
   const mistakeBook = useLocalStorage<MistakeRecord[]>(
-    "factopia_mistakes_v2",
+    "codebook_mistakes_v2",
     [],
   );
 
   // 收藏夹
-  const favorites = useLocalStorage<MistakeRecord[]>("factopia_favorites", []);
+  const favorites = useLocalStorage<MistakeRecord[]>("codebook_favorites", []);
+
+  // 我的笔记
+  const notes = useLocalStorage<NoteRecord[]>("codebook_notes", []);
 
   /**
    * 更新关卡进展。满足以下任一条件即更新：
@@ -154,6 +157,43 @@ export const useProgressStore = defineStore("progress", () => {
     );
   }
 
+  /**
+   * 保存或更新笔记
+   */
+  function saveNote(categoryId: string, questionId: string, content: string) {
+    const index = notes.value.findIndex(
+      (n) => n.categoryId === categoryId && n.questionId === questionId,
+    );
+    if (index >= 0) {
+      if (content.trim() === "") {
+        notes.value.splice(index, 1);
+      } else {
+        // Ensure notes.value[index] is not undefined before accessing properties
+        if (notes.value[index]) {
+          notes.value[index].content = content;
+          notes.value[index].timestamp = Date.now();
+        }
+      }
+    } else if (content.trim() !== "") {
+      notes.value.push({
+        categoryId,
+        questionId,
+        content,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  /**
+   * 获得对应题目的笔记内容
+   */
+  function getNote(categoryId: string, questionId: string): string {
+    const record = notes.value.find(
+      (n) => n.categoryId === categoryId && n.questionId === questionId,
+    );
+    return record?.content || "";
+  }
+
   return {
     unlockedLevels,
     totalScore,
@@ -167,5 +207,8 @@ export const useProgressStore = defineStore("progress", () => {
     removeMistake,
     toggleFavorite,
     isFavorite,
+    notes,
+    saveNote,
+    getNote,
   };
 });

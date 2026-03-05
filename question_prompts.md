@@ -6,13 +6,12 @@
 
 ## 领域与范围
 
-当前需要生成的题库领域为：【前端框架】（框架原理与源码：深入 React/Vue 内部机制，扩展Svelte、Solid、Qwik、Angular等）
+当前需要生成的题库领域为：【 浏览器与网络】（浏览器原理与网络协议：从渲染流水线到 HTTP/2）
 
 示例涵盖内容:
-框架原理与源码：深入 React/Vue 内部机制，扩展Svelte、Solid、Qwik、Angular等。
-状态管理：React Context/Redux/Zustand/Jotai/Pinia/Vuex/Vue Composition API 状态管理机制。
-路由与导航：React Router/Vue Router 路由机制与性能优化。
-组件库工程化：从零搭建组件库，包含 TypeScript 封装、文档生成（Storybook/VitePress）、版本管理与发布。
+浏览器底层: 渲染进程工作流（Main/Compositor/Raster 线程）、合成层优化（Will-change）、垃圾回收（V8 GC）增量标记策略。
+网络协议: HTTP/2 多路复用与头部压缩、HTTP/3 (QUIC) 核心改进、TLS 1.3 握手优化。
+安全与离线: XSS/CSRF/CORS 深度攻防、Service Worker 离线缓存、PWA 核心技术。
 
 请穷尽该领域内的深水区和高级考点（源码级、架构级、性能瓶颈、工程化等），题目宁缺毋滥，务必体现出拔高的区分度。
 
@@ -22,6 +21,8 @@
 
 ## 其他要求
 
-结果直接写入到JSON文件中，分批次生成，先生成30个，然后呼叫continue继续生成，没必要每次硬生成30个，什么时候覆盖完了，你就喊结束！
+1. 结果直接写入到JSON文件中，分批次生成，先生成30个，然后呼叫continue继续生成，没必要每次硬生成30个，什么时候覆盖完了，你就喊结束！
+2. 请额外留意：必须尽量生成 `hints` (2-3个关键字提示数组，引导用户主动回忆关键概念)。
+3. 评估下已生成题目的领域考点覆盖度
 
-评估下已生成题目的领域考点覆盖度
+继续扩展下一批次题目

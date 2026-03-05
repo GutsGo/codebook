@@ -1,5 +1,23 @@
 [
   {
+    "id": "css_ui",
+    "name": "CSS与UI",
+    "icon": "🎨",
+    "description": ""
+  },
+  {
+    "id": "framework",
+    "name": "前端框架",
+    "icon": "⚛️",
+    "description": "框架原理与源码：深入 React/Vue 内部机制"
+  },
+  {
+    "id": "network",
+    "name": "浏览器与网络",
+    "icon": "🌐",
+    "description": "浏览器原理与网络协议：从渲染流水线到 HTTP/2"
+  },
+  {
     "id": "engineering",
     "name": "前端工程化",
     "icon": "💻",
@@ -12,39 +30,21 @@
     "description": "架构设计与微前端：从组件模式到系统级解决方案"
   },
   {
-    "id": "framework",
-    "name": "前端框架",
-    "icon": "⚛️",
-    "description": "框架原理与源码：深入 React/Vue 内部机制"
+    "id": "cross-platform",
+    "name": "跨平台",
+    "icon": "📱",
+    "description": "Flutter、React Native、小程序等跨平台技术深度解析与实战"
   },
   {
-    "id": "framework-v2",
-    "name": "前端框架V2",
-    "icon": "⚛️",
-    "description": "框架原理与源码：深入 React/Vue 内部机制"
-  },
-  {
-    "id": "network",
-    "name": "浏览器与网络",
-    "icon": "🌐",
-    "description": "浏览器原理与网络协议：从渲染流水线到 HTTP/2"
-  },
-  {
-    "id": "v8",
-    "name": "引擎开发",
-    "icon": "🧩",
+    "id": "security",
+    "name": "安全",
+    "icon": "🛡️",
     "description": ""
   },
   {
     "id": "performance",
     "name": "性能优化",
     "icon": "⚡",
-    "description": ""
-  },
-  {
-    "id": "algorithm",
-    "name": "算法",
-    "icon": "✍️",
     "description": ""
   },
   {
@@ -60,15 +60,15 @@
     "description": ""
   },
   {
-    "id": "css_ui",
-    "name": "CSS与UI",
-    "icon": "🎨",
-    "description": ""
-  },
-  {
     "id": "devops",
     "name": "DevOps",
     "icon": "🚀",
+    "description": ""
+  },
+  {
+    "id": "v8",
+    "name": "引擎开发",
+    "icon": "🧩",
     "description": ""
   },
   {
@@ -78,21 +78,21 @@
     "description": "复杂业务场景建模、前沿解决方案（大文件上传、协同编辑、秒杀架构）与领域驱动设计（DDD）"
   },
   {
-    "id": "cross-platform",
-    "name": "跨平台",
-    "icon": "📱",
-    "description": "Flutter、React Native、小程序等跨平台技术深度解析与实战"
-  },
-  {
-    "id": "security",
-    "name": "安全",
-    "icon": "🛡️",
-    "description": ""
-  },
-  {
     "id": "ai-frontend",
     "name": "AI赋能前端与大模型应用开发",
     "icon": "🤖",
+    "description": ""
+  },
+  {
+    "id": "infrastructure",
+    "name": "基建与研发效能",
+    "icon": "🏗️",
+    "description": ""
+  },
+  {
+    "id": "algorithm",
+    "name": "算法",
+    "icon": "✍️",
     "description": ""
   }
 ]

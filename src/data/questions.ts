@@ -221,3 +221,14 @@ export async function fetchQuestionById(
   }
   return undefined;
 }
+
+export async function fetchAllQuestionsMap(): Promise<
+  Record<string, Question[]>
+> {
+  const { categories } = await loadAllQuestionBanks();
+  const map: Record<string, Question[]> = {};
+  for (const cat of categories) {
+    map[cat.id] = await fetchQuestionsByCategory(cat.id);
+  }
+  return map;
+}

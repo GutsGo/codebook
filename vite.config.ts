@@ -15,6 +15,8 @@ export default defineConfig({
         short_name: "CodeBook",
         description: "有趣的常识学习类APP",
         theme_color: "#ffffff",
+        background_color: "#ffffff",
+        display: "standalone",
         icons: [
           {
             src: "logo.avif",

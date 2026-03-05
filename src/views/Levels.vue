@@ -7,59 +7,66 @@
       </h1>
     </header>
 
-    <main class="levels-area" v-if="category">
-      <div v-if="tags.length > 0" class="tags-section">
-        <div class="tags-header">
-          <h3 class="section-title">🏷️ 专项挑战 (Tags)</h3>
-          <button
-            class="toggle-btn"
-            v-if="tags.length > 12"
-            @click="isTagsExpanded = !isTagsExpanded"
-          >
-            {{ isTagsExpanded ? "收起" : "展开全部" }}
-          </button>
-        </div>
-        <div class="tags-cloud">
-          <button
-            v-for="t in displayedTags"
-            :key="t.tag"
-            class="tag-btn"
-            @click="playTagLevel(t.tag)"
-          >
-            {{ t.tag }} <span class="tag-count">{{ t.count }}题</span>
-          </button>
-        </div>
+    <main class="levels-area">
+      <div v-if="isLoading" class="state-view pixel-card">
+        <div class="loader"></div>
+        <p>正在加载关卡...</p>
       </div>
 
-      <h3 class="section-title">🌟 顺序闯关</h3>
-      <div class="levels-grid">
-        <div
-          v-for="(lvl, index) in category.levels"
-          :key="lvl.id"
-          class="level-card"
-          :class="{ locked: !isUnlocked(index) }"
-          :style="{
-            borderColor: isUnlocked(index)
-              ? getCategoryColor(categoryId)
-              : undefined,
-          }"
-          @click="playLevel(lvl.id, index)"
-        >
-          <div class="level-info">
-            <h3>{{ lvl.name || `第 ${index + 1} 关` }}</h3>
-            <p>{{ lvl.questionIds.length }} 题</p>
+      <template v-else-if="category">
+        <div v-if="tags.length > 0" class="tags-section">
+          <div class="tags-header">
+            <h3 class="section-title">🏷️ 专项挑战 (Tags)</h3>
+            <button
+              class="toggle-btn"
+              v-if="tags.length > 12"
+              @click="isTagsExpanded = !isTagsExpanded"
+            >
+              {{ isTagsExpanded ? "收起" : "展开全部" }}
+            </button>
           </div>
-          <div class="level-status">
-            <template v-if="isUnlocked(index)">
-              <div v-if="getScore(lvl.id) > 0" class="score-badge">
-                最高分: {{ getScore(lvl.id) }}
-              </div>
-              <div v-else class="play-hint">点击开始</div>
-            </template>
-            <template v-else><div class="lock-icon">🔒 待解锁</div></template>
+          <div class="tags-cloud">
+            <button
+              v-for="t in displayedTags"
+              :key="t.tag"
+              class="tag-btn"
+              @click="playTagLevel(t.tag)"
+            >
+              {{ t.tag }} <span class="tag-count">{{ t.count }}题</span>
+            </button>
           </div>
         </div>
-      </div>
+
+        <h3 class="section-title">🌟 顺序闯关</h3>
+        <div class="levels-grid">
+          <div
+            v-for="(lvl, index) in category.levels"
+            :key="lvl.id"
+            class="level-card"
+            :class="{ locked: !isUnlocked(index) }"
+            :style="{
+              borderColor: isUnlocked(index)
+                ? getCategoryColor(categoryId)
+                : undefined,
+            }"
+            @click="playLevel(lvl.id, index)"
+          >
+            <div class="level-info">
+              <h3>{{ lvl.name || `第 ${index + 1} 关` }}</h3>
+              <p>{{ lvl.questionIds.length }} 题</p>
+            </div>
+            <div class="level-status">
+              <template v-if="isUnlocked(index)">
+                <div v-if="getScore(lvl.id) > 0" class="score-badge">
+                  最高分: {{ getScore(lvl.id) }}
+                </div>
+                <div v-else class="play-hint">点击开始</div>
+              </template>
+              <template v-else><div class="lock-icon">🔒 待解锁</div></template>
+            </div>
+          </div>
+        </div>
+      </template>
     </main>
   </div>
 </template>
@@ -67,6 +74,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useWindowSize } from "@vueuse/core";
 import { fetchCategories, fetchTagsByCategory } from "@/data/questions";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { getCategoryColor } from "@/utils/categoryColor";
@@ -74,6 +82,7 @@ import type { CategoryData } from "@/types/question";
 
 const route = useRoute();
 const router = useRouter();
+const { width } = useWindowSize();
 const progressStore = useProgressStore();
 const categoryId = route.params.category as string;
 const category = ref<CategoryData | null>(null);
@@ -82,10 +91,10 @@ const tags = ref<{ tag: string; count: number }[]>([]);
 const isTagsExpanded = ref(false);
 
 const displayedTags = computed(() => {
-  if (isTagsExpanded.value || tags.value.length <= 12) {
-    return tags.value;
-  }
-  return tags.value.slice(0, 12);
+  if (isTagsExpanded.value) return tags.value;
+  // 移动端收起时显示更少
+  const limit = width.value < 600 ? 6 : 12;
+  return tags.value.slice(0, limit);
 });
 
 onMounted(async () => {
@@ -347,6 +356,10 @@ function playTagLevel(tag: string) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+
+  @media (max-width: 600px) {
+    gap: 0.4rem;
+  }
 }
 
 .tag-btn {
@@ -372,6 +385,56 @@ function playTagLevel(tag: string) {
     border-radius: 10px;
     font-size: 0.7rem;
     margin-left: 4px;
+  }
+
+  @media (max-width: 600px) {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+
+    .tag-count {
+      padding: 1px 4px;
+      margin-left: 2px;
+    }
+  }
+}
+
+.pixel-card {
+  background: var(--theme-card-bg);
+  border: var(--theme-border-width) solid var(--theme-border-color);
+  border-radius: var(--theme-radius-md);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--theme-shadow-card);
+  width: 100%;
+
+  p {
+    font-weight: 700;
+    color: var(--theme-text-secondary);
+    font-size: 1rem;
+  }
+}
+
+.state-view {
+  margin-top: 2rem;
+}
+
+.loader {
+  border: 4px solid rgba(94, 76, 65, 0.1);
+  border-top: 4px solid var(--theme-accent);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

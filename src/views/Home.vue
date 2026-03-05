@@ -21,7 +21,14 @@
       </header>
 
       <!-- 三个操作按钮 -->
+      <!-- 操作按钮 -->
       <div class="actions-bar">
+        <router-link to="/srs" class="action-btn main-action">
+          <span class="emoji">🤖</span> 智能复习
+        </router-link>
+        <router-link to="/notes" class="action-btn">
+          <span class="emoji">📝</span> 我的笔记
+        </router-link>
         <router-link to="/mistakes" class="action-btn">
           <span class="emoji">📖</span> 错题本
         </router-link>
@@ -30,6 +37,9 @@
         </router-link>
         <router-link to="/statistics" class="action-btn">
           <span class="emoji">🎯</span> 统计中心
+        </router-link>
+        <router-link to="/backup" class="action-btn backup">
+          <span class="emoji">☁️</span> 云备份
         </router-link>
       </div>
 
@@ -336,18 +346,19 @@ onMounted(async () => {
 
 /* ---------- 操作按钮 ---------- */
 .actions-bar {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
 
   @media (min-width: 600px) {
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
   }
 }
 
 .action-btn {
-  flex: 1;
   background: var(--theme-card-bg);
   border: var(--theme-border-width) solid var(--theme-border-color);
   border-radius: var(--theme-radius-sm);
@@ -359,16 +370,61 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
   box-shadow: var(--theme-shadow-btn);
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 52px;
 
   @media (min-width: 600px) {
-    flex: unset;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem 0.5rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  &.main-action {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #ffde7d 0%, #ffcf40 100%);
+    color: #8b4513; /* 深褐色文字更高级 */
+    border: 2px solid #fff;
     font-size: 1.1rem;
+    box-shadow:
+      0 4px 0 #e6b800,
+      0 6px 15px rgba(255, 207, 64, 0.4);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+      );
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @media (min-width: 600px) {
+      grid-column: span 1;
+      font-size: 0.95rem;
+    }
+  }
+
+  &.backup {
+    grid-column: span 2;
+    background: var(--theme-card-inner);
+    border-style: dashed;
+
+    @media (min-width: 600px) {
+      grid-column: span 1;
+      border-style: solid;
+    }
   }
 
   &:hover {
@@ -383,9 +439,19 @@ onMounted(async () => {
 
   .emoji {
     font-size: 1.2rem;
+    flex-shrink: 0;
     @media (min-width: 600px) {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
     }
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-150%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(45deg);
   }
 }
 

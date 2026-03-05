@@ -70,7 +70,10 @@
             <div class="m-answer">
               正确答案: <span>{{ getQuestionAnswer(qId) }}</span>
             </div>
-            <div class="m-explain">{{ getQuestionExplanation(qId) }}</div>
+            <div
+              class="m-explain markdown-body"
+              v-html="renderMarkdown(getQuestionExplanation(qId))"
+            ></div>
           </div>
         </div>
       </div>
@@ -96,6 +99,7 @@ import QuestionCard from "@/components/QuestionCard.vue";
 import { fetchCategories, fetchQuestionsByLevel } from "@/data/questions";
 import type { Question } from "@/types/question";
 import { useWindowSize } from "@vueuse/core";
+import { renderMarkdown } from "@/utils/markdown";
 
 const props = defineProps<{ category: string; level: string }>();
 const router = useRouter();

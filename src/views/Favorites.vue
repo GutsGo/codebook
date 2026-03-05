@@ -4,13 +4,36 @@
       <button class="pixel-btn" @click="goBack">← 返回首页</button>
       <h2>⭐ 收藏夹</h2>
     </header>
+
+    <div class="mode-tabs">
+      <button
+        class="tab-btn"
+        :class="{ active: currentTab === 'questions' }"
+        @click="currentTab = 'questions'"
+      >
+        题目
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: currentTab === 'flashcards' }"
+        @click="currentTab = 'flashcards'"
+      >
+        闪卡
+      </button>
+    </div>
+
     <main class="main-card">
       <div v-if="loading" class="state-view">
         <div class="loader"></div>
-        <p>正在拉取你心爱的题目...</p>
+        <p>
+          正在拉取你心爱的{{ currentTab === "questions" ? "题目" : "闪卡" }}...
+        </p>
       </div>
+
       <div
-        v-else-if="favoritesWithDetails.length === 0"
+        v-else-if="
+          currentTab === 'questions' && favoritesWithDetails.length === 0
+        "
         class="state-view empty"
       >
         <div class="big-emoji">📭</div>
@@ -18,7 +41,23 @@
         <p>遇到有趣的题目，记得在答题时点击星星收藏哦！</p>
         <button class="pixel-btn primary-btn" @click="goBack">去答题</button>
       </div>
-      <div v-else class="list">
+
+      <div
+        v-else-if="
+          currentTab === 'flashcards' &&
+          flashcardFavoritesWithDetails.length === 0
+        "
+        class="state-view empty"
+      >
+        <div class="big-emoji">📭</div>
+        <h3>闪卡收藏夹空空如也~</h3>
+        <p>去按分类浏览闪卡并收藏重点难点吧！</p>
+        <button class="pixel-btn primary-btn" @click="goBack">
+          去查看闪卡
+        </button>
+      </div>
+
+      <div v-else-if="currentTab === 'questions'" class="list">
         <div
           v-for="item in favoritesWithDetails"
           :key="item.categoryId + '_' + item.questionId"
@@ -53,6 +92,40 @@
           </div>
         </div>
       </div>
+
+      <div v-else-if="currentTab === 'flashcards'" class="list">
+        <div
+          v-for="item in flashcardFavoritesWithDetails"
+          :key="'fc_' + item.categoryId + '_' + item.questionId"
+          class="list-item"
+        >
+          <div class="item-header">
+            <span class="badge"
+              >{{ getCategoryName(item.categoryId) }} - 闪卡</span
+            >
+            <button
+              class="pixel-btn sm outline"
+              @click="removeFlashcardFavorite(item.categoryId, item.questionId)"
+            >
+              取消收藏
+            </button>
+          </div>
+          <div class="item-title" style="margin-bottom: 0">
+            {{ item.flashcard?.front_concept || "加载失败..." }}
+          </div>
+          <div
+            class="item-explain"
+            v-if="item.flashcard?.back_explanation"
+            style="margin-top: 1rem"
+          >
+            <strong>👉 原理/解析：</strong>
+            <div
+              class="explain-text markdown-body"
+              v-html="renderMarkdown(item.flashcard.back_explanation)"
+            ></div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -61,23 +134,35 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/useProgressStore";
-import { fetchCategories } from "@/data/questions";
+import { fetchCategories, fetchQuestionsByCategory } from "@/data/questions";
+import { fetchFlashcardDeck } from "@/data/flashcards";
 import type { Question, CategoryData, MistakeRecord } from "@/types/question";
+import type { Flashcard } from "@/types/flashcard";
+import { renderMarkdown } from "@/utils/markdown";
+
 const router = useRouter();
 const progressStore = useProgressStore();
 const loading = ref(true);
+const currentTab = ref<"questions" | "flashcards">("questions");
+
 const rawFavorites = ref<MistakeRecord[]>([]);
+const rawFlashcardFavorites = ref<MistakeRecord[]>([]);
 const categories = ref<CategoryData[]>([]);
+
 interface FavoriteDetail extends MistakeRecord {
   question?: Question;
 }
+
+interface FlashcardFavoriteDetail extends MistakeRecord {
+  flashcard?: Flashcard;
+}
+
 const favoritesWithDetails = ref<FavoriteDetail[]>([]);
+const flashcardFavoritesWithDetails = ref<FlashcardFavoriteDetail[]>([]);
+
 function goBack() {
   router.push("/");
 }
-
-import { fetchQuestionsByCategory } from "@/data/questions";
-import { renderMarkdown } from "@/utils/markdown";
 
 function formatAnswer(q: any) {
   const ans = q.correct_answer !== undefined ? q.correct_answer : q.answer;
@@ -88,13 +173,17 @@ function formatAnswer(q: any) {
   if (typeof ans === "boolean") return ans ? "正确" : "错误";
   return String(ans || "");
 }
+
 function getCategoryName(id: string) {
   return categories.value.find((c: any) => c.id === id)?.name || id;
 }
+
 async function loadFavorites() {
   loading.value = true;
   try {
     categories.value = await fetchCategories();
+
+    // Load Question Favorites
     rawFavorites.value = progressStore.favorites;
     const list: FavoriteDetail[] = [];
     const cg = new Map<string, string[]>();
@@ -122,18 +211,59 @@ async function loadFavorites() {
       }
     }
     favoritesWithDetails.value = list.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Load Flashcard Favorites
+    rawFlashcardFavorites.value = progressStore.flashcardFavorites;
+    const fcList: FlashcardFavoriteDetail[] = [];
+    const fcg = new Map<string, string[]>();
+    rawFlashcardFavorites.value.forEach((f: any) => {
+      if (!fcg.has(f.categoryId)) fcg.set(f.categoryId, []);
+      fcg.get(f.categoryId)!.push(String(f.questionId));
+    });
+    for (const [catId, fcIds] of fcg.entries()) {
+      try {
+        const deck = await fetchFlashcardDeck(catId);
+        if (deck && deck.cards.length > 0) {
+          fcIds.forEach((fcid) => {
+            const m = deck.cards.find((c: any) => String(c.id) === fcid);
+            if (m) {
+              const r = rawFlashcardFavorites.value.find(
+                (r: any) =>
+                  r.categoryId === catId && String(r.questionId) === fcid,
+              );
+              if (r) fcList.push({ ...r, flashcard: m });
+            }
+          });
+        }
+      } catch (e) {
+        console.error(`Failed to load flashcard favorites for ${catId}:`, e);
+      }
+    }
+    flashcardFavoritesWithDetails.value = fcList.sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
   } catch (e) {
     console.error("Failed to load favorites:", e);
   } finally {
     loading.value = false;
   }
 }
+
 function removeFavorite(cid: string, qid: string) {
   progressStore.toggleFavorite(cid, qid);
   favoritesWithDetails.value = favoritesWithDetails.value.filter(
     (f) => !(f.categoryId === cid && String(f.questionId) === qid),
   );
 }
+
+function removeFlashcardFavorite(cid: string, fcid: string) {
+  progressStore.toggleFlashcardFavorite(cid, fcid);
+  flashcardFavoritesWithDetails.value =
+    flashcardFavoritesWithDetails.value.filter(
+      (f) => !(f.categoryId === cid && String(f.questionId) === fcid),
+    );
+}
+
 onMounted(() => loadFavorites());
 </script>
 
@@ -163,6 +293,41 @@ onMounted(() => loadFavorites());
     margin: 0;
     @media (min-width: 600px) {
       font-size: 1.8rem;
+    }
+  }
+}
+
+.mode-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--theme-card-bg);
+  padding: 0.4rem;
+  border-radius: var(--theme-radius-md);
+  border: var(--theme-border-width) solid var(--theme-border-color);
+  box-shadow: var(--theme-shadow-panel);
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: var(--theme-radius-sm);
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--theme-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--theme-text-secondary);
+    }
+
+    &.active {
+      background: var(--theme-btn-settings-bg);
+      color: var(--theme-text-secondary);
+      box-shadow: var(--theme-shadow-btn);
     }
   }
 }

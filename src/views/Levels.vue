@@ -7,13 +7,30 @@
       </h1>
     </header>
 
+    <div class="mode-tabs">
+      <button
+        class="tab-btn"
+        :class="{ active: currentMode === 'levels' }"
+        @click="currentMode = 'levels'"
+      >
+        🏆 闯关
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: currentMode === 'flashcards' }"
+        @click="currentMode = 'flashcards'"
+      >
+        🗂️ 闪卡
+      </button>
+    </div>
+
     <main class="levels-area">
       <div v-if="isLoading" class="state-view pixel-card">
         <div class="loader"></div>
-        <p>正在加载关卡...</p>
+        <p>正在拉取数据...</p>
       </div>
 
-      <template v-else-if="category">
+      <template v-else-if="currentMode === 'levels' && category">
         <div v-if="tags.length > 0" class="tags-section">
           <div class="tags-header">
             <h3 class="section-title">🏷️ 专项挑战 (Tags)</h3>
@@ -67,18 +84,51 @@
           </div>
         </div>
       </template>
+
+      <!-- 闪卡模式 -->
+      <template v-else-if="currentMode === 'flashcards'">
+        <div v-if="isFlashcardLoading" class="state-view pixel-card">
+          <div class="loader"></div>
+          <p>正在加载闪卡...</p>
+        </div>
+        <div v-else-if="!flashcardDeck" class="state-view pixel-card">
+          <h3>🚧 建设中</h3>
+          <p>该分类下暂未提供高级记忆闪卡，敬请期待！</p>
+        </div>
+        <div v-else class="flashcard-panel pixel-card">
+          <div class="fc-header">
+            <h3>{{ flashcardDeck.file_metadata.category_name }} - 记忆闪卡</h3>
+            <span class="fc-badge">{{
+              flashcardDeck.file_metadata.target_level || "Expert"
+            }}</span>
+          </div>
+          <p class="fc-desc">
+            基于主动回忆与间隔重复（SRS）的高效学习模式，直击底层原理与实战经验。当前拥有
+            <strong>{{ flashcardDeck.file_metadata.total_cards }}</strong>
+            张卡片供您探索。
+          </p>
+          <button
+            class="pixel-btn primary-btn fc-start"
+            @click="startFlashcardReview"
+          >
+            🕹️ 开始学习
+          </button>
+        </div>
+      </template>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
 import { fetchCategories, fetchTagsByCategory } from "@/data/questions";
+import { fetchFlashcardDeck } from "@/data/flashcards";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { getCategoryColor } from "@/utils/categoryColor";
 import type { CategoryData } from "@/types/question";
+import type { FlashcardDeck } from "@/types/flashcard";
 
 const route = useRoute();
 const router = useRouter();
@@ -89,6 +139,10 @@ const category = ref<CategoryData | null>(null);
 const isLoading = ref(true);
 const tags = ref<{ tag: string; count: number }[]>([]);
 const isTagsExpanded = ref(false);
+
+const currentMode = ref<"levels" | "flashcards">("levels");
+const flashcardDeck = ref<FlashcardDeck | null>(null);
+const isFlashcardLoading = ref(false);
 
 const displayedTags = computed(() => {
   if (isTagsExpanded.value) return tags.value;
@@ -101,8 +155,23 @@ onMounted(async () => {
   const cats = await fetchCategories();
   category.value = cats.find((c) => c.id === categoryId) || null;
   if (category.value) tags.value = await fetchTagsByCategory(categoryId);
+  // default active logic for flashcards could trigger here, but loaded on demand below is better
   isLoading.value = false;
 });
+
+watch(currentMode, async (newMode) => {
+  if (newMode === "flashcards" && !flashcardDeck.value) {
+    isFlashcardLoading.value = true;
+    try {
+      flashcardDeck.value = await fetchFlashcardDeck(categoryId);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      isFlashcardLoading.value = false;
+    }
+  }
+});
+
 function goHome() {
   if (window.history.state?.back) router.back();
   else router.replace("/");
@@ -124,6 +193,9 @@ function playLevel(levelId: string, index: number) {
 }
 function playTagLevel(tag: string) {
   router.push(`/game/${categoryId}/tag_${encodeURIComponent(tag)}`);
+}
+function startFlashcardReview() {
+  router.push(`/flashcard/${categoryId}`);
 }
 </script>
 
@@ -164,6 +236,87 @@ function playTagLevel(tag: string) {
     @media (min-width: 600px) {
       font-size: 1.8rem;
     }
+  }
+}
+
+.mode-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--theme-card-bg);
+  padding: 0.4rem;
+  border-radius: var(--theme-radius-md);
+  border: var(--theme-border-width) solid var(--theme-border-color);
+  box-shadow: var(--theme-shadow-panel);
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: var(--theme-radius-sm);
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--theme-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--theme-text-secondary);
+    }
+
+    &.active {
+      background: var(--theme-btn-settings-bg);
+      color: var(--theme-text-secondary);
+      box-shadow: var(--theme-shadow-btn);
+    }
+  }
+}
+
+.flashcard-panel {
+  text-align: center;
+  padding: 3rem 1.5rem;
+
+  .fc-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+
+    h3 {
+      font-size: 1.4rem;
+      margin: 0;
+      color: var(--theme-text-secondary);
+    }
+
+    .fc-badge {
+      background: var(--theme-accent);
+      color: white;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--theme-radius-sm);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+  }
+
+  .fc-desc {
+    color: var(--theme-text-main);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+
+    strong {
+      color: var(--theme-accent);
+      font-size: 1.2rem;
+    }
+  }
+
+  .fc-start {
+    font-size: 1.1rem;
+    padding: 0.8rem 2.5rem;
   }
 }
 

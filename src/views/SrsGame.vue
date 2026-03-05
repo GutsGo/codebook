@@ -3,9 +3,29 @@
     <header class="game-header">
       <button class="back-btn pixel-btn" @click="goBack">← 返回首页</button>
       <div class="score pill">
-        复习待办: <span>{{ dueCount }}</span>
+        复习待办:
+        <span>{{
+          currentTab === "questions" ? dueQuestionCount : dueFlashcardCount
+        }}</span>
       </div>
     </header>
+
+    <div class="mode-tabs">
+      <button
+        class="tab-btn"
+        :class="{ active: currentTab === 'questions' }"
+        @click="currentTab = 'questions'"
+      >
+        题目
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: currentTab === 'flashcards' }"
+        @click="currentTab = 'flashcards'"
+      >
+        闪卡
+      </button>
+    </div>
 
     <main class="game-area">
       <div v-if="isLoading" class="state-view pixel-card">
@@ -13,27 +33,49 @@
         <p>正在生成复习题库...</p>
       </div>
 
-      <div v-else-if="!currentQuestion" class="state-view pixel-card end-game">
+      <div
+        v-else-if="currentTab === 'questions' && !currentQuestion"
+        class="state-view pixel-card end-game"
+      >
         <h2 class="end-title">🎉 太棒了！</h2>
         <p class="encouragement">
-          当前没有需要紧急复习的题目了。<br />休息一下，或者去探索新的关卡吧！
+          当前没有需要复习的题目了。<br />休息一下，或者去探索新的关卡吧！
         </p>
-        <div class="actions">
-          <button class="pixel-btn primary-btn" @click="goBack">
-            返回首页
-          </button>
-        </div>
+      </div>
+      <div
+        v-else-if="currentTab === 'flashcards' && !currentFlashcard"
+        class="state-view pixel-card end-game"
+      >
+        <h2 class="end-title">🎉 太棒了！</h2>
+        <p class="encouragement">
+          当前没有需要复习的闪卡了。<br />你可以去其他分类浏览新的闪卡。
+        </p>
       </div>
 
       <transition name="slide-card" mode="out-in">
-        <QuestionCard
-          v-if="currentQuestion"
-          :key="currentQuestion.id"
-          :question="currentQuestion"
-          :category-id="currentCategoryId"
-          :is-srs-mode="true"
-          @srs-review="handleSrsReview"
-        />
+        <div
+          v-if="currentTab === 'questions' && currentQuestion"
+          :key="'q_' + currentQuestion.id"
+          style="width: 100%"
+        >
+          <QuestionCard
+            :question="currentQuestion"
+            :category-id="currentQuestionCategoryId"
+            :is-srs-mode="true"
+            @srs-review="handleQuestionReview"
+          />
+        </div>
+        <div
+          v-else-if="currentTab === 'flashcards' && currentFlashcard"
+          :key="'fc_' + currentFlashcard.id"
+          style="width: 100%"
+        >
+          <FlashcardItem
+            :flashcard="currentFlashcard"
+            :category-id="currentFlashcardCategoryId"
+            @srs-review="handleFlashcardReview"
+          />
+        </div>
       </transition>
     </main>
   </div>
@@ -44,8 +86,11 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useSrsStore } from "@/stores/useSrsStore";
 import QuestionCard from "@/components/QuestionCard.vue";
-import { fetchAllQuestionsMap } from "@/data/questions";
+import FlashcardItem from "@/components/FlashcardItem.vue";
+import { fetchAllQuestionsMap, fetchCategories } from "@/data/questions";
+import { fetchFlashcardDeck } from "@/data/flashcards";
 import type { Question } from "@/types/question";
+import type { Flashcard } from "@/types/flashcard";
 import { useWindowSize } from "@vueuse/core";
 
 const router = useRouter();
@@ -54,20 +99,23 @@ const srsStore = useSrsStore();
 const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 768);
 
+const currentTab = ref<"questions" | "flashcards">("questions");
+
 const isLoading = ref(true);
 const questionsPool = ref<{ categoryId: string; question: Question }[]>([]);
+const flashcardsPool = ref<{ categoryId: string; flashcard: Flashcard }[]>([]);
 
-const dueCount = computed(() => srsStore.dueReviews.length);
+const dueQuestionCount = computed(() => srsStore.dueReviews.length);
+const dueFlashcardCount = computed(() => srsStore.dueFlashcardReviews.length);
 
 onMounted(async () => {
   try {
-    // 拉取所有可用题目（全库量若不大可直接全拉）
+    isLoading.value = true;
+
+    // 1. Load questions pool
     const allMaps = await fetchAllQuestionsMap();
-    const pool: { categoryId: string; question: Question }[] = [];
-
-    // 这里拉取需要复习的 ID 队列
+    const qPool: { categoryId: string; question: Question }[] = [];
     const dueItems = srsStore.getDueReviewIds(20);
-
     for (const item of dueItems) {
       const qList: Question[] | undefined = allMaps[item.categoryId];
       if (qList) {
@@ -75,15 +123,61 @@ onMounted(async () => {
           (qItem: Question) => String(qItem.id) === String(item.questionId),
         );
         if (q) {
-          if (isMobile.value && q.type === "algorithm") continue; // 移动端跳过算法题
-          pool.push({ categoryId: item.categoryId, question: q });
+          if (isMobile.value && q.type === "algorithm") continue;
+          qPool.push({ categoryId: item.categoryId, question: q });
         }
       }
     }
+    questionsPool.value = qPool;
 
-    // 目前仅展示到期的题目
+    // 2. Load flashcards pool
+    const fcPool: { categoryId: string; flashcard: Flashcard }[] = [];
+    const targetLimit = 20;
+    const dueFcItems = srsStore.getDueFlashcardReviewIds(targetLimit);
+    const fcRequests = new Map<string, string[]>();
+    dueFcItems.forEach((item) => {
+      if (!fcRequests.has(item.categoryId)) fcRequests.set(item.categoryId, []);
+      fcRequests.get(item.categoryId)!.push(String(item.questionId));
+    });
 
-    questionsPool.value = pool;
+    for (const [catId, cards] of fcRequests.entries()) {
+      const deck = await fetchFlashcardDeck(catId);
+      if (deck) {
+        cards.forEach((cardId) => {
+          const fc = deck.cards.find((c) => String(c.id) === cardId);
+          if (fc) fcPool.push({ categoryId: catId, flashcard: fc });
+        });
+      }
+    }
+
+    // 如果复习队列不足，自动从总牌组中补充未遇到的新卡片
+    const neededNewFc = targetLimit - fcPool.length;
+    if (neededNewFc > 0) {
+      const categories = await fetchCategories();
+      const srsSet = new Set(
+        srsStore.flashcardSrsBook.map((r) => `${r.categoryId}_${r.questionId}`),
+      );
+      const candidateFc: { categoryId: string; flashcard: Flashcard }[] = [];
+
+      // 遍历分类收集尚未学习过的新卡
+      for (const cat of categories) {
+        const deck = await fetchFlashcardDeck(cat.id);
+        if (deck) {
+          const unseenCards = deck.cards.filter(
+            (c) => !srsSet.has(`${cat.id}_${c.id}`),
+          );
+          unseenCards.forEach((fc) => {
+            candidateFc.push({ categoryId: cat.id, flashcard: fc });
+          });
+        }
+      }
+
+      // 稍微乱序并截取所需数量
+      candidateFc.sort(() => Math.random() - 0.5);
+      const newFcPool = candidateFc.slice(0, neededNewFc);
+      fcPool.push(...newFcPool);
+    }
+    flashcardsPool.value = fcPool;
   } catch (e) {
     console.error("加载复习题库失败：", e);
   } finally {
@@ -99,19 +193,34 @@ const currentQuestionData = computed(() => {
 const currentQuestion = computed(
   () => currentQuestionData.value?.question || null,
 );
-const currentCategoryId = computed(
+const currentQuestionCategoryId = computed(
   () => currentQuestionData.value?.categoryId || "",
 );
 
-function handleSrsReview(rating: "forgot" | "hard" | "easy") {
+const currentFlashcardData = computed(() => {
+  if (flashcardsPool.value.length === 0) return null;
+  return flashcardsPool.value[0];
+});
+
+const currentFlashcard = computed(
+  () => currentFlashcardData.value?.flashcard || null,
+);
+const currentFlashcardCategoryId = computed(
+  () => currentFlashcardData.value?.categoryId || "",
+);
+
+function handleQuestionReview(rating: "forgot" | "hard" | "easy") {
   if (!currentQuestionData.value) return;
   const { categoryId, question } = currentQuestionData.value;
-
-  // 记录到 SRS Store 中
   srsStore.submitReview(categoryId, String(question.id), rating);
-
-  // 从队列里推出
   questionsPool.value.shift();
+}
+
+function handleFlashcardReview(rating: "forgot" | "hard" | "easy") {
+  if (!currentFlashcardData.value) return;
+  const { categoryId, flashcard } = currentFlashcardData.value;
+  srsStore.submitFlashcardReview(categoryId, String(flashcard.id), rating);
+  flashcardsPool.value.shift();
 }
 
 function goBack() {
@@ -161,6 +270,41 @@ function goBack() {
   }
 }
 
+.mode-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--theme-card-bg);
+  padding: 0.4rem;
+  border-radius: var(--theme-radius-md);
+  border: var(--theme-border-width) solid var(--theme-border-color);
+  box-shadow: var(--theme-shadow-panel);
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: var(--theme-radius-sm);
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--theme-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--theme-text-secondary);
+    }
+
+    &.active {
+      background: var(--theme-btn-settings-bg);
+      color: var(--theme-text-secondary);
+      box-shadow: var(--theme-shadow-btn);
+    }
+  }
+}
+
 .pixel-btn {
   background: var(--theme-btn-bg);
   border: var(--theme-border-width) solid var(--theme-border-color);
@@ -194,7 +338,7 @@ function goBack() {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 0 0 2rem;
+  padding: 1.5rem 0 2rem;
   position: relative;
   overflow: hidden;
 }

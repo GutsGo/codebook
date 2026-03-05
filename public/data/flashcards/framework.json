@@ -1,0 +1,730 @@
+{
+  "file_metadata": {
+    "category_id": "frontend-frameworks",
+    "category_name": "前端框架原理与源码",
+    "total_cards": 30,
+    "target_level": "Expert"
+  },
+  "cards": [
+    {
+      "id": "frontend-frameworks-flashcard-001",
+      "front_concept": "React Fiber 架构中，时间切片（Time Slicing）是如何避免主线程长时间阻塞的？请描述其调度循环的核心中断机制。",
+      "hints": ["requestIdleCallback", "expirationTime", "workLoop"],
+      "back_explanation": "结论：通过将渲染任务拆分为可中断的单元，利用浏览器空闲时间执行。\n核心机制：1. Fiber 链表结构支持断点续传。2. 每执行一个 Fiber 节点检查剩余时间。3. 时间耗尽则 yield 主线程。\n坑点：低优先级任务可能饿死，需配合 expirationTime 提升优先级。",
+      "difficulty": "advanced",
+      "tags": ["React", "Fiber", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-002",
+      "front_concept": "Vue 3 使用 Proxy 替代 Object.defineProperty 实现响应式，这在数组索引修改和对象属性新增场景下解决了什么具体痛点？",
+      "hints": ["拦截器", "length 属性", "动态添加"],
+      "back_explanation": "结论：Proxy 能够拦截整个对象的操作，无需递归定义属性。\n核心机制：1. 直接拦截 set/deleteProperty。2. 自动监听数组索引及 length 变化。3. 支持 Map/Set 等集合类型。\n坑点：Proxy 对象与原对象身份不一致，需注意引用比较问题。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Reactivity", "Proxy"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-003",
+      "front_concept": "在 React Hooks 中，useEffect 依赖项数组中遗漏了某个状态变量，会导致什么具体的闭包陷阱现象？",
+      "hints": ["Stale Closure", "旧值", "依赖追踪"],
+      "back_explanation": "结论：Effect 回调会捕获渲染时的旧状态值，导致逻辑错误。\n核心机制：1. Hooks 基于调用顺序和闭包保存状态。2. 依赖项决定 Effect 何时重新创建。\n坑点：使用函数式更新 setState(prev => ...) 可规避部分读取旧值问题，但无法解决依赖逻辑缺失。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Hooks", "Closure"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-004",
+      "front_concept": "SSR 应用在水合（Hydration）阶段出现 'Text content does not match' 警告，通常是由哪些非确定性渲染因素导致的？",
+      "hints": ["Date.now()", "window 对象", "随机数"],
+      "back_explanation": "结论：服务端与客户端首次渲染的 DOM 结构或内容不一致。\n核心机制：1. 服务端无法访问 window/localStorage。2. 使用了随机数或时间戳生成内容。3. 浏览器插件注入节点。\n坑点：使用 useEffect 包裹客户端特有逻辑，或使用 [suppressHydrationWarning] 忽略单节点差异。",
+      "difficulty": "advanced",
+      "tags": ["SSR", "Hydration", "React"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-005",
+      "front_concept": "Virtual DOM Diff 算法中，为什么给列表项添加稳定的 key 能将从 O(n^2) 优化到 O(n)？",
+      "hints": ["节点复用", "移动操作", "哈希映射"],
+      "back_explanation": "结论：Key 帮助算法快速定位旧节点，减少不必要的创建和销毁。\n核心机制：1. 通过 key 建立旧节点映射表。2. 对比时直接查找而非遍历。3. 识别移动而非重新渲染。\n坑点：使用 index 作为 key 在列表乱序或删除时会导致状态错乱和性能回退。",
+      "difficulty": "intermediate",
+      "tags": ["Virtual DOM", "Algorithm", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-006",
+      "front_concept": "Zustand 与 Redux 相比，其状态订阅机制在避免组件无效重渲染方面有什么原生优势？",
+      "hints": ["Selector", "细粒度", "无 Provider"],
+      "back_explanation": "结论：Zustand 允许组件订阅状态切片，仅当切片变化时重渲染。\n核心机制：1. useStore(selector) 比较选中值。2. 无需全局 Provider 包裹。3. 基于发布订阅模式。\n坑点：selector 中创建新对象会导致浅比较失效，需记忆化 selector。",
+      "difficulty": "advanced",
+      "tags": ["State Management", "Zustand", "Redux"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-007",
+      "front_concept": "React 18 的 useTransition  hook 主要解决什么用户体验问题？它与 useDeferredValue 的核心区别是什么？",
+      "hints": ["非阻塞更新", "pending 状态", "值 vs 动作"],
+      "back_explanation": "结论：标记低优先级更新，避免 UI 阻塞，保持输入响应。\n核心机制：1. startTransition 包裹状态更新。2. isPending 提供加载态。\n坑点：useTransition 用于动作触发，useDeferredValue 用于处理传入的 prop 值延迟更新。",
+      "difficulty": "advanced",
+      "tags": ["React", "Concurrent", "Hooks"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-008",
+      "front_concept": "Vue 的 nextTick 原理是什么？它在 DOM 更新循环中处于什么时机？",
+      "hints": ["微任务", "Promise", "队列刷新"],
+      "back_explanation": "结论：等待下一次 DOM 更新循环结束之后执行延迟回调。\n核心机制：1. 将回调推入微任务队列（Promise/MutationObserver）。2. 在数据变更同步更新 DOM 后执行。\n坑点：在 nextTick 前访问 DOM 可能获取不到更新后的值，需异步等待。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Event Loop", "DOM"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-009",
+      "front_concept": "React Context 在提供值变化时，为什么会导致所有消费该 Context 的子组件重渲染，即使它们只使用了部分数据？",
+      "hints": ["引用相等", "传播机制", "拆分 Context"],
+      "back_explanation": "结论：Context 比较的是 value 的引用，整个对象变化会触发所有消费者。\n核心机制：1. Provider value 变化通知所有 Consumer。2. 默认无细粒度订阅。\n坑点：将状态拆分为多个 Context 或使用 useMemo 稳定 value 引用，亦可结合 use-context-selector。",
+      "difficulty": "advanced",
+      "tags": ["React", "Context", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-010",
+      "front_concept": "SolidJS 声称没有 Virtual DOM，它是如何实现视图更新的？其响应式原理与 Vue 有何异同？",
+      "hints": ["细粒度绑定", "编译时", "Signals"],
+      "back_explanation": "结论：通过编译时将模板转换为精确的 DOM 操作指令，配合细粒度响应式。\n核心机制：1. Signals 追踪依赖。2. 更新直接定位到文本节点或属性。3. 无 Diff 过程。\n坑点： JSX 仅编译一次，后续不会重新执行组件函数，需注意闭包捕获最新值。",
+      "difficulty": "advanced",
+      "tags": ["SolidJS", "Reactivity", "No VDOM"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-011",
+      "front_concept": "Qwik 框架的 'Resumability'（可恢复性）与传统 SSR Hydration 的核心区别是什么？",
+      "hints": ["序列化", "无水合", "按需加载"],
+      "back_explanation": "结论：跳过客户端重新执行 JS 过程，直接从服务端状态恢复事件监听。\n核心机制：1. 序列化应用状态和事件监听器位置。2. 交互时按需加载对应代码块。\n坑点：首屏交互依赖网络加载片段，需优化 CDN 策略以减少延迟。",
+      "difficulty": "advanced",
+      "tags": ["Qwik", "SSR", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-012",
+      "front_concept": "Angular 的 Zone.js 是如何实现自动变更检测的？它在性能敏感场景下为何可能成为瓶颈？",
+      "hints": ["Monkey Patching", "异步任务", "NgZone"],
+      "back_explanation": "结论：通过拦截所有异步 API 调用，在任务结束后触发变更检测。\n核心机制：1. 补丁 setTimeout/Promise 等。2. 触发 tick() 检查组件树。\n坑点：高频异步事件（如鼠标移动）会触发频繁检测，需使用 OnPush 策略或脱离 Zone。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "Zone.js", "Change Detection"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-013",
+      "front_concept": "React 合成事件（SyntheticEvent）为什么要委托到 document 根节点（17 版本后委托到 root 节点）？",
+      "hints": ["事件委托", "兼容性", "内存管理"],
+      "back_explanation": "结论：减少事件监听器数量，统一跨浏览器事件行为。\n核心机制：1. 根节点监听原生事件。2. 冒泡阶段分发合成事件。3. 自动处理事件池回收。\n坑点：动态挂载到 document 外的节点（如模态框）可能无法冒泡到 React 根，需注意事件监听位置。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Event System", "DOM"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-014",
+      "front_concept": "Vue 的 computed 属性具有缓存特性，什么情况下缓存会失效并重新计算？",
+      "hints": ["依赖变更", "Getter 执行", "_dirty 标记"],
+      "back_explanation": "结论：仅当响应式依赖发生变化时才会重新求值。\n核心机制：1. 追踪依赖收集。2. 依赖触发 setter 时标记 dirty。3. 下次访问时重新计算。\n坑点：在 computed 中执行副作用是不推荐的，应使用 watch；依赖未正确追踪会导致缓存不更新。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Computed", "Cache"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-015",
+      "front_concept": "React useEffect 的清理函数（cleanup）在什么时候执行？组件卸载时一定会执行吗？",
+      "hints": ["下次 effect 前", "卸载时", "依赖变化"],
+      "back_explanation": "结论：在下一次 effect 执行前以及组件卸载时执行。\n核心机制：1. 用于清除定时器、订阅等。2. 保证副作用不泄漏。\n坑点：清理函数本身不能是异步的；若依赖项变化频繁，清理会频繁触发，需注意性能。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Hooks", "Lifecycle"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-016",
+      "front_concept": "React Suspense 边界内抛出的 Promise 是如何被捕获并触发 fallback UI 显示的？",
+      "hints": ["Throw Promise", "Error Boundary", "渲染中断"],
+      "back_explanation": "结论：组件加载时抛出 Promise，被最近的 Suspense 边界捕获。\n核心机制：1. 渲染中断，暂存状态。2. 显示 fallback。3. Promise resolve 后重试渲染。\n坑点：Suspense 目前主要用于数据加载库集成，普通 useEffect 加载数据无法直接触发 Suspense。",
+      "difficulty": "advanced",
+      "tags": ["React", "Suspense", "Loading"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-017",
+      "front_concept": "为什么 React 的 Error Boundaries 只能用 Class 组件实现，函数组件无法捕获子组件错误？",
+      "hints": ["getDerivedStateFromError", "componentDidCatch", "生命周期"],
+      "back_explanation": "结论：错误捕获依赖于特定的类生命周期方法。\n核心机制：1. 需要静态方法 getDerivedStateFromError。2. 需要生命周期 componentDidCatch。\n坑点：函数组件内部错误需用 try-catch 包裹逻辑，或使用第三方库封装类组件边界。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Error Handling", "Class Component"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-018",
+      "front_concept": "Vue 中使用 watch 监听对象时，开启 deep: true 会对性能产生什么影响？如何优化？",
+      "hints": ["递归遍历", "开销", "路径监听"],
+      "back_explanation": "结论：深度监听会递归遍历对象所有属性建立依赖，开销大。\n核心机制：1. 遍历所有嵌套属性收集 getter。2. 任意深层属性变化触发回调。\n坑点：优先监听具体路径（'obj.a.b'）；若必须深度，确保对象结构稳定，避免频繁替换整个对象。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Watch", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-019",
+      "front_concept": "React 18 引入了自动批量更新（Automatic Batching），哪些场景下的状态更新不再被批量处理？",
+      "hints": ["setTimeout", "原生事件", "flushSync"],
+      "back_explanation": "结论：几乎所有异步回调都支持批量，但强制同步更新除外。\n核心机制：1. 包裹 Promise/setTimeout/原生事件。2. 统一在微任务末尾刷新。\n坑点：若需要立即获取更新后的 DOM 或状态，需使用 ReactDOM.flushSync，但这会牺牲性能。",
+      "difficulty": "advanced",
+      "tags": ["React", "Batching", "React 18"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-020",
+      "front_concept": "Vue 模板中引用 ref  DOM 元素，在 mounted 钩子中一定能访问到吗？在 v-if 控制下呢？",
+      "hints": ["渲染时机", "null", "nextTick"],
+      "back_explanation": "结论：v-if 为假时 ref 为 null，需确保 DOM 已渲染。\n核心机制：1. ref 在渲染函数执行后赋值。2. v-if 移除节点时 ref 清空。\n坑点：动态切换 v-if 后需等待 nextTick 才能访问到新 DOM 元素的 ref。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Template Ref", "DOM"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-021",
+      "front_concept": "React Portal 将子节点渲染到 DOM 其他位置，事件冒泡行为会遵循 DOM 树结构还是 React 虚拟树结构？",
+      "hints": ["虚拟树", "冒泡路径", "Context 传递"],
+      "back_explanation": "结论：事件冒泡遵循 React 虚拟树结构，而非真实 DOM 位置。\n核心机制：1. 事件系统基于 Fiber 树传播。2. Portal 子节点逻辑上仍属于父组件。\n坑点：CSS 样式继承可能断裂（如 position: relative），但 Context 和事件监听依然有效。",
+      "difficulty": "advanced",
+      "tags": ["React", "Portal", "Event Bubbling"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-022",
+      "front_concept": "Vue 的作用域插槽（Scoped Slots）在编译层面是如何实现父组件访问子组件数据的？",
+      "hints": ["函数式组件", "slot props", "编译产物"],
+      "back_explanation": "结论：插槽内容被编译为接收 props 的函数。\n核心机制：1. 子组件调用 slot 函数传入数据。2. 父组件作用域内执行该函数生成 VNode。\n坑点：插槽内容在父组件作用域编译，无法直接访问子组件内部私有状态，需通过 props 暴露。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Slots", "Compiler"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-023",
+      "front_concept": "React StrictMode 在开发模式下会对组件进行双重_invoke_，这主要为了检测什么类型的问题？",
+      "hints": ["副作用清理", "纯函数", "安全卸载"],
+      "back_explanation": "结论：检测副作用是否未正确清理，确保组件可安全挂载卸载。\n核心机制：1. 模拟挂载 - 卸载 - 挂载过程。2. 暴露未清理的定时器/订阅。\n坑点：仅限开发模式；若双重执行导致接口重复调用，需在 useEffect 清理或加锁。",
+      "difficulty": "intermediate",
+      "tags": ["React", "StrictMode", "DevTools"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-024",
+      "front_concept": "Vue 的 <keep-alive> 包裹组件时，activated 和 deactivated 钩子分别在什么场景触发？",
+      "hints": ["缓存复用", "路由切换", "v-if"],
+      "back_explanation": "结论：组件从缓存激活或停用时触发，而非创建销毁。\n核心机制：1. 路由切换或 v-if 切换触发。2. 实例不被销毁，仅隐藏。\n坑点：数据需在 activated 中重新获取，因为 deactivated 时数据可能已过时；避免在 data 中依赖外部可变状态。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "KeepAlive", "Lifecycle"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-025",
+      "front_concept": "React.memo 仅进行浅比较，当 props 中包含对象或数组时，如何避免子组件无效重渲染？",
+      "hints": ["引用地址", "useMemo", "不可变数据"],
+      "back_explanation": "结论：父组件每次渲染创建新对象会导致浅比较失败。\n核心机制：1. 比较 props 引用。2. 引用变化即重渲染。\n坑点：在父组件中使用 useMemo 缓存对象 props，或使用 Immer 等库确保数据不可变更新。",
+      "difficulty": "advanced",
+      "tags": ["React", "Optimization", "Memo"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-026",
+      "front_concept": "微前端架构中，qiankun 基于 Proxy 的沙箱机制主要解决了全局变量污染的什么问题？",
+      "hints": ["window 对象", "隔离", "快照"],
+      "back_explanation": "结论：隔离子应用对 window 对象的读写，防止冲突。\n核心机制：1. Proxy 拦截 window 访问。2. 激活时还原快照，卸载时记录修改。\n坑点：无法隔离通过闭包引用的全局变量；CSS 污染需配合 shadow DOM 或 scoped 方案。",
+      "difficulty": "advanced",
+      "tags": ["Micro-frontends", "Sandbox", "Proxy"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-027",
+      "front_concept": "前端工程化中，Tree Shaking 依赖 ES Module 的静态结构分析，为什么引入 CommonJS 模块会导致失效？",
+      "hints": ["动态 require", "导出对象", "静态分析"],
+      "back_explanation": "结论：CommonJS 导出的是对象引用，无法在编译期确定使用成员。\n核心机制：1. ES Module 导出是静态绑定。2. Webpack/Rollup 可分析未使用导出。\n坑点：混合模块系统时，确保库提供 sideEffects: false 配置，并优先使用 ESM 入口。",
+      "difficulty": "advanced",
+      "tags": ["Engineering", "Tree Shaking", "Module"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-028",
+      "front_concept": "在状态管理选型中，何时应选择 React Query/SWR 等服务器状态库，而非 Redux/Zustand 等客户端状态库？",
+      "hints": ["缓存策略", "同步机制", "数据源"],
+      "back_explanation": "结论：数据源于服务端且需要缓存、去重、后台更新时使用服务器状态库。\n核心机制：1. 处理加载/错误状态。2. 自动重新验证。3. 窗口聚焦刷新。\n坑点：不要把服务端数据手动存入 Redux，这会导致双源真理问题，增加同步复杂度。",
+      "difficulty": "advanced",
+      "tags": ["State Management", "Server State", "Architecture"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-029",
+      "front_concept": "React 中 ReactDOM.flushSync 的作用是什么？滥用它会带来什么性能后果？",
+      "hints": ["同步刷新", "阻塞主线程", "批量失效"],
+      "back_explanation": "结论：强制立即同步执行状态更新和 DOM 渲染。\n核心机制：1. 跳过批量更新队列。2. 阻塞浏览器交互。\n坑点：滥用会导致掉帧和输入延迟，仅在测量 DOM 或必须同步响应特定逻辑时使用。",
+      "difficulty": "advanced",
+      "tags": ["React", "Performance", "Sync"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-030",
+      "front_concept": "在选型前端框架时，若项目对首屏加载速度（FCP）极度敏感且交互复杂度低，为何 SolidJS 或 Qwik 可能优于 React？",
+      "hints": ["运行时开销", "Bundle 大小", "执行机制"],
+      "back_explanation": "结论：更小的运行时体积和更高效的更新机制减少主线程阻塞。\n核心机制：1. Solid 无 VDOM 开销。2. Qwik 无水合开销。3. React 需加载 Fiber 运行时。\n坑点：生态成熟度较低，招聘成本高；复杂交互下 React 的并发特性可能更具优势。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Selection", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-031",
+      "front_concept": "在 React 中，若需存储可变值且不触发重渲染，为何首选 useRef 而非 useState？useState 在何种极端场景下会导致性能问题？",
+      "hints": ["current 属性", "渲染触发", "闭包引用"],
+      "back_explanation": "结论：useRef 修改 current 不会触发重渲染，useState 会。\n核心机制：1. useRef 返回可变对象。2. useState 更新触发调度。\n坑点：频繁调用 setState 即使值相同也会触发重渲染（除非批量），ref 适合存储定时器 ID 或上一时刻的值。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Hooks", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-032",
+      "front_concept": "Vue 3 中 ref 和 reactive 创建的对象在模板解构使用时有何不同？为何直接解构 reactive 对象会丢失响应式？",
+      "hints": ["Proxy", "toRefs", "值拷贝"],
+      "back_explanation": "结论：reactive 对象解构会丢失 Proxy 包装，变为普通值。\n核心机制：1. reactive 基于 Proxy。2. 解构是值拷贝。3. ref 自动解包。\n坑点：使用 toRefs 将 reactive 对象属性转为 ref 集合，保持响应式连接。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Reactivity", "Destructuring"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-033",
+      "front_concept": "React Router v6 中结合 Suspense 实现路由级代码分割时，若加载失败如何捕获错误并显示 fallback？",
+      "hints": ["lazy", "ErrorBoundary", "Promise"],
+      "back_explanation": "结论：需配合 Error Boundaries 捕获 lazy 组件加载错误。\n核心机制：1. React.lazy 返回组件。2. Suspense 处理 loading。3. ErrorBoundary 处理 error。\n坑点：路由配置中需包裹边界组件，否则错误会冒泡至根导致白屏。",
+      "difficulty": "advanced",
+      "tags": ["React", "Routing", "Code Splitting"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-034",
+      "front_concept": "Angular 的依赖注入（DI）树是如何构建的？组件级注入器与模块级注入器优先级如何？",
+      "hints": ["层级结构", "就近原则", "Provider"],
+      "back_explanation": "结论：依赖注入树与组件树平行，遵循就近查找原则。\n核心机制：1. 模块注入器为根。2. 组件注入器为子节点。3. 优先查找当前组件。\n坑点：组件销毁时其提供的服务实例也会被销毁，需注意单例服务的提供位置。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "Dependency Injection", "Architecture"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-035",
+      "front_concept": "Svelte 声称是编译器而非框架，其生成的代码与传统 Virtual DOM 框架在更新机制上有何本质区别？",
+      "hints": ["指令式更新", "编译时", "无运行时"],
+      "back_explanation": "结论：编译时生成直接操作 DOM 的命令式代码，无 Diff 过程。\n核心机制：1. 分析依赖关系。2. 生成更新函数。3. 数据变动直接调用更新。\n坑点：缺乏运行时纠错能力，动态添加属性需特殊语法处理。",
+      "difficulty": "advanced",
+      "tags": ["Svelte", "Compiler", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-036",
+      "front_concept": "Redux Toolkit 中 createSlice 如何简化了 reducer 编写？其底层依赖哪个库实现了不可变更新语法？",
+      "hints": ["Immer", "mutate", "proxy"],
+      "back_explanation": "结论：允许编写看似可变的逻辑，底层自动转为不可变更新。\n核心机制：1. 集成 Immer 库。2. 使用 Proxy 追踪修改。3. 生成新状态树。\n坑点：避免在 createSlice 外直接修改 state，否则破坏不可变性原则。",
+      "difficulty": "intermediate",
+      "tags": ["Redux", "State Management", "Immer"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-037",
+      "front_concept": "Vue Router 导航守卫执行顺序中，全局 beforeEach、路由独享 beforeEnter、组件内 beforeRouteUpdate 的优先级是如何排列的？",
+      "hints": ["全局优先", "解析顺序", "组件内"],
+      "back_explanation": "结论：全局前置 -> 路由独享 -> 组件内更新守卫。\n核心机制：1. 导航触发全局钩子。2. 匹配路由执行独享钩子。3. 组件复用触发更新钩子。\n坑点：组件内守卫需在组件注册时定义，mixins 中定义可能无效。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Routing", "Guards"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-038",
+      "front_concept": "React 列表渲染中，若使用 index 作为 key，删除中间项会导致后续组件出现什么状态异常？",
+      "hints": ["状态复用", "输入框值", "错位"],
+      "back_explanation": "结论：后续组件复用前一个组件的状态，导致数据错乱。\n核心机制：1. Diff 算法基于 key 复用 DOM。2. index 变化导致复用逻辑错误。\n坑点：涉及输入框、开关等有内部状态的组件时，必须使用唯一 ID 作为 key。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Rendering", "Key Prop"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-039",
+      "front_concept": "在 React 中使用 Web Components 自定义元素时，为何事件监听需使用 addEventListener 而非 onXxx 属性？",
+      "hints": ["大小写敏感", "DOM 属性", "合成事件"],
+      "back_explanation": "结论：Web Components 事件通常非标准 DOM 事件，React 合成事件无法自动映射。\n核心机制：1. React 仅映射标准事件。2. 自定义事件需手动绑定。\n坑点：使用 useEffect 绑定事件，并在清理函数中移除，防止内存泄漏。",
+      "difficulty": "advanced",
+      "tags": ["React", "Web Components", "Interop"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-040",
+      "front_concept": "React 18 SSR 流式渲染（Streaming SSR）相比传统 SSR，如何通过 'Selective Hydration' 优化交互体验？",
+      "hints": ["HTML 分块", "优先级", "逐步水合"],
+      "back_explanation": "结论：优先水合用户交互区域，非关键区域延后。\n核心机制：1. 服务端分块发送 HTML。2. 客户端优先绑定事件。\n坑点：需配合 Suspense 使用，老旧浏览器可能降级为传统 SSR。",
+      "difficulty": "advanced",
+      "tags": ["React", "SSR", "Streaming"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-041",
+      "front_concept": "Pinia 移除了 Vuex 中的 mutations，直接通过 actions 修改 state，这带来了什么架构上的简化？",
+      "hints": ["同步异步", "Devtools", "样板代码"],
+      "back_explanation": "结论：合并了 mutation 和 action，减少样板代码。\n核心机制：1. 支持同步异步修改。2. Devtools 自动追踪。\n坑点：需确保 action 命名规范，避免直接在外部的组件中修改 state 而非调用 action。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Pinia", "State Management"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-042",
+      "front_concept": "React 中 forwardRef 包裹的组件若同时使用 React.memo，包裹顺序有何要求？为何？",
+      "hints": ["compose", "引用相等", "外层"],
+      "back_explanation": "结论：memo 应包裹在 forwardRef 外层。\n核心机制：1. forwardRef 返回特殊对象。2. memo 需比较组件本身。\n坑点：顺序错误可能导致 memo 失效或 ref 无法转发，通常使用 memo(forwardRef(Component))。",
+      "difficulty": "advanced",
+      "tags": ["React", "HOC", "Optimization"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-043",
+      "front_concept": "Vue 3 中 v-model 如何在同一组件上绑定多个模型？其编译后的 props 和 events 命名规则是什么？",
+      "hints": ["modelValue", "update:", "参数名"],
+      "back_explanation": "结论：通过参数名区分，默认 modelValue，自定义需指定。\n核心机制：1. prop 为 modelValue。2. event 为 update:modelValue。\n坑点：多个 v-model 需显式指定参数，如 v-model:title，对应 prop 为 title。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "v-model", "Component API"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-044",
+      "front_concept": "微前端架构中，主应用与子应用之间的 CSS 隔离方案，Shadow DOM 与 CSS Modules 各有何优劣？",
+      "hints": ["真隔离", "样式穿透", "兼容性"],
+      "back_explanation": "结论：Shadow DOM 隔离彻底但通信成本高，CSS Modules 轻量但需构建支持。\n核心机制：1. Shadow DOM 创建独立作用域。2. Modules 生成哈希类名。\n坑点：Shadow DOM 内全局样式（如弹窗）需特殊处理；Modules 无法隔离动态插入的样式。",
+      "difficulty": "advanced",
+      "tags": ["Micro-frontends", "CSS", "Isolation"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-045",
+      "front_concept": "React useLayoutEffect 与 useEffect 的核心执行时机差异是什么？为何官方建议优先使用 useEffect？",
+      "hints": ["DOM 突变后", "绘制前", "阻塞"],
+      "back_explanation": "结论：useLayoutEffect 在 DOM 变更后、浏览器绘制前同步执行。\n核心机制：1. 阻塞视觉更新。2. 适合测量 DOM 布局。\n坑点：滥用会导致页面卡顿，仅当需避免 UI 闪烁时才使用 useLayoutEffect。",
+      "difficulty": "advanced",
+      "tags": ["React", "Hooks", "Lifecycle"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-046",
+      "front_concept": "Angular 组件设置 ChangeDetectionStrategy.OnPush 后，哪些操作仍能触发组件变更检测？",
+      "hints": ["输入引用", "事件", "Observable"],
+      "back_explanation": "结论：输入属性引用变化、组件事件、异步管道。\n核心机制：1. 检查 @Input 引用。2. 监听 DOM 事件。3. AsyncPipe 标记。\n坑点：直接修改输入对象属性不会触发检测，需返回新对象引用。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "Change Detection", "OnPush"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-047",
+      "front_concept": "组件库主题定制中，CSS Variables 方案相比 CSS-in-JS (如 styled-components) 在运行时性能上有何优势？",
+      "hints": ["原生支持", "无 JS 开销", "动态切换"],
+      "back_explanation": "结论：CSS Variables 由浏览器原生处理，无 JS 运行时计算开销。\n核心机制：1. 定义变量。2. 修改属性值。\n坑点：CSS-in-JS 支持动态逻辑更强，但首屏性能较差；Variables 需考虑 IE 兼容性。",
+      "difficulty": "intermediate",
+      "tags": ["Engineering", "Theming", "CSS"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-048",
+      "front_concept": "React Context 性能优化中，'Context Splitting'（拆分 Context）策略是如何减少重渲染范围的？",
+      "hints": ["状态分离", "独立订阅", "粒度"],
+      "back_explanation": "结论：将不同维度的状态拆分为多个 Context，组件只订阅需要的部分。\n核心机制：1. 避免单一 Context 包含所有状态。2. 减少无关更新传播。\n坑点：增加 Context 数量会增加组件树复杂度，需权衡管理成本。",
+      "difficulty": "advanced",
+      "tags": ["React", "Context", "Optimization"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-049",
+      "front_concept": "Vue 3 中 shallowRef 与 ref 的区别是什么？在存储大型列表对象时为何推荐使用 shallowRef？",
+      "hints": ["深层响应式", "性能", "替换引用"],
+      "back_explanation": "结论：shallowRef 仅追踪 .value 赋值，不深层递归代理。\n核心机制：1. 节省 Proxy 创建开销。2. 仅顶层变化触发更新。\n坑点：修改内部属性不会触发视图更新，需替换整个对象或手动触发 trigger。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Reactivity", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-050",
+      "front_concept": "前端路由懒加载策略中，'Preloading'（预加载）与 'Lazy Loading'（懒加载）如何平衡首屏速度与后续导航体验？",
+      "hints": ["空闲时间", "用户意图", "网络占用"],
+      "back_explanation": "结论：空闲时预加载可能访问的路线，点击时立即加载。\n核心机制：1. link prefetch 属性。2. 路由配置 preload。\n坑点：过度预加载会占用带宽影响主资源，需根据用户行为预测策略配置。",
+      "difficulty": "intermediate",
+      "tags": ["Routing", "Performance", "Network"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-051",
+      "front_concept": "React 19/Canary 中 useId Hook 主要解决 SSR 场景下的什么问题？为何不能用 Math.random() 替代？",
+      "hints": ["一致性", "水合匹配", "确定性"],
+      "back_explanation": "结论：生成服务端与客户端一致的唯一 ID，确保水合匹配。\n核心机制：1. 基于组件树路径生成。2. 保证顺序确定性。\n坑点：Math.random() 两端生成值不同，导致 Hydration Mismatch 警告。",
+      "difficulty": "advanced",
+      "tags": ["React", "SSR", "Hooks"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-052",
+      "front_concept": "多标签页应用中，如何实现 localStorage 状态变更的跨 tab 同步？storage 事件监听有何局限性？",
+      "hints": ["同源", "当前页不触发", "BroadcastChannel"],
+      "back_explanation": "结论：storage 事件仅在非当前页修改时触发，需配合其他方案。\n核心机制：1. 监听 window.storage。2. 使用 BroadcastChannel API。\n坑点：storage 事件不监听当前 tab 的修改，需手动触发通知或使用共享通道。",
+      "difficulty": "advanced",
+      "tags": ["Browser API", "State Sync", "Storage"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-053",
+      "front_concept": "Angular 深度依赖 RxJS，其 Observable 流式处理相比 React 中 Promise 链式调用在取消请求上有何优势？",
+      "hints": ["Subscription", "unsubscribe", "冷观察"],
+      "back_explanation": "结论：Observable 支持订阅取消，Promise 一旦发起无法中止。\n核心机制：1. 返回 Subscription 对象。2. 调用 unsubscribe 终止。\n坑点：需手动管理订阅生命周期，避免内存泄漏，常用 async pipe 自动管理。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "RxJS", "Async"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-054",
+      "front_concept": "React 组件设计模式中，'Compound Components'（复合组件）相比传递大量 props 有何优势？如何实现上下文共享？",
+      "hints": ["隐式状态", "Context", "灵活性"],
+      "back_explanation": "结论：通过 Context 隐式共享状态，减少 props  drilling，增强组合灵活性。\n核心机制：1. 父组件提供 Context。2. 子组件消费 Context。\n坑点：子组件必须渲染在 Provider 内部，脱离结构会导致状态丢失。",
+      "difficulty": "advanced",
+      "tags": ["React", "Design Patterns", "Composition"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-055",
+      "front_concept": "Vue defineAsyncComponent 中配置 timeout 和 errorComponent 的作用是什么？若加载超时用户会看到什么？",
+      "hints": ["降级 UI", "loading", "容错"],
+      "back_explanation": "结论：提供加载超时和失败时的降级 UI 展示。\n核心机制：1. 计时器监控加载时长。2. 捕获 Promise reject。\n坑点：超时后若组件最终加载成功，需决定是否切换回真实组件，通常保持错误态以防闪烁。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "Async Component", "UX"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-056",
+      "front_concept": "React Profiler 的 onRender 回调中，actualDuration 与 baseDuration 的区别是什么？如何据此判断性能优化点？",
+      "hints": ["本次渲染", "未优化前", "memo 效果"],
+      "back_explanation": "结论：actualDuration 是本次实际耗时，baseDuration 是未优化时的耗时。\n核心机制：1. 对比两者评估 memo 效果。2. 识别高耗时组件。\n坑点：开发模式下数据可能不准，需在生产构建中分析；频繁变化说明优化不足。",
+      "difficulty": "advanced",
+      "tags": ["React", "Profiling", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-057",
+      "front_concept": "npm 包发布时，package.json 中 sideEffects 字段设为 false 对打包工具意味着什么？误设会导致什么后果？",
+      "hints": ["Tree Shaking", "全局副作用", "样式丢失"],
+      "back_explanation": "结论：告知打包工具该包无副作用，可安全移除未引用代码。\n核心机制：1. 允许删除未导入模块。2. 优化 bundle 体积。\n坑点：若包内含全局样式注册或 polyfill，设为 false 会导致功能缺失，需配置文件白名单。",
+      "difficulty": "advanced",
+      "tags": ["Engineering", "Webpack", "Publishing"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-058",
+      "front_concept": "前端框架模板中，v-html (Vue) 或 dangerouslySetInnerHTML (React) 为何被视为高风险？如何正确防御 XSS 攻击？",
+      "hints": ["转义失效", "DOMPurify", "可信源"],
+      "back_explanation": "结论：直接渲染 HTML 字符串会执行脚本，绕过框架自动转义保护。\n核心机制：1. 框架默认转义文本。2. 特殊 API 关闭保护。\n坑点：必须使用 DOMPurify 等库清洗内容，或确保内容仅来自可信内部源。",
+      "difficulty": "intermediate",
+      "tags": ["Security", "XSS", "Best Practices"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-059",
+      "front_concept": "Monorepo 工具链中，Turborepo 的 Remote Caching（远程缓存）是如何加速 CI/CD 流水线的？",
+      "hints": ["哈希匹配", "任务产物", "共享缓存"],
+      "back_explanation": "结论：共享团队构建产物，避免重复执行相同任务。\n核心机制：1. 计算任务输入哈希。2. 匹配远程缓存。3. 下载产物。\n坑点：需确保环境变量和文件依赖配置准确，否则缓存命中率低或构建不一致。",
+      "difficulty": "advanced",
+      "tags": ["Engineering", "Monorepo", "CI/CD"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-060",
+      "front_concept": "在复杂交互场景下，引入 XState 等状态机库相比传统 boolean 标志位管理状态有何核心优势？",
+      "hints": ["可视化的状态", "非法转换", "可预测性"],
+      "back_explanation": "结论：明确状态集合与转换逻辑，杜绝非法状态存在。\n核心机制：1. 定义有限状态集。2. 定义事件驱动转换。\n坑点：增加初期代码量，适合状态流转复杂的场景（如表单向导、播放器），简单开关无需引入。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "State Machine", "Logic"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-061",
+      "front_concept": "React 19 引入的 useOptimistic Hook 主要优化了什么场景的用户体验？它与手动管理 isPending 状态有何本质区别？",
+      "hints": ["乐观更新", "自动回滚", "表单交互"],
+      "back_explanation": "结论：自动处理乐观 UI 更新及失败回滚，减少样板代码。\n核心机制：1. 立即更新 UI 反映预期状态。2. 异步操作失败自动恢复原值。\n坑点：仅适用于可逆操作；不可逆操作仍需手动控制状态流转。",
+      "difficulty": "advanced",
+      "tags": ["React", "Hooks", "UX"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-062",
+      "front_concept": "Vue 3 组合式 API 中，effectScope 主要解决什么内存泄漏风险？在何时必须手动调用 stop()？",
+      "hints": ["响应式副作用", "组件卸载", "非组件上下文"],
+      "back_explanation": "结论：捕获并批量清理响应式副作用，防止组件卸载后监听器残留。\n核心机制：1. 收集范围内所有 effect。2. 销毁时统一清理。\n坑点：在 composable 中创建定时器或监听器需纳入 scope，否则组件销毁后仍运行。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Memory Leak", "Composition API"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-063",
+      "front_concept": "Angular 引入 Signals 信号机制后，为何可以逐步移除 Zone.js？这对变更检测策略有何影响？",
+      "hints": ["细粒度通知", "全局拦截", "Zoneless"],
+      "back_explanation": "结论：Signals 提供细粒度依赖通知，无需全局异步拦截触发检测。\n核心机制：1. 信号变更通知特定组件。2. 移除 Monkey Patching 开销。\n坑点：混合使用 Signals 和 Zone 可能导致检测次数过多，需统一策略。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "Signals", "Performance"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-064",
+      "front_concept": "React Server Components (RSC) 传输 payload 采用何种自定义协议格式？为何不能直接返回 JSON？",
+      "hints": ["流式传输", "引用映射", "组件树"],
+      "back_explanation": "结论：使用基于行的自定义文本协议，支持组件引用和流式分块。\n核心机制：1. 区分服务端/客户端组件边界。2. 传输组件树结构而非纯数据。\n坑点：无法直接返回 Promise 或函数，需在服务端解析完毕后再传输结果。",
+      "difficulty": "advanced",
+      "tags": ["React", "RSC", "Network"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-065",
+      "front_concept": "从内存占用角度分析，为何大型列表场景下 SolidJS 比 React 更节省内存？",
+      "hints": ["VNode 对象", "垃圾回收", "持久化"],
+      "back_explanation": "结论：React 需创建大量 VNode 对象供 Diff 使用，Solid 直接操作 DOM 无中间对象。\n核心机制：1. React 每次渲染分配新对象。2. Solid 编译时绑定更新函数。\n坑点：React 可通过虚拟化列表优化，但 Solid 原生细粒度更新更轻量。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Memory", "Architecture"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-066",
+      "front_concept": "Webpack Module Federation 中，shared 配置项的 eager 参数设为 true 会有什么后果？",
+      "hints": ["立即加载", "失去懒加载", "包体积"],
+      "back_explanation": "结论：共享依赖会被立即打包进主包，失去按需加载优势。\n核心机制：1. 默认异步加载共享库。2. eager 强制同步引入。\n坑点：仅当确保该依赖必需且需避免请求 waterfall 时使用，否则增加首屏体积。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Module Federation", "Build"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-067",
+      "front_concept": "React Hooks 为什么不能在条件语句或循环中调用？其底层链表结构如何依赖调用顺序？",
+      "hints": ["数组索引", "状态对应", "顺序一致"],
+      "back_explanation": "结论：Hooks 状态存储基于调用顺序的数组/链表，顺序变化会导致状态错乱。\n核心机制：1. 每个 Hook 对应固定索引。2. 渲染间顺序必须一致。\n坑点：早期版本需严格遵循，React 19 部分优化但仍建议遵守规则以避免兼容性问题。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Hooks", "Internals"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-068",
+      "front_concept": "Vue 3 编译器生成的 Slot 标志位（Slot Flags）如 STABLE、DYNAMIC 有何作用？",
+      "hints": ["更新优化", "跳过比对", "编译时信息"],
+      "back_explanation": "结论：告知运行时插槽内容是否稳定，避免不必要的子组件更新。\n核心机制：1. 静态插槽标记 STABLE。2. 动态插槽标记 DYNAMIC。\n坑点：手动编写渲染函数时需正确设置 flags，否则优化失效。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Compiler", "Optimization"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-069",
+      "front_concept": "Redux Reselect  createSelector 的默认缓存策略是什么？为何多参数选择器可能导致缓存失效？",
+      "hints": ["弱引用", "参数相等", "单缓存槽"],
+      "back_explanation": "结论：默认只缓存最后一次输入参数的计算结果。\n核心机制：1. 比较输入参数引用。2. 参数变化则重新计算。\n坑点：频繁切换参数会导致缓存抖动，需使用 createCachedSelector 或多实例。",
+      "difficulty": "advanced",
+      "tags": ["Redux", "Reselect", "Caching"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-070",
+      "front_concept": "边缘计算（Edge Computing）场景下 SSR 面临的最大挑战是什么？为何 Node.js 流式 API 可能不可用？",
+      "hints": ["运行时限制", "V8 Isolates", "同步 IO"],
+      "back_explanation": "结论：边缘环境通常基于 V8 Isolates，不支持 Node 完整 API（如 fs/stream）。\n核心机制：1. 需使用 Web Standards API。2. 冷启动延迟敏感。\n坑点：需适配边缘兼容的框架版本（如 Next.js Edge Runtime），避免使用 Node 特有模块。",
+      "difficulty": "advanced",
+      "tags": ["SSR", "Edge", "Infrastructure"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-071",
+      "front_concept": "React Error Boundaries 无法捕获哪些类型的错误？异步代码中的错误如何处理？",
+      "hints": ["事件处理", "setTimeout", "SSR"],
+      "back_explanation": "结论：无法捕获事件处理器、异步代码（setTimeout/Promise）及 SSR 中的错误。\n核心机制：1. 仅捕获渲染生命周期错误。2. 异步错误需 try-catch 包裹。\n坑点：需在 useEffect 内部处理异步错误并更新状态触发边界，或使用全局错误监听。",
+      "difficulty": "advanced",
+      "tags": ["React", "Error Handling", "Async"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-072",
+      "front_concept": "Vue watch 的 flush 选项设为 'sync' 时，会在什么时机触发？可能引发什么警告？",
+      "hints": ["同步触发", "更新前", "递归更新"],
+      "back_explanation": "结论：在响应式属性变更时立即同步触发，而非缓冲到队列。\n核心机制：1. 跳过微任务队列。2. 直接执行回调。\n坑点：可能导致无限循环警告，若在回调中修改被监听对象需极其谨慎。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Watch", "Timing"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-073",
+      "front_concept": "在 React 性能优化中，何时应优先选择 Props Drilling 而非 Context？",
+      "hints": ["更新频率", "中间组件", "重渲染范围"],
+      "back_explanation": "结论：当数据更新频繁且中间组件无需该数据时，Context 可能导致中间组件无效重渲染。\n核心机制：1. Context 变化触发所有消费者。2. Props 变化仅触发直接子组件。\n坑点：若中间组件已 memo 化，Props Drilling 性能损耗可忽略，此时 Context 更简洁。",
+      "difficulty": "advanced",
+      "tags": ["React", "Performance", "Architecture"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-074",
+      "front_concept": "Angular 转向 Standalone Components 后，NgModule 的作用被什么替代？依赖注入树如何构建？",
+      "hints": ["imports 数组", "组件级提供", "引导函数"],
+      "back_explanation": "结论：通过组件 imports 数组直接引入依赖，bootstrapApplication 替代 module bootstrap。\n核心机制：1. 组件自包含依赖。2. 减少模块样板代码。\n坑点：大型项目需规划好依赖共享策略，避免重复打包或循环依赖。",
+      "difficulty": "advanced",
+      "tags": ["Angular", "Standalone", "Architecture"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-075",
+      "front_concept": "微前端架构中，主应用与子应用通信采用 CustomEvent 相比 Props 有何优劣？",
+      "hints": ["解耦", "类型安全", "跨框架"],
+      "back_explanation": "结论：CustomEvent 解耦性强，支持跨框架，但缺乏类型约束。\n核心机制：1. 发布订阅模式。2. 无需直接引用组件。\n坑点：事件命名需规范，缺乏编译时检查，易出现拼写错误导致通信失效。",
+      "difficulty": "advanced",
+      "tags": ["Micro-frontends", "Communication", "Events"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-076",
+      "front_concept": "React forwardRef 结合 useImperativeHandle 的目的是什么？为何不直接暴露整个组件实例？",
+      "hints": ["暴露方法", "封装内部", "接口定义"],
+      "back_explanation": "结论：自定义暴露给父组件的实例值，隐藏内部实现细节。\n核心机制：1. 返回特定对象而非组件实例。2. 控制可调用方法。\n坑点：过度使用会破坏数据流单向性，应优先通过 props 和回调通信。",
+      "difficulty": "advanced",
+      "tags": ["React", "Refs", "Encapsulation"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-077",
+      "front_concept": "Vue 3 Composition API 中，onMounted 钩子在 SSR 模式下会执行吗？为何？",
+      "hints": ["客户端专属", "DOM 访问", "跳过"],
+      "back_explanation": "结论：SSR 期间不执行，仅在客户端水合后执行。\n核心机制：1. 服务端无 DOM 环境。2. 生命周期仅绑定于客户端实例。\n坑点：需在 onMounted 中访问 DOM 或浏览器 API，setup 顶层代码会在服务端执行。",
+      "difficulty": "intermediate",
+      "tags": ["Vue", "SSR", "Lifecycle"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-078",
+      "front_concept": "Vite 的热更新（HMR）机制为何比 Webpack 更快？其基于 ESM 的依赖加载有何特点？",
+      "hints": ["按需编译", "浏览器原生", "无效化"],
+      "back_explanation": "结论：利用浏览器原生 ESM，仅重新加载变更模块链路。\n核心机制：1. 启动时无需打包。2. 变更时精确失效缓存。\n坑点：生产环境仍需 Rollup 打包；CommonJS 依赖需预构建，可能影响启动速度。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "HMR", "Build Tools"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-079",
+      "front_concept": "React 中 key  prop 若使用随机数生成，会对 Diff 算法产生什么负面影响？",
+      "hints": ["节点复用", "重新创建", "状态丢失"],
+      "back_explanation": "结论：每次渲染 key 都变化，导致所有节点被销毁重建，完全失去 Diff 优化。\n核心机制：1. 算法认为所有节点都是新的。2. 触发完整挂载流程。\n坑点：不仅性能差，还会导致 DOM 焦点丢失、输入框内容清空等体验问题。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Diff", "Key"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-080",
+      "front_concept": "Vue provide/inject 传递的对象若是 reactive，子组件修改属性是否触发更新？若替换整个对象呢？",
+      "hints": ["引用传递", "响应式代理", "重新 provide"],
+      "back_explanation": "结论：修改属性触发更新，替换对象不触发（除非 provide 的是 ref）。\n核心机制：1. 传递的是响应式引用。2. 属性变更通知依赖。\n坑点：若需替换整个对象，provide 时应包裹为 ref，否则子组件仍持有旧对象引用。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Provide/Inject", "Reactivity"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-081",
+      "front_concept": "React 18 自动批量更新在 Promise 回调中生效，但在原生 setTimeout 中是否默认生效？",
+      "hints": ["宏任务", "批量策略", "统一处理"],
+      "back_explanation": "结论：生效。React 18 将批量范围扩展至所有异步场景。\n核心机制：1. 识别异步上下文。2. 统一排队刷新。\n坑点：旧版本 React 中 setTimeout 内 setState 会多次渲染，升级后需注意依赖此行为的代码。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Batching", "Async"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-082",
+      "front_concept": "CSS-in-JS 库（如 Emotion）提取 Critical CSS 的主要目的是什么？如何避免 FOUC（闪烁）？",
+      "hints": ["首屏样式", "服务端注入", "加载顺序"],
+      "back_explanation": "结论：确保首屏渲染所需样式优先加载，防止无样式内容闪烁。\n核心机制：1. SSR 时收集使用的样式。2. 注入到 HTML head。\n坑点：动态加载组件的样式需配合 Suspense 或预加载，否则切换时仍可能闪烁。",
+      "difficulty": "advanced",
+      "tags": ["CSS", "Performance", "SSR"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-083",
+      "front_concept": "React Suspense 边界内嵌套多个异步组件时，加载顺序是如何控制的？",
+      "hints": ["最深优先", "并行加载", "展示策略"],
+      "back_explanation": "结论：默认展示最深层的 Loading 状态，直至所有兄弟节点就绪。\n核心机制：1. 气泡式传播加载状态。2. 避免布局抖动。\n坑点：可通过 unstable_Activity 或分组 Suspense 控制显示层级，优化视觉体验。",
+      "difficulty": "advanced",
+      "tags": ["React", "Suspense", "Loading"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-084",
+      "front_concept": "Vue Teleport 将内容传输到 body 后，事件冒泡路径会经过原组件位置吗？",
+      "hints": ["逻辑父级", "物理 DOM", "虚拟树"],
+      "back_explanation": "结论：事件冒泡遵循逻辑父级（虚拟树），而非物理 DOM 位置。\n核心机制：1. Vue 事件系统基于组件树。2. Teleport 不改变组件层级。\n坑点：CSS 样式继承可能断裂，但事件监听和 Context 传递不受影响。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Teleport", "Events"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-085",
+      "front_concept": "Monorepo 管理中，Changesets 相比 Lerna 在版本发布流程上有何改进？",
+      "hints": ["PR 驱动", "变更文件", "自动化"],
+      "back_explanation": "结论：通过 PR 提交变更文件，合并后自动生成版本和 Changelog。\n核心机制：1. 记录每次变更影响。2. 批量计算版本号。\n坑点：需规范提交变更文件，否则版本计算可能不准确；适合 GitHub Flow 工作流。",
+      "difficulty": "advanced",
+      "tags": ["Engineering", "Monorepo", "Versioning"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-086",
+      "front_concept": "React.memo 第二个参数自定义比较函数返回 true 表示什么？若遗漏返回 false 会导致什么？",
+      "hints": [" props 相等", "跳过渲染", "强制更新"],
+      "back_explanation": "结论：返回 true 表示 props 相等，跳过重渲染。\n核心机制：1. 默认浅比较。2. 自定义逻辑决定更新。\n坑点：若应该更新时返回 true，会导致 UI 不刷新；需确保比较逻辑覆盖所有关键 props。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Memo", "Comparison"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-087",
+      "front_concept": "Vue 自定义指令中，mounted 和 updated 钩子在静态属性变化时是否触发？",
+      "hints": ["参数更新", "value 变化", "生命周期"],
+      "back_explanation": "结论：仅当指令绑定的值发生变化时 updated 才触发。\n核心机制：1. 监听绑定表达式结果。2. 静态属性变化不触发指令更新。\n坑点：若需响应类名等静态属性变化，需结合 :class 绑定或使用组件而非指令。",
+      "difficulty": "advanced",
+      "tags": ["Vue", "Directives", "Lifecycle"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-088",
+      "front_concept": "实施内容安全策略（CSP）时，如何安全地允许框架内联脚本运行而不使用 unsafe-inline？",
+      "hints": ["Nonce", "哈希", "服务端生成"],
+      "back_explanation": "结论：使用 nonce 属性标记可信脚本，CSP 头中声明相同 nonce。\n核心机制：1. 服务端生成随机 nonce。2. 注入到 script 标签和 Header。\n坑点：需确保框架 SSR 配置支持 nonce 注入，否则内联脚本会被浏览器拦截。",
+      "difficulty": "advanced",
+      "tags": ["Security", "CSP", "SSR"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-089",
+      "front_concept": "利用 Long Task API 监控主线程阻塞时，如何结合 React Scheduler 实现自适应降级？",
+      "hints": ["任务切片", "优先级调整", "性能观测"],
+      "back_explanation": "结论：检测到长任务时，降低非关键更新优先级或减少渲染工作量。\n核心机制：1. performance.observe 监听长任务。2. 动态调整 Scheduler 配置。\n坑点：需平衡降级幅度，避免过度降级导致 UI 响应迟钝。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Monitoring", "React"]
+    },
+    {
+      "id": "frontend-frameworks-flashcard-090",
+      "front_concept": "特征切片设计（Feature-Sliced Design）中，'layers'（层）的概念如何帮助管理大型应用复杂度？",
+      "hints": ["依赖方向", "业务隔离", "架构规范"],
+      "back_explanation": "结论：强制依赖单向流动，防止循环依赖和跨层耦合。\n核心机制：1. 定义 app, pages, widgets, features 等层。2. 下层不可依赖上层。\n坑点：初期重构成本高，需严格遵守导入规则，否则容易退化为传统分层架构。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "FSD", "Scalability"]
+    }
+  ]
+}

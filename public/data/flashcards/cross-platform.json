@@ -1,0 +1,970 @@
+{
+  "file_metadata": {
+    "category_id": "cross-platform-mobile",
+    "category_name": "跨端与移动端架构",
+    "total_cards": 30,
+    "target_level": "Expert"
+  },
+  "cards": [
+    {
+      "id": "cross-platform-mobile-flashcard-001",
+      "front_concept": "在 React Native 新架构中，JSI 如何从根本上消除了旧 Bridge 的序列化开销？",
+      "hints": ["内存共享", "持有权", "同步调用"],
+      "back_explanation": "结论：JSI 允许 JS 直接持有 C++ 宿主对象的引用，无需序列化。\n【原理机制】\n1. 旧 Bridge 基于 JSON 序列化，消息队列异步通信。\n2. JSI (JavaScript Interface) 让 JS 可以直接调用 C++ 宿主对象方法。\n3. 对象引用在 JS 和 Native 间共享内存，避免拷贝。\n【最佳实践】\n坑点：避免在 JSI 边界频繁传递大对象，虽无序列化但仍涉及引用计数管理，需注意内存生命周期。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "JSI", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-002",
+      "front_concept": "RN Fabric 渲染架构中，Shadow Tree 的主要职责是什么，它与 React Tree 有何区别？",
+      "hints": ["布局计算", "Yoga", "不可变数据"],
+      "back_explanation": "结论：Shadow Tree 负责原生布局计算，是 React Tree 的原生映射。\n【原理机制】\n1. React Tree 存在于 JS 端，描述组件逻辑。\n2. Shadow Tree 存在于 C++ 端，存储布局信息（Yoga 计算）。\n3. 提交阶段，Shadow Tree 被提升为 React Shadow Tree 并挂载。\n【对比分析】\n优势：布局计算移至 C++ 线程，不阻塞 JS 线程，支持优先级中断。\n坑点：调试难度增加，需借助 Flipper 插件查看 Shadow Tree 状态。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Fabric", "Rendering"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-003",
+      "front_concept": "RN TurboModules 的懒加载机制是如何解决启动时原生模块初始化耗时问题的？",
+      "hints": ["代码生成", "首次访问", "接口定义"],
+      "back_explanation": "结论：TurboModules 仅在 JS 首次调用特定方法时才实例化原生模块。\n【原理机制】\n1. 基于接口定义文件（Codegen）生成类型安全的绑定。\n2. 启动时不加载所有 Native Module，仅注册元数据。\n3. 首次访问属性或方法时触发 Native 侧 lazy init。\n【最佳实践】\n坑点：确保 Codegen 脚本正确配置，否则会导致运行时找不到模块定义；避免在全局 scope 立即调用导致懒加载失效。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "TurboModules", "Startup"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-004",
+      "front_concept": "Flutter 渲染流水线中，Widget、Element、RenderObject 三棵树在 setState 触发时的更新差异是什么？",
+      "hints": ["配置", "生命周期", "布局绘制"],
+      "back_explanation": "结论：Widget 重建，Element 更新状态，RenderObject 按需更新布局/绘制。\n【原理机制】\n1. Widget 是不可变配置，setState 触发 rebuild 生成新 Widget 树。\n2. Element 管理生命周期，对比新旧 Widget 决定复用或更新。\n3. RenderObject 负责具体布局绘制，仅当布局参数变化时才 markNeedsLayout。\n【对比分析】\n优势：分离配置与状态，最大化复用 RenderObject 减少开销。\n坑点：避免在 build 方法中执行耗时操作，即使 RenderObject 未更新，Widget 重建也会消耗 CPU。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Rendering", "Lifecycle"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-005",
+      "front_concept": "Flutter 引入 Impeller 引擎主要为了解决 Skia 引擎在 iOS 上的什么特定性能问题？",
+      "hints": ["Shader", "编译", "卡顿"],
+      "back_explanation": "结论：解决 Skia 运行时编译 Shader 导致的首帧卡顿（Jank）。\n【原理机制】\n1. Skia 在首次绘制复杂效果时需运行时编译 GPU 着色器。\n2. Impeller 预编译所有 Shader 为二进制 blob，打包进应用。\n3. 运行时直接加载，消除编译停顿。\n【最佳实践】\n坑点：Impeller 目前对某些复杂自定义 Shader 支持尚不完善，迁移前需验证视觉效果一致性。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Impeller", "GPU"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-006",
+      "front_concept": "在 Flutter 中使用 Isolate 进行多线程通信时，何种数据类型会导致通信失败或性能急剧下降？",
+      "hints": ["可序列化", "拷贝开销", "端口传输"],
+      "back_explanation": "结论：不可序列化的对象（如 RenderObject）无法传输，大对象拷贝导致性能下降。\n【原理机制】\n1. Isolate 间内存不共享，通过 Port 发送消息。\n2. 数据必须支持 deep copy 或 Transferable。\n3. 大 List/Map 传输涉及内存拷贝，阻塞 Send/Receive。\n【最佳实践】\n坑点：避免频繁发送大体积 JSON；使用 SendPort.send 的 transferable 特性移动所有权而非拷贝（如 ByteBuffer）。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Isolate", "Concurrency"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-007",
+      "front_concept": "小程序双线程模型中，频繁调用 setData 为何会导致视图层更新延迟甚至丢帧？",
+      "hints": ["序列化", "通信队列", "Diff 算法"],
+      "back_explanation": "结论：setData 涉及逻辑层到视图层的序列化通信，频繁调用阻塞通信队列。\n【原理机制】\n1. 逻辑层（JS）与视图层（WebView）分离。\n2. setData 数据需序列化为 JSON 字符串通过 Native 桥接传输。\n3. 视图层接收后执行 Diff 算法更新 DOM。\n【最佳实践】\n坑点：避免在循环中调用 setData；合并多次状态变更；避免传输过大数据（如长列表全量更新）。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Performance", "setData"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-008",
+      "front_concept": "小程序离线包机制中，如何确保本地缓存包版本与服务器最新版本的正确匹配与更新？",
+      "hints": ["哈希校验", "版本比对", "静默下载"],
+      "back_explanation": "结论：通过文件哈希值（Hash）比对触发差异更新，而非单纯版本号。\n【原理机制】\n1. 启动时请求版本清单，包含各资源包 Hash。\n2. 本地比对 Hash，不一致则触发下载。\n3. 下载完成后原子替换，避免半更新状态。\n【最佳实践】\n坑点：需处理下载中断后的断点续传；更新包应用时机需避开业务高峰，通常在冷启动时检查。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Offline Package", "Update"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-009",
+      "front_concept": "Hybrid 方案中，JSBridge 的 schema 设计若未做白名单校验，会导致什么严重的安全漏洞？",
+      "hints": ["原生能力", "恶意调用", "权限控制"],
+      "back_explanation": "结论：会导致任意原生能力被恶意 H5 页面调用（如读取通讯录、发送短信）。\n【原理机制】\n1. JSBridge 暴露 Native 方法给 WebView。\n2. 若无白名单，任何注入 JS 均可调用敏感接口。\n3. 攻击者可通过 XSS 注入恶意脚本。\n【最佳实践】\n坑点：必须在 Native 侧校验调用来源域名；敏感接口需用户二次确认；禁用 file:// 协议加载远程内容。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "Security", "JSBridge"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-010",
+      "front_concept": "为优化 Hybrid 应用首屏加载速度，WebView 预加载池（Preload Pool）的核心实现策略是什么？",
+      "hints": ["空闲创建", "域名预热", "复用机制"],
+      "back_explanation": "结论：在应用空闲时预先创建 WebView 实例并加载通用资源，使用时直接复用。\n【原理机制】\n1. 监听应用空闲时段创建 WebView 实例。\n2. 预加载公共 CDN 资源或空白页。\n3. 业务需要时，从池取出并 loadUrl，减少初始化开销。\n【最佳实践】\n坑点：需注意 WebView 上下文清理，避免 Cookie 或缓存污染；池大小不宜过大，防止内存溢出。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "WebView", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-011",
+      "front_concept": "RN 使用 Hermes 引擎后，为何仍需关注 JS 线程的 GC 停顿对 UI 流畅度的影响？",
+      "hints": ["共享线程", "内存压力", "帧率"],
+      "back_explanation": "结论：Hermes 虽优化了启动，但 GC 仍发生在 JS 线程，阻塞事件循环。\n【原理机制】\n1. JS 线程负责逻辑执行与事件调度。\n2. GC 触发时 Stop-the-world 暂停 JS 执行。\n3. 若 GC 耗时超过 16ms，导致掉帧。\n【最佳实践】\n坑点：避免创建大量短生命周期对象；使用 FlatList 等虚拟化组件减少 DOM 节点内存占用；监控 Hermes GC 日志。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Hermes", "GC"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-012",
+      "front_concept": "React Native Reanimated 2/3 中，Worklet 代码为何不能直接访问闭包外的所有 JS 变量？",
+      "hints": ["运行环境", "UI 线程", "序列化"],
+      "back_explanation": "结论：Worklet 运行在 UI 线程，无法直接访问 JS 线程的上下文变量。\n【原理机制】\n1. Worklet 被转换为 C++ 代码在 UI 线程执行。\n2. 仅能访问 'worklet' 指令标记的函数及传入参数。\n3. 外部变量需通过 'useDerivedValue' 或显式传递。\n【最佳实践】\n坑点：避免在 Worklet 内调用非 worklet 函数；注意变量捕获导致的额外序列化开销。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Reanimated", "Worklet"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-013",
+      "front_concept": "Flutter 中滥用 GlobalKey 会对 Element 树的更新性能产生什么具体负面影响？",
+      "hints": ["线性查找", "注册表", "移动开销"],
+      "back_explanation": "结论：GlobalKey 维护全局注册表，查找为 O(N)，且强制 Element 移动而非复用。\n【原理机制】\n1. GlobalKey 需在全局范围唯一，维护哈希表。\n2. 更新时需遍历查找对应 Element。\n3. 导致 Widget 树变动时 Element 无法就地更新，触发重建。\n【最佳实践】\n坑点：仅在跨组件状态同步或 Form 验证时使用；列表项中严禁使用 GlobalKey，应使用 ValueKey。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "GlobalKey", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-014",
+      "front_concept": "Flutter 异步操作完成后直接使用 BuildContext 为何可能抛出 'Looking up a deactivated widget' 异常？",
+      "hints": ["生命周期", "挂载状态", "mounted"],
+      "back_explanation": "结论：异步期间 Widget 可能已被销毁，Context 指向无效 Element。\n【原理机制】\n1. 异步操作期间用户可能导航离开当前页面。\n2. 原 Widget 树被卸载，Element  deactivate。\n3. 此时使用 Context 操作 UI 会访问空指针。\n【最佳实践】\n坑点：异步回调前必须检查 `if (!mounted) return;`；或使用 StatefulBuilder 包裹状态更新。",
+      "difficulty": "intermediate",
+      "tags": ["Flutter", "BuildContext", "Lifecycle"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-015",
+      "front_concept": "小程序分包加载策略中，主包大小受限（如 2MB）时，如何规划公共组件库的存放位置？",
+      "hints": ["复用率", "独立分包", "体积计算"],
+      "back_explanation": "结论：高频复用公共组件放主包，低频或特定业务组件放分包。\n【原理机制】\n1. 主包容量有限，需优先存放启动必要资源。\n2. 分包可独立加载，但无法引用其他分包资源。\n3. 公共组件若放分包，主包无法直接引用。\n【最佳实践】\n坑点：需精确计算组件体积；使用 npm 包管理时注意构建工具是否将依赖打入主包；利用独立分包加载非主包入口页面。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Subpackage", "Architecture"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-016",
+      "front_concept": "Hybrid 开发中，原生导航栏手势返回与 H5 内部历史记录返回冲突时，优先级的处理原则是什么？",
+      "hints": ["栈深度", "事件拦截", "用户体验"],
+      "back_explanation": "结论：H5 历史栈非空时优先 H5 返回，否则原生返回。\n【原理机制】\n1. 监听 WebView 手势事件。\n2. 查询 JS 侧 history.length。\n3. 若 >1，触发 history.back()；否则允许原生 Activity/ViewController finish。\n【最佳实践】\n坑点：需处理 H5 异步加载导致 history 状态不同步；全屏 H5 页面需隐藏原生导航栏避免双重导航。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Navigation", "UX"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-017",
+      "front_concept": "RN FlatList 在渲染长列表时，配置 getItemLayout 属性的核心优化点是什么？",
+      "hints": ["高度测量", "滚动计算", "跳过测量"],
+      "back_explanation": "结论：跳过动态高度测量，直接计算滚动偏移量，大幅减少渲染开销。\n【原理机制】\n1. 默认需测量每个 Item 高度才能计算滚动条位置。\n2. getItemLayout 返回固定高度，允许直接索引计算。\n3. 减少 Layout 阶段计算量。\n【最佳实践】\n坑点：仅适用于固定高度列表；若高度动态，需配合 estimatedItemSize 使用，否则滚动条跳动。",
+      "difficulty": "intermediate",
+      "tags": ["React Native", "FlatList", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-018",
+      "front_concept": "Flutter 中 RepaintBoundary 组件在什么场景下使用能显著降低 raster 成本？",
+      "hints": ["独立图层", "静态内容", "缓存"],
+      "back_explanation": "结论：将频繁变化区域内的静态部分隔离，避免全量重绘。\n【原理机制】\n1. 默认整个 Widget 树变化可能触发父级重绘。\n2. RepaintBoundary 创建独立图层。\n3. 子树变化仅重绘该图层，父级复用缓存。\n【最佳实践】\n坑点：过多边界增加图层合成开销；仅用于复杂动画中的静态背景或独立变化区域。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "RepaintBoundary", "Raster"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-019",
+      "front_concept": "使用 CodePush 等热更新方案时，如何设计版本回滚机制以防止坏包导致应用不可用？",
+      "hints": ["启动检测", "本地备份", "强制降级"],
+      "back_explanation": "结论：启动时检测崩溃率，超标则自动切换回上一稳定版本包。\n【原理机制】\n1. 记录当前热更包版本及启动成功标志。\n2. 连续启动失败 N 次触发回滚逻辑。\n3. 清除坏包缓存，加载内置基础版本。\n【最佳实践】\n坑点：需设置回滚阈值避免误判；服务端需支持禁用特定坏包版本下发；保留至少一个历史版本备份。",
+      "difficulty": "advanced",
+      "tags": ["Hot Update", "CodePush", "Stability"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-020",
+      "front_concept": "RN 新架构 Bridgeless 模式下，移除 Bridge 后初始化流程有何关键变化？",
+      "hints": ["同步初始化", "Runtime 启动", "依赖顺序"],
+      "back_explanation": "结论：JS 运行时初始化不再依赖 Bridge 握手，启动更直接。\n【原理机制】\n1. 旧架构需等待 Bridge 建立后才能加载 JS。\n2. Bridgeless 模式下，JSI 直接绑定，Runtime 启动即可执行。\n3. 减少了异步握手等待时间。\n【最佳实践】\n坑点：需确保所有 TurboModules 在 JS 执行前已注册；旧版第三方库若依赖 Bridge API 需迁移。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Bridgeless", "Startup"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-021",
+      "front_concept": "Flutter Platform Channel 通信中，StandardMessageCodec 在处理大数据量时的性能瓶颈是什么？",
+      "hints": ["编解码", "内存拷贝", "二进制"],
+      "back_explanation": "结论：递归序列化对象结构，大数据量下 CPU 和内存开销大。\n【原理机制】\n1. StandardMessageCodec 支持复杂类型但需递归遍历。\n2. 大数据（如图片二进制）虽支持 Uint8List，但仍有拷贝。\n3. 频繁通信导致主帧阻塞。\n【最佳实践】\n坑点：大数据传输建议使用 BinaryMessenger 直接传字节流；避免在 Channel 中传递复杂嵌套 JSON。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Platform Channel", "Codec"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-022",
+      "front_concept": "小程序中 Native 组件（如 Map、Video）为何通常位于 WebView 图层之上，会导致什么渲染问题？",
+      "hints": ["原生层级", "遮挡", "同层渲染"],
+      "back_explanation": "结论：Native 组件是原生控件，层级高于 WebView，会遮挡 H5 弹窗。\n【原理机制】\n1. 小程序 WebView 渲染 H5 内容。\n2. Native 组件由原生层直接绘制。\n3. 原生层默认在 WebView 之上。\n【最佳实践】\n坑点：使用 cover-view 覆盖 Native 组件；开启同层渲染（如果基础库支持）以允许 H5 元素覆盖 Native 组件。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Native Component", "Rendering"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-023",
+      "front_concept": "Hybrid 应用中，WebView 启用 DNS Prefetch 对首屏加载的具体收益是什么，有何副作用？",
+      "hints": ["域名解析", "流量消耗", "预连接"],
+      "back_explanation": "结论：提前解析域名减少 DNS 查询耗时，但可能消耗额外流量。\n【原理机制】\n1. 解析 HTML 时发现 link rel=dns-prefetch。\n2. 后台异步发起 DNS 查询。\n3. 真正请求时直接使用 IP，跳过 DNS 阶段。\n【最佳实践】\n坑点：仅对关键资源域名开启；避免预解析过多无关域名导致网络拥塞或电量消耗。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Network", "DNS"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-024",
+      "front_concept": "定义 RN TurboModule 接口时，C++ Spec 文件中方法返回类型若定义为 Promise，底层实际如何调度？",
+      "hints": ["异步", "回调", "JSI"],
+      "back_explanation": "结论：底层转换为 JSI 异步回调，不阻塞 JS 线程。\n【原理机制】\n1. C++ Spec 定义方法签名。\n2. Promise 类型映射为 Native 侧异步任务。\n3. 完成后通过 JSI Runtime  resolve/reject 回调。\n【最佳实践】\n坑点：避免在 Promise 回调中执行耗时同步逻辑；确保错误捕获机制完善，否则 Promise 可能永不 settle。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "TurboModules", "C++"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-025",
+      "front_concept": "Flutter Impeller 引擎在 Android 上的支持现状与 iOS 有何主要差异？",
+      "hints": ["Vulkan", "OpenGL", "碎片化"],
+      "back_explanation": "结论：Android 依赖 Vulkan 支持，因设备碎片化导致兼容性不如 iOS。\n【原理机制】\n1. iOS 统一使用 Metal，Impeller 支持完善。\n2. Android 需 Vulkan 支持，旧设备仅支持 OpenGL ES。\n3. 不支持 Vulkan 的设备自动回退到 Skia。\n【最佳实践】\n坑点：测试需覆盖低版本 Android 设备；确认目标用户群设备 Vulkan 支持率再决定是否强制开启 Impeller。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Impeller", "Android"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-026",
+      "front_concept": "小程序自定义组件样式隔离机制中，如何穿透隔离让子组件继承父级特定样式？",
+      "hints": ["外部样式", "addGlobalClass", "变量传递"],
+      "back_explanation": "结论：通过 externalClasses 或 addGlobalClass 选项开放样式入口。\n【原理机制】\n1. 默认组件样式封闭，外部 class 无效。\n2. externalClasses 定义可被外部覆盖的类名。\n3. addGlobalClass: true 允许应用全局样式（不推荐）。\n【最佳实践】\n坑点：优先使用 externalClasses 保持封装性；避免滥用全局样式导致组件耦合；使用 CSS 变量传递主题。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Component", "CSS"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-027",
+      "front_concept": "Hybrid 架构中，Native 与 WebView 之间的 Cookie 同步时机若处理不当，会导致什么鉴权问题？",
+      "hints": ["登录态", "请求头", "同步延迟"],
+      "back_explanation": "结论：WebView 请求未携带最新 Native 侧 Token，导致接口 401。\n【原理机制】\n1. 登录成功后 Token 存储在 Native 侧。\n2. WebView 发起请求需从 Native 同步 Cookie。\n3. 若同步发生在请求之后，则鉴权失败。\n【最佳实践】\n坑点：需在 WebView 加载 URL 前强制同步 Cookie；监听登录状态变化实时推送 Cookie 到 WebView；注意 HttpOnly 属性限制。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "Cookie", "Auth"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-028",
+      "front_concept": "RN Fabric 架构中，事件优先级（Event Prioritization）如何影响用户交互的响应顺序？",
+      "hints": ["离散事件", "连续事件", "中断"],
+      "back_explanation": "结论：高优先级事件（如点击）可中断低优先级事件（如滚动）的处理。\n【原理机制】\n1. 事件分为 Discrete（点击）和 Continuous（滚动）。\n2. 新架构支持事件队列优先级排序。\n3. 高优先级事件插入队列头部立即处理。\n【最佳实践】\n坑点：自定义手势需正确声明优先级，否则可能导致点击无响应或滚动卡顿；避免滥用高优先级导致抖动。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Fabric", "Events"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-029",
+      "front_concept": "跨端 Monorepo 架构中，利用 Nx 或 Turborepo 进行构建缓存的核心前提条件是什么？",
+      "hints": ["哈希依赖", "文件指纹", "任务输出"],
+      "back_explanation": "结论：必须准确定义任务依赖图及输入文件指纹，确保缓存命中率。\n【原理机制】\n1. 工具计算代码文件 Hash 作为缓存 Key。\n2. 若依赖项未变，直接复用上次构建输出。\n3. 需声明 outputs 目录以便缓存恢复。\n【最佳实践】\n坑点：忽略文件（.gitignore）需配置一致，否则 Hash 不同；避免任务依赖隐式全局状态；CI 环境需共享缓存存储。",
+      "difficulty": "advanced",
+      "tags": ["Monorepo", "Build System", "CI/CD"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-030",
+      "front_concept": "在跨端代码共享策略中，为何业务逻辑层（ViewModel/UseCase）比 UI 层更适合最大化共享？",
+      "hints": ["平台差异", "稳定性", "复用率"],
+      "back_explanation": "结论：业务逻辑与平台特性解耦，变更频率低，复用收益最高。\n【原理机制】\n1. UI 层受限于各端框架（RN/Flutter/Native）差异。\n2. 逻辑层（数据加工、校验、状态管理）可纯 JS/TS 实现。\n3. 共享逻辑层减少重复开发，保证业务一致性。\n【最佳实践】\n坑点：避免逻辑层依赖特定平台 API；定义清晰的接口适配层（Adapter）隔离平台差异；使用 TypeScript 确保类型安全。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Code Sharing", "Strategy"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-031",
+      "front_concept": "React Native 启用 Hermes 引擎后，为何首屏启动时间显著降低，但运行时峰值性能可能不如 JSC？",
+      "hints": ["AOT 编译", "字节码", "优化侧重"],
+      "back_explanation": "结论：Hermes 针对启动优化（预编译字节码），JSC 针对运行时 JIT 优化。\n【原理机制】\n1. Hermes 将 JS 预编译为字节码，启动无需解析编译。\n2. JSC 启动时需解析源码并 JIT 编译热点代码。\n3. 长期运行后，JSC 的动态优化能力更强。\n【最佳实践】\n坑点：交互密集型应用需测试 Hermes 下的帧率；复杂计算任务可移至 Native 侧弥补 Hermes 运行时劣势。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Hermes", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-032",
+      "front_concept": "Flutter 中嵌入原生地图视图（Platform View）时，Android 侧 Hybrid Composition 模式相比 Virtual Display 有何优势？",
+      "hints": ["纹理拷贝", "输入事件", "内存开销"],
+      "back_explanation": "结论：Hybrid Composition 避免了纹理拷贝，输入事件处理更直接。\n【原理机制】\n1. Virtual Display 将原生 view 渲染到纹理再合成，有拷贝开销。\n2. Hybrid Composition 将 Flutter 视图嵌入原生层级，直接合成。\n3. 减少了 GPU 内存拷贝和延迟。\n【最佳实践】\n坑点：Android 10 以下性能可能下降；滚动列表中包含 Platform View 需特殊处理以避免卡顿。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Platform View", "Android"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-033",
+      "front_concept": "小程序 WXS 脚本为何无法直接调用 JS 定义的函数，且通信开销较大？",
+      "hints": ["运行环境", "隔离沙箱", "序列化"],
+      "back_explanation": "结论：WXS 运行在视图层（WebView），JS 运行在逻辑层，跨层通信需序列化。\n【原理机制】\n1. WXS 为减少渲染延迟，直接在视图层执行。\n2. JS 在逻辑层，两者内存不共享。\n3. 调用需通过 Native 桥接序列化数据。\n【最佳实践】\n坑点：仅将高频交互逻辑（如手势）放入 WXS；避免频繁调用 JS 方法；WXS 不支持 ES6+ 新特性。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "WXS", "Architecture"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-034",
+      "front_concept": "iOS Hybrid 开发中，WKWebView 的 Process Pool 机制如何影响多 Tab 页面的内存占用？",
+      "hints": ["多进程", "共享资源", "配置池"],
+      "back_explanation": "结论：同 Process Pool 的 WebView 共享进程，减少内存但增加崩溃风险。\n【原理机制】\n1. WKWebView 默认多进程架构。\n2. 配置相同 WKProcessPool 的实例共享同一进程。\n3. 共享 Cookie 和缓存，但进程崩溃会影响所有实例。\n【最佳实践】\n坑点：关键业务页面建议使用独立 Process Pool 隔离风险；注意内存警告时主动回收非活跃 WebView。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "WKWebView", "iOS"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-035",
+      "front_concept": "React Native 中大量图片加载导致 OOM（内存溢出），除了减小图片尺寸外，架构层面应如何优化？",
+      "hints": ["内存缓存", "解码线程", "虚拟化"],
+      "back_explanation": "结论：需控制解码后 bitmap 内存，使用原生模块管理缓存。\n【原理机制】\n1. JS 侧无法直接控制 Native 图片内存。\n2. 默认 Image 组件缓存策略可能不适合长列表。\n3. 解码操作占用主线程或 Native 内存。\n【最佳实践】\n坑点：使用 FastImage 等库控制缓存优先级；长列表配合 removeClippedSubviews；监控 Native 内存峰值。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Memory", "Image"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-036",
+      "front_concept": "Flutter 复杂动画场景下，如何通过 Shader Warmup 避免首帧卡顿？",
+      "hints": ["预编译", "Recording", "初始化"],
+      "back_explanation": "结论：在应用空闲期预编译动画所需的 Shader 程序。\n【原理机制】\n1. 首次绘制复杂效果需编译 GPU  shader。\n2. 使用 ShaderWarmUp 接口提前编译。\n3. 将编译耗时移至启动前或非关键路径。\n【最佳实践】\n坑点：需提取实际使用的 shader 列表；过度预编译会增加安装包体积和启动耗时；需平衡预热范围。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Shader", "Animation"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-037",
+      "front_concept": "小程序登录流程中，code 交换 session 环节若被中间人劫持，如何从架构上防御？",
+      "hints": ["HTTPS", "签名", "时效性"],
+      "back_explanation": "结论：强制 HTTPS 校验，服务端校验签名，code 一次性使用。\n【原理机制】\n1. code 仅能使用一次，过期失效。\n2. 通信链路必须 HTTPS 防止窃听。\n3. 敏感数据需额外签名验证。\n【最佳实践】\n坑点：避免在前端明文存储 session_key；服务端需校验小程序端发送的数据签名；设置短时效 Token。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Security", "Auth"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-038",
+      "front_concept": "Hybrid 应用中，DNS 预解析、TCP 预连接、SSL 预握手三者对首屏时间的优化收益排序通常是？",
+      "hints": ["耗时占比", "握手次数", "网络延迟"],
+      "back_explanation": "结论：SSL 预握手 > TCP 预连接 > DNS 预解析（在 HTTPS 场景下）。\n【原理机制】\n1. SSL 握手涉及多次往返和计算，耗时最长。\n2. TCP 三次握手次之。\n3. DNS 解析通常有本地缓存，耗时相对短。\n【最佳实践】\n坑点：预连接占用服务器资源，不宜过多；需针对核心域名配置；注意移动端网络切换导致的连接失效。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Network", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-039",
+      "front_concept": "RN JSI 开发中，C++ 侧创建的 HostObject 若未在 JS 侧被引用释放，会导致什么内存问题？",
+      "hints": ["循环引用", "垃圾回收", "生命周期"],
+      "back_explanation": "结论：会导致 Native 侧内存泄漏，因为 JS GC 无法感知 C++ 对象依赖。\n【原理机制】\n1. JSI 对象引用计数由 JS GC 管理。\n2. 若 C++ 侧持有 JS 对象强引用，形成循环。\n3. JS 认为对象仍在使用，不触发析构。\n【最佳实践】\n坑点：使用 weak 引用持有 JS 对象；手动实现 finalize 回调清理 Native 资源；避免全局单例持有 JS 对象。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "JSI", "Memory Leak"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-040",
+      "front_concept": "Flutter 需要在同一应用内运行多个独立 Flutter 实例（如多 Tab 各独立引擎），应使用什么机制？",
+      "hints": ["Engine Group", "资源共享", "隔离"],
+      "back_explanation": "结论：使用 FlutterEngineGroup 创建共享资源的多个引擎。\n【原理机制】\n1. 默认每个 Engine 独立占用资源。\n2. EngineGroup 允许共享 GPU 上下文和字体资源。\n3. 降低多实例内存占用，加快启动。\n【最佳实践】\n坑点：各引擎间状态不共享，需通过 Native 或 Plugin 通信；销毁时需正确释放 Group 引用。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Engine", "Multi Instance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-041",
+      "front_concept": "小程序独立分包机制中，独立分包页面为何不能引用主包或其他分包的自定义组件？",
+      "hints": ["加载时序", "依赖解耦", "路径解析"],
+      "back_explanation": "结论：独立分包旨在独立运行，加载时不依赖主包上下文。\n【原理机制】\n1. 独立分包可直接进入，无需先加载主包。\n2. 若依赖主包组件，会导致路径解析失败。\n3. 强制解耦以保证独立启动能力。\n【最佳实践】\n坑点：公共组件需复制到独立分包内；利用 npm 包管理公共代码；注意体积冗余问题。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Subpackage", "Dependency"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-042",
+      "front_concept": "Hybrid 方案中，为何 Service Worker 在 iOS WKWebView 中支持有限，对离线策略有何影响？",
+      "hints": ["API 支持", "缓存控制", "平台差异"],
+      "back_explanation": "结论：iOS WKWebView 长期不支持 Service Worker，无法拦截网络请求做离线缓存。\n【原理机制】\n1. Android WebView 支持较完善。\n2. iOS 需依赖 App Cache 或 Native 缓存拦截。\n3. 导致跨端离线策略不一致。\n【最佳实践】\n坑点：iOS 侧需 Native 层实现资源拦截；避免依赖 SW 做核心离线逻辑；使用 localStorage 做数据兜底。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "Service Worker", "Offline"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-043",
+      "front_concept": "RN Bridgeless 模式下，若第三方库仍通过 NativeModules 访问 Bridge 对象，会导致什么后果？",
+      "hints": ["空指针", "兼容层", "崩溃"],
+      "back_explanation": "结论：会导致运行时崩溃或功能失效，因为 Bridge 对象已不存在。\n【原理机制】\n1. Bridgeless 移除了 RCTBridge 核心对象。\n2. 旧库依赖 bridge 发送事件或调用方法。\n3. 访问 null 对象触发异常。\n【最佳实践】\n坑点：升级前需审计依赖库；使用兼容性 shim 层过渡；优先迁移核心路径库至 TurboModules。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Bridgeless", "Migration"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-044",
+      "front_concept": "Flutter Isolate 间通信使用 SendPort 发送大型 List 时，如何避免内存拷贝带来的性能抖动？",
+      "hints": ["Transferable", "所有权", "零拷贝"],
+      "back_explanation": "结论：使用 Transferable 特性转移所有权，而非拷贝数据。\n【原理机制】\n1. 默认 SendPort 会 deep copy 数据。\n2. 特定类型（如 ByteBuffer）支持 transferable。\n3. 发送后原 Isolate 无法再访问该数据。\n【最佳实践】\n坑点：确保发送后不再使用原对象；仅支持特定数据类型；需处理传输失败的回滚逻辑。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Isolate", "Memory"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-045",
+      "front_concept": "小程序 WXS 与 JS 虽然语法相似，但为何 WXS 中无法使用 console.log 调试？",
+      "hints": ["运行环境", "标准库", "视图层"],
+      "back_explanation": "结论：WXS 运行在视图层沙箱，未暴露 console 对象。\n【原理机制】\n1. JS 运行在逻辑层，有完整 Node/Browser API。\n2. WXS 为轻量级脚本，仅暴露必要接口。\n3. 调试需依赖开发者工具的特殊面板。\n【最佳实践】\n坑点：使用开发者工具 WXS 面板查看输出；避免在 WXS 中编写复杂调试逻辑；上线前移除所有调试代码。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "WXS", "Debug"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-046",
+      "front_concept": "Hybrid 应用中，若 Native 侧 Cookie 域设置为 .example.com，子域名 h5.example.com 能否读取？",
+      "hints": ["作用域", "同源策略", "继承"],
+      "back_explanation": "结论：可以读取，父域 Cookie 默认对所有子域可见。\n【原理机制】\n1. Cookie Domain 属性决定作用域。\n2. .example.com 匹配所有子域。\n3. WebView 会自动携带匹配域名的 Cookie。\n【最佳实践】\n坑点：敏感信息避免设置泛域名；注意 Secure 和 HttpOnly 属性配置；不同端（iOS/Android）对 Domain 解析略有差异。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Cookie", "Domain"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-047",
+      "front_concept": "RN Reanimated 的 Worklet 中，若引用了外部大对象，会导致什么性能隐患？",
+      "hints": ["序列化", "闭包捕获", "UI 线程"],
+      "back_explanation": "结论：外部对象会被序列化并拷贝到 UI 线程，增加启动开销。\n【原理机制】\n1. Worklet 需将依赖变量序列化传到 UI 线程。\n2. 大对象序列化耗时且占内存。\n3. 每次触发可能重复拷贝。\n【最佳实践】\n坑点：仅传递必要参数；使用 shareable 变量；避免在 Worklet 内引用全局大状态对象。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Reanimated", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-048",
+      "front_concept": "Flutter 长列表优化中，为何建议使用 ListView.builder 而非直接 children 列表？",
+      "hints": ["懒加载", "按需构建", "内存"],
+      "back_explanation": "结论：builder 模式仅构建可见区域 Widget，节省内存和构建时间。\n【原理机制】\n1. children 列表会一次性构建所有子项。\n2. builder 通过 itemCount 和 itemBuilder 按需创建。\n3. 滚动时回收不可见 Element。\n【最佳实践】\n坑点：需准确估计 itemExtent 避免滚动跳动；复杂 item 需配合 RepaintBoundary；避免在 itemBuilder 中执行耗时逻辑。",
+      "difficulty": "intermediate",
+      "tags": ["Flutter", "ListView", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-049",
+      "front_concept": "小程序自定义导航栏时，如何适配不同机型的状态栏高度差异？",
+      "hints": ["系统 API", "胶囊位置", "动态计算"],
+      "back_explanation": "结论：通过 getMenuButtonBoundingClientRect 动态计算高度。\n【原理机制】\n1. 不同手机状态栏高度不一。\n2. 胶囊按钮位置相对固定。\n3. 基于胶囊位置反推导航栏高度。\n【最佳实践】\n坑点：需监听窗口尺寸变化；Android 与 iOS 胶囊行为不同；预留安全区域避免遮挡。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "UI", "Adaptation"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-050",
+      "front_concept": "Hybrid 桥接安全中，为何仅校验 Referer 不足以防止 CSRF 攻击？",
+      "hints": ["伪造", "Token", "同源"],
+      "back_explanation": "结论：Referer 可被伪造或隐私策略屏蔽，需配合 CSRF Token。\n【原理机制】\n1. 部分浏览器或插件可屏蔽 Referer。\n2. 攻击者可构造特定请求头。\n3. 需服务端验证一次性 Token。\n【最佳实践】\n坑点：Native 侧桥接接口需验证来源签名；敏感操作需用户二次确认；实施严格的 CSP 策略。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "Security", "CSRF"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-051",
+      "front_concept": "RN 性能调试中，Flipper 的 Layout Inspector 为何有时显示的层级与实际渲染不符？",
+      "hints": ["Shadow Tree", "同步延迟", "新架构"],
+      "back_explanation": "结论：旧版 Flipper 基于旧架构，新架构下需更新插件以读取 Shadow Tree。\n【原理机制】\n1. 新架构布局在 C++ 侧 Shadow Tree。\n2. 旧插件仅查询 JS 侧 React Tree。\n3. 两者可能存在状态不一致。\n【最佳实践】\n坑点：确保 Flipper 及插件为最新版本；结合 Native 侧 Profiler 工具；不要完全依赖 JS 侧调试工具。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Debug", "Flipper"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-052",
+      "front_concept": "Flutter DevTools 中，Raster 线程耗时过高通常指向什么类型的性能瓶颈？",
+      "hints": ["GPU", "绘制", "复杂度"],
+      "back_explanation": "结论：指向 GPU 绘制复杂度过高，如过度绘制或复杂 Shader。\n【原理机制】\n1. UI 线程负责构建，Raster 线程负责绘制。\n2. Raster 耗时高说明 GPU 处理压力大。\n3. 常见于复杂阴影、透明度叠加。\n【最佳实践】\n坑点：使用 DevTools 查看 Frame 详情；减少 opacity 嵌套；使用 RepaintBoundary 隔离复杂区域。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Profiling", "Raster"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-053",
+      "front_concept": "小程序数据绑定中，为何建议避免直接 setData 整个大对象，而采用路径更新？",
+      "hints": ["Diff 算法", "传输体积", "局部更新"],
+      "back_explanation": "结论：路径更新减少序列化体积，提高 Diff 效率。\n【原理机制】\n1. 全量 setData 需序列化整个对象。\n2. 路径更新仅传输变化字段。\n3. 视图层 Diff 计算量减小。\n【最佳实践】\n坑点：使用 data.`key.subkey` 语法；列表更新使用索引路径；避免深层嵌套导致路径过长。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "setData", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-054",
+      "front_concept": "Hybrid 应用中，localStorage 在 iOS WKWebView 上有配额限制，超出后会导致什么异常？",
+      "hints": ["QuotaExceeded", "崩溃", "写入失败"],
+      "back_explanation": "结论：抛出 QuotaExceededError，写入失败，可能导致业务逻辑中断。\n【原理机制】\n1. WKWebView 限制本地存储大小（通常 5-10MB）。\n2. 超出限制阻止写入。\n3. 未捕获异常可能导致 JS 执行停止。\n【最佳实践】\n坑点：使用 try-catch 包裹存储操作；定期清理过期数据；大数据存 Native 侧或 IndexedDB。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Storage", "Error"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-055",
+      "front_concept": "RN TurboModule 中，C++ 方法若需在后台线程执行，如何确保回调到 JS 线程的安全性？",
+      "hints": ["Runtime", "线程亲和性", "队列"],
+      "back_explanation": "结论：必须将 JSI 回调调度回 JS 线程执行，不可直接在后台线程调用。\n【原理机制】\n1. JSI Runtime 非线程安全。\n2. 后台线程计算完成后，需 post task 到 JS 线程。\n3. 在 JS 线程内调用 Promise resolve。\n【最佳实践】\n坑点：使用 runtime.queueJob 或等效机制；避免持有 Runtime 指针跨线程；注意生命周期防止回调时实例已销毁。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "TurboModules", "Threading"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-056",
+      "front_concept": "Flutter 应用中，若忽略 Semantics（语义化）节点构建，会对无障碍访问产生什么影响？",
+      "hints": ["读屏软件", "辅助功能", "树结构"],
+      "back_explanation": "结论：读屏软件无法识别控件内容，视障用户无法使用。\n【原理机制】\n1. Flutter 引擎生成 Semantics 树给系统。\n2. 自定义绘制组件需手动标注 semantics。\n3. 缺失标签导致无障碍服务跳过该元素。\n【最佳实践】\n坑点：自定义 Widget 务必包裹 Semantics 组件；测试时开启系统读屏功能；避免纯图片按钮无标签。",
+      "difficulty": "intermediate",
+      "tags": ["Flutter", "Accessibility", "Semantics"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-057",
+      "front_concept": "小程序分包预下载策略中，如何平衡预下载流量消耗与用户转化率？",
+      "hints": ["触达时机", "网络状态", "优先级"],
+      "back_explanation": "结论：仅在 WiFi 或用户高意向行为后触发预下载。\n【原理机制】\n1. 预下载消耗用户流量。\n2. 需在用户可能进入分包前完成。\n3. 策略不当导致用户反感或流失。\n【最佳实践】\n坑点：监听 onNetworkStatusChange；仅在关键入口页触发；提供取消或暂停机制；监控预下载成功率。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Preload", "Strategy"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-058",
+      "front_concept": "Hybrid 开发中，为何建议禁用 WebView 的 file:// 协议访问？",
+      "hints": ["跨域", "文件读取", "安全漏洞"],
+      "back_explanation": "结论：file:// 协议可读取本地文件，存在严重信息泄露风险。\n【原理机制】\n1. file:// 允许访问设备文件系统。\n2. 恶意 JS 可读取敏感文件。\n3. 同源策略对 file:// 限制较弱。\n【最佳实践】\n坑点：Android 需设置 setAllowFileAccess(false)；iOS 限制本地文件访问路径；所有资源走 http/https 或 asset 协议。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "Security", "Protocol"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-059",
+      "front_concept": "RN 新架构下，若 Shadow Tree 与 React Tree 状态不一致，会导致什么视觉异常？",
+      "hints": ["闪烁", "布局错位", "提交失败"],
+      "back_explanation": "结论：会导致界面闪烁、布局错位或点击事件失效。\n【原理机制】\n1. 渲染依赖 Shadow Tree 数据。\n2. 若 JS 侧更新未正确同步到 C++ 侧。\n3. 原生绘制使用旧数据或空数据。\n【最佳实践】\n坑点：确保所有状态更新通过新架构 API；避免混用旧桥接修改布局；调试时关注 Commit 阶段日志。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Fabric", "Bug"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-060",
+      "front_concept": "Flutter Platform Channel 传输二进制数据时，使用 BinaryMessageHandler 相比 StandardMethodCodec 有何优势？",
+      "hints": ["编解码", "零拷贝", "效率"],
+      "back_explanation": "结论：BinaryMessageHandler 避免编解码开销，直接传输字节流。\n【原理机制】\n1. StandardMethodCodec 需序列化结构。\n2. BinaryMessageHandler 直接透传 Uint8List。\n3. 适合图片、音频等大二进制数据。\n【最佳实践】\n坑点：需自行定义数据协议格式；调试难度增加；仅用于大数据传输，常规调用仍推荐 MethodChannel。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Platform Channel", "Binary"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-061",
+      "front_concept": "React Native 中 Reanimated 与 Gesture Handler 配合时，为何建议在 Worklet 中直接修改共享变量而非调用 setState？",
+      "hints": ["UI 线程", "渲染循环", "状态同步"],
+      "back_explanation": "结论：setState 触发 JS 重渲染，破坏 UI 线程流畅性。\n【原理机制】\n1. Gesture Handler 事件在 UI 线程处理。\n2. Worklet 直接修改共享值触发重绘，不经过 JS 线程。\n3. setState 需跨线程通信并触发 React  reconcilation。\n【最佳实践】\n坑点：仅在需要持久化状态或联动非动画组件时使用 setState；动画帧内严禁调用 setState。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Reanimated", "Gesture"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-062",
+      "front_concept": "Flutter 跨页面 Hero 动画失效的常见原因之一是两个页面的 Widget 树结构差异过大，具体指什么？",
+      "hints": ["Tag 匹配", "路径一致", "构建时机"],
+      "back_explanation": "结论：Hero 控件的 tag 必须一致，且构建时机需匹配。\n【原理机制】\n1. Hero 动画依赖 tag 识别起始和结束控件。\n2. 若目标页面 Hero 未及时构建，动画无法建立映射。\n3. 树结构差异导致 overlay 无法正确插入。\n【最佳实践】\n坑点：确保目标页面 Hero 组件在 build 初期即渲染；避免动态条件渲染导致 Hero 缺失；tag 需全局唯一。",
+      "difficulty": "intermediate",
+      "tags": ["Flutter", "Hero", "Animation"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-063",
+      "front_concept": "小程序原生组件（如 Video）在 iOS 上全屏切换时，为何容易出现层级错乱或黑屏？",
+      "hints": ["原生层级", "全屏容器", "渲染上下文"],
+      "back_explanation": "结论：iOS 全屏视频使用独立原生窗口，层级管理复杂。\n【原理机制】\n1. 全屏视频脱离 WebView 层级，创建新 UIWindow。\n2. 切换时若原生容器未正确挂载，导致黑屏。\n3. 返回时层级恢复失败导致遮挡。\n【最佳实践】\n坑点：使用同层渲染方案；避免在全屏状态下切换 Tab；监听全屏事件手动调整原生视图层级。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Video", "iOS"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-064",
+      "front_concept": "Android Hybrid 开发中，选择腾讯 X5 内核而非系统 WebView 的主要权衡点是什么？",
+      "hints": ["兼容性", "体积", "功能特性"],
+      "back_explanation": "结论：X5 兼容性好、功能强，但增加包体积且依赖网络下载。\n【原理机制】\n1. 系统 WebView 碎片化严重，API 支持不一。\n2. X5 统一内核，支持视频播放、文件下载等增强能力。\n3. 首包需集成 SDK，首次运行可能下载内核。\n【最佳实践】\n坑点：需处理内核下载失败降级策略；注意隐私合规政策；包体积增加约 3-5MB。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "WebView", "X5"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-065",
+      "front_concept": "RN Hermes 引擎调试时，为何源码断点调试有时无法命中或行号偏移？",
+      "hints": ["Source Map", "字节码", "映射关系"],
+      "back_explanation": "结论：Hermes 运行字节码，需准确 Source Map 映射回源码。\n【原理机制】\n1. JS 被编译为.hbc 字节码文件。\n2. 调试器依赖 Source Map 还原行号。\n3. 构建配置不一致导致映射失效。\n【最佳实践】\n坑点：确保 Metro 配置生成准确 Source Map；生产环境需上传 Map 到调试平台；避免代码混淆影响映射。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Hermes", "Debug"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-066",
+      "front_concept": "Flutter Engine Group 共享资源时，若一个引擎崩溃，是否会影响同组其他引擎实例？",
+      "hints": ["进程隔离", "上下文共享", "稳定性"],
+      "back_explanation": "结论：通常不会导致进程崩溃，但共享 GPU 上下文可能受损。\n【原理机制】\n1. 引擎实例在 Dart 层隔离。\n2. GPU 上下文共享，若 GPU 状态异常可能波及。\n3. 内存泄漏可能因共享池累积。\n【最佳实践】\n坑点：关键业务引擎建议独立 Group；监控 GPU 内存使用；销毁引擎时确保资源正确释放。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Engine", "Stability"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-067",
+      "front_concept": "小程序云函数冷启动延迟较高，架构上如何优化频繁调用的场景？",
+      "hints": ["保活", "聚合调用", "缓存"],
+      "back_explanation": "结论：通过定时触发保活或客户端聚合请求减少调用次数。\n【原理机制】\n1. 云函数无请求时实例会被回收。\n2. 首次请求需初始化环境（冷启动）。\n3. 频繁调用导致多次冷启动开销。\n【最佳实践】\n坑点：使用定时任务每分钟触发保活；客户端合并多个请求为一个批量接口；热点数据缓存到 CDN。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Cloud Function", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-068",
+      "front_concept": "Hybrid JSBridge 设计中，为何建议将异步回调统一封装为 Promise 而非传统 callback？",
+      "hints": ["代码可读性", "错误处理", "链式调用"],
+      "back_explanation": "结论：Promise 避免回调地狱，统一错误捕获流程。\n【原理机制】\n1. 原生异步操作完成时间不确定。\n2. Callback 嵌套导致逻辑难以维护。\n3. Promise 支持 async/await 语法糖。\n【最佳实践】\n坑点：需处理原生侧未触发回调的超时情况；确保 Promise 状态不可逆；兼容旧版 callback 接口。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "JSBridge", "Promise"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-069",
+      "front_concept": "RN Image 组件在快速滚动列表中图片闪烁，除了使用 FastImage 外，原生侧缓存策略应如何调整？",
+      "hints": ["内存缓存", "磁盘缓存", "复用"],
+      "back_explanation": "结论：需增大内存缓存池，并优化图片解码复用机制。\n【原理机制】\n1. 默认缓存池较小，快速滚动易失效。\n2. 图片解码后 Bitmap 未及时复用。\n3. 网络请求竞争导致加载顺序错乱。\n【最佳实践】\n坑点：配置 Fresco/Glide 缓存大小；启用渐进式加载；列表复用单元格时取消旧请求。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Image", "Cache"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-070",
+      "front_concept": "Flutter 复杂图形绘制场景，选择 CustomPainter 而非堆叠 Widget 的核心性能优势是什么？",
+      "hints": ["绘制指令", "图层合并", "开销"],
+      "back_explanation": "结论：CustomPainter 直接操作 Canvas，减少 Widget 树开销和图层合成。\n【原理机制】\n1. Widget 堆叠产生多个 Element 和 RenderObject。\n2. CustomPainter 单次绘制调用底层 GPU 指令。\n3. 减少遍历和布局计算成本。\n【最佳实践】\n坑点：需手动管理绘制逻辑，复杂度较高；内容变化需手动 markNeedsPaint；不适合交互复杂场景。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "CustomPainter", "Graphics"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-071",
+      "front_concept": "小程序登录态维护中，若 session_key 泄露，攻击者能利用它做什么？",
+      "hints": ["数据解密", "身份冒充", "敏感信息"],
+      "back_explanation": "结论：攻击者可解密用户敏感数据（如手机号），冒充用户身份。\n【原理机制】\n1. session_key 用于解密用户数据。\n2. 配合 appid 可伪造请求。\n3. 无法直接获取 openid，但可获取加密数据。\n【最佳实践】\n坑点：session_key 严禁传输到前端；后端需校验签名；定期更新 session_key；敏感操作需二次验证。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "Security", "Session"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-072",
+      "front_concept": "Hybrid 预加载资源时，为何优先预加载 CSS/JS 而非图片资源？",
+      "hints": ["渲染阻塞", "体积大小", "关键路径"],
+      "back_explanation": "结论：CSS/JS 阻塞渲染解析，优先级高于图片。\n【原理机制】\n1. 浏览器遇 CSS 暂停渲染，遇 JS 暂停解析。\n2. 图片通常不影响首屏结构渲染。\n3. 带宽有限，需保障关键资源。\n【最佳实践】\n坑点：使用 link rel=preload 指定类型；避免预加载非首屏资源；注意缓存策略配合。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "Preload", "Resource"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-073",
+      "front_concept": "RN TurboModule C++ 实现中，若需访问 React 上下文（如当前 Theme），如何安全获取？",
+      "hints": ["上下文传递", "全局单例", "参数注入"],
+      "back_explanation": "结论：通过 JS 侧将必要上下文作为参数传递给 Native 方法。\n【原理机制】\n1. C++ 侧无直接访问 React 上下文通道。\n2. 依赖全局单例易导致内存泄漏或状态不同步。\n3. 显式参数传递最安全。\n【最佳实践】\n坑点：避免在 Native 侧缓存 JS 对象引用；上下文变化时主动通知 Native；使用 Context API 聚合数据。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "TurboModules", "Context"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-074",
+      "front_concept": "Flutter 中 Texture 组件与 Platform View 在渲染视频流时的主要区别是什么？",
+      "hints": ["纹理 ID", "合成方式", "性能"],
+      "back_explanation": "结论：Texture 通过纹理 ID 合成，性能优于 Platform View。\n【原理机制】\n1. Platform View 是原生控件嵌入，有通信开销。\n2. Texture 将原生内容渲染为纹理，由 Flutter 统一合成。\n3. Texture 减少层级，提升帧率。\n【最佳实践】\n坑点：Texture 需原生侧配合注册纹理 ID；交互事件需手动映射；仅支持支持纹理输出的内容。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Texture", "Video"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-075",
+      "front_concept": "小程序运行时环境检测中，如何区分微信客户端内嵌 WebView 与普通浏览器？",
+      "hints": ["User-Agent", "JSAPI", "对象存在性"],
+      "back_explanation": "结论：检测 wx 对象存在性及 User-Agent 中 MicroMessenger 标识。\n【原理机制】\n1. 微信环境注入 wx 全局对象。\n2. UA 字符串包含 MicroMessenger。\n3. 普通浏览器无这些特征。\n【最佳实践】\n坑点：UA 可被伪造，需组合判断；避免依赖单一特征；H5 跳转小程序需校验环境合法性。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Environment", "Detection"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-076",
+      "front_concept": "Hybrid 应用中，实施 CSP（内容安全策略）主要防御哪种类型的攻击？",
+      "hints": ["XSS", "资源加载", "白名单"],
+      "back_explanation": "结论：主要防御 XSS（跨站脚本）攻击及恶意资源加载。\n【原理机制】\n1. CSP 限制脚本来源、样式来源等。\n2. 阻止内联脚本执行（除非 hash 匹配）。\n3. 限制外部域名资源加载。\n【最佳实践】\n坑点：需逐步收紧策略避免误杀；注意 nonce 或 hash 更新机制；兼容旧版 WebView 可能不支持。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "CSP", "Security"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-077",
+      "front_concept": "RN FlatList 动态高度 Item 中，removeClippedSubviews 属性在 Android 上的副作用是什么？",
+      "hints": ["裁剪", "空白", "滚动"],
+      "back_explanation": "结论：可能导致滚动时子视图未及时显示，出现短暂空白。\n【原理机制】\n1. 该属性开启原生裁剪优化。\n2. 动态高度计算延迟可能导致裁剪区域错误。\n3. 滚动快时视图未及时恢复。\n【最佳实践】\n坑点：动态高度列表建议关闭此属性；或确保 getItemLayout 准确；测试快速滚动场景。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "FlatList", "Android"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-078",
+      "front_concept": "Flutter 状态管理中，InheritedWidget 频繁更新为何会导致其下所有子 Widget 重建？",
+      "hints": ["依赖更新", "通知机制", "粒度"],
+      "back_explanation": "结论：InheritedWidget 更新会通知所有依赖它的元素重建。\n【原理机制】\n1. 子元素通过 dependOnInheritedWidget 建立依赖。\n2. 数据变化触发 updateShouldNotify 返回 true。\n3. 所有依赖元素标记为 dirty。\n【最佳实践】\n坑点：拆分细粒度 InheritedWidget；使用 Selector 或 Provider 优化重建范围；避免全局大状态对象。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "InheritedWidget", "State"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-079",
+      "front_concept": "小程序 WXS 模块在多次引用时，是否会产生多个实例，如何验证？",
+      "hints": ["单例", "缓存", "作用域"],
+      "back_explanation": "结论：WXS 模块是单例的，多次引用共享同一实例。\n【原理机制】\n1. 模块加载后缓存于视图层。\n2. 不同组件引用同一模块文件，共享状态。\n3. 修改模块变量会影响所有引用处。\n【最佳实践】\n坑点：避免在 WXS 模块中存储组件私有状态；如需私有状态需在组件内部封装；注意模块初始化时机。",
+      "difficulty": "advanced",
+      "tags": ["MiniProgram", "WXS", "Module"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-080",
+      "front_concept": "Hybrid 开发中，随意修改 User-Agent 可能导致服务端什么误判？",
+      "hints": ["设备识别", "兼容模式", "风控"],
+      "back_explanation": "结论：导致服务端错误识别设备类型，返回不兼容页面或触发风控。\n【原理机制】\n1. 服务端根据 UA 下发特定 HTML/CSS。\n2. 修改 UA 可能伪装成其他浏览器。\n3. 异常 UA 特征可能被风控拦截。\n【最佳实践】\n坑点：仅在必要时追加标识后缀；保留原始 UA 关键信息；测试服务端兼容性；避免伪装成搜索引擎爬虫。",
+      "difficulty": "intermediate",
+      "tags": ["Hybrid", "User-Agent", "Compatibility"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-081",
+      "front_concept": "RN 新架构迁移中，旧版 Native Modules 若未迁移至 TurboModules，能否与新架构共存？",
+      "hints": ["兼容层", "Bridge", "性能"],
+      "back_explanation": "结论：可以通过兼容层共存，但会回退到旧 Bridge 通信，损失性能。\n【原理机制】\n1. 新架构提供 Bridge 兼容模式。\n2. 旧模块通过 Bridge 通信，新模块走 JSI。\n3. 混合模式导致架构复杂化。\n【最佳实践】\n坑点：制定迁移计划逐步替换；监控 Bridge 消息量；避免新模块依赖旧模块的 Bridge 特性。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Migration", "Compatibility"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-082",
+      "front_concept": "Flutter Impeller 引擎在处理混合模式（Blend Modes）时，与 Skia 相比有何潜在差异？",
+      "hints": ["支持度", "渲染结果", "回退"],
+      "back_explanation": "结论：Impeller 对部分复杂混合模式支持尚不完善，可能渲染不一致。\n【原理机制】\n1. Skia 功能成熟，支持所有混合模式。\n2. Impeller 追求性能，部分特性正在实现中。\n3. 不支持时可能自动回退或显示异常。\n【最佳实践】\n坑点：测试所有自定义混合效果；提供降级方案；关注 Flutter 版本更新日志中的 Impeller 修复。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Impeller", "Rendering"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-083",
+      "front_concept": "小程序插件化开发中，主包调用插件接口需声明权限，未声明会导致什么错误？",
+      "hints": ["权限校验", "编译报错", "运行异常"],
+      "back_explanation": "结论：编译时报错或运行时接口调用被拒绝。\n【原理机制】\n1. 小程序安全策略要求显式声明插件权限。\n2. app.json 中需配置 plugins 字段。\n3. 未声明视为非法调用。\n【最佳实践】\n坑点：确保插件版本与声明一致；权限变更需重新提交审核；测试真机环境而非仅开发者工具。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Plugin", "Permission"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-084",
+      "front_concept": "Hybrid 应用中，WebView 进程崩溃后，如何实现无感恢复而不丢失当前浏览历史？",
+      "hints": ["状态保存", "重建", "URL 记录"],
+      "back_explanation": "结论：崩溃前保存当前 URL 及表单状态，重建后恢复。\n【原理机制】\n1. 监听 WebView 崩溃回调。\n2. 记录当前加载 URL 及 Back 栈。\n3. 重建 WebView 实例并 reload。\n【最佳实践】\n坑点：表单数据难以完全恢复，需提示用户；避免频繁崩溃导致循环重建；记录崩溃日志上报。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "WebView", "Crash"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-085",
+      "front_concept": "RN JSI 中，Promise 回调若在未挂载的组件中触发，如何避免内存泄漏或崩溃？",
+      "hints": ["弱引用", "生命周期", "取消标记"],
+      "back_explanation": "结论：需使用弱引用持有组件实例，或执行前检查挂载状态。\n【原理机制】\n1. JS 侧组件卸载后对象可能被回收。\n2. Native 侧若持有强引用阻止回收。\n3. 回调访问无效内存导致崩溃。\n【最佳实践】\n坑点：使用 useRef 保存取消标记；Promise 链中增加 aborted 检查；Native 侧清理回调引用。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "JSI", "Memory"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-086",
+      "front_concept": "Flutter 列表刷新时，使用 ValueKey 与 ObjectKey 对 Element 复用的影响有何不同？",
+      "hints": ["相等性", "身份识别", "重建"],
+      "back_explanation": "结论：ValueKey 比较值，ObjectKey 比较对象引用，后者更严格。\n【原理机制】\n1. ValueKey 值相同即认为同一元素。\n2. ObjectKey 需引用同一对象实例。\n3. 错误选择导致不必要的重建或状态丢失。\n【最佳实践】\n坑点：列表项数据不可变时用 ValueKey；对象引用变化但内容不变时用 ObjectKey 强制重建。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Key", "Element"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-087",
+      "front_concept": "小程序实时日志管理中，为何建议仅在上生产环境后开启，且需控制日志级别？",
+      "hints": ["性能开销", "存储限制", "隐私"],
+      "back_explanation": "结论：日志写入消耗性能，存储有限，且可能泄露敏感信息。\n【原理机制】\n1. 日志写入涉及 IO 操作。\n2. 小程序本地存储空间有限。\n3. 日志可能包含用户隐私数据。\n【最佳实践】\n坑点：使用 LogManager 分级记录；敏感数据脱敏；定期清理旧日志；避免 console.log 混用。",
+      "difficulty": "intermediate",
+      "tags": ["MiniProgram", "Logging", "Performance"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-088",
+      "front_concept": "Hybrid 应用中，实施 SSL Pinning 后，若服务器证书轮换，会导致什么后果，如何缓解？",
+      "hints": ["连接失败", "多证书绑定", "更新"],
+      "back_explanation": "结论：客户端拒绝连接，导致服务不可用。\n【原理机制】\n1. Pinning 锁定特定证书公钥。\n2. 服务器更换证书后指纹不匹配。\n3. HTTPS 握手失败。\n【最佳实践】\n坑点：绑定多个备用证书公钥；提供远程配置开关禁用 Pinning；App 更新时同步新证书。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "SSL", "Security"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-089",
+      "front_concept": "RN Bridgeless 模式下，事件发射器（Event Emitter）的订阅机制与旧 Bridge 有何本质不同？",
+      "hints": ["JSI 函数", "直接调用", "全局对象"],
+      "back_explanation": "结论：通过 JSI 直接持有 C++ 事件发射器函数，无序列化。\n【原理机制】\n1. 旧 Bridge 通过事件名广播，JSON 序列化。\n2. Bridgeless 通过 JSI 绑定具体函数引用。\n3. 调用直接执行 C++ 回调。\n【最佳实践】\n坑点：需确保订阅者在发射前完成绑定；清理订阅防止内存泄漏；类型定义需与 C++ 侧严格一致。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Bridgeless", "Events"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-090",
+      "front_concept": "跨端设计系统（Design System）中，如何保证 Token（颜色、间距）在多端（RN/Flutter/Web）的一致性？",
+      "hints": ["单一数据源", "转换脚本", "格式统一"],
+      "back_explanation": "结论：使用 JSON/YAML 单一源文件，通过脚本生成各端代码。\n【原理机制】\n1. 维护一份设计 Token 源文件。\n2. 使用 Style Dictionary 等工具转换。\n3. 生成 TS、Dart、CSS 变量。\n【最佳实践】\n坑点：确保转换脚本纳入 CI 流程；版本变更需同步通知各端；避免手动修改生成文件。",
+      "difficulty": "advanced",
+      "tags": ["Design System", "Token", "CI/CD"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-091",
+      "front_concept": "Kotlin Multiplatform (KMP) 中，expect/actual 机制如何确保共享代码在调用平台特定 API 时的编译安全？",
+      "hints": ["编译时检查", "声明与实现", "类型匹配"],
+      "back_explanation": "结论：expect 声明接口，actual 提供平台实现，编译器强制匹配。\n【原理机制】\n1. common 模块定义 expect 函数/类。\n2. 平台模块（iOS/Android）提供 actual 实现。\n3. 编译器验证签名一致性，确保类型安全。\n【最佳实践】\n坑点：actual 必须与 expect 签名完全一致；避免在 common 代码中直接引用平台 SDK；利用 expect object 管理单例差异。",
+      "difficulty": "advanced",
+      "tags": ["KMP", "Architecture", "Compilation"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-092",
+      "front_concept": "Compose Multiplatform 与 Flutter 在渲染机制上的根本差异是什么，这对 UI 一致性有何影响？",
+      "hints": ["原生控件", "自绘引擎", "平台差异"],
+      "back_explanation": "结论：CMP 映射为原生控件，Flutter 使用 Skia 自绘，前者更原生后者更一致。\n【原理机制】\n1. Compose 调用平台原生 UI 组件（SwiftUI/Android View）。\n2. Flutter 通过 Skia/Impeller 直接绘制像素。\n3. CMP 受限于平台控件差异，Flutter 完全可控。\n【最佳实践】\n坑点：CMP 需处理 iOS/Android 样式差异；Flutter 需自定义实现原生体验组件；选择取决于对原生质感的要求。",
+      "difficulty": "advanced",
+      "tags": ["Compose Multiplatform", "Flutter", "Rendering"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-093",
+      "front_concept": "在 WebView 中集成 WebAssembly (Wasm) 处理密集计算时，为何仍需注意 JS 与 Wasm 内存边界拷贝开销？",
+      "hints": ["线性内存", "ArrayBuffer", "序列化"],
+      "back_explanation": "结论：JS 与 Wasm 内存空间隔离，数据交换需拷贝至共享 ArrayBuffer。\n【原理机制】\n1. Wasm 拥有独立线性内存空间。\n2. JS 访问 Wasm 内存需通过 ArrayBuffer 视图。\n3. 频繁大数据交换导致内存拷贝阻塞主线程。\n【最佳实践】\n坑点：尽量在 Wasm 内部完成数据处理，仅返回结果；使用 Wasm 直接操作 DOM 需通过 JS 桥接；避免频繁传递大字符串。",
+      "difficulty": "advanced",
+      "tags": ["WebAssembly", "Performance", "Memory"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-094",
+      "front_concept": "KMP 共享代码中使用 Coroutine 时，如何避免因平台 Dispatcher 差异导致的线程安全问题？",
+      "hints": ["Dispatchers.Main", "依赖注入", "线程模型"],
+      "back_explanation": "结论：需通过依赖注入传递平台特定的 Dispatcher，避免硬编码。\n【原理机制】\n1. iOS 无 Main 线程概念，Android 有。\n2. KMP 提供 Dispatchers.Main 但行为可能不同。\n3. 硬编码可能导致 UI 更新在非主线程。\n【最佳实践】\n坑点：在 common 代码定义 Dispatcher 接口；平台侧实现具体线程调度；使用 CoroutineScope 管理生命周期。",
+      "difficulty": "advanced",
+      "tags": ["KMP", "Coroutine", "Threading"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-095",
+      "front_concept": "Compose Multiplatform 中，状态提升（State Hoisting）不当会导致什么重构困难？",
+      "hints": ["单向数据流", "可测试性", "状态拥有者"],
+      "back_explanation": "结论：导致组件状态耦合，难以复用和测试。\n【原理机制】\n1. 状态应保存在调用者而非被调用组件。\n2. 组件无状态，仅接收参数和事件回调。\n3. 违反此原则导致组件内部隐藏状态。\n【最佳实践】\n坑点：遵循无状态组件原则；将 ViewModel 置于顶层；避免在 Composable 函数内直接创建状态对象。",
+      "difficulty": "intermediate",
+      "tags": ["Compose Multiplatform", "State", "Architecture"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-096",
+      "front_concept": "Wasm 模块加载初期为何可能出现短暂性能下降，如何优化？",
+      "hints": ["编译优化", "流式编译", "缓存"],
+      "back_explanation": "结论：Wasm 需编译为机器码，首次加载耗时，需利用浏览器缓存。\n【原理机制】\n1. 浏览器需将 Wasm 字节码编译为本地机器码。\n2. 首次加载无缓存，编译耗时。\n3. 后续加载可使用 CompiledCode 缓存。\n【最佳实践】\n坑点：使用 WebAssembly.compileStreaming 加速；配置 HTTP 缓存头；避免频繁更新 Wasm 文件导致缓存失效。",
+      "difficulty": "advanced",
+      "tags": ["WebAssembly", "Loading", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-097",
+      "front_concept": "KMP 目前为何不建议共享 UI 代码用于复杂交互场景，主要限制是什么？",
+      "hints": ["控件差异", "交互逻辑", "成熟度"],
+      "back_explanation": "结论：平台原生控件交互行为不一致，共享 UI 难以抹平差异。\n【原理机制】\n1. 滑动、动画、手势在各端表现不同。\n2. 共享 UI 库需抽象过多细节，失去原生优势。\n3. 目前 Compose Multiplatform 仍在演进中。\n【最佳实践】\n坑点：优先共享业务逻辑和数据层；UI 层各端原生实现；仅简单页面尝试共享 UI。",
+      "difficulty": "advanced",
+      "tags": ["KMP", "UI", "Limitation"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-098",
+      "front_concept": "iOS 集成 Flutter 时，若 AppDelegate 中初始化逻辑过重，会如何影响 Flutter Engine 启动时序？",
+      "hints": ["主线程阻塞", "启动回调", "资源竞争"],
+      "back_explanation": "结论：阻塞主线程导致 Flutter 引擎初始化延迟，首屏变慢。\n【原理机制】\n1. Flutter 引擎启动依赖 AppDelegate 回调。\n2. 重逻辑占用主线程，推迟 engine 创建。\n3. 导致白屏时间增加。\n【最佳实践】\n坑点：将非关键初始化移至异步；使用 FlutterEngineGroup 预创建引擎；确保 didFinishLaunching 快速返回。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "iOS", "Startup"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-099",
+      "front_concept": "Android 中配置 configChanges 忽略屏幕旋转，为何仍可能导致 Flutter 状态丢失？",
+      "hints": ["生命周期", "重建", "状态保存"],
+      "back_explanation": "结论：configChanges 仅防止 Activity 重建，但 Flutter 引擎可能仍需重绘。\n【原理机制】\n1. 某些系统事件仍可能触发重建。\n2. Flutter 侧状态未持久化，重建后丢失。\n3. 仅靠 configChanges 不足以保证状态。\n【最佳实践】\n坑点：使用 RestorationMixin 恢复状态；关键数据存本地存储；避免在 State 对象中存持久化数据。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Android", "Lifecycle"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-100",
+      "front_concept": "Flutter Platform Channel 通信中，默认 MethodChannel 运行在什么线程，如何切换到后台线程处理耗时任务？",
+      "hints": ["主线程", "Handler", "Executor"],
+      "back_explanation": "结论：默认运行在主线程，需手动切换线程池处理耗时任务。\n【原理机制】\n1. Android 侧回调在主线程（UI Thread）。\n2. 耗时操作阻塞主线程导致 ANR。\n3. 需使用 AsyncTask 或 Coroutine 切换线程。\n【最佳实践】\n坑点：iOS 侧默认也是主线程；结果回调需切回主线程更新 UI；明确定义线程切换边界。",
+      "difficulty": "intermediate",
+      "tags": ["Flutter", "Platform Channel", "Threading"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-101",
+      "front_concept": "Hybrid 架构中，iOS ViewController 生命周期与 WebView 加载时机不一致会导致什么内存问题？",
+      "hints": ["引用循环", "延迟释放", "代理持有"],
+      "back_explanation": "结论：ViewController 销毁后 WebView 仍持有引用，导致内存泄漏。\n【原理机制】\n1. WebView 可能异步加载完成，持有 Delegate。\n2. ViewController 已 dealloc，但 WebView 未释放。\n3. 形成循环引用或 dangling pointer。\n【最佳实践】\n坑点：viewWillDisappear 时清空 WebView 代理；使用 weak 引用持有 ViewController；及时调用 stopLoading。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "iOS", "Memory"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-102",
+      "front_concept": "RN Native Module 中，若 Android 侧持有 Activity Context 而非 Application Context，会导致什么后果？",
+      "hints": ["生命周期", "内存泄漏", "回收"],
+      "back_explanation": "结论：Activity 销毁后 Module 仍持有引用，导致 Activity 无法回收。\n【原理机制】\n1. Native Module 通常是单例长生命周期。\n2. Activity Context 关联 UI 生命周期。\n3. 长生命周期持有短生命周期对象导致泄漏。\n【最佳实践】\n坑点：构造函数传入 Application Context；若需 UI 上下文，使用 WeakReference；监听 Activity 销毁事件清理。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Android", "Context"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-103",
+      "front_concept": "iOS 后台任务（BGTaskScheduler）若频繁提交相同标识的任务，系统会如何惩罚？",
+      "hints": ["调度限制", "频率限制", "电池优化"],
+      "back_explanation": "结论：系统会减少该任务触发频率，甚至停止调度。\n【原理机制】\n1. iOS 严格管理后台任务以省电。\n2. 频繁提交视为滥用，触发限流。\n3. 任务可能被无限期推迟。\n【最佳实践】\n坑点：合理设置 earliestBeginDate；合并多次请求为一次任务；监控 task submission 成功率。",
+      "difficulty": "advanced",
+      "tags": ["iOS", "Background", "Task"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-104",
+      "front_concept": "跨端应用中，如何集成原生内存监控（如 Android Profiler）以检测 JS 无法感知的 Native 泄漏？",
+      "hints": ["Native Heap", "绑定关系", "工具链"],
+      "back_explanation": "结论：需通过 Native 侧 API 暴露内存指标，结合 JS 侧上报。\n【原理机制】\n1. JS 内存监控无法覆盖 Native 模块。\n2. 通过 Native Module 读取 Runtime.maxMemory 等。\n3. 关联 JS 操作与 Native 内存增长。\n【最佳实践】\n坑点：定期采样而非实时监控；区分图形内存与堆内存；建立内存增长基线报警。",
+      "difficulty": "advanced",
+      "tags": ["Monitoring", "Memory", "Native"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-105",
+      "front_concept": "为防止 JS Bundle 被篡改，除代码混淆外，还应实施什么完整性校验机制？",
+      "hints": ["哈希签名", "启动校验", "公钥验证"],
+      "back_explanation": "结论：启动时计算 Bundle 哈希并与服务端签名比对。\n【原理机制】\n1. 构建时生成 Bundle 哈希并用私钥签名。\n2. 签名随 App 打包或远程下发。\n3. 启动时 Native 侧验证哈希与签名。\n【最佳实践】\n坑点：校验逻辑需放在 Native 侧防止被绕过；公钥硬编码在 Native 代码中；校验失败则拒绝加载。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Bundle", "Integrity"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-106",
+      "front_concept": "检测 Frida Hook 时，为何检查 /proc/self/maps 文件内容是一种有效手段？",
+      "hints": ["内存映射", "特征字符串", "动态库"],
+      "back_explanation": "结论：Frida 注入的 gadget 库会在 maps 中留下特征文件名。\n【原理机制】\n1. Frida 需注入动态库到进程空间。\n2. /proc/self/maps 列出所有加载模块。\n3. 搜索 frida-gadget 等关键字可发现痕迹。\n【最佳实践】\n坑点：攻击者可重命名库文件；需结合多种检测（端口、线程名）；检测逻辑需混淆防止被 patch。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Anti-Hook", "Frida"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-107",
+      "front_concept": "高频写入场景下，使用 SQLCipher 加密 SQLite 相比 EncryptedSharedPreferences 有何性能劣势？",
+      "hints": ["加解密开销", "事务锁", "IO 次数"],
+      "back_explanation": "结论：SQLCipher 加解密开销大，事务锁竞争更严重。\n【原理机制】\n1. SQLCipher 对每页数据进行加解密。\n2. 频繁写入导致 CPU 占用高。\n3. 锁机制导致并发写入阻塞。\n【最佳实践】\n坑点：敏感低频数据用 SQLCipher；高频配置用 EncryptedSharedPreferences；批量写入合并事务。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Storage", "Encryption"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-108",
+      "front_concept": "实施 SSL Pinning 后，为何仍可能被攻击者通过 Hook 系统底层 API 绕过？",
+      "hints": ["信任链", "系统库", "Hook 点"],
+      "back_explanation": "结论：攻击者 Hook 系统网络库（如 NSURLSession），跳过校验逻辑。\n【原理机制】\n1. Pinning 逻辑在应用层。\n2. 底层网络库被 Hook 后直接返回成功。\n3. 证书校验被 bypass。\n【最佳实践】\n坑点：在 Native 层实现 Pinning 逻辑；增加多位置校验；结合环境检测（Root/越狱）禁用敏感功能。",
+      "difficulty": "advanced",
+      "tags": ["Security", "SSL", "Bypass"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-109",
+      "front_concept": "RN 原生模块代码混淆时，若未保留 Native 方法签名映射，会导致什么运行时错误？",
+      "hints": ["反射调用", "方法名", "找不到符号"],
+      "back_explanation": "结论：JS 侧通过方法名调用 Native，混淆后名称改变导致调用失败。\n【原理机制】\n1. RN 通过反射或注册表查找 Native 方法。\n2. ProGuard/R8 混淆修改方法名。\n3. JS 请求原方法名，Native 侧无法匹配。\n【最佳实践】\n坑点：配置 keep 规则保留 @ReactMethod 方法；使用 Proguard Rules 文件；测试混淆后的 Release 包。",
+      "difficulty": "advanced",
+      "tags": ["React Native", "Obfuscation", "Build"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-110",
+      "front_concept": "App 运行时校验签名完整性，为何需对比当前签名与打包时硬编码的签名哈希？",
+      "hints": ["二次打包", "签名篡改", "一致性"],
+      "back_explanation": "结论：防止应用被反编译修改后重新签名发布。\n【原理机制】\n1. 攻击者修改代码后需用自己的密钥签名。\n2. 运行时获取当前签名哈希。\n3. 与预置合法哈希比对，不一致则退出。\n【最佳实践】\n坑点：哈希值需混淆存储；校验逻辑分散在多处；避免仅在一次启动时校验。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Signature", "Tamper"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-111",
+      "front_concept": "检测 Root/越狱环境时，为何不能仅依赖单一特征（如 su 命令存在性）？",
+      "hints": ["隐藏工具", "误报", "多重校验"],
+      "back_explanation": "结论：单一特征易被隐藏或误判，需组合多项指标。\n【原理机制】\n1. 用户可隐藏 su 二进制文件。\n2. 部分正常设备可能包含类似文件。\n3. 单一检查易被绕过或误杀。\n【最佳实践】\n坑点：检查多个特征（文件、包名、权限）；使用加权评分制；允许用户申诉误报。",
+      "difficulty": "intermediate",
+      "tags": ["Security", "Root", "Detection"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-112",
+      "front_concept": "高频率数据更新场景下，为何 MobX 的 observable 机制可能比 Redux 减少更多不必要的渲染？",
+      "hints": ["细粒度监听", "全局存储", "自动追踪"],
+      "back_explanation": "结论：MobX 自动追踪依赖，仅更新受影响组件，Redux 需手动 selector。\n【原理机制】\n1. Redux 状态变更通知所有订阅者，需 selector 过滤。\n2. MobX 精确追踪哪个组件用了哪个属性。\n3. 属性变更仅触发特定组件更新。\n【最佳实践】\n坑点：MobX 隐式依赖可能导致调试困难；Redux 结构更可控；复杂场景推荐 MobX 或 Zustand。",
+      "difficulty": "advanced",
+      "tags": ["State Management", "MobX", "Redux"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-113",
+      "front_concept": "Zustand 相比 Redux，在处理原子更新（Atomic Updates）时有何架构优势？",
+      "hints": ["切片选择", "样板代码", "直接修改"],
+      "back_explanation": "结论：Zustand 允许组件订阅状态切片，避免全局重渲染。\n【原理机制】\n1. Redux 通常订阅整个 store 或通过 connect。\n2. Zustand 组件直接 select 所需字段。\n3. 字段变化仅触发该组件更新。\n【最佳实践】\n坑点：避免订阅整个 store 对象；利用 shallow 比较优化；适合中小型应用快速开发。",
+      "difficulty": "advanced",
+      "tags": ["State Management", "Zustand", "React"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-114",
+      "front_concept": "Flutter Riverpod 相比 Provider，解决的核心痛点是什么，特别是在测试场景下？",
+      "hints": ["编译安全", "依赖图", "全局访问"],
+      "back_explanation": "结论：Riverpod 脱离 Context 限制，支持编译时检查和全局访问。\n【原理机制】\n1. Provider 依赖 BuildContext，测试需模拟 Widget 树。\n2. Riverpod 基于 ProviderContainer，可独立于 UI。\n3. 支持编译时验证 Provider 是否存在。\n【最佳实践】\n坑点：迁移成本较高；需理解 ProviderScope；适合大型项目重构。",
+      "difficulty": "advanced",
+      "tags": ["Flutter", "Riverpod", "State"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-115",
+      "front_concept": "Hybrid 应用多 Tab 场景下，如何实现 JS 层状态同步而不依赖后端轮询？",
+      "hints": ["BroadcastChannel", "Native 事件", "LocalStorage"],
+      "back_explanation": "结论：使用 BroadcastChannel API 或 Native 事件总线广播状态变更。\n【原理机制】\n1. 不同 WebView 实例内存隔离。\n2. BroadcastChannel 允许同源窗口通信。\n3. 或通过 Native 层转发事件。\n【最佳实践】\n坑点：BroadcastChannel 兼容性需检查；Native 转发需防循环广播；数据量大会影响性能。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "State Sync", "Communication"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-116",
+      "front_concept": "Redux Persist 与 Flutter Hive 在状态持久化策略上的主要差异是什么？",
+      "hints": ["序列化", "二进制", "性能"],
+      "back_explanation": "结论：Redux Persist 基于 JSON 序列化，Hive 基于二进制框，Hive 性能更优。\n【原理机制】\n1. Redux Persist 存 AsyncStorage，需序列化。\n2. Hive 使用二进制存储，无需序列化。\n3. Hive 读写速度更快，支持对象直接存储。\n【最佳实践】\n坑点：Redux Persist 配置简单通用；Hive 需定义 TypeAdapter；大数据量首选 Hive。",
+      "difficulty": "intermediate",
+      "tags": ["State Management", "Persistence", "Storage"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-117",
+      "front_concept": "React 中订阅外部状态源（如 WebSocket）时，useEffect 清理函数若遗漏会导致什么内存泄漏？",
+      "hints": ["闭包引用", "卸载后更新", "订阅移除"],
+      "back_explanation": "结论：组件卸载后订阅仍存在，回调尝试更新已卸载组件状态。\n【原理机制】\n1. 订阅持有组件回调引用。\n2. 组件卸载未取消订阅。\n3. 事件触发回调导致 setState 警告或泄漏。\n【最佳实践】\n坑点：return 函数中必须 unsubscribe；使用自定义 Hook 封装订阅逻辑；检查组件挂载状态。",
+      "difficulty": "intermediate",
+      "tags": ["React", "Memory Leak", "Hook"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-118",
+      "front_concept": "Redux 中使用 Reselect 创建 Selector 的核心优化目的是什么？",
+      "hints": ["缓存结果", "输入比对", "计算开销"],
+      "back_explanation": "结论：缓存计算结果，仅当输入参数变化时重新计算。\n【原理机制】\n1. 派生状态计算可能耗时。\n2. 每次状态变化都触发重算。\n3. Reselect 比对输入，未变则返回缓存。\n【最佳实践】\n坑点：避免 selector 内部产生新对象引用；动态参数需配置合适缓存大小；嵌套 selector 需注意依赖链。",
+      "difficulty": "advanced",
+      "tags": ["Redux", "Reselect", "Optimization"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-119",
+      "front_concept": "Hybrid 架构中，Native 侧状态（如登录态）变更如何确保所有 WebView 实例同步更新？",
+      "hints": ["事件广播", "轮询检测", "注入脚本"],
+      "back_explanation": "结论：通过 Native 事件总线广播，各 WebView 监听并执行 JS 更新。\n【原理机制】\n1. Native 侧维护单点状态源。\n2. 状态变更触发广播事件。\n3. 所有 WebView 接收事件并调用 JS 回调。\n【最佳实践】\n坑点：需处理 WebView 未加载完成情况；避免广播风暴；JS 侧需做幂等处理。",
+      "difficulty": "advanced",
+      "tags": ["Hybrid", "State Sync", "Native"]
+    },
+    {
+      "id": "cross-platform-mobile-flashcard-120",
+      "front_concept": "KMP 中 StateFlow 与 iOS 侧 RxSwift 或 Combine 集成时，如何处理冷热流的行为差异？",
+      "hints": ["数据发射", "订阅时机", "缓冲"],
+      "back_explanation": "结论：StateFlow 是热流，始终有值，需适配冷流订阅行为。\n【原理机制】\n1. StateFlow 即使无订阅也保留最新值。\n2. RxSwift 冷流订阅才触发数据生产。\n3. 集成时需确保初始值正确传递。\n【最佳实践】\n坑点：iOS 侧订阅后立即获取 value；避免重复发射相同值；使用 shareIn 转换冷流为热流。",
+      "difficulty": "advanced",
+      "tags": ["KMP", "StateFlow", "RxSwift"]
+    }
+  ]
+}

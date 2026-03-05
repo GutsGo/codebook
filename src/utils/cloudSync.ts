@@ -50,7 +50,13 @@ export function exportLocalData(): Record<string, any> {
 export function importLocalData(data: Record<string, any>) {
   for (const key in data) {
     if (key.startsWith(STORAGE_PREFIX)) {
-      localStorage.setItem(key, JSON.stringify(data[key]));
+      const val = data[key];
+      // 如果值已经是字符串（基础数据），直接存储；如果是对象或数组，则序列化
+      if (typeof val === "string") {
+        localStorage.setItem(key, val);
+      } else {
+        localStorage.setItem(key, JSON.stringify(val));
+      }
     }
   }
 }

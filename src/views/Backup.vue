@@ -61,7 +61,9 @@
           @click="handleBackup"
           :disabled="isLoading"
         >
-          <span class="emoji" v-if="!isLoading">📤</span>
+          <span class="emoji" v-if="!(isLoading && actionType === 'backup')"
+            >📤</span
+          >
           <span class="emoji spinning" v-else>⏳</span>
           {{
             isLoading && actionType === "backup"
@@ -71,7 +73,9 @@
         </button>
 
         <button class="pixel-btn" @click="handleRestore" :disabled="isLoading">
-          <span class="emoji" v-if="!isLoading">📥</span>
+          <span class="emoji" v-if="!(isLoading && actionType === 'restore')"
+            >📥</span
+          >
           <span class="emoji spinning" v-else>⏳</span>
           {{
             isLoading && actionType === "restore"

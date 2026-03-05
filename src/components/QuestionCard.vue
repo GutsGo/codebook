@@ -49,11 +49,48 @@
         </div>
         <h2 class="q-title">{{ question.title }}</h2>
         <div class="q-content">
-          <pre class="content-text">{{ processedContent }}</pre>
+          <div
+            class="content-text markdown-body"
+            v-html="processedContent"
+          ></div>
         </div>
       </div>
 
       <div class="options">
+        <!-- Hints Area -->
+        <div
+          v-if="question.hints && question.hints.length > 0 && !hasAnswered"
+          class="hints-area"
+        >
+          <div class="hints-list">
+            <transition-group name="hint-anim">
+              <div
+                v-for="(hint, index) in question.hints.slice(
+                  0,
+                  revealedHintsCount,
+                )"
+                :key="index"
+                class="hint-item pixel-card-sm"
+              >
+                <span class="hint-icon">💡</span>
+                <span
+                  class="hint-text markdown-body"
+                  v-html="renderMarkdown(hint)"
+                ></span>
+              </div>
+            </transition-group>
+          </div>
+          <button
+            v-if="revealedHintsCount < question.hints.length"
+            class="pixel-btn secondary-btn reveal-hint-btn"
+            @click="revealNextHint"
+          >
+            获取下一步提示 ({{ revealedHintsCount }}/{{
+              question.hints.length
+            }})
+          </button>
+        </div>
+
         <!-- Single Choice -->
         <template v-if="question.type === 'single_choice'">
           <button
@@ -342,9 +379,10 @@
             class="explain-box algo-ref"
           >
             💡 <strong>参考实现：</strong>
-            <pre
-              class="explain-text"
-            ><code>{{ question.reference_solution }}</code></pre>
+            <div
+              class="explain-text markdown-body"
+              v-html="processedReference"
+            ></div>
           </div>
 
           <div
@@ -352,7 +390,10 @@
             class="explain-box"
           >
             💡 <strong>解析：</strong>
-            <pre class="explain-text">{{ processedExplanation }}</pre>
+            <div
+              class="explain-text markdown-body"
+              v-html="processedExplanation"
+            ></div>
           </div>
 
           <div
@@ -397,7 +438,10 @@
             class="explain-box fact-box"
           >
             <strong>⚠️ 边界条件：</strong>
-            <pre class="explain-text">{{ processedBoundary }}</pre>
+            <div
+              class="explain-text markdown-body"
+              v-html="processedBoundary"
+            ></div>
           </div>
 
           <div v-if="question.reference_link" class="explain-box link-box">
@@ -412,9 +456,67 @@
             </a>
           </div>
 
-          <button class="next-btn" @click="emitNext">下一题 ➔</button>
+          <div v-if="!isSrsMode">
+            <button class="next-btn" @click="emitNext">下一题 ➔</button>
+          </div>
+          <div v-else class="srs-actions">
+            <p class="srs-prompt">这道题你掌握得如何？</p>
+            <div class="srs-btn-group">
+              <button
+                class="pixel-btn srs-btn hard"
+                @click="emitSrsReview('forgot')"
+              >
+                忘记<br /><span>(< 1分钟)</span>
+              </button>
+              <button
+                class="pixel-btn srs-btn warning"
+                @click="emitSrsReview('hard')"
+              >
+                模糊<br /><span>(< 10分钟)</span>
+              </button>
+              <button
+                class="pixel-btn srs-btn easy"
+                @click="emitSrsReview('easy')"
+              >
+                简单<br /><span>(1天)</span>
+              </button>
+            </div>
+          </div>
         </div>
       </transition>
+
+      <!-- 笔记区域 (Feynman Technique) -->
+      <div class="notes-section">
+        <button
+          class="notes-toggle-btn"
+          :class="{ open: isNotesOpen }"
+          @click="toggleNotes"
+        >
+          <span class="emoji">📝</span>
+          {{ isNotesOpen ? "收起专属笔记" : "添加 / 查看我的理解" }}
+        </button>
+        <transition name="slide-fade">
+          <div v-if="isNotesOpen" class="notes-content">
+            <textarea
+              v-model="userNote"
+              class="notes-textarea"
+              placeholder="试着用大白话把这个知识点解释给一个完全不懂的人听。写下你的理解..."
+              @blur="saveUserNote"
+            ></textarea>
+            <div class="notes-actions">
+              <span class="notes-status" v-if="saveStatus">{{
+                saveStatus
+              }}</span>
+              <button
+                class="pixel-btn primary-btn notes-save-btn"
+                @click="saveUserNote"
+              >
+                保存
+              </button>
+            </div>
+          </div>
+        </transition>
+      </div>
     </div>
   </div>
 </template>
@@ -429,11 +531,17 @@ import { useThemeStore } from "@/stores/useThemeStore";
 import type { Question } from "@/types/question";
 import { VueMonacoEditor } from "@guolao/vue-monaco-editor";
 import { useWindowSize } from "@vueuse/core";
+import { renderMarkdown } from "@/utils/markdown";
 
-const props = defineProps<{ question: Question; categoryId: string }>();
+const props = defineProps<{
+  question: Question;
+  categoryId: string;
+  isSrsMode?: boolean;
+}>();
 const emit = defineEmits<{
   (e: "answer", isCorrect: boolean): void;
   (e: "next"): void;
+  (e: "srs-review", rating: "forgot" | "hard" | "easy"): void;
 }>();
 const quizStore = useQuizStore();
 const progressStore = useProgressStore();
@@ -454,6 +562,9 @@ const selectedMulti = ref<string[]>([]);
 const isCorrect = ref<boolean | null>(null);
 const animState = ref<"idle" | "right" | "wrong">("idle");
 
+// 主动回忆/提示状态
+const revealedHintsCount = ref(0);
+
 // 算法题状态
 const userCode = ref("");
 const testingCode = ref(false);
@@ -461,6 +572,34 @@ const testResults = ref<{ pass: boolean; msg: string }[]>([]);
 const monacoInstance = shallowRef<any>(null);
 const monacoEditor = shallowRef<any>(null);
 const isFullscreen = ref(false);
+
+const isNotesOpen = ref(false);
+const userNote = ref("");
+const saveStatus = ref("");
+let saveStatusTimer: any = null;
+
+function toggleNotes() {
+  isNotesOpen.value = !isNotesOpen.value;
+  if (isNotesOpen.value && userNote.value === "") {
+    userNote.value = progressStore.getNote(
+      props.categoryId,
+      String(props.question.id),
+    );
+  }
+}
+
+function saveUserNote() {
+  progressStore.saveNote(
+    props.categoryId,
+    String(props.question.id),
+    userNote.value,
+  );
+  saveStatus.value = "已保存 ✓";
+  clearTimeout(saveStatusTimer);
+  saveStatusTimer = setTimeout(() => {
+    saveStatus.value = "";
+  }, 2000);
+}
 
 function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value;
@@ -564,18 +703,19 @@ function getCompanyIcon(company: string | undefined) {
   return `https://v6.gh-proxy.org/https://github.com/simple-icons/simple-icons/raw/develop/icons/${iconName}.svg`;
 }
 
-// 将文本中的字面 \\n \\t 转为实际换行/制表符
-function processText(text: string | undefined): string {
-  if (!text) return "";
-  return text.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
-}
-const processedContent = computed(() => processText(props.question.content));
+// 将文本中的字面 \n \t 转为实际换行/制表符，并渲染为 Markdown
+const processedContent = computed(() => renderMarkdown(props.question.content));
 const processedExplanation = computed(() =>
-  processText(props.question.explanation),
+  renderMarkdown(props.question.explanation),
 );
 const processedBoundary = computed(() =>
-  processText((props.question as any).boundary_conditions),
+  renderMarkdown((props.question as any).boundary_conditions),
 );
+const processedReference = computed(() => {
+  const code = (props.question as any).reference_solution;
+  if (!code) return "";
+  return renderMarkdown("```typescript\n" + code + "\n```");
+});
 
 function toggleFav() {
   progressStore.toggleFavorite(props.categoryId, String(props.question.id));
@@ -589,6 +729,14 @@ watch(
     selectedMulti.value = [];
     isCorrect.value = null;
     animState.value = "idle";
+    revealedHintsCount.value = 0;
+
+    isNotesOpen.value = false;
+    userNote.value = progressStore.getNote(
+      props.categoryId,
+      String(props.question.id),
+    );
+    saveStatus.value = "";
 
     if (props.question.type === "algorithm") {
       userCode.value = (props.question as any).code_template || "";
@@ -653,6 +801,15 @@ function submitAlgorithm(correct: boolean) {
   finishAnswer(correct);
 }
 
+function revealNextHint() {
+  if (
+    props.question.hints &&
+    revealedHintsCount.value < props.question.hints.length
+  ) {
+    revealedHintsCount.value++;
+  }
+}
+
 function goToTag(tag: string) {
   if (confirm(`中断当前进程并开启「${tag}」挑战？`)) {
     router.push(`/game/${props.categoryId}/tag_${encodeURIComponent(tag)}`);
@@ -662,6 +819,10 @@ function goToTag(tag: string) {
 function emitNext() {
   emit("next");
   window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function emitSrsReview(rating: "forgot" | "hard" | "easy") {
+  emit("srs-review", rating);
 }
 </script>
 
@@ -693,6 +854,70 @@ function emitNext() {
 
 .question-header {
   margin-bottom: 1.5rem;
+}
+
+.hints-area {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+
+  .hints-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .hint-item {
+    background: var(--theme-fact-bg);
+    border: 1px dashed var(--theme-border-color);
+    padding: 0.8rem;
+    border-radius: var(--theme-radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: var(--theme-text-secondary);
+    font-size: 0.95rem;
+
+    .hint-icon {
+      margin-top: 2px;
+    }
+
+    .hint-text {
+      flex: 1;
+      :deep(p) {
+        margin: 0;
+      }
+    }
+  }
+
+  .reveal-hint-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-style: dashed;
+    background: transparent;
+    color: var(--theme-text-light);
+
+    &:hover {
+      background: var(--theme-btn-settings-bg);
+      color: var(--theme-text-secondary);
+    }
+  }
+}
+
+.hint-anim-enter-active,
+.hint-anim-leave-active {
+  transition: all 0.3s ease;
+}
+.hint-anim-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.hint-anim-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .tags-row {
@@ -826,7 +1051,6 @@ function emitNext() {
   font-size: 0.95rem;
   color: var(--theme-text-main);
   line-height: 1.6;
-  white-space: pre-wrap;
   word-wrap: break-word;
   margin: 0;
 }
@@ -1304,7 +1528,6 @@ function emitNext() {
   .explain-text {
     margin: 0.5rem 0 0;
     font-family: inherit;
-    white-space: pre-wrap;
     word-wrap: break-word;
   }
 
@@ -1413,5 +1636,155 @@ function emitNext() {
 .feedback-enter-from {
   opacity: 0;
   transform: translateY(-15px) scale(0.95);
+}
+
+.srs-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--theme-border-color);
+
+  .srs-prompt {
+    font-weight: 800;
+    color: var(--theme-text-main);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .srs-btn-group {
+    display: flex;
+    justify-content: space-center;
+    gap: 0.8rem;
+    width: 100%;
+
+    .srs-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.6rem 0.4rem;
+      font-size: 1rem;
+      line-height: 1.3;
+
+      span {
+        font-size: 0.75rem;
+        font-weight: normal;
+        margin-top: 2px;
+        opacity: 0.9;
+      }
+
+      &.hard {
+        background: #ffebee;
+        color: #c62828;
+        border-color: #ef9a9a;
+      }
+      &.warning {
+        background: #fff3e0;
+        color: #e65100;
+        border-color: #ffcc80;
+      }
+      &.easy {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-color: #a5d6a7;
+      }
+    }
+  }
+}
+
+/* 笔记样式 */
+.notes-section {
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--theme-border-color);
+  padding-top: 1rem;
+}
+
+.notes-toggle-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background: transparent;
+  border: 1px dashed var(--theme-border-color);
+  border-radius: var(--theme-radius-sm);
+  color: var(--theme-text-secondary);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: var(--theme-btn-settings-bg);
+  }
+
+  &.open {
+    background: var(--theme-btn-settings-bg);
+    border-style: solid;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+  }
+}
+
+.notes-content {
+  background: var(--theme-btn-settings-bg);
+  border: 1px solid var(--theme-border-color);
+  border-top: none;
+  border-radius: 0 0 var(--theme-radius-sm) var(--theme-radius-sm);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.8rem;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--theme-radius-sm);
+  background: var(--theme-card-bg);
+  color: var(--theme-text-main);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+    border-color: var(--theme-accent);
+  }
+}
+
+.notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+
+  .notes-status {
+    font-size: 0.85rem;
+    color: #27ae60;
+    font-weight: 800;
+  }
+
+  .notes-save-btn {
+    padding: 0.4rem 1.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
 }
 </style>

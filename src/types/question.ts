@@ -35,6 +35,7 @@ export interface QuestionBase {
   explanation: string;
   knowledge_point?: string;
   common_mistake?: string;
+  hints?: string[];
   reference_link?: string;
 }
 
@@ -128,4 +129,18 @@ export interface GalleryItem {
   image?: string;
   description: string;
   fact?: string;
+}
+
+export interface SrsRecord {
+  categoryId: string;
+  questionId: string;
+  level: number; // 0: 没见过/忘记, 1: 模糊, 2: 简单
+  nextReviewTime: number; // 毫秒级时间戳
+}
+
+export interface NoteRecord {
+  categoryId: string;
+  questionId: string;
+  content: string;
+  timestamp: number;
 }

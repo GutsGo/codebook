@@ -158,10 +158,11 @@ export async function fetchQuestionsByLevel(
   const category = categories.find((c) => c.id === categoryId);
   if (!category) return [];
 
+  const allQs = await fetchQuestionsByCategory(categoryId);
+
   const level = category.levels.find((l) => l.id === levelId);
   if (!level) return [];
 
-  const allQs = await fetchQuestionsByCategory(categoryId);
   const questionMap = new Map(allQs.map((q) => [String(q.id), q]));
 
   return level.questionIds

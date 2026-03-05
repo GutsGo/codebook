@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { useQuizStore } from "@/stores/useQuizStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -131,9 +131,34 @@ onMounted(async () => {
     timerRef = window.setInterval(() => {
       if (!isGameOver.value && questions.value.length > 0) timeSpent.value++;
     }, 1000);
+    window.addEventListener("beforeunload", handleBeforeUnload);
   }
 });
-onUnmounted(() => clearInterval(timerRef));
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (!isGameOver.value && questions.value.length > 0) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+}
+
+onBeforeRouteLeave((_to, _from, next) => {
+  if (!isGameOver.value && questions.value.length > 0) {
+    const confirmLeave = window.confirm("当前答题进度将会丢失，确定要离开吗？");
+    if (confirmLeave) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
+
+onUnmounted(() => {
+  clearInterval(timerRef);
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+});
 
 function handleAnswer(isCorrect: boolean) {
   if (!currentQuestion.value) return;

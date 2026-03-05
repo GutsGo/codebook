@@ -22,7 +22,7 @@
       "source_company": "Google",
       "score": 8,
       "title": "HTML词法分析状态机",
-      "content": "Chromium的HTML解析器使用状态机进行词法分析。考虑以下HTML片段在解析过程中的状态转换：\n\n```html\n<div attr=\"value>text</div>\n```\n\n当解析器读取到`attr=`后遇到双引号`\"`时，状态机进入什么状态？在读取`value>text`的过程中，什么情况下会触发状态转换？关于这段HTML的最终解析结果，以下哪项描述是正确的？",
+      "content": "Chromium的HTML解析器使用状态机进行词法分析。考虑以下HTML片段在解析过程中的状态转换：\n```html\n<div attr=\"value>text</div>\n```\n当解析器读取到`attr=`后遇到双引号`\"`时，状态机进入什么状态？在读取`value>text`的过程中，什么情况下会触发状态转换？关于这段HTML的最终解析结果，以下哪项描述是正确的？",
       "options": [
         {
           "id": "A",
@@ -64,7 +64,7 @@
       "source_company": "ByteDance",
       "score": 10,
       "title": "Foster Parenting机制",
-      "content": "在Chromium的DOM Tree Construction阶段，Foster Parenting是一种处理表格相关元素嵌套错误的特殊机制。考虑以下HTML代码：\n\n```html\n<table>\n  <div>Content</div>\n  <tr><td>Cell</td></tr>\n</table>\n```\n\n关于Foster Parenting的处理过程和最终DOM结构，以下哪项描述是正确的？",
+      "content": "在Chromium的DOM Tree Construction阶段，Foster Parenting是一种处理表格相关元素嵌套错误的特殊机制。考虑以下HTML代码：\n```html\n<table>\n  <div>Content</div>\n  <tr><td>Cell</td></tr>\n</table>\n```\n关于Foster Parenting的处理过程和最终DOM结构，以下哪项描述是正确的？",
       "options": [
         {
           "id": "A",

@@ -82,5 +82,17 @@
     "name": "跨平台",
     "icon": "📱",
     "description": "Flutter、React Native、小程序等跨平台技术深度解析与实战"
+  },
+  {
+    "id": "security",
+    "name": "安全",
+    "icon": "🛡️",
+    "description": ""
+  },
+  {
+    "id": "ai-frontend",
+    "name": "AI赋能前端与大模型应用开发",
+    "icon": "🤖",
+    "description": ""
   }
 ]

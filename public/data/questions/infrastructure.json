@@ -185,7 +185,7 @@
       "score": 20,
       "title": "构建任务依赖排序算法",
       "content": "在实现自定义构建工具时，需要处理多个任务之间的依赖关系（例如：compile 依赖 lint，build 依赖 compile）。请实现一个函数，输入任务依赖图，输出合法的任务执行顺序。若存在循环依赖则抛出错误。",
-      "code_template": "interface Task {\n  id: string;\n  dependencies: string[]; // 依赖的任务 ID 列表\n}\n\n/**\n * 返回任务执行顺序，若存在循环依赖抛出 Error\n * @param tasks 任务列表\n */\nfunction resolveTaskOrder(tasks: Task[]): string[] {\n  // 请在此实现拓扑排序算法\n  return [];\n}",
+      "code_template": "interface Task {\n  id: string;\n  dependencies: string[]; // 依赖的任务 ID 列表\n}\n/**\n * 返回任务执行顺序，若存在循环依赖抛出 Error\n * @param tasks 任务列表\n */\nfunction resolveTaskOrder(tasks: Task[]): string[] {\n  // 请在此实现拓扑排序算法\n  return [];\n}",
       "test_cases": [
         {
           "input": "[{id: 'A', dependencies: []}, {id: 'B', dependencies: ['A']}, {id: 'C', dependencies: ['B']}] ",
@@ -548,7 +548,7 @@
       "score": 20,
       "title": "简易文件变更检测",
       "content": "实现一个函数，对比两个文件目录，找出新增、删除和修改的文件。假设文件内容较大，需优化性能。",
-      "code_template": "interface FileStatus {\n  path: string;\n  type: 'added' | 'deleted' | 'modified';\n}\n\n/**\n * 对比两个目录结构\n * @param oldFiles {path: hash} \n * @param newFiles {path: hash}\n */\nfunction diffFiles(oldFiles: Record<string, string>, newFiles: Record<string, string>): FileStatus[] {\n  // 基于 hash 对比\n  return [];\n}",
+      "code_template": "interface FileStatus {\n  path: string;\n  type: 'added' | 'deleted' | 'modified';\n}\n/**\n * 对比两个目录结构\n * @param oldFiles {path: hash} \n * @param newFiles {path: hash}\n */\nfunction diffFiles(oldFiles: Record<string, string>, newFiles: Record<string, string>): FileStatus[] {\n  // 基于 hash 对比\n  return [];\n}",
       "test_cases": [
         {
           "input": "{'a.js': 'hash1'}, {'a.js': 'hash1', 'b.js': 'hash2'}",
@@ -970,7 +970,7 @@
       "score": 20,
       "title": "日志流关键字过滤",
       "content": "实现一个函数，模拟处理构建日志流。输入为字符串数组（行），过滤出包含 'ERROR' 的行，并提取错误码（如 ERROR[500]）。",
-      "code_template": "interface LogResult {\n  line: string;\n  code?: number;\n}\n\n/**\n * 过滤并解析错误日志\n * @param logs 字符串数组\n */\nfunction filterErrors(logs: string[]): LogResult[] {\n  // 需支持正则提取\n  return [];\n}",
+      "code_template": "interface LogResult {\n  line: string;\n  code?: number;\n}\n/**\n * 过滤并解析错误日志\n * @param logs 字符串数组\n */\nfunction filterErrors(logs: string[]): LogResult[] {\n  // 需支持正则提取\n  return [];\n}",
       "test_cases": [
         {
           "input": "['INFO: start', 'ERROR[500]: fail', 'DONE']",
@@ -1038,7 +1038,7 @@
       "score": 20,
       "title": "依赖环检测算法",
       "content": "在 Monorepo 中，需检测包之间是否存在循环依赖（A->B->C->A）。请实现一个函数，输入依赖关系图，返回是否存在环。",
-      "code_template": "interface Graph {\n  [pkg: string]: string[]; // 邻接表\n}\n\n/**\n * 检测是否有环\n * @param graph 依赖图\n * @returns boolean\n */\nfunction hasCycle(graph: Graph): boolean {\n  // 请使用 DFS 三色标记法实现\n  return false;\n}",
+      "code_template": "interface Graph {\n  [pkg: string]: string[]; // 邻接表\n}\n/**\n * 检测是否有环\n * @param graph 依赖图\n * @returns boolean\n */\nfunction hasCycle(graph: Graph): boolean {\n  // 请使用 DFS 三色标记法实现\n  return false;\n}",
       "test_cases": [
         {
           "input": "{A: ['B'], B: ['C'], C: []}",
@@ -1364,7 +1364,7 @@
       "score": 20,
       "title": "最小构建目标计算",
       "content": "给定文件变更列表和项目依赖图，计算需要重新构建的最小项目集合。",
-      "code_template": "interface Project {\n  id: string;\n  files: string[]; // 项目包含的文件路径\n  deps: string[]; // 依赖的项目 ID\n}\n\n/**\n * 计算受影响项目\n * @param changes 变更文件路径数组\n * @param projects 项目列表\n */\nfunction getAffectedProjects(changes: string[], projects: Project[]): string[] {\n  // 1. 找到直接受影响项目 2. 递归找到下游依赖\n  return [];\n}",
+      "code_template": "interface Project {\n  id: string;\n  files: string[]; // 项目包含的文件路径\n  deps: string[]; // 依赖的项目 ID\n}\n/**\n * 计算受影响项目\n * @param changes 变更文件路径数组\n * @param projects 项目列表\n */\nfunction getAffectedProjects(changes: string[], projects: Project[]): string[] {\n  // 1. 找到直接受影响项目 2. 递归找到下游依赖\n  return [];\n}",
       "test_cases": [
         {
           "input": "['src/a.ts'], [{id: 'A', files: ['src/a.ts'], deps: []}, {id: 'B', files: [], deps: ['A']}]",
@@ -1843,7 +1843,7 @@
       "score": 20,
       "title": "并行构建任务调度",
       "content": "给定任务依赖图，假设每个任务耗时已知，计算完成所有任务的最短总耗时（考虑并行执行）。",
-      "code_template": "interface Task {\n  id: string;\n  duration: number;\n  deps: string[];\n}\n\n/**\n * 计算最短完成时间\n * @param tasks 任务列表\n * @returns number 总耗时\n */\nfunction minBuildTime(tasks: Task[]): number {\n  // 需考虑关键路径\n  return 0;\n}",
+      "code_template": "interface Task {\n  id: string;\n  duration: number;\n  deps: string[];\n}\n/**\n * 计算最短完成时间\n * @param tasks 任务列表\n * @returns number 总耗时\n */\nfunction minBuildTime(tasks: Task[]): number {\n  // 需考虑关键路径\n  return 0;\n}",
       "test_cases": [
         {
           "input": "[{id:'A', duration:1, deps:[]}, {id:'B', duration:2, deps:['A']}]",
@@ -2264,7 +2264,7 @@
       "score": 20,
       "title": "日志流实时聚合",
       "content": "实现一个函数，模拟实时日志流处理。输入为异步迭代器，需统计每种错误码出现的次数，支持动态停止。",
-      "code_template": "interface Log {\n  code: number;\n  msg: string;\n}\n\n/**\n * 统计错误码\n * @param stream 异步日志流\n * @returns Promise<Map<number, number>>\n */\nasync function aggregateErrors(stream: AsyncIterable<Log>): Promise<Map<number, number>> {\n  // 需处理异步遍历\n  return new Map();\n}",
+      "code_template": "interface Log {\n  code: number;\n  msg: string;\n}\n/**\n * 统计错误码\n * @param stream 异步日志流\n * @returns Promise<Map<number, number>>\n */\nasync function aggregateErrors(stream: AsyncIterable<Log>): Promise<Map<number, number>> {\n  // 需处理异步遍历\n  return new Map();\n}",
       "test_cases": [
         {
           "input": "stream yields [{code:500}, {code:500}, {code:404}]",
@@ -2297,7 +2297,7 @@
       "score": 20,
       "title": "AST 节点遍历与转换",
       "content": "实现一个简易的 AST 遍历函数，将代码中的所有 var 声明转换为 let 声明。输入为简化的 AST 节点树，返回转换后的树。",
-      "code_template": "interface ASTNode {\n  type: string;\n  kind?: 'var' | 'let' | 'const';\n  children?: ASTNode[];\n}\n\n/**\n * 递归遍历转换 var 为 let\n * @param ast 根节点\n */\nfunction transformVarToLet(ast: ASTNode): ASTNode {\n  // 需深拷贝避免修改原树\n  return ast;\n}",
+      "code_template": "interface ASTNode {\n  type: string;\n  kind?: 'var' | 'let' | 'const';\n  children?: ASTNode[];\n}\n/**\n * 递归遍历转换 var 为 let\n * @param ast 根节点\n */\nfunction transformVarToLet(ast: ASTNode): ASTNode {\n  // 需深拷贝避免修改原树\n  return ast;\n}",
       "test_cases": [
         {
           "input": "{type: 'VariableDeclaration', kind: 'var'}",
@@ -2922,7 +2922,7 @@
       "score": 20,
       "title": "容器资源限制计算",
       "content": "给定总 CPU 和内存资源，计算最多能部署多少个前端容器实例。需考虑预留资源和安全水位。",
-      "code_template": "interface Resource {\n  cpu: number; // 核\n  memory: number; // MB\n}\n\n/**\n * 计算最大实例数\n * @param total 总资源\n * @param perInstance 单实例需求\n * @param reserve 预留比例 0-1\n */\nfunction maxInstances(total: Resource, perInstance: Resource, reserve: number): number {\n  // 取 CPU 和内存限制的最小值\n  return 0;\n}",
+      "code_template": "interface Resource {\n  cpu: number; // 核\n  memory: number; // MB\n}\n/**\n * 计算最大实例数\n * @param total 总资源\n * @param perInstance 单实例需求\n * @param reserve 预留比例 0-1\n */\nfunction maxInstances(total: Resource, perInstance: Resource, reserve: number): number {\n  // 取 CPU 和内存限制的最小值\n  return 0;\n}",
       "test_cases": [
         {
           "input": "{cpu:10, mem:1000}, {cpu:1, mem:100}, 0.1",

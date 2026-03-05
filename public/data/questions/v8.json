@@ -13,12 +13,7 @@
       "id": "js-senior-001",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "性能优化",
-        "对象模型"
-      ],
+      "tags": ["V8", "Hidden Class", "性能优化", "对象模型"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "关于V8的隐藏类（Hidden Class/Sha...",
@@ -56,12 +51,7 @@
       "id": "js-senior-002",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "对象模型",
-        "性能"
-      ],
+      "tags": ["V8", "Hidden Class", "对象模型", "性能"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在V8中，两个对象共享同一个隐藏类的必要条件是什么...",
@@ -85,7 +75,7 @@
         }
       ],
       "correct_answer": "C",
-      "explanation": "V8的隐藏类不仅跟踪属性名称，还跟踪属性的添加顺序和属性描述符。每个属性的描述符（writable、enumerable、configurable）不同都会导致创建不同的隐藏类。隐藏类是一个树状结构，每次添加属性都会从当前Map转换到新的Map。只有完全相同的转换路径才能到达相同的Map。参考V8源码src/objects/map.cc中的Map::CopyAddDescriptor()函数。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "V8的隐藏类不仅跟踪属性名称，还跟踪属性的添加顺序和属性描述符。每个属性的描述符（writable、enumerable、configurable）不同都会导致创建不同的隐藏类。隐藏类是一个树状结构，每次添加属性都会从当前Map转换到新的Map。只有完全相同的转换路径才能到达相同的Map。参考V8源码src/objects/map.cc中的Map::CopyAddDescriptor()函数。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_隐藏类HiddenClass",
       "reference_link": "V8源码: src/objects/map.cc, src/objects/property-descriptor.h",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -99,12 +89,7 @@
       "id": "js-senior-003",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "性能优化",
-        "最佳实践"
-      ],
+      "tags": ["V8", "Hidden Class", "性能优化", "最佳实践"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，哪一种写法能最大化隐藏类共享效率...",
@@ -128,7 +113,7 @@
         }
       ],
       "correct_answer": "D",
-      "explanation": "选项A和B都能确保所有创建的对象具有相同的隐藏类，因为属性添加顺序一致。V8对对象字面量{}和new Object()创建的空对象使用相同的初始隐藏类，之后按相同顺序添加属性会产生相同的隐藏类转换路径。选项C的问题在于条件分支可能导致对象拥有不同的隐藏类。参考V8源码src/objects/map.cc和src/runtime/runtime-literals.cc中的对象字面量优化逻辑。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "选项A和B都能确保所有创建的对象具有相同的隐藏类，因为属性添加顺序一致。V8对对象字面量{}和new Object()创建的空对象使用相同的初始隐藏类，之后按相同顺序添加属性会产生相同的隐藏类转换路径。选项C的问题在于条件分支可能导致对象拥有不同的隐藏类。参考V8源码src/objects/map.cc和src/runtime/runtime-literals.cc中的对象字面量优化逻辑。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_隐藏类HiddenClass",
       "reference_link": "V8源码: src/objects/map.cc, src/runtime/runtime-literals.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -142,12 +127,7 @@
       "id": "js-senior-004",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "内部实现",
-        "多选题"
-      ],
+      "tags": ["V8", "Hidden Class", "内部实现", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8隐藏类（Hidden Class），以下说...",
@@ -174,11 +154,7 @@
           "text": "使用Object.defineProperty添加属性与直接赋值创建相同的隐藏类转换"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C",
-        "D"
-      ],
+      "correct_answer": ["A", "C", "D"],
       "explanation": "A正确：隐藏类在V8中称为Map，存储在Map空间。B错误：隐藏类转换是树状结构，删除属性会创建新的分支而非回退。C正确：这是IC优化的基础。D正确：隐藏类存储了属性描述符数组和偏移量，用于快速访问。E错误：Object.defineProperty可能设置不同的属性特性（如enumerable: false），导致不同的隐藏类转换。参考V8源码src/objects/map.h中的Map类定义。",
       "knowledge_point": "V8引擎机制_隐藏类HiddenClass",
       "reference_link": "V8源码: src/objects/map.h, src/objects/map.cc",
@@ -191,12 +167,7 @@
       "id": "js-senior-005",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "Map转换",
-        "对象操作"
-      ],
+      "tags": ["V8", "Hidden Class", "Map转换", "对象操作"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些操作会导致对象的隐藏类发生改变...",
@@ -227,13 +198,7 @@
           "text": "Object.preventExtensions(obj)"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C",
-        "D",
-        "E",
-        "F"
-      ],
+      "correct_answer": ["A", "C", "D", "E", "F"],
       "explanation": "A正确：添加属性触发Map转换。B错误：修改属性值不改变隐藏类，只改变值存储位置的内容。C正确：删除属性创建新Map分支。D正确：defineProperty可能改变属性特性，触发新Map。E正确：seal会设置Map的is_extensible标志为false并标记所有属性不可配置。F正确：preventExtensions设置Map为不可扩展状态。这些操作都会在Map的bitfield中设置相应标志。参考src/objects/map.cc中的TransitionToNonExtensible()等函数。",
       "knowledge_point": "V8引擎机制_隐藏类HiddenClass",
       "reference_link": "V8源码: src/objects/map.cc, src/objects/property.cc",
@@ -245,12 +210,7 @@
       "id": "js-senior-006",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Hidden Class",
-        "Object.freeze",
-        "常见误区"
-      ],
+      "tags": ["V8", "Hidden Class", "Object.freeze", "常见误区"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "在V8中，使用Object...",
@@ -275,12 +235,7 @@
       "id": "js-senior-007",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "IC模式",
-        "性能优化"
-      ],
+      "tags": ["V8", "内联缓存", "IC模式", "性能优化"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "关于V8的内联缓存（Inline Cache）模式...",
@@ -318,12 +273,7 @@
       "id": "js-senior-008",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "IC机制",
-        "调用点"
-      ],
+      "tags": ["V8", "内联缓存", "IC机制", "调用点"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，哪一行的属性访问会创建独立的内联缓存条...",
@@ -361,12 +311,7 @@
       "id": "js-senior-009",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "IC实现",
-        "数据结构"
-      ],
+      "tags": ["V8", "内联缓存", "IC实现", "数据结构"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在V8的polymorphic IC中，对于5种不...",
@@ -404,12 +349,7 @@
       "id": "js-senior-010",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "性能建议",
-        "多选题"
-      ],
+      "tags": ["V8", "内联缓存", "性能建议", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8内联缓存（IC）的优化建议，以下说法正确的...",
@@ -436,10 +376,7 @@
           "text": "IC优化仅适用于属性读取，不适用于属性写入"
         }
       ],
-      "correct_answer": [
-        "A",
-        "D"
-      ],
+      "correct_answer": ["A", "D"],
       "explanation": "A正确：保持对象结构一致是IC优化的核心。B错误：Object.create(null)创建的对象没有原型，其Map与普通对象不同，可能导致IC miss。C错误：数组的元素种类（如PACKED_SMI_ELEMENTS转为PACKED_ELEMENTS）变化会改变Map，影响IC。D正确：字符串索引访问在V8中也有IC优化。E错误：IC同时适用于LoadIC（读）和StoreIC（写）。参考src/ic/ic.cc中的各类IC实现。",
       "knowledge_point": "V8引擎机制_内联缓存IC",
       "reference_link": "V8源码: src/ic/ic.cc, src/objects/elements-kind.h",
@@ -453,12 +390,7 @@
       "id": "js-senior-011",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "IC失效",
-        "性能"
-      ],
+      "tags": ["V8", "内联缓存", "IC失效", "性能"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些因素会导致内联缓存失效（IC Miss）...",
@@ -485,11 +417,7 @@
           "text": "对象处于字典模式"
         }
       ],
-      "correct_answer": [
-        "A",
-        "D",
-        "E"
-      ],
+      "correct_answer": ["A", "D", "E"],
       "explanation": "A正确：Map不匹配是最常见的IC miss原因。B错误：原型链查找有专门的LoadGlobalIC和LoadHandler，可以是IC优化的。C错误：Accessor（getter/setter）可以缓存在IC中，使用特殊Handler。D正确：Proxy的属性访问无法使用标准IC，因为[[Get]]陷阱可能返回任何值，需要通过Runtime调用。E正确：字典模式对象的属性访问需要字典查找，无法使用快速路径。参考src/ic/ic.cc的LookupForRead()。",
       "knowledge_point": "V8引擎机制_内联缓存IC",
       "reference_link": "V8源码: src/ic/ic.cc, src/ic/handler-configuration.h",
@@ -502,12 +430,7 @@
       "id": "js-senior-012",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "内联缓存",
-        "状态转换",
-        "机制原理"
-      ],
+      "tags": ["V8", "内联缓存", "状态转换", "机制原理"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "一旦内联缓存进入megamorphic状态，它将永...",
@@ -532,12 +455,7 @@
       "id": "js-senior-013",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "编译管道",
-        "优化编译"
-      ],
+      "tags": ["V8", "TurboFan", "编译管道", "优化编译"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "关于V8的TurboFan优化编译器，以下哪个阶段...",
@@ -575,12 +493,7 @@
       "id": "js-senior-014",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "去优化",
-        "运行时机制"
-      ],
+      "tags": ["V8", "TurboFan", "去优化", "运行时机制"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下哪种情况会触发TurboFan的去优化（Deo...",
@@ -604,7 +517,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "去优化是TurboFan优化后的代码遇到运行时假设被违反时的安全回退机制。常见触发原因：1) 类型假设被违反（如假设对象有特定Map但实际没有）2) IC状态变化 3) 原型链被修改 4) 全局属性被删除或重定义。去优化会丢弃优化代码，回退到解释执行，并可能重新触发优化编译。参考src/deoptimizer/deoptimizer.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "去优化是TurboFan优化后的代码遇到运行时假设被违反时的安全回退机制。常见触发原因：1) 类型假设被违反（如假设对象有特定Map但实际没有）2) IC状态变化 3) 原型链被修改 4) 全局属性被删除或重定义。去优化会丢弃优化代码，回退到解释执行，并可能重新触发优化编译。参考src/deoptimizer/deoptimizer.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_TurboFan优化",
       "reference_link": "V8源码: src/deoptimizer/deoptimizer.cc, src/compiler/representation-change.h",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -618,12 +531,7 @@
       "id": "js-senior-015",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "逃逸分析",
-        "内存优化"
-      ],
+      "tags": ["V8", "TurboFan", "逃逸分析", "内存优化"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在TurboFan中，逃逸分析（Escape An...",
@@ -647,7 +555,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "逃速分析检测对象是否逃逸出函数（被返回、存储到全局、作为参数传递等）。如果不逃逸，TurboFan可以：1) 标量替换：将对象字段分配到寄存器或栈位置，完全消除堆分配 2) 锁消除：如果对象不逃逸，不需要同步。选项B是函数内联的优化，与逃逸分析无关。参考src/compiler/escape-analysis.cc和src/compiler/escape-analysis-reducer.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "逃速分析检测对象是否逃逸出函数（被返回、存储到全局、作为参数传递等）。如果不逃逸，TurboFan可以：1) 标量替换：将对象字段分配到寄存器或栈位置，完全消除堆分配 2) 锁消除：如果对象不逃逸，不需要同步。选项B是函数内联的优化，与逃逸分析无关。参考src/compiler/escape-analysis.cc和src/compiler/escape-analysis-reducer.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_TurboFan优化",
       "reference_link": "V8源码: src/compiler/escape-analysis.cc, src/compiler/escape-analysis-reducer.cc",
       "common_mistake": "常见错误是选择B或D, 需要深入理解底层原理",
@@ -661,12 +569,7 @@
       "id": "js-senior-016",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "编译策略",
-        "多选题"
-      ],
+      "tags": ["V8", "TurboFan", "编译策略", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于TurboFan的优化触发机制，以下说法正确的...",
@@ -693,11 +596,8 @@
           "text": "函数越小越容易被TurboFan优化"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C"
-      ],
-      "explanation": "A正确：V8采用分层编译策略，函数需要先执行足够次数（热代码检测）才触发优化。B错误：TurboFan编译在后台线程进行，但安装优化代码需要暂停主线程。C正确：OSR允许在长时间运行的循环中间切换到优化版本。D错误：优化代码和字节码都保留，去优化时回退到字节码。E错误：非常小的函数可能不会被TurboFan优化，因为内联后可能消失，且编译成本可能大于收益。参考src/compiler.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "C"],
+      "explanation": "A正确：V8采用分层编译策略，函数需要先执行足够次数（热代码检测）才触发优化。B错误：TurboFan编译在后台线程进行，但安装优化代码需要暂停主线程。C正确：OSR允许在长时间运行的循环中间切换到优化版本。D错误：优化代码和字节码都保留，去优化时回退到字节码。E错误：非常小的函数可能不会被TurboFan优化，因为内联后可能消失，且编译成本可能大于收益。参考src/compiler.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_TurboFan优化",
       "reference_link": "V8源码: src/compiler.cc, src/runtime/runtime-typedarray.cc",
       "exclusion_analysis": {
@@ -710,12 +610,7 @@
       "id": "js-senior-017",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "优化阻碍",
-        "性能陷阱"
-      ],
+      "tags": ["V8", "TurboFan", "优化阻碍", "性能陷阱"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些代码模式会阻碍TurboFan优化或导致频...",
@@ -742,11 +637,7 @@
           "text": "访问数组的length属性"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C",
-        "D"
-      ],
+      "correct_answer": ["A", "C", "D"],
       "explanation": "A正确：导致IC进入megamorphic状态。B错误：严格模式下arguments不会阻止优化，但非严格模式下arguments与参数的别名行为会导致复杂化。C正确：try-catch块中的代码通常不会被充分优化，因为异常处理增加了控制流复杂度。D正确：eval和with会阻止整个函数的优化，因为它们可能修改任意作用域的变量。E错误：数组length访问是快速操作，不会阻止优化。参考src/compiler/js-inlining.cc。",
       "knowledge_point": "V8引擎机制_TurboFan优化",
       "reference_link": "V8源码: src/compiler/js-inlining.cc, src/parsing/parser.cc",
@@ -759,12 +650,7 @@
       "id": "js-senior-018",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "TurboFan",
-        "内联优化",
-        "跨函数优化"
-      ],
+      "tags": ["V8", "TurboFan", "内联优化", "跨函数优化"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "TurboFan可以跨函数边界进行类型特化优化，这...",
@@ -789,12 +675,7 @@
       "id": "js-senior-019",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Sparkplug",
-        "分层编译",
-        "JIT编译"
-      ],
+      "tags": ["V8", "Sparkplug", "分层编译", "JIT编译"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "关于V8的Sparkplug编译器，以下说法正确的...",
@@ -832,12 +713,7 @@
       "id": "js-senior-020",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Sparkplug",
-        "性能优化",
-        "编译器设计"
-      ],
+      "tags": ["V8", "Sparkplug", "性能优化", "编译器设计"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Sparkplug编译器相比Ignition解释器...",
@@ -861,7 +737,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "Sparkplug的核心优势是消除了字节码解释的分发开销。Ignition需要读取字节码、解码、分发到对应的处理程序，每个操作都有额外开销。Sparkplug直接生成机器码，CPU可以直接执行，避免了分发开销。它不进行复杂优化（如内联、逃逸分析），因此编译速度快。Sparkplug代码大小与字节码大致相当。参考src/baseline/baseline-compiler.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "Sparkplug的核心优势是消除了字节码解释的分发开销。Ignition需要读取字节码、解码、分发到对应的处理程序，每个操作都有额外开销。Sparkplug直接生成机器码，CPU可以直接执行，避免了分发开销。它不进行复杂优化（如内联、逃逸分析），因此编译速度快。Sparkplug代码大小与字节码大致相当。参考src/baseline/baseline-compiler.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_Sparkplug快速编译",
       "reference_link": "V8源码: src/baseline/baseline-compiler.h, src/interpreter/interpreter.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -875,12 +751,7 @@
       "id": "js-senior-021",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Sparkplug",
-        "分层编译",
-        "编译策略"
-      ],
+      "tags": ["V8", "Sparkplug", "分层编译", "编译策略"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的分层编译策略（包括Sparkplug），...",
@@ -907,10 +778,7 @@
           "text": "Sparkplug编译发生在单独的后台线程"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B"
-      ],
+      "correct_answer": ["A", "B"],
       "explanation": "A正确：这是分层编译的基本流程。B正确：Sparkplug代码在执行时收集类型反馈，存储在反馈向量中，TurboFan优化时读取这些信息。C错误：TurboFan代码和Sparkplug代码可能同时存在，去优化时可以回退。D错误：非常小的函数可能直接内联，不经完整流程。E错误：Sparkplug编译在主线程同步进行，因为它足够快。参考src/compiler.cc和src/execution/isolate.cc。",
       "knowledge_point": "V8引擎机制_Sparkplug快速编译",
       "reference_link": "V8源码: src/compiler.cc, src/execution/isolate.cc",
@@ -924,12 +792,7 @@
       "id": "js-senior-022",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Sparkplug",
-        "代码生成",
-        "寄存器分配"
-      ],
+      "tags": ["V8", "Sparkplug", "代码生成", "寄存器分配"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "Sparkplug编译器生成的代码可以直接访问CP...",
@@ -945,7 +808,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。Ignition是基于寄存器的虚拟机，使用虚拟寄存器（实际是内存位置）来存储局部变量和临时值。Sparkplug直接生成真实的机器码，可以使用CPU的物理寄存器进行操作，避免了内存访问开销。这是Sparkplug比解释器快的关键原因之一。但Sparkplug不做复杂的寄存器分配优化，使用简单的预定义寄存器映射策略。参考src/baseline/baseline-compiler.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。Ignition是基于寄存器的虚拟机，使用虚拟寄存器（实际是内存位置）来存储局部变量和临时值。Sparkplug直接生成真实的机器码，可以使用CPU的物理寄存器进行操作，避免了内存访问开销。这是Sparkplug比解释器快的关键原因之一。但Sparkplug不做复杂的寄存器分配优化，使用简单的预定义寄存器映射策略。参考src/baseline/baseline-compiler.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_Sparkplug快速编译",
       "reference_link": "V8源码: src/baseline/baseline-compiler.h, src/interpreter/interpreter-assembler.h",
       "boundary_conditions": "关键边界条件：正确。Ignition是基于寄存器的虚拟机，使用虚拟寄存器（实际是内存位置）来存储局部变量和临时值。Sparkplug直接生成真实的机器码，可以使用CPU的物理寄存器进行操作，避免了内存访问开销。这是Sparkplug比解释器快的关键原因之一。但Sparkplug不做复杂的寄存器分配优化，使用简单的"
@@ -954,12 +817,7 @@
       "id": "js-senior-023",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "指针压缩",
-        "内存布局",
-        "64位优化"
-      ],
+      "tags": ["V8", "指针压缩", "内存布局", "64位优化"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "V8的指针压缩（Pointer Compressi...",
@@ -997,12 +855,7 @@
       "id": "js-senior-024",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "指针压缩",
-        "对象布局",
-        "内存计算"
-      ],
+      "tags": ["V8", "指针压缩", "对象布局", "内存计算"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在启用指针压缩的V8中，一个包含两个Smi（小整数...",
@@ -1026,7 +879,7 @@
         }
       ],
       "correct_answer": "D",
-      "explanation": "这需要更多上下文。在指针压缩下：1) Smi在64位V8中是32位（指针压缩后），存储整数值本身 2) 对象指针是32位偏移量 3) 对象有隐藏的Map指针（也压缩为32位）。但实际大小还取决于：对象是否有其他内部字段、内存对齐要求、是否在新生代或老年代等。没有具体对象定义无法精确计算。V8通常以8字节对齐对象。参考src/objects/heap-object-layout.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "这需要更多上下文。在指针压缩下：1) Smi在64位V8中是32位（指针压缩后），存储整数值本身 2) 对象指针是32位偏移量 3) 对象有隐藏的Map指针（也压缩为32位）。但实际大小还取决于：对象是否有其他内部字段、内存对齐要求、是否在新生代或老年代等。没有具体对象定义无法精确计算。V8通常以8字节对齐对象。参考src/objects/heap-object-layout.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_内存布局与指针压缩",
       "reference_link": "V8源码: src/objects/heap-object-layout.h, src/objects/smi.h",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -1040,12 +893,7 @@
       "id": "js-senior-025",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "Smi",
-        "指针标记",
-        "内存表示"
-      ],
+      "tags": ["V8", "Smi", "指针标记", "内存表示"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的Smi（Small Integer）表示...",
@@ -1072,12 +920,8 @@
           "text": "对Smi的算术操作不需要分配 boxed 对象"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C",
-        "E"
-      ],
-      "explanation": "A正确：Smi是立即数表示，直接编码在\"指针\"值中，不指向堆对象。B错误：64位V8中Smi是31位（无指针压缩时）或更小（指针压缩时）。C正确：V8使用最低位区分，Smi最低位为0，指针最低位为1（需要解引用）。D错误：指针压缩后Smi也变小了。E正确：这是Smi的关键优势。参考src/objects/smi.h和src/objects/tagging.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "C", "E"],
+      "explanation": "A正确：Smi是立即数表示，直接编码在\"指针\"值中，不指向堆对象。B错误：64位V8中Smi是31位（无指针压缩时）或更小（指针压缩时）。C正确：V8使用最低位区分，Smi最低位为0，指针最低位为1（需要解引用）。D错误：指针压缩后Smi也变小了。E正确：这是Smi的关键优势。参考src/objects/smi.h和src/objects/tagging.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_内存布局与指针压缩",
       "reference_link": "V8源码: src/objects/smi.h, src/objects/tagging.h",
       "exclusion_analysis": {
@@ -1089,12 +933,7 @@
       "id": "js-senior-026",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "指针压缩",
-        "代码指针",
-        "内存布局"
-      ],
+      "tags": ["V8", "指针压缩", "代码指针", "内存布局"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "启用V8指针压缩后，所有堆对象指针都变为32位，但...",
@@ -1110,7 +949,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。V8指针压缩主要针对堆对象指针（HeapObject指针）。代码指针（指向内置代码、优化代码等）通常存储在代码空间（Code Space），在某些实现中可能保持完整64位，因为代码可能需要在执行时跳转。但V8也在不断演进，最新版本可能对代码指针也有压缩方案。具体取决于V8版本和编译配置。参考src/common/ptr-compr.h中的kAllCodeOnOnePage配置。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。V8指针压缩主要针对堆对象指针（HeapObject指针）。代码指针（指向内置代码、优化代码等）通常存储在代码空间（Code Space），在某些实现中可能保持完整64位，因为代码可能需要在执行时跳转。但V8也在不断演进，最新版本可能对代码指针也有压缩方案。具体取决于V8版本和编译配置。参考src/common/ptr-compr.h中的kAllCodeOnOnePage配置。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_内存布局与指针压缩",
       "reference_link": "V8源码: src/common/ptr-compr.h, src/heap/spaces.h",
       "boundary_conditions": "关键边界条件：正确。V8指针压缩主要针对堆对象指针（HeapObject指针）。代码指针（指向内置代码、优化代码等）通常存储在代码空间（Code Space），在某些实现中可能保持完整64位，因为代码可能需要在执行时跳转。但V8也在不断演进，最新版本可能对代码指针也有压缩方案。具体取决于V8版本和编译配置。参考s"
@@ -1119,12 +958,7 @@
       "id": "js-senior-027",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "Scavenge",
-        "新生代"
-      ],
+      "tags": ["V8", "垃圾回收", "Scavenge", "新生代"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "V8的分代垃圾回收中，新生代使用Scavenge算...",
@@ -1162,12 +996,7 @@
       "id": "js-senior-028",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "对象晋升",
-        "分代GC"
-      ],
+      "tags": ["V8", "垃圾回收", "对象晋升", "分代GC"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "对象从V8新生代晋升到老年代的条件是什么...",
@@ -1205,12 +1034,7 @@
       "id": "js-senior-029",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "内存碎片",
-        "压缩"
-      ],
+      "tags": ["V8", "垃圾回收", "内存碎片", "压缩"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "V8老年代的Mark-Sweep-Compact算...",
@@ -1234,7 +1058,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "老年代长时间运行后会产生内存碎片。压缩阶段将存活对象移动到连续的内存区域，消除碎片。这使得后续分配可以使用简单的bump-pointer方式，而不需要维护空闲列表。压缩是昂贵的操作，V8只在碎片化严重时才执行，通常基于碎片率阈值触发。V8使用semi-space copy和基于页的压缩策略。参考src/heap/mark-compact.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "老年代长时间运行后会产生内存碎片。压缩阶段将存活对象移动到连续的内存区域，消除碎片。这使得后续分配可以使用简单的bump-pointer方式，而不需要维护空闲列表。压缩是昂贵的操作，V8只在碎片化严重时才执行，通常基于碎片率阈值触发。V8使用semi-space copy和基于页的压缩策略。参考src/heap/mark-compact.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-分代回收",
       "reference_link": "V8源码: src/heap/mark-compact.cc, src/heap/compaction-space.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -1248,12 +1072,7 @@
       "id": "js-senior-030",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "分代设计",
-        "多选题"
-      ],
+      "tags": ["V8", "垃圾回收", "分代设计", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的分代垃圾回收设计，以下说法正确的是：",
@@ -1280,11 +1099,7 @@
           "text": "写屏障用于维护老年代到新生代的引用"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "D"
-      ],
+      "correct_answer": ["A", "B", "D"],
       "explanation": "A正确：Scavenge是STW的，但通常很快（几毫秒）因为新生代较小。B正确：V8支持并发标记和并发清除，减少老年代GC的暂停时间。C错误：新生代远小于老年代（默认几MB到几十MB vs 几百MB到几GB）。D正确：小对象都在新生代分配。E错误：写屏障主要用于维护新生代到老年代的引用（remembered set），因为老年代对象可能引用新生代对象，需要在新生代GC时识别。参考src/heap/heap.cc。",
       "knowledge_point": "V8引擎机制_垃圾回收-分代回收",
       "reference_link": "V8源码: src/heap/heap.cc, src/heap/remembered-set.h",
@@ -1297,12 +1112,7 @@
       "id": "js-senior-031",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "写屏障",
-        "GC实现"
-      ],
+      "tags": ["V8", "垃圾回收", "写屏障", "GC实现"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的写屏障（Write Barrier），以...",
@@ -1329,11 +1139,7 @@
           "text": "写屏障与三色标记算法配合使用"
         }
       ],
-      "correct_answer": [
-        "B",
-        "D",
-        "E"
-      ],
+      "correct_answer": ["B", "D", "E"],
       "explanation": "A错误：写屏障只在写入堆对象指针字段时触发，写入Smi或非指针值不触发。B正确：这是remembered set的核心功能，用于Scavenge时找到老年代到新生代的引用。C错误：V8的写屏障经过高度优化，开销很小。D正确：增量写屏障（Dijkstra-style或Steele-style）支持增量标记。E正确：三色标记下，写屏障确保白色对象不会被黑色对象引用（强三色不变式）。参考src/heap/write-barrier.h。",
       "knowledge_point": "V8引擎机制_垃圾回收-写屏障",
       "reference_link": "V8源码: src/heap/write-barrier.h, src/heap/remembered-set.h",
@@ -1346,12 +1152,7 @@
       "id": "js-senior-032",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "写屏障",
-        "机制辨析"
-      ],
+      "tags": ["V8", "垃圾回收", "写屏障", "机制辨析"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "V8的写屏障只在对象从老年代引用新生代对象时触发，...",
@@ -1376,12 +1177,7 @@
       "id": "js-senior-033",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "并发标记",
-        "三色标记"
-      ],
+      "tags": ["V8", "垃圾回收", "并发标记", "三色标记"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "V8的并发标记（Concurrent Markin...",
@@ -1405,7 +1201,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "V8使用Dijkstra-style写屏障：当黑色对象获得指向白色对象的新引用时，将白色对象标记为灰色。这满足强三色不变式（黑色对象不会直接指向白色对象）。实现上，V8将这些对象加入marking worklist，并发标记线程会继续处理。这允许标记过程与应用并发运行。参考src/heap/incremental-marking.cc和src/heap/marking.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "V8使用Dijkstra-style写屏障：当黑色对象获得指向白色对象的新引用时，将白色对象标记为灰色。这满足强三色不变式（黑色对象不会直接指向白色对象）。实现上，V8将这些对象加入marking worklist，并发标记线程会继续处理。这允许标记过程与应用并发运行。参考src/heap/incremental-marking.cc和src/heap/marking.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-并发标记",
       "reference_link": "V8源码: src/heap/incremental-marking.cc, src/heap/marking.h, src/heap/write-barrier.h",
       "common_mistake": "常见错误是选择B或D, 需要深入理解底层原理",
@@ -1419,12 +1215,7 @@
       "id": "js-senior-034",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "三色标记",
-        "并发GC"
-      ],
+      "tags": ["V8", "垃圾回收", "三色标记", "并发GC"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在V8的三色标记算法中，灰色对象的含义是什么...",
@@ -1448,7 +1239,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "三色标记的颜色定义：白色=未访问，可能是垃圾；灰色=已标记为存活，但其引用的对象尚未全部扫描；黑色=已标记为存活，且其所有引用都已扫描。灰色对象是工作队列中的待处理对象。标记过程从灰色对象开始，扫描其引用，将引用的对象标记为灰色（如果原为白色），当前对象变为黑色。GC结束后仍为白色的对象是垃圾。参考src/heap/marking.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "三色标记的颜色定义：白色=未访问，可能是垃圾；灰色=已标记为存活，但其引用的对象尚未全部扫描；黑色=已标记为存活，且其所有引用都已扫描。灰色对象是工作队列中的待处理对象。标记过程从灰色对象开始，扫描其引用，将引用的对象标记为灰色（如果原为白色），当前对象变为黑色。GC结束后仍为白色的对象是垃圾。参考src/heap/marking.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-并发标记",
       "reference_link": "V8源码: src/heap/marking.h, src/heap/mark-compact.cc",
       "common_mistake": "常见错误是选择B或D, 需要深入理解底层原理",
@@ -1462,12 +1253,7 @@
       "id": "js-senior-035",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "并发标记",
-        "增量标记"
-      ],
+      "tags": ["V8", "垃圾回收", "并发标记", "增量标记"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的并发标记和增量标记，以下说法正确的是：",
@@ -1494,12 +1280,8 @@
           "text": "增量标记已经被并发标记完全取代"
         }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "A错误：增量标记不是在空闲时执行，而是在应用执行间隙穿插执行。B正确：这是并发标记的核心优势。C正确：增量标记需要更频繁的写屏障来保证一致性。D正确：并发标记后需要短暂的finalization/re-mark阶段处理并发期间的变更。E错误：两者常结合使用。V8的并发标记是在增量标记基础上发展的。参考src/heap/concurrent-marker.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["B", "C", "D"],
+      "explanation": "A错误：增量标记不是在空闲时执行，而是在应用执行间隙穿插执行。B正确：这是并发标记的核心优势。C正确：增量标记需要更频繁的写屏障来保证一致性。D正确：并发标记后需要短暂的finalization/re-mark阶段处理并发期间的变更。E错误：两者常结合使用。V8的并发标记是在增量标记基础上发展的。参考src/heap/concurrent-marker.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-并发标记",
       "reference_link": "V8源码: src/heap/concurrent-marker.cc, src/heap/incremental-marking.cc",
       "exclusion_analysis": {
@@ -1511,12 +1293,7 @@
       "id": "js-senior-036",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "并发标记",
-        "多线程"
-      ],
+      "tags": ["V8", "垃圾回收", "并发标记", "多线程"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "V8的并发标记可以在多个后台线程并行执行，利用多核...",
@@ -1541,12 +1318,7 @@
       "id": "js-senior-037",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "空闲时GC",
-        "调度策略"
-      ],
+      "tags": ["V8", "垃圾回收", "空闲时GC", "调度策略"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "V8的空闲时垃圾回收（Idle Time GC）在...",
@@ -1570,7 +1342,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "空闲时GC是V8与宿主环境（如Chrome的Blink渲染引擎或Node.js）协作的机制。当宿主检测到即将有较长空闲期（如帧渲染间隙、等待用户输入），会通知V8。V8根据空闲时间长度和当前GC状态，决定执行多少GC工作。这允许V8在用户不感知的情况下完成垃圾回收，减少关键路径上的GC暂停。参考src/heap/idle-time-gc-heap-costs.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "空闲时GC是V8与宿主环境（如Chrome的Blink渲染引擎或Node.js）协作的机制。当宿主检测到即将有较长空闲期（如帧渲染间隙、等待用户输入），会通知V8。V8根据空闲时间长度和当前GC状态，决定执行多少GC工作。这允许V8在用户不感知的情况下完成垃圾回收，减少关键路径上的GC暂停。参考src/heap/idle-time-gc-heap-costs.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-空闲时GC",
       "reference_link": "V8源码: src/heap/idle-time-gc-heap-costs.h, src/heap/heap.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -1584,12 +1356,7 @@
       "id": "js-senior-038",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "空闲时GC",
-        "调度算法"
-      ],
+      "tags": ["V8", "垃圾回收", "空闲时GC", "调度算法"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在空闲时GC中，V8如何决定执行哪些GC任务...",
@@ -1613,7 +1380,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "V8维护了各种GC操作的历史耗时统计，用于预测未来操作的时间。当收到空闲时间通知时，V8根据：1) 空闲窗口大小 2) 当前内存压力 3) GC历史数据，决定执行哪些任务。可能的任务包括：增量标记步进、Scavenge、老年代标记、lazy sweeping等。目标是在空闲窗口内完成工作，不超时。参考src/heap/idle-time-gc-heap-costs.h。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "V8维护了各种GC操作的历史耗时统计，用于预测未来操作的时间。当收到空闲时间通知时，V8根据：1) 空闲窗口大小 2) 当前内存压力 3) GC历史数据，决定执行哪些任务。可能的任务包括：增量标记步进、Scavenge、老年代标记、lazy sweeping等。目标是在空闲窗口内完成工作，不超时。参考src/heap/idle-time-gc-heap-costs.h。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-空闲时GC",
       "reference_link": "V8源码: src/heap/idle-time-gc-heap-costs.h, src/heap/heap.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -1627,12 +1394,7 @@
       "id": "js-senior-039",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "增量标记",
-        "延迟优化"
-      ],
+      "tags": ["V8", "垃圾回收", "增量标记", "延迟优化"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于V8的增量标记（Incremental Mar...",
@@ -1659,12 +1421,8 @@
           "text": "增量标记只适用于新生代GC"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "D"
-      ],
-      "explanation": "A正确：增量标记的目标是将长暂停分解为多个短片段。B正确：每个增量步进之间，应用可以执行。C错误：仍有短暂的暂停，只是分散了。D正确：写屏障是增量标记正确性的保证。E错误：增量标记主要针对老年代GC，因为新生代Scavenge本身很快。参考src/heap/incremental-marking.cc。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "A正确：增量标记的目标是将长暂停分解为多个短片段。B正确：每个增量步进之间，应用可以执行。C错误：仍有短暂的暂停，只是分散了。D正确：写屏障是增量标记正确性的保证。E错误：增量标记主要针对老年代GC，因为新生代Scavenge本身很快。参考src/heap/incremental-marking.cc。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-增量标记",
       "reference_link": "V8源码: src/heap/incremental-marking.cc, src/heap/incremental-marking-job.cc",
       "exclusion_analysis": {
@@ -1676,12 +1434,7 @@
       "id": "js-senior-040",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "V8",
-        "垃圾回收",
-        "增量标记",
-        "GC完成"
-      ],
+      "tags": ["V8", "垃圾回收", "增量标记", "GC完成"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "增量标记完成后，V8仍然需要一个Stop-The-...",
@@ -1697,7 +1450,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。增量标记期间，新对象可能被创建并仅被黑色对象引用（根据三色不变式需要特殊处理）。增量标记完成后，需要一个短暂的原子阶段来：1) 重新扫描根集 2) 处理weak references 3) 标记在增量期间创建的新对象。这个阶段是STW的，但通常很短，因为大部分工作已在增量阶段完成。参考src/heap/incremental-marking.cc中的Finalize()函数。\n\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。增量标记期间，新对象可能被创建并仅被黑色对象引用（根据三色不变式需要特殊处理）。增量标记完成后，需要一个短暂的原子阶段来：1) 重新扫描根集 2) 处理weak references 3) 标记在增量期间创建的新对象。这个阶段是STW的，但通常很短，因为大部分工作已在增量阶段完成。参考src/heap/incremental-marking.cc中的Finalize()函数。\n补充分析：此题考察V8相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "V8引擎机制_垃圾回收-增量标记",
       "reference_link": "V8源码: src/heap/incremental-marking.cc, src/heap/mark-compact.cc",
       "boundary_conditions": "关键边界条件：正确。增量标记期间，新对象可能被创建并仅被黑色对象引用（根据三色不变式需要特殊处理）。增量标记完成后，需要一个短暂的原子阶段来：1) 重新扫描根集 2) 处理weak references 3) 标记在增量期间创建的新对象。这个阶段是STW的，但通常很短，因为大部分工作已在增量阶段完成。参考src/"
@@ -1706,12 +1459,7 @@
       "id": "js-senior-041",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "微任务",
-        "浏览器",
-        "执行顺序"
-      ],
+      "tags": ["事件循环", "微任务", "浏览器", "执行顺序"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在浏览器事件循环中，微任务（Microtask）队...",
@@ -1749,12 +1497,7 @@
       "id": "js-senior-042",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "微任务",
-        "宏任务",
-        "执行顺序"
-      ],
+      "tags": ["事件循环", "微任务", "宏任务", "执行顺序"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码的输出顺序是什么...",
@@ -1792,12 +1535,7 @@
       "id": "js-senior-043",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "Node.js",
-        "setImmediate",
-        "setTimeout"
-      ],
+      "tags": ["事件循环", "Node.js", "setImmediate", "setTimeout"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在Node...",
@@ -1835,12 +1573,7 @@
       "id": "js-senior-044",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "顶层await",
-        "ES模块",
-        "异步模块"
-      ],
+      "tags": ["事件循环", "顶层await", "ES模块", "异步模块"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "关于顶层await（Top-level await...",
@@ -1878,12 +1611,7 @@
       "id": "js-senior-045",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "Node.js",
-        "浏览器差异",
-        "多选题"
-      ],
+      "tags": ["事件循环", "Node.js", "浏览器差异", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于Node...",
@@ -1910,11 +1638,7 @@
           "text": "Node.js的setImmediate和浏览器的setTimeout(fn, 0)完全等价"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C"
-      ],
+      "correct_answer": ["A", "B", "C"],
       "explanation": "A正确：process.nextTick队列在微任务队列之前处理，是Node.js特有的。B正确：浏览器事件循环与渲染管线集成，Node.js只有执行阶段。C正确：这是Node.js事件循环的核心特征。D错误：两者功能完全不同，requestAnimationFrame与帧渲染同步。E错误：虽然setTimeout(..., 0)和setImmediate有相似用途，但在不同环境下的行为不同。参考Node.js官方文档事件循环章节。",
       "knowledge_point": "执行机制_事件循环",
       "reference_link": "Node.js文档: Event Loop, Timers, and process.nextTick(); HTML规范: Event Loops",
@@ -1927,12 +1651,7 @@
       "id": "js-senior-046",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "微任务",
-        "Promise",
-        "多选题"
-      ],
+      "tags": ["事件循环", "微任务", "Promise", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些操作会向微任务队列添加任务...",
@@ -1959,12 +1678,7 @@
           "text": "async函数中的await表达式"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
+      "correct_answer": ["A", "B", "C", "E"],
       "explanation": "A正确：Promise的then/catch/finally回调都是微任务。B正确：queueMicrotask是专门添加微任务的API。C正确：MutationObserver回调在微任务队列执行。D错误：IntersectionObserver是观察者API，其回调通过resize observer触发，不是微任务。E正确：await会暂停async函数，等待的Promise解决后会向微任务队列添加继续执行的回调。参考HTML规范#microtask-queue和ECMAScript规范Promise章节。",
       "knowledge_point": "执行机制_事件循环",
       "reference_link": "HTML规范: #microtask-queue; ECMAScript规范: #sec-promise-objects",
@@ -1976,12 +1690,7 @@
       "id": "js-senior-047",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "事件循环",
-        "微任务",
-        "执行机制",
-        "常见误区"
-      ],
+      "tags": ["事件循环", "微任务", "执行机制", "常见误区"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "在微任务队列处理过程中添加的微任务，会在当前宏任务...",
@@ -1997,7 +1706,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。微任务队列的处理是循环的：执行一个微任务 → 检查队列是否为空 → 如果不空，继续执行下一个 → 直到队列清空。在微任务执行期间新添加的微任务也会被处理，只要队列不为空。这可能导致无限循环（如queueMicrotask递归调用自己），阻塞事件循环。参考HTML规范#perform-a-microtask-checkpoint。\n\n补充分析：此题考察事件循环相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。微任务队列的处理是循环的：执行一个微任务 → 检查队列是否为空 → 如果不空，继续执行下一个 → 直到队列清空。在微任务执行期间新添加的微任务也会被处理，只要队列不为空。这可能导致无限循环（如queueMicrotask递归调用自己），阻塞事件循环。参考HTML规范#perform-a-microtask-checkpoint。\n补充分析：此题考察事件循环相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_事件循环",
       "reference_link": "HTML规范: #perform-a-microtask-checkpoint",
       "boundary_conditions": "关键边界条件：正确。微任务队列的处理是循环的：执行一个微任务 → 检查队列是否为空 → 如果不空，继续执行下一个 → 直到队列清空。在微任务执行期间新添加的微任务也会被处理，只要队列不为空。这可能导致无限循环（如queueMicrotask递归调用自己），阻塞事件循环。参考HTML规范#perform-a-mic"
@@ -2006,12 +1715,7 @@
       "id": "js-senior-048",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "闭包",
-        "内存结构",
-        "V8实现",
-        "Context对象"
-      ],
+      "tags": ["闭包", "内存结构", "V8实现", "Context对象"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在V8中，闭包捕获的变量存储在哪里...",
@@ -2049,12 +1753,7 @@
       "id": "js-senior-049",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "闭包",
-        "变量捕获",
-        "var陷阱",
-        "经典问题"
-      ],
+      "tags": ["闭包", "变量捕获", "var陷阱", "经典问题"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，闭包捕获的是变量还是变量的值...",
@@ -2078,7 +1777,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "使用var声明的i具有函数作用域，只有一个i变量。所有闭包捕获的是同一个变量引用，而非值的副本。循环结束后i为3，所以所有闭包返回3。解决方案：使用let（每次迭代创建新的词法环境）或IIFE捕获当前值。这是JavaScript的经典陷阱。参考ECMAScript规范#sec-runtime-semantics-closurecallformalparameters。\n\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "使用var声明的i具有函数作用域，只有一个i变量。所有闭包捕获的是同一个变量引用，而非值的副本。循环结束后i为3，所以所有闭包返回3。解决方案：使用let（每次迭代创建新的词法环境）或IIFE捕获当前值。这是JavaScript的经典陷阱。参考ECMAScript规范#sec-runtime-semantics-closurecallformalparameters。\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_闭包内存结构",
       "reference_link": "ECMAScript规范: #sec-runtime-semantics-closurecallformalparameters, #sec-let-and-const-declarations",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -2092,12 +1791,7 @@
       "id": "js-senior-050",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "闭包",
-        "内存管理",
-        "GC交互",
-        "内存泄漏"
-      ],
+      "tags": ["闭包", "内存管理", "GC交互", "内存泄漏"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在V8中，当闭包捕获的变量不再被任何代码直接访问，...",
@@ -2121,7 +1815,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "这是闭包的核心特性。Context对象持有所有捕获变量，只要任何闭包引用该Context，所有变量都会被保留。即使某些变量不再被任何活跃代码直接使用，只要同Context中的其他变量仍被需要，它们就会一起保留。这可能导致意外 retain 内存，是闭包内存泄漏的常见原因。优化：尽量减少捕获变量数量，必要时创建新的作用域隔离。参考V8源码src/objects/contexts.h。\n\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "这是闭包的核心特性。Context对象持有所有捕获变量，只要任何闭包引用该Context，所有变量都会被保留。即使某些变量不再被任何活跃代码直接使用，只要同Context中的其他变量仍被需要，它们就会一起保留。这可能导致意外 retain 内存，是闭包内存泄漏的常见原因。优化：尽量减少捕获变量数量，必要时创建新的作用域隔离。参考V8源码src/objects/contexts.h。\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_闭包内存结构",
       "reference_link": "V8源码: src/objects/contexts.h, src/heap/mark-compact.cc",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -2135,12 +1829,7 @@
       "id": "js-senior-051",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "闭包",
-        "上下文",
-        "变量环境",
-        "多选题"
-      ],
+      "tags": ["闭包", "上下文", "变量环境", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于闭包的上下文销毁与保留，以下说法正确的是：",
@@ -2167,12 +1856,8 @@
           "text": "闭包无法访问外部函数的参数"
         }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "A错误：只有在没有闭包引用时才销毁。B正确：这是闭包的基本原理。C正确：V8通常保留整个Context，虽然引擎会做优化。D正确：eval可能访问任何变量，所以无法做变量逃逸分析，必须保留全部。E错误：闭包可以访问外部函数的参数。参考ECMAScript规范#sec-function-definitions-runtime-semantics-evaluation。\n\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["B", "C", "D"],
+      "explanation": "A错误：只有在没有闭包引用时才销毁。B正确：这是闭包的基本原理。C正确：V8通常保留整个Context，虽然引擎会做优化。D正确：eval可能访问任何变量，所以无法做变量逃逸分析，必须保留全部。E错误：闭包可以访问外部函数的参数。参考ECMAScript规范#sec-function-definitions-runtime-semantics-evaluation。\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_闭包内存结构",
       "reference_link": "ECMAScript规范: #sec-function-definitions-runtime-semantics-evaluation",
       "exclusion_analysis": {
@@ -2184,12 +1869,7 @@
       "id": "js-senior-052",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "闭包",
-        "严格模式",
-        "delete",
-        "常见误区"
-      ],
+      "tags": ["闭包", "严格模式", "delete", "常见误区"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "在严格模式下，闭包访问的外部变量可以通过delet...",
@@ -2205,7 +1885,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "错误。在严格模式下，delete操作无法删除变量、函数参数或函数声明。delete只能删除对象的可配置属性。闭包捕获的变量是词法环境中的绑定，不是对象属性，无论严格模式与否都无法用delete删除。词法环境中的绑定由引擎管理，在环境不再可达时由GC回收。参考ECMAScript规范#sec-delete-operator-runtime-semantics-evaluation。\n\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "错误。在严格模式下，delete操作无法删除变量、函数参数或函数声明。delete只能删除对象的可配置属性。闭包捕获的变量是词法环境中的绑定，不是对象属性，无论严格模式与否都无法用delete删除。词法环境中的绑定由引擎管理，在环境不再可达时由GC回收。参考ECMAScript规范#sec-delete-operator-runtime-semantics-evaluation。\n补充分析：此题考察闭包相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_闭包内存结构",
       "reference_link": "ECMAScript规范: #sec-delete-operator-runtime-semantics-evaluation",
       "boundary_conditions": "关键边界条件：错误。在严格模式下，delete操作无法删除变量、函数参数或函数声明。delete只能删除对象的可配置属性。闭包捕获的变量是词法环境中的绑定，不是对象属性，无论严格模式与否都无法用delete删除。词法环境中的绑定由引擎管理，在环境不再可达时由GC回收。参考ECMAScript规范#sec-dele"
@@ -2214,12 +1894,7 @@
       "id": "js-senior-053",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "this绑定",
-        "严格模式",
-        "函数调用",
-        "经典陷阱"
-      ],
+      "tags": ["this绑定", "严格模式", "函数调用", "经典陷阱"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，obj...",
@@ -2257,12 +1932,7 @@
       "id": "js-senior-054",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "this绑定",
-        "箭头函数",
-        "词法this",
-        "规范"
-      ],
+      "tags": ["this绑定", "箭头函数", "词法this", "规范"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "箭头函数的this绑定与普通函数有何不同...",
@@ -2300,12 +1970,7 @@
       "id": "js-senior-055",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "this绑定",
-        "箭头函数",
-        "对象字面量",
-        "陷阱"
-      ],
+      "tags": ["this绑定", "箭头函数", "对象字面量", "陷阱"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码的输出是什么...",
@@ -2343,12 +2008,7 @@
       "id": "js-senior-056",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "this绑定",
-        "绑定规则",
-        "多选题",
-        "核心概念"
-      ],
+      "tags": ["this绑定", "绑定规则", "多选题", "核心概念"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于this绑定，以下说法正确的是：",
@@ -2375,13 +2035,8 @@
           "text": "bind绑定后的函数可以再次bind改变this"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "A正确：new操作符创建新对象并绑定到this。B正确：这是显式绑定的三种方式。C正确：隐式绑定的规则。D正确：严格模式的重要区别。E错误：bind是永久性的，后续bind/call/apply都无法改变第一次bind的this。参考ECMAScript规范#sec-function.prototype.bind。\n\n补充分析：此题考察this绑定相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "A正确：new操作符创建新对象并绑定到this。B正确：这是显式绑定的三种方式。C正确：隐式绑定的规则。D正确：严格模式的重要区别。E错误：bind是永久性的，后续bind/call/apply都无法改变第一次bind的this。参考ECMAScript规范#sec-function.prototype.bind。\n补充分析：此题考察this绑定相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_this绑定",
       "reference_link": "ECMAScript规范: #sec-function.prototype.bind, #sec-function-calls",
       "exclusion_analysis": {
@@ -2392,12 +2047,7 @@
       "id": "js-senior-057",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "this绑定",
-        "bind",
-        "柯里化",
-        "函数式编程"
-      ],
+      "tags": ["this绑定", "bind", "柯里化", "函数式编程"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "Function...",
@@ -2422,12 +2072,7 @@
       "id": "js-senior-058",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "作用域链",
-        "with语句",
-        "词法作用域",
-        "已弃用"
-      ],
+      "tags": ["作用域链", "with语句", "词法作用域", "已弃用"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "with语句如何影响作用域链...",
@@ -2451,7 +2096,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "with语句将指定对象推入作用域链的头部。在with块内，标识符查找首先检查该对象的属性，然后才沿作用域链向上查找。这可能导致意外的变量访问和赋值行为。with语句在严格模式下被禁止，且会阻止V8优化。参考ECMAScript规范#sec-with-statement-runtime-semantics-evaluation。\n\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "with语句将指定对象推入作用域链的头部。在with块内，标识符查找首先检查该对象的属性，然后才沿作用域链向上查找。这可能导致意外的变量访问和赋值行为。with语句在严格模式下被禁止，且会阻止V8优化。参考ECMAScript规范#sec-with-statement-runtime-semantics-evaluation。\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_作用域链",
       "reference_link": "ECMAScript规范: #sec-with-statement-runtime-semantics-evaluation",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -2465,12 +2110,7 @@
       "id": "js-senior-059",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "作用域链",
-        "eval",
-        "严格模式",
-        "直接与间接eval"
-      ],
+      "tags": ["作用域链", "eval", "严格模式", "直接与间接eval"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "eval()在什么情况下会创建独立的作用域...",
@@ -2494,7 +2134,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "直接eval（eval作为标识符直接调用）在严格模式下创建独立的词法作用域，其中的变量不会污染外部作用域。非严格模式下，eval中的var声明会添加到调用者的变量环境。间接eval（如赋值给变量后调用）总是在全局作用域执行。参考ECMAScript规范#sec-eval-x和#sec-performeval。\n\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "直接eval（eval作为标识符直接调用）在严格模式下创建独立的词法作用域，其中的变量不会污染外部作用域。非严格模式下，eval中的var声明会添加到调用者的变量环境。间接eval（如赋值给变量后调用）总是在全局作用域执行。参考ECMAScript规范#sec-eval-x和#sec-performeval。\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_作用域链",
       "reference_link": "ECMAScript规范: #sec-eval-x, #sec-performeval",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -2508,12 +2148,7 @@
       "id": "js-senior-060",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "作用域链",
-        "词法作用域",
-        "变量查找",
-        "多选题"
-      ],
+      "tags": ["作用域链", "词法作用域", "变量查找", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于作用域链和变量查找，以下说法正确的是：",
@@ -2540,14 +2175,8 @@
           "text": "作用域链查找会在找到第一个匹配的标识符后停止"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E"
-      ],
-      "explanation": "所有选项都正确。A：词法作用域的核心特性。B：查找从当前作用域开始，到全局作用域结束。C：with添加对象到作用域链头部，catch创建包含异常变量的作用域。D：块级作用域是词法环境，添加到作用域链。E：遮蔽效应，同名标识符按作用域链顺序查找。参考ECMAScript规范#sec-lexical-environments。\n\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "D", "E"],
+      "explanation": "所有选项都正确。A：词法作用域的核心特性。B：查找从当前作用域开始，到全局作用域结束。C：with添加对象到作用域链头部，catch创建包含异常变量的作用域。D：块级作用域是词法环境，添加到作用域链。E：遮蔽效应，同名标识符按作用域链顺序查找。参考ECMAScript规范#sec-lexical-environments。\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_作用域链",
       "reference_link": "ECMAScript规范: #sec-lexical-environments",
       "exclusion_analysis": {}
@@ -2556,12 +2185,7 @@
       "id": "js-senior-061",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "作用域链",
-        "with",
-        "eval",
-        "优化阻碍"
-      ],
+      "tags": ["作用域链", "with", "eval", "优化阻碍"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "在函数内部使用with语句或eval()会导致V8...",
@@ -2577,7 +2201,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。with语句和直接eval()使得静态分析无法确定标识符的来源，V8无法做内联缓存等优化。包含这些结构的函数会被标记为\"不可优化\"，只能通过解释器或Sparkplug执行。这是with语句被废弃的原因之一。V8源码中，Parser会检测这些结构并设置标志位。参考V8源码src/parsing/parser.cc和src/objects/shared-function-info.h。\n\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。with语句和直接eval()使得静态分析无法确定标识符的来源，V8无法做内联缓存等优化。包含这些结构的函数会被标记为\"不可优化\"，只能通过解释器或Sparkplug执行。这是with语句被废弃的原因之一。V8源码中，Parser会检测这些结构并设置标志位。参考V8源码src/parsing/parser.cc和src/objects/shared-function-info.h。\n补充分析：此题考察作用域链相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "执行机制_作用域链",
       "reference_link": "V8源码: src/parsing/parser.cc, src/objects/shared-function-info.h",
       "boundary_conditions": "关键边界条件：正确。with语句和直接eval()使得静态分析无法确定标识符的来源，V8无法做内联缓存等优化。包含这些结构的函数会被标记为\"不可优化\"，只能通过解释器或Sparkplug执行。这是with语句被废弃的原因之一。V8源码中，Parser会检测这些结构并设置标志位。参考V8源码src/parsing/"
@@ -2586,12 +2210,7 @@
       "id": "js-senior-062",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Proxy",
-        "陷阱",
-        "for...in",
-        "属性枚举"
-      ],
+      "tags": ["Proxy", "陷阱", "for...in", "属性枚举"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Proxy的以下哪个陷阱（trap）会影响for...",
@@ -2629,12 +2248,7 @@
       "id": "js-senior-063",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Proxy",
-        "陷阱",
-        "不变式",
-        "规范"
-      ],
+      "tags": ["Proxy", "陷阱", "不变式", "规范"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下哪个Proxy陷阱在Proxy创建时必须有对应...",
@@ -2672,12 +2286,7 @@
       "id": "js-senior-064",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "Proxy",
-        "typeof",
-        "陷阱",
-        "限制"
-      ],
+      "tags": ["Proxy", "typeof", "陷阱", "限制"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些Proxy陷阱会影响typeof操作符的结...",
@@ -2704,9 +2313,7 @@
           "text": "isExtensible"
         }
       ],
-      "correct_answer": [
-        "C"
-      ],
+      "correct_answer": ["C"],
       "explanation": "typeof操作符在Proxy上返回的结果与目标对象相同，无法通过陷阱改变。typeof检查对象的内部[[Call]]或[[Construct]]槽，Proxy透传这些内部方法。即使是函数代理，typeof也返回'function'，apply陷阱只影响调用行为。这是Proxy的一个限制。参考ECMAScript规范#sec-typeof-operator和#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist。",
       "knowledge_point": "类型与语言特性_Proxy陷阱",
       "reference_link": "ECMAScript规范: #sec-typeof-operator",
@@ -2721,12 +2328,7 @@
       "id": "js-senior-065",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "Proxy",
-        "性能",
-        "IC优化",
-        "多选题"
-      ],
+      "tags": ["Proxy", "性能", "IC优化", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于Proxy的性能影响，以下说法正确的是：",
@@ -2753,11 +2355,8 @@
           "text": "Proxy陷阱内部访问目标对象属性也有额外开销"
         }
       ],
-      "correct_answer": [
-        "B",
-        "C"
-      ],
-      "explanation": "A错误：某些操作（如检查属性不存在）可能相当。B正确：陷阱是函数调用，有额外开销。C正确：Proxy的Map是固定的，无法利用IC优化。D错误：撤销后Proxy变成完全无用的对象，任何操作都抛出TypeError。E错误：陷阱内访问target是普通对象访问，无额外开销。参考V8源码src/objects/js-proxy.cc。\n\n补充分析：此题考察Proxy相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["B", "C"],
+      "explanation": "A错误：某些操作（如检查属性不存在）可能相当。B正确：陷阱是函数调用，有额外开销。C正确：Proxy的Map是固定的，无法利用IC优化。D错误：撤销后Proxy变成完全无用的对象，任何操作都抛出TypeError。E错误：陷阱内访问target是普通对象访问，无额外开销。参考V8源码src/objects/js-proxy.cc。\n补充分析：此题考察Proxy相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_Proxy陷阱",
       "reference_link": "V8源码: src/objects/js-proxy.cc, src/ic/ic.cc",
       "exclusion_analysis": {
@@ -2770,12 +2369,7 @@
       "id": "js-senior-066",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Proxy",
-        "apply陷阱",
-        "函数调用",
-        "常见误区"
-      ],
+      "tags": ["Proxy", "apply陷阱", "函数调用", "常见误区"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "Proxy的apply陷阱只在目标对象是函数时才会...",
@@ -2800,12 +2394,7 @@
       "id": "js-senior-067",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Reflect",
-        "API设计",
-        "Proxy配合",
-        "设计意图"
-      ],
+      "tags": ["Reflect", "API设计", "Proxy配合", "设计意图"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Reflect API的设计意图不包括以下哪一项...",
@@ -2829,7 +2418,7 @@
         }
       ],
       "correct_answer": "D",
-      "explanation": "Reflect API的设计目标：1) 统一操作方式（与Proxy陷阱一一对应）2) 函数式接口，便于函数式编程 3) 更合理的返回值（如Reflect.defineProperty返回布尔值而非抛出异常）4) 替代一些Object上的非标准或不一致方法。性能不是设计目标，实际上Reflect方法通常与Object方法性能相近。参考ECMAScript规范#sec-reflection。\n\n补充分析：此题考察Reflect相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "Reflect API的设计目标：1) 统一操作方式（与Proxy陷阱一一对应）2) 函数式接口，便于函数式编程 3) 更合理的返回值（如Reflect.defineProperty返回布尔值而非抛出异常）4) 替代一些Object上的非标准或不一致方法。性能不是设计目标，实际上Reflect方法通常与Object方法性能相近。参考ECMAScript规范#sec-reflection。\n补充分析：此题考察Reflect相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_ReflectAPI",
       "reference_link": "ECMAScript规范: #sec-reflection, MDN Reflect文档",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -2843,12 +2432,7 @@
       "id": "js-senior-068",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Reflect",
-        "apply",
-        "函数调用",
-        "API对比"
-      ],
+      "tags": ["Reflect", "apply", "函数调用", "API对比"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Reflect...",
@@ -2886,12 +2470,7 @@
       "id": "js-senior-069",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "Reflect",
-        "Proxy陷阱",
-        "API对应",
-        "多选题"
-      ],
+      "tags": ["Reflect", "Proxy陷阱", "API对应", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些Reflect方法与Proxy陷阱一一对应...",
@@ -2918,12 +2497,7 @@
           "text": "Reflect.deleteProperty ↔ deleteProperty陷阱"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
+      "correct_answer": ["A", "B", "C", "E"],
       "explanation": "A、B、C、E正确：这些Reflect方法与Proxy陷阱一一对应，参数和返回值完全一致，便于在陷阱中转发操作。D错误：没有Reflect.keys方法，对应ownKeys陷阱的是Reflect.ownKeys()。Reflect API的完整方法包括：get, set, has, deleteProperty, ownKeys, apply, construct, getOwnPropertyDescriptor, defineProperty, getPrototypeOf, setPrototypeOf, isExtensible, preventExtensions。参考ECMAScript规范#sec-reflection。",
       "knowledge_point": "类型与语言特性_ReflectAPI",
       "reference_link": "ECMAScript规范: #sec-reflection",
@@ -2935,12 +2509,7 @@
       "id": "js-senior-070",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Reflect",
-        "construct",
-        "new.target",
-        "元编程"
-      ],
+      "tags": ["Reflect", "construct", "new.target", "元编程"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "Reflect...",
@@ -2965,12 +2534,7 @@
       "id": "js-senior-071",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "WeakRef",
-        "弱引用",
-        "内存管理",
-        "使用场景"
-      ],
+      "tags": ["WeakRef", "弱引用", "内存管理", "使用场景"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "WeakRef的主要使用场景是什么...",
@@ -2994,7 +2558,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "WeakRef允许持有对象的弱引用，不会阻止该对象被垃圾回收。使用场景：缓存（允许缓存对象被回收）、观察者模式（如果观察者被回收，不需要手动取消订阅）、DOM引用（避免阻止元素被回收）。WeakRef.deref()返回对象引用或undefined（如果已被回收）。参考ECMAScript规范#sec-weak-ref-objects和TC39 WeakRef提案。\n\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "WeakRef允许持有对象的弱引用，不会阻止该对象被垃圾回收。使用场景：缓存（允许缓存对象被回收）、观察者模式（如果观察者被回收，不需要手动取消订阅）、DOM引用（避免阻止元素被回收）。WeakRef.deref()返回对象引用或undefined（如果已被回收）。参考ECMAScript规范#sec-weak-ref-objects和TC39 WeakRef提案。\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_WeakRef与FinalizationRegistry",
       "reference_link": "ECMAScript规范: #sec-weak-ref-objects, TC39 WeakRef Proposal",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3008,12 +2572,7 @@
       "id": "js-senior-072",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "FinalizationRegistry",
-        "垃圾回收",
-        "回调时机",
-        "不确定性"
-      ],
+      "tags": ["FinalizationRegistry", "垃圾回收", "回调时机", "不确定性"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "FinalizationRegistry的回调在什...",
@@ -3037,7 +2596,7 @@
         }
       ],
       "correct_answer": "C",
-      "explanation": "FinalizationRegistry的回调执行时机是不确定的：1) 在对象被回收后某个时间点 2) 可能在未来的任务或微任务中 3) 不保证立即执行 4) 甚至可能不执行（如程序终止）。这是有意设计的，避免破坏GC的语义。回调执行时，对象已经被回收，回调只接收注册时的holdings值。参考ECMAScript规范#sec-finalization-registry-objects。\n\n补充分析：此题考察FinalizationRegistry相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "FinalizationRegistry的回调执行时机是不确定的：1) 在对象被回收后某个时间点 2) 可能在未来的任务或微任务中 3) 不保证立即执行 4) 甚至可能不执行（如程序终止）。这是有意设计的，避免破坏GC的语义。回调执行时，对象已经被回收，回调只接收注册时的holdings值。参考ECMAScript规范#sec-finalization-registry-objects。\n补充分析：此题考察FinalizationRegistry相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_WeakRef与FinalizationRegistry",
       "reference_link": "ECMAScript规范: #sec-finalization-registry-objects, TC39 WeakRef Proposal",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3051,12 +2610,7 @@
       "id": "js-senior-073",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "WeakRef",
-        "FinalizationRegistry",
-        "最佳实践",
-        "多选题"
-      ],
+      "tags": ["WeakRef", "FinalizationRegistry", "最佳实践", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于WeakRef和FinalizationReg...",
@@ -3083,12 +2637,8 @@
           "text": "FinalizationRegistry回调中可以通过闭包捕获被回收的对象"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "D"
-      ],
-      "explanation": "A正确：可能导致对象复活或无限循环。B正确：这是检查对象是否存活的唯一方式。C错误：JavaScript没有RAII，FinalizationRegistry的回调时机不确定，不能用于关键资源清理。D正确：WeakRef是高级特性，应优先考虑其他设计。E错误：回调执行时对象已被回收，无法访问。参考MDN文档和ECMAScript规范。\n\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "D"],
+      "explanation": "A正确：可能导致对象复活或无限循环。B正确：这是检查对象是否存活的唯一方式。C错误：JavaScript没有RAII，FinalizationRegistry的回调时机不确定，不能用于关键资源清理。D正确：WeakRef是高级特性，应优先考虑其他设计。E错误：回调执行时对象已被回收，无法访问。参考MDN文档和ECMAScript规范。\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_WeakRef与FinalizationRegistry",
       "reference_link": "ECMAScript规范: #sec-weak-ref-objects, #sec-finalization-registry-objects",
       "exclusion_analysis": {
@@ -3100,12 +2650,7 @@
       "id": "js-senior-074",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "WeakRef",
-        "内存效率",
-        "常见误区",
-        "垃圾回收"
-      ],
+      "tags": ["WeakRef", "内存效率", "常见误区", "垃圾回收"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "使用WeakRef一定会提高程序的内存效率，因为它...",
@@ -3121,7 +2666,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "错误。WeakRef本身不提高内存效率，它只是允许持有引用而不阻止回收。真正决定对象是否被回收的是是否有其他强引用。如果程序其他地方仍持有强引用，WeakRef不会让对象更早回收。过度使用WeakRef还可能增加代码复杂性和潜在的错误。WeakRef应该用于特定场景（如缓存），而非通用优化手段。参考TC39提案的设计动机部分。\n\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "错误。WeakRef本身不提高内存效率，它只是允许持有引用而不阻止回收。真正决定对象是否被回收的是是否有其他强引用。如果程序其他地方仍持有强引用，WeakRef不会让对象更早回收。过度使用WeakRef还可能增加代码复杂性和潜在的错误。WeakRef应该用于特定场景（如缓存），而非通用优化手段。参考TC39提案的设计动机部分。\n补充分析：此题考察WeakRef相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_WeakRef与FinalizationRegistry",
       "reference_link": "TC39 WeakRef Proposal, MDN WeakRef文档",
       "boundary_conditions": "关键边界条件：错误。WeakRef本身不提高内存效率，它只是允许持有引用而不阻止回收。真正决定对象是否被回收的是是否有其他强引用。如果程序其他地方仍持有强引用，WeakRef不会让对象更早回收。过度使用WeakRef还可能增加代码复杂性和潜在的错误。WeakRef应该用于特定场景（如缓存），而非通用优化手段。参考"
@@ -3130,12 +2675,7 @@
       "id": "js-senior-075",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Symbol.species",
-        "内置对象",
-        "派生类",
-        "构造函数"
-      ],
+      "tags": ["Symbol.species", "内置对象", "派生类", "构造函数"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Symbol...",
@@ -3173,12 +2713,7 @@
       "id": "js-senior-076",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Symbol.species",
-        "Array",
-        "派生类",
-        "实例类型"
-      ],
+      "tags": ["Symbol.species", "Array", "派生类", "实例类型"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，MyArray...",
@@ -3216,12 +2751,7 @@
       "id": "js-senior-077",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "Symbol.species",
-        "内置对象",
-        "多选题",
-        "规范"
-      ],
+      "tags": ["Symbol.species", "内置对象", "多选题", "规范"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些内置对象使用了Symbol...",
@@ -3248,13 +2778,7 @@
           "text": "RegExp"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E"
-      ],
+      "correct_answer": ["A", "B", "C", "D", "E"],
       "explanation": "所有选项都正确。这些内置对象都定义了Symbol.species访问器：Array（map, filter, slice等方法）、Map/Set（没有返回新实例的方法，但为扩展设计）、Promise（then, catch, finally返回新Promise）、RegExp（exec、split等方法可能返回数组）。TypedArray和ArrayBuffer也有Symbol.species。参考ECMAScript规范各对象章节。",
       "knowledge_point": "类型与语言特性_Symbol.species",
       "reference_link": "ECMAScript规范: #sec-array.prototype-@@species, #sec-promise.prototype-@@species等",
@@ -3264,12 +2788,7 @@
       "id": "js-senior-078",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Symbol.species",
-        "Array子类",
-        "默认行为",
-        "规范"
-      ],
+      "tags": ["Symbol.species", "Array子类", "默认行为", "规范"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "默认情况下，Array子类的map方法返回子类实例...",
@@ -3294,12 +2813,7 @@
       "id": "js-senior-079",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Iterator",
-        "可迭代对象",
-        "Symbol.iterator",
-        "协议"
-      ],
+      "tags": ["Iterator", "可迭代对象", "Symbol.iterator", "协议"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "一个对象要成为可迭代对象（Iterable），必须...",
@@ -3323,7 +2837,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "可迭代对象必须实现[Symbol.iterator]方法，该方法返回一个符合迭代器协议的对象（有next()方法，返回{value, done}）。这是for...of、展开运算符、解构赋值等语法的基础。迭代器对象通常也需要有[Symbol.iterator]方法返回自身，以便可迭代协议一致性。参考ECMAScript规范#sec-iterable-interface。\n\n补充分析：此题考察Iterator相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "可迭代对象必须实现[Symbol.iterator]方法，该方法返回一个符合迭代器协议的对象（有next()方法，返回{value, done}）。这是for...of、展开运算符、解构赋值等语法的基础。迭代器对象通常也需要有[Symbol.iterator]方法返回自身，以便可迭代协议一致性。参考ECMAScript规范#sec-iterable-interface。\n补充分析：此题考察Iterator相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "类型与语言特性_Iterator协议",
       "reference_link": "ECMAScript规范: #sec-iterable-interface, #sec-iterator-interface",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3337,12 +2851,7 @@
       "id": "js-senior-080",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Iterator",
-        "next方法",
-        "迭代协议",
-        "执行结果"
-      ],
+      "tags": ["Iterator", "next方法", "迭代协议", "执行结果"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码的输出是什么...",
@@ -3380,12 +2889,7 @@
       "id": "js-senior-081",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "AsyncIterator",
-        "异步迭代",
-        "for await...of",
-        "多选题"
-      ],
+      "tags": ["AsyncIterator", "异步迭代", "for await...of", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于AsyncIterator，以下说法正确的是：",
@@ -3412,12 +2916,7 @@
           "text": "async generator函数返回异步迭代器"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
+      "correct_answer": ["A", "B", "C", "E"],
       "explanation": "A正确：这是异步可迭代协议的定义。B正确：next()返回Promise包装的结果对象。C正确：for await...of是异步迭代的专用语法。D错误：for...of调用[Symbol.iterator]，而异步迭代器使用[Symbol.asyncIterator]。E正确：async function*返回的既是异步可迭代对象又是异步迭代器。参考ECMAScript规范#sec-asynciterator-interface。",
       "knowledge_point": "类型与语言特性_Iterator协议",
       "reference_link": "ECMAScript规范: #sec-asynciterator-interface, #sec-async-iterable-interface",
@@ -3429,12 +2928,7 @@
       "id": "js-senior-082",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Iterator",
-        "return方法",
-        "清理操作",
-        "循环终止"
-      ],
+      "tags": ["Iterator", "return方法", "清理操作", "循环终止"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "迭代器的return方法在for...",
@@ -3459,12 +2953,7 @@
       "id": "js-senior-083",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Generator",
-        "状态机",
-        "V8实现",
-        "协程"
-      ],
+      "tags": ["Generator", "状态机", "V8实现", "协程"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Generator函数在V8中的实现原理是什么...",
@@ -3502,12 +2991,7 @@
       "id": "js-senior-084",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "Generator",
-        "状态",
-        "生命周期",
-        "closed"
-      ],
+      "tags": ["Generator", "状态", "生命周期", "closed"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下Generator代码执行后，gen对象的状态...",
@@ -3545,12 +3029,7 @@
       "id": "js-senior-085",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "Generator",
-        "状态机",
-        "内部实现",
-        "多选题"
-      ],
+      "tags": ["Generator", "状态机", "内部实现", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于Generator的状态机转换，以下说法正确的...",
@@ -3577,13 +3056,7 @@
           "text": "throw(error)会像在yield位置抛出错误一样处理"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E"
-      ],
+      "correct_answer": ["A", "B", "C", "D", "E"],
       "explanation": "所有选项都正确。A：GeneratorState是内部槽，值为suspended-start/suspended-yield/executing/closed之一。B：yield保存调用栈和局部变量，返回值给next()调用者。C：Generator持有context引用，局部变量存储在context中。D：这是yield表达式的求值规则。E：throw方法恢复执行并抛出错误。参考ECMAScript规范#sec-generator-objects。",
       "knowledge_point": "类型与语言特性_Generator实现原理",
       "reference_link": "ECMAScript规范: #sec-generator-objects, #sec-generator-function-definitions",
@@ -3593,12 +3066,7 @@
       "id": "js-senior-086",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "Generator",
-        "throw方法",
-        "错误处理",
-        "异常传播"
-      ],
+      "tags": ["Generator", "throw方法", "错误处理", "异常传播"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "Generator的throw方法只能在Gener...",
@@ -3623,12 +3091,7 @@
       "id": "js-senior-087",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型层级",
-        "Top Type",
-        "unknown"
-      ],
+      "tags": ["TypeScript", "类型层级", "Top Type", "unknown"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在TypeScript类型系统中，以下哪个是Top...",
@@ -3666,12 +3129,7 @@
       "id": "js-senior-088",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型推断",
-        "as const",
-        "元组"
-      ],
+      "tags": ["TypeScript", "类型推断", "as const", "元组"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，变量a的类型推断结果是什么...",
@@ -3695,7 +3153,7 @@
         }
       ],
       "correct_answer": "C",
-      "explanation": "空数组使用as const断言后，类型为readonly []（只读空元组）。这是一个包含0个元素的只读元组类型。如果数组有元素，如[1, 2] as const，类型为readonly [1, 2]（只读字面量元组）。空数组的普通推断是any[]，但as const使其变为精确的只读空元组。参考TypeScript文档const断言部分。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "空数组使用as const断言后，类型为readonly []（只读空元组）。这是一个包含0个元素的只读元组类型。如果数组有元素，如[1, 2] as const，类型为readonly [1, 2]（只读字面量元组）。空数组的普通推断是any[]，但as const使其变为精确的只读空元组。参考TypeScript文档const断言部分。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型系统层级",
       "reference_link": "TypeScript官方文档: const assertions, Literal Types",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3709,12 +3167,7 @@
       "id": "js-senior-089",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "never类型",
-        "类型守卫",
-        "代码分支"
-      ],
+      "tags": ["TypeScript", "never类型", "类型守卫", "代码分支"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "never类型在什么场景下会自然出现...",
@@ -3738,7 +3191,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "never类型自然出现在不可能执行的代码路径：1) 类型守卫窄化后的不可能分支 2) 永远抛出异常的函数返回类型 3) 无限循环函数的返回类型。例如：function fail(msg: string): never { throw new Error(msg); }。类型守卫后，不满足条件的分支变量类型变为never。参考TypeScript文档narrowing部分。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "never类型自然出现在不可能执行的代码路径：1) 类型守卫窄化后的不可能分支 2) 永远抛出异常的函数返回类型 3) 无限循环函数的返回类型。例如：function fail(msg: string): never { throw new Error(msg); }。类型守卫后，不满足条件的分支变量类型变为never。参考TypeScript文档narrowing部分。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型系统层级",
       "reference_link": "TypeScript官方文档: Narrowing, never type",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3752,12 +3205,7 @@
       "id": "js-senior-090",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型层级",
-        "多选题",
-        "核心概念"
-      ],
+      "tags": ["TypeScript", "类型层级", "多选题", "核心概念"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于TypeScript类型层级，以下说法正确的是...",
@@ -3784,13 +3232,8 @@
           "text": "object类型包含所有非原始类型"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "A正确：unknown需要类型收窄后才能使用。B正确：any的特殊性在于它既可以是任何类型的父类型也可以是子类型。C正确：never可以赋值给任何类型，但不能有任何值赋给它。D错误：void表示没有值，undefined是一种值类型。E正确：object排除string、number、boolean、symbol、null、undefined。参考TypeScript文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "A正确：unknown需要类型收窄后才能使用。B正确：any的特殊性在于它既可以是任何类型的父类型也可以是子类型。C正确：never可以赋值给任何类型，但不能有任何值赋给它。D错误：void表示没有值，undefined是一种值类型。E正确：object排除string、number、boolean、symbol、null、undefined。参考TypeScript文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型系统层级",
       "reference_link": "TypeScript官方文档: Type System, Handbook",
       "exclusion_analysis": {
@@ -3801,12 +3244,7 @@
       "id": "js-senior-091",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "unknown",
-        "类型安全",
-        "赋值规则"
-      ],
+      "tags": ["TypeScript", "unknown", "类型安全", "赋值规则"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "unknown类型可以安全地赋值给any类型，但不...",
@@ -3822,7 +3260,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。unknown是类型安全的顶层类型：1) 任何类型都可以赋值给unknown 2) unknown可以赋值给any（因为any绕过所有检查）3) unknown不能直接赋值给其他类型（string、number等），需要先进行类型收窄或类型断言。这是unknown相比any的安全性优势。参考TypeScript文档unknown类型部分。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。unknown是类型安全的顶层类型：1) 任何类型都可以赋值给unknown 2) unknown可以赋值给any（因为any绕过所有检查）3) unknown不能直接赋值给其他类型（string、number等），需要先进行类型收窄或类型断言。这是unknown相比any的安全性优势。参考TypeScript文档unknown类型部分。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型系统层级",
       "reference_link": "TypeScript官方文档: unknown type",
       "boundary_conditions": "关键边界条件：正确。unknown是类型安全的顶层类型：1) 任何类型都可以赋值给unknown 2) unknown可以赋值给any（因为any绕过所有检查）3) unknown不能直接赋值给其他类型（string、number等），需要先进行类型收窄或类型断言。这是unknown相比any的安全性优势。参考T"
@@ -3831,12 +3269,7 @@
       "id": "js-senior-092",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "逆变",
-        "双变",
-        "编译选项"
-      ],
+      "tags": ["TypeScript", "逆变", "双变", "编译选项"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在TypeScript中，函数参数默认是双变的（b...",
@@ -3860,7 +3293,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "strictFunctionTypes: true使函数参数在比较时使用严格逆变规则。默认情况下，函数参数是双变的（为了兼容性），这意味着参数类型可以是父类型或子类型。开启strictFunctionTypes后，函数参数必须满足逆变：如果Dog extends Animal，则(Animal => void)是(Dog => void)的子类型。参考TypeScript编译选项文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "strictFunctionTypes: true使函数参数在比较时使用严格逆变规则。默认情况下，函数参数是双变的（为了兼容性），这意味着参数类型可以是父类型或子类型。开启strictFunctionTypes后，函数参数必须满足逆变：如果Dog extends Animal，则(Animal => void)是(Dog => void)的子类型。参考TypeScript编译选项文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_逆变/协变",
       "reference_link": "TypeScript官方文档: Compiler Options, strictFunctionTypes",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3874,12 +3307,7 @@
       "id": "js-senior-093",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "逆变",
-        "函数类型",
-        "类型兼容"
-      ],
+      "tags": ["TypeScript", "逆变", "函数类型", "类型兼容"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码是否通过类型检查...",
@@ -3917,12 +3345,7 @@
       "id": "js-senior-094",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "协变",
-        "数组",
-        "类型安全陷阱"
-      ],
+      "tags": ["TypeScript", "协变", "数组", "类型安全陷阱"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在TypeScript中，数组类型的元素是协变的...",
@@ -3946,7 +3369,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "这是数组协变的经典陷阱。Animal[] = Dog[]编译通过（协变），但运行时会出问题：向animals push一个非Dog的Animal对象，实际上修改了dogs数组。后续访问dogs[i].breed会得到undefined。这是类型系统的已知不安全点，为数组协变付出的代价。解决方案：使用只读数组类型readonly Animal[]避免修改。参考TypeScript类型兼容性文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "这是数组协变的经典陷阱。Animal[] = Dog[]编译通过（协变），但运行时会出问题：向animals push一个非Dog的Animal对象，实际上修改了dogs数组。后续访问dogs[i].breed会得到undefined。这是类型系统的已知不安全点，为数组协变付出的代价。解决方案：使用只读数组类型readonly Animal[]避免修改。参考TypeScript类型兼容性文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_逆变/协变",
       "reference_link": "TypeScript官方文档: Type Compatibility, Arrays are covariant",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -3960,13 +3383,7 @@
       "id": "js-senior-095",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "变体",
-        "协变",
-        "逆变",
-        "多选题"
-      ],
+      "tags": ["TypeScript", "变体", "协变", "逆变", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于TypeScript中的变体（Variance...",
@@ -3993,13 +3410,8 @@
           "text": "对象属性是协变的"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "A正确：返回Dog的函数可以赋给返回Animal的函数类型。B正确：strictFunctionTypes开启后。C正确：这是数组协变的代价。D正确：泛型默认不变，除非使用in/out修饰符。E错误：对象属性根据读写语义不同：只读属性协变，只写属性逆变，可读写不变。参考TypeScript Variance Annotations。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "A正确：返回Dog的函数可以赋给返回Animal的函数类型。B正确：strictFunctionTypes开启后。C正确：这是数组协变的代价。D正确：泛型默认不变，除非使用in/out修饰符。E错误：对象属性根据读写语义不同：只读属性协变，只写属性逆变，可读写不变。参考TypeScript Variance Annotations。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_逆变/协变",
       "reference_link": "TypeScript官方文档: Variance, Type Compatibility",
       "exclusion_analysis": {
@@ -4010,12 +3422,7 @@
       "id": "js-senior-096",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "变体注解",
-        "泛型",
-        "新特性"
-      ],
+      "tags": ["TypeScript", "变体注解", "泛型", "新特性"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "TypeScript 4...",
@@ -4040,12 +3447,7 @@
       "id": "js-senior-097",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "条件类型",
-        "分布式",
-        "联合类型"
-      ],
+      "tags": ["TypeScript", "条件类型", "分布式", "联合类型"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下条件类型的结果是什么...",
@@ -4083,12 +3485,7 @@
       "id": "js-senior-098",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "条件类型",
-        "分布式",
-        "联合类型展开"
-      ],
+      "tags": ["TypeScript", "条件类型", "分布式", "联合类型展开"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下类型别名Str的结果是什么...",
@@ -4112,7 +3509,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "这是分布式条件类型的典型例子。当T是裸类型参数且被赋值为联合类型时，条件会分布到联合的每个成员：Str<string | number> = Str<string> | Str<number> = 'string' | 'other'。分布式条件类型只对裸类型参数生效，如果用元组包裹[T]则不会分布。参考TypeScript文档Distributive Conditional Types。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "这是分布式条件类型的典型例子。当T是裸类型参数且被赋值为联合类型时，条件会分布到联合的每个成员：Str<string | number> = Str<string> | Str<number> = 'string' | 'other'。分布式条件类型只对裸类型参数生效，如果用元组包裹[T]则不会分布。参考TypeScript文档Distributive Conditional Types。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_条件类型分布式特性",
       "reference_link": "TypeScript官方文档: Distributive Conditional Types",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -4126,12 +3523,7 @@
       "id": "js-senior-099",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "条件类型",
-        "分布式阻止",
-        "技巧"
-      ],
+      "tags": ["TypeScript", "条件类型", "分布式阻止", "技巧"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "如何阻止条件类型的分布式行为...",
@@ -4169,12 +3561,7 @@
       "id": "js-senior-100",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "条件类型",
-        "分布式",
-        "多选题"
-      ],
+      "tags": ["TypeScript", "条件类型", "分布式", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于分布式条件类型，以下说法正确的是：",
@@ -4201,13 +3588,8 @@
           "text": "条件类型中可以使用infer关键字推断类型"
         }
       ],
-      "correct_answer": [
-        "A",
-        "C",
-        "D",
-        "E"
-      ],
-      "explanation": "A正确：裸类型参数是指没有被元组、数组、Promise等包裹的类型参数。B错误：只分布到条件左侧（被检查类型）。C正确：这是分布式的主要用途，如Exclude、Extract等工具类型。D正确：never在分布式条件下会立即返回never，不会进一步检查。E正确：infer用于在条件类型中推断类型。参考TypeScript文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "C", "D", "E"],
+      "explanation": "A正确：裸类型参数是指没有被元组、数组、Promise等包裹的类型参数。B错误：只分布到条件左侧（被检查类型）。C正确：这是分布式的主要用途，如Exclude、Extract等工具类型。D正确：never在分布式条件下会立即返回never，不会进一步检查。E正确：infer用于在条件类型中推断类型。参考TypeScript文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_条件类型分布式特性",
       "reference_link": "TypeScript官方文档: Distributive Conditional Types, infer",
       "exclusion_analysis": {
@@ -4218,12 +3600,7 @@
       "id": "js-senior-101",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "条件类型",
-        "Exclude",
-        "工具类型"
-      ],
+      "tags": ["TypeScript", "条件类型", "Exclude", "工具类型"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "内置工具类型Exclude<T, U>的实现是T ...",
@@ -4248,12 +3625,7 @@
       "id": "js-senior-102",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模板字面量类型",
-        "Capitalize",
-        "联合类型"
-      ],
+      "tags": ["TypeScript", "模板字面量类型", "Capitalize", "联合类型"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下模板字面量类型的结果是什么...",
@@ -4291,12 +3663,7 @@
       "id": "js-senior-103",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模板字面量类型",
-        "递归类型",
-        "infer"
-      ],
+      "tags": ["TypeScript", "模板字面量类型", "递归类型", "infer"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下模板字面量类型的结果是什么...",
@@ -4334,12 +3701,7 @@
       "id": "js-senior-104",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模板字面量类型",
-        "多选题",
-        "字符串操作"
-      ],
+      "tags": ["TypeScript", "模板字面量类型", "多选题", "字符串操作"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于模板字面量类型，以下说法正确的是：",
@@ -4366,13 +3728,8 @@
           "text": "模板字面量类型支持正则表达式语法"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
-      "explanation": "A正确：infer可以在模板字面量中使用。B正确：`${A | B}${C | D}`产生四种组合。C正确：IDE会基于模板字面量类型提供自动补全。D正确：数字会自动转换为字符串字面量。E错误：模板字面量类型使用简化的模式匹配，不支持完整正则语法，只有${string}、${number}等简单模式。参考TypeScript文档Template Literal Types。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "D"],
+      "explanation": "A正确：infer可以在模板字面量中使用。B正确：`${A | B}${C | D}`产生四种组合。C正确：IDE会基于模板字面量类型提供自动补全。D正确：数字会自动转换为字符串字面量。E错误：模板字面量类型使用简化的模式匹配，不支持完整正则语法，只有${string}、${number}等简单模式。参考TypeScript文档Template Literal Types。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_模板字面量类型",
       "reference_link": "TypeScript官方文档: Template Literal Types",
       "exclusion_analysis": {
@@ -4383,12 +3740,7 @@
       "id": "js-senior-105",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模板字面量类型",
-        "类型体操",
-        "限制"
-      ],
+      "tags": ["TypeScript", "模板字面量类型", "类型体操", "限制"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "模板字面量类型可以用来实现简单的字符串解析器，但由...",
@@ -4404,7 +3756,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。模板字面量类型可以实现一些字符串解析：1) 简单的模式匹配（如提取特定格式的子串）2) 递归解析（有深度限制）3) 字符串转换（大小写、前缀后缀）。但限制包括：没有循环（必须用递归替代）、递归深度限制、无法表达复杂语法、性能考虑。复杂解析（如JSON解析器）可以实现但类型定义会非常复杂。参考TypeScript类型体操社区实践。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。模板字面量类型可以实现一些字符串解析：1) 简单的模式匹配（如提取特定格式的子串）2) 递归解析（有深度限制）3) 字符串转换（大小写、前缀后缀）。但限制包括：没有循环（必须用递归替代）、递归深度限制、无法表达复杂语法、性能考虑。复杂解析（如JSON解析器）可以实现但类型定义会非常复杂。参考TypeScript类型体操社区实践。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_模板字面量类型",
       "reference_link": "TypeScript官方文档: Template Literal Types, Type Manipulation",
       "boundary_conditions": "关键边界条件：正确。模板字面量类型可以实现一些字符串解析：1) 简单的模式匹配（如提取特定格式的子串）2) 递归解析（有深度限制）3) 字符串转换（大小写、前缀后缀）。但限制包括：没有循环（必须用递归替代）、递归深度限制、无法表达复杂语法、性能考虑。复杂解析（如JSON解析器）可以实现但类型定义会非常复杂。参考T"
@@ -4413,12 +3765,7 @@
       "id": "js-senior-106",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型守卫",
-        "自定义守卫",
-        "边界情况"
-      ],
+      "tags": ["TypeScript", "类型守卫", "自定义守卫", "边界情况"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下自定义类型守卫的问题是什么...",
@@ -4456,12 +3803,7 @@
       "id": "js-senior-107",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型守卫",
-        "类型窄化",
-        "类型谓词"
-      ],
+      "tags": ["TypeScript", "类型守卫", "类型窄化", "类型谓词"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码中，在if块内pet的类型是什么...",
@@ -4485,7 +3827,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "自定义类型守卫pet is Fish告诉TypeScript：如果函数返回true，则参数pet在对应分支被窄化为Fish类型。这是通过类型谓词（type predicate）实现的。在if块内，TypeScript知道pet一定是Fish，可以安全访问swim方法。类型守卫是TypeScript控制流分析的核心。参考TypeScript文档User-Defined Type Guards。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "自定义类型守卫pet is Fish告诉TypeScript：如果函数返回true，则参数pet在对应分支被窄化为Fish类型。这是通过类型谓词（type predicate）实现的。在if块内，TypeScript知道pet一定是Fish，可以安全访问swim方法。类型守卫是TypeScript控制流分析的核心。参考TypeScript文档User-Defined Type Guards。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型守卫窄化",
       "reference_link": "TypeScript官方文档: User-Defined Type Guards, Narrowing",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -4499,12 +3841,7 @@
       "id": "js-senior-108",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型窄化",
-        "内置守卫",
-        "多选题"
-      ],
+      "tags": ["TypeScript", "类型窄化", "内置守卫", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些是TypeScript内置的类型窄化方式...",
@@ -4531,14 +3868,8 @@
           "text": "自定义类型守卫函数"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E"
-      ],
-      "explanation": "所有选项都是TypeScript支持的类型窄化方式：A：typeof v === 'string'窄化为string。B：x instanceof Date窄化为Date。C：'prop' in obj窄化为包含该属性的类型。D：x === 'a'可以窄化字面量类型。E：自定义守卫函数使用类型谓词。此外还有：真值检查、赋值分析、控制流分析等。参考TypeScript文档Narrowing。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "D", "E"],
+      "explanation": "所有选项都是TypeScript支持的类型窄化方式：A：typeof v === 'string'窄化为string。B：x instanceof Date窄化为Date。C：'prop' in obj窄化为包含该属性的类型。D：x === 'a'可以窄化字面量类型。E：自定义守卫函数使用类型谓词。此外还有：真值检查、赋值分析、控制流分析等。参考TypeScript文档Narrowing。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_类型守卫窄化",
       "reference_link": "TypeScript官方文档: Narrowing",
       "exclusion_analysis": {}
@@ -4547,12 +3878,7 @@
       "id": "js-senior-109",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "断言函数",
-        "类型守卫",
-        "对比"
-      ],
+      "tags": ["TypeScript", "断言函数", "类型守卫", "对比"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "断言函数（assertion function）和...",
@@ -4577,12 +3903,7 @@
       "id": "js-senior-110",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "装饰器",
-        "Stage 3",
-        "新特性"
-      ],
+      "tags": ["TypeScript", "装饰器", "Stage 3", "新特性"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "TypeScript 5...",
@@ -4620,12 +3941,7 @@
       "id": "js-senior-111",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "装饰器",
-        "access对象",
-        "Stage 3"
-      ],
+      "tags": ["TypeScript", "装饰器", "access对象", "Stage 3"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下Stage 3装饰器的context参数中，a...",
@@ -4649,7 +3965,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "context.access是一个对象，包含get(object)和set(object, value)方法，用于安全地访问或修改被装饰字段。这对于字段装饰器特别有用，因为它允许在不知道字段名的情况下读写值，也支持私有字段的访问。例如：const { get } = context.access; later: get(instance)。参考TC39 Decorators提案。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "context.access是一个对象，包含get(object)和set(object, value)方法，用于安全地访问或修改被装饰字段。这对于字段装饰器特别有用，因为它允许在不知道字段名的情况下读写值，也支持私有字段的访问。例如：const { get } = context.access; later: get(instance)。参考TC39 Decorators提案。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_装饰器元数据",
       "reference_link": "TC39 Decorators Proposal Stage 3, TypeScript 5.0 Release Notes",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -4663,12 +3979,7 @@
       "id": "js-senior-112",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "装饰器",
-        "元数据",
-        "多选题"
-      ],
+      "tags": ["TypeScript", "装饰器", "元数据", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于TypeScript装饰器，以下说法正确的是：",
@@ -4695,12 +4006,8 @@
           "text": "装饰器可以修改被装饰元素的行为或替换它"
         }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "A错误：Stage 3装饰器不直接支持元数据，需要使用Symbol.metadata polyfill。B正确：旧版装饰器与experimentalDecorators和emitDecoratorMetadata配合使用。C正确：这是装饰器的应用范围。D错误：Stage 3装饰器执行顺序是从内到外（与旧版相反）。E正确：装饰器可以返回新值替换原元素。参考TypeScript装饰器文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["B", "C", "E"],
+      "explanation": "A错误：Stage 3装饰器不直接支持元数据，需要使用Symbol.metadata polyfill。B正确：旧版装饰器与experimentalDecorators和emitDecoratorMetadata配合使用。C正确：这是装饰器的应用范围。D错误：Stage 3装饰器执行顺序是从内到外（与旧版相反）。E正确：装饰器可以返回新值替换原元素。参考TypeScript装饰器文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_装饰器元数据",
       "reference_link": "TypeScript官方文档: Decorators, TC39 Decorators Proposal",
       "exclusion_analysis": {
@@ -4712,12 +4019,7 @@
       "id": "js-senior-113",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "参数装饰器",
-        "元数据",
-        "旧版装饰器"
-      ],
+      "tags": ["TypeScript", "参数装饰器", "元数据", "旧版装饰器"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "旧版装饰器（experimentalDecorat...",
@@ -4733,7 +4035,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。旧版参数装饰器的签名：(target, propertyKey, parameterIndex)。它的返回值会被忽略，无法修改参数。参数装饰器主要用于：1) 与Reflect.metadata配合记录参数类型 2) 验证参数（配合方法装饰器）3) 依赖注入框架的实现。Stage 3装饰器取消了参数装饰器。参考TypeScript旧版装饰器文档。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。旧版参数装饰器的签名：(target, propertyKey, parameterIndex)。它的返回值会被忽略，无法修改参数。参数装饰器主要用于：1) 与Reflect.metadata配合记录参数类型 2) 验证参数（配合方法装饰器）3) 依赖注入框架的实现。Stage 3装饰器取消了参数装饰器。参考TypeScript旧版装饰器文档。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_装饰器元数据",
       "reference_link": "TypeScript官方文档: Decorators (Legacy)",
       "boundary_conditions": "关键边界条件：正确。旧版参数装饰器的签名：(target, propertyKey, parameterIndex)。它的返回值会被忽略，无法修改参数。参数装饰器主要用于：1) 与Reflect.metadata配合记录参数类型 2) 验证参数（配合方法装饰器）3) 依赖注入框架的实现。Stage 3装饰器取消了"
@@ -4742,12 +4044,7 @@
       "id": "js-senior-114",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模块解析",
-        "Classic策略",
-        "对比"
-      ],
+      "tags": ["TypeScript", "模块解析", "Classic策略", "对比"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "TypeScript的Classic模块解析策略在...",
@@ -4785,12 +4082,7 @@
       "id": "js-senior-115",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模块解析",
-        "Node策略",
-        "查找顺序"
-      ],
+      "tags": ["TypeScript", "模块解析", "Node策略", "查找顺序"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "TypeScript的Node模块解析策略在查找目...",
@@ -4828,12 +4120,7 @@
       "id": "js-senior-116",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模块解析",
-        "NodeNext",
-        "多选题"
-      ],
+      "tags": ["TypeScript", "模块解析", "NodeNext", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于TypeScript模块解析，以下说法正确的是...",
@@ -4860,12 +4147,8 @@
           "text": "模块解析与module编译选项无关"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C"
-      ],
-      "explanation": "A正确：NodeNext是现代化的解析策略。B正确：NodeNext根据package.json的type字段和文件扩展名选择ESM或CJS规则。C正确：paths用于路径别名。D错误：baseUrl主要影响非相对导入，相对导入不受影响。E错误：moduleResolution和module选项相互关联，影响输出和解析。参考TypeScript文档Module Resolution。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C"],
+      "explanation": "A正确：NodeNext是现代化的解析策略。B正确：NodeNext根据package.json的type字段和文件扩展名选择ESM或CJS规则。C正确：paths用于路径别名。D错误：baseUrl主要影响非相对导入，相对导入不受影响。E错误：moduleResolution和module选项相互关联，影响输出和解析。参考TypeScript文档Module Resolution。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_模块解析策略",
       "reference_link": "TypeScript官方文档: Module Resolution, moduleResolution",
       "exclusion_analysis": {
@@ -4877,12 +4160,7 @@
       "id": "js-senior-117",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "模块解析",
-        "Bundler策略",
-        "打包工具"
-      ],
+      "tags": ["TypeScript", "模块解析", "Bundler策略", "打包工具"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "当使用moduleResolution: 'Bun...",
@@ -4898,7 +4176,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。Bundler策略（TypeScript 5.0+）模拟现代打包工具的解析行为：1) 允许省略扩展名 2) 支持package.json的exports字段 3) 更宽松的模块解析规则。这适用于使用打包工具的项目，不适用于直接Node.js执行的项目。Bundler策略与打包工具的解析逻辑对齐，减少类型检查和实际运行的差异。参考TypeScript 5.0发布公告。\n\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。Bundler策略（TypeScript 5.0+）模拟现代打包工具的解析行为：1) 允许省略扩展名 2) 支持package.json的exports字段 3) 更宽松的模块解析规则。这适用于使用打包工具的项目，不适用于直接Node.js执行的项目。Bundler策略与打包工具的解析逻辑对齐，减少类型检查和实际运行的差异。参考TypeScript 5.0发布公告。\n补充分析：此题考察TypeScript相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "TypeScript深度_模块解析策略",
       "reference_link": "TypeScript 5.0 Release Notes, Module Resolution: Bundler",
       "boundary_conditions": "关键边界条件：正确。Bundler策略（TypeScript 5.0+）模拟现代打包工具的解析行为：1) 允许省略扩展名 2) 支持package.json的exports字段 3) 更宽松的模块解析规则。这适用于使用打包工具的项目，不适用于直接Node.js执行的项目。Bundler策略与打包工具的解析逻辑对齐"
@@ -4907,12 +4185,7 @@
       "id": "js-senior-118",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "事件监听",
-        "闭包",
-        "DOM引用"
-      ],
+      "tags": ["内存泄漏", "事件监听", "闭包", "DOM引用"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下代码存在什么内存泄漏风险...",
@@ -4936,7 +4209,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "事件监听器通过闭包引用el（DOM元素），而el又持有对事件监听器的引用（隐式通过事件系统）。这形成循环引用。如果元素从DOM移除但事件监听器未移除，元素无法被GC。解决方案：1) 使用{once: true}自动移除 2) 保存监听器引用后手动removeEventListener 3) 使用WeakRef存储元素引用。参考MDN内存管理文档。\n\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "事件监听器通过闭包引用el（DOM元素），而el又持有对事件监听器的引用（隐式通过事件系统）。这形成循环引用。如果元素从DOM移除但事件监听器未移除，元素无法被GC。解决方案：1) 使用{once: true}自动移除 2) 保存监听器引用后手动removeEventListener 3) 使用WeakRef存储元素引用。参考MDN内存管理文档。\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "MDN: Memory Management, Event Listener Memory Leaks",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -4950,12 +4223,7 @@
       "id": "js-senior-119",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "console",
-        "开发者工具",
-        "缓存引用"
-      ],
+      "tags": ["内存泄漏", "console", "开发者工具", "缓存引用"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "console对象的方法（如console...",
@@ -4979,7 +4247,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "在浏览器开发者工具打开时，console.log等方法会缓存对打印对象的引用，以便在控制台中展示。这意味着即使代码不再引用该对象，console缓存仍持有引用，阻止GC。关闭开发者工具会释放缓存。生产环境应移除或覆盖console调用。Node.js环境下console也有类似行为。参考Chrome DevTools内存分析文档。\n\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "在浏览器开发者工具打开时，console.log等方法会缓存对打印对象的引用，以便在控制台中展示。这意味着即使代码不再引用该对象，console缓存仍持有引用，阻止GC。关闭开发者工具会释放缓存。生产环境应移除或覆盖console调用。Node.js环境下console也有类似行为。参考Chrome DevTools内存分析文档。\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "Chrome DevTools: Memory Analysis, Console Memory Retention",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -4993,12 +4261,7 @@
       "id": "js-senior-120",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "闭包",
-        "变量捕获",
-        "长期引用"
-      ],
+      "tags": ["内存泄漏", "闭包", "变量捕获", "长期引用"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "以下哪种模式会导致闭包相关的内存泄漏...",
@@ -5022,7 +4285,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "闭包内存泄漏的典型模式：函数捕获外部作用域的变量，只要函数被引用，整个变量环境就会被保留。例如：长生命周期的对象持有回调函数，回调捕获了大对象，即使只需要其中小部分数据。解决方案：1) 只捕获需要的变量 2) 用完后设为null 3) 使用块级作用域隔离。参考MDN内存管理和闭包文档。\n\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "闭包内存泄漏的典型模式：函数捕获外部作用域的变量，只要函数被引用，整个变量环境就会被保留。例如：长生命周期的对象持有回调函数，回调捕获了大对象，即使只需要其中小部分数据。解决方案：1) 只捕获需要的变量 2) 用完后设为null 3) 使用块级作用域隔离。参考MDN内存管理和闭包文档。\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "MDN: Memory Management, Closures",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -5036,12 +4299,7 @@
       "id": "js-senior-121",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "常见模式",
-        "多选题",
-        "最佳实践"
-      ],
+      "tags": ["内存泄漏", "常见模式", "多选题", "最佳实践"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "以下哪些是常见的JavaScript内存泄漏模式...",
@@ -5068,13 +4326,8 @@
           "text": "脱离DOM后的JavaScript引用"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "A正确：事件监听器未移除会阻止DOM元素和闭包中的变量被回收。B正确：定时器回调持有外部变量引用，直到清除。C正确：闭包是常见的内存泄漏源。D错误：现代浏览器的GC使用标记-清除算法，可以处理循环引用。E正确：DOM元素从文档移除后，如果JavaScript仍持有引用，元素无法回收。参考MDN内存管理。\n\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "A正确：事件监听器未移除会阻止DOM元素和闭包中的变量被回收。B正确：定时器回调持有外部变量引用，直到清除。C正确：闭包是常见的内存泄漏源。D错误：现代浏览器的GC使用标记-清除算法，可以处理循环引用。E正确：DOM元素从文档移除后，如果JavaScript仍持有引用，元素无法回收。参考MDN内存管理。\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "MDN: Memory Management, Chrome DevTools Memory Panel",
       "exclusion_analysis": {
@@ -5085,12 +4338,7 @@
       "id": "js-senior-122",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "检测方法",
-        "预防措施",
-        "多选题"
-      ],
+      "tags": ["内存泄漏", "检测方法", "预防措施", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于内存泄漏的检测和预防，以下说法正确的是：",
@@ -5117,12 +4365,7 @@
           "text": "内存泄漏只发生在浏览器环境"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
+      "correct_answer": ["A", "B", "C", "D"],
       "explanation": "A正确：Heap Snapshot显示对象引用关系，帮助定位泄漏源。B正确：Performance面板可以绘制内存使用曲线。C正确：WeakMap/WeakSet的键是弱引用，不会阻止键对象被回收。D正确：AbortController是一个信号对象，可以传递给多个API实现统一取消。E错误：Node.js也有内存泄漏问题，可以用heapdump等工具分析。参考Chrome DevTools文档。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "Chrome DevTools: Memory Panel, MDN: WeakMap, AbortController",
@@ -5134,12 +4377,7 @@
       "id": "js-senior-123",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "内存泄漏",
-        "setInterval",
-        "闭包",
-        "定时器"
-      ],
+      "tags": ["内存泄漏", "setInterval", "闭包", "定时器"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "setInterval的回调函数如果引用了外部变量...",
@@ -5155,7 +4393,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。setInterval注册的回调函数会被事件循环持有引用。回调函数通过闭包捕获的外部变量也会被保留，无论回调是否实际执行。只有调用clearInterval移除定时器后，回调函数和它捕获的变量才会变成可回收的。这是定时器内存泄漏的核心机制。参考MDN setInterval文档和内存管理章节。\n\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。setInterval注册的回调函数会被事件循环持有引用。回调函数通过闭包捕获的外部变量也会被保留，无论回调是否实际执行。只有调用clearInterval移除定时器后，回调函数和它捕获的变量才会变成可回收的。这是定时器内存泄漏的核心机制。参考MDN setInterval文档和内存管理章节。\n补充分析：此题考察内存泄漏相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_内存泄漏模式",
       "reference_link": "MDN: setInterval, Memory Management",
       "boundary_conditions": "关键边界条件：正确。setInterval注册的回调函数会被事件循环持有引用。回调函数通过闭包捕获的外部变量也会被保留，无论回调是否实际执行。只有调用clearInterval移除定时器后，回调函数和它捕获的变量才会变成可回收的。这是定时器内存泄漏的核心机制。参考MDN setInterval文档和内存管理章节。"
@@ -5164,12 +4402,7 @@
       "id": "js-senior-124",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "堆快照",
-        "Shallow Size",
-        "内存分析",
-        "Chrome DevTools"
-      ],
+      "tags": ["堆快照", "Shallow Size", "内存分析", "Chrome DevTools"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在Chrome DevTools的堆快照中，Sha...",
@@ -5193,7 +4426,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "Shallow Size是对象本身占用的内存大小，包括：对象头、属性存储、元素存储等直接占用的空间。它不包括对象引用的其他对象的大小。对于大多数对象，Shallow Size相对较小。Shallow Size大通常意味着对象本身存储了大量数据（如大数组或长字符串）。参考Chrome DevTools堆快照文档。\n\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "Shallow Size是对象本身占用的内存大小，包括：对象头、属性存储、元素存储等直接占用的空间。它不包括对象引用的其他对象的大小。对于大多数对象，Shallow Size相对较小。Shallow Size大通常意味着对象本身存储了大量数据（如大数组或长字符串）。参考Chrome DevTools堆快照文档。\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_堆快照分析",
       "reference_link": "Chrome DevTools: Heap Snapshots, Shallow Size",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -5207,12 +4440,7 @@
       "id": "js-senior-125",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "堆快照",
-        "Retained Size",
-        "内存分析",
-        "支配树"
-      ],
+      "tags": ["堆快照", "Retained Size", "内存分析", "支配树"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "Retained Size与Shallow Siz...",
@@ -5236,7 +4464,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "Retained Size是如果对象被回收，能够释放的总内存大小。它等于：Shallow Size + 所有仅被该对象引用的其他对象的Shallow Size。\"仅被引用\"意味着没有其他路径可以到达这些对象。Retained Size是识别内存泄漏的关键指标，高Retained Size表示该对象\"支配\"大量内存。参考Chrome DevTools堆快照文档。\n\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "Retained Size是如果对象被回收，能够释放的总内存大小。它等于：Shallow Size + 所有仅被该对象引用的其他对象的Shallow Size。\"仅被引用\"意味着没有其他路径可以到达这些对象。Retained Size是识别内存泄漏的关键指标，高Retained Size表示该对象\"支配\"大量内存。参考Chrome DevTools堆快照文档。\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_堆快照分析",
       "reference_link": "Chrome DevTools: Heap Snapshots, Retained Size",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -5250,12 +4478,7 @@
       "id": "js-senior-126",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "堆快照",
-        "Distance",
-        "GC Roots",
-        "可达性"
-      ],
+      "tags": ["堆快照", "Distance", "GC Roots", "可达性"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "在堆快照中，Distance字段的含义是什么...",
@@ -5279,7 +4502,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "Distance表示从GC Roots到该对象的最短引用路径上的边数。GC Roots包括：全局对象、当前调用栈中的局部变量、内部引用等。Distance越小说明对象越接近根，可能是全局变量或被频繁引用。Distance大的对象可能是深层嵌套的数据结构。如果对象没有Distance，说明它不可达（可能是待回收的垃圾）。参考Chrome DevTools堆快照文档。\n\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "Distance表示从GC Roots到该对象的最短引用路径上的边数。GC Roots包括：全局对象、当前调用栈中的局部变量、内部引用等。Distance越小说明对象越接近根，可能是全局变量或被频繁引用。Distance大的对象可能是深层嵌套的数据结构。如果对象没有Distance，说明它不可达（可能是待回收的垃圾）。参考Chrome DevTools堆快照文档。\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_堆快照分析",
       "reference_link": "Chrome DevTools: Heap Snapshots, Distance",
       "common_mistake": "常见错误是选择A, 需要深入理解底层原理",
@@ -5293,12 +4516,7 @@
       "id": "js-senior-127",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "堆快照",
-        "内存分析",
-        "Chrome DevTools",
-        "多选题"
-      ],
+      "tags": ["堆快照", "内存分析", "Chrome DevTools", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于堆快照分析，以下说法正确的是：",
@@ -5325,13 +4543,8 @@
           "text": "Summary视图按构造函数分组显示对象"
         }
       ],
-      "correct_answer": [
-        "A",
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "A正确：比较快照是检测内存泄漏的标准方法。B正确：Dominators视图显示哪些对象支配（独占引用）其他对象。C正确：Retaining paths帮助追踪为什么对象不能被回收。D错误：现代DevTools可以显示DOM节点和原生对象。E正确：Summary视图是最常用的视图，按构造函数分组。参考Chrome DevTools文档。\n\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["A", "B", "C", "E"],
+      "explanation": "A正确：比较快照是检测内存泄漏的标准方法。B正确：Dominators视图显示哪些对象支配（独占引用）其他对象。C正确：Retaining paths帮助追踪为什么对象不能被回收。D错误：现代DevTools可以显示DOM节点和原生对象。E正确：Summary视图是最常用的视图，按构造函数分组。参考Chrome DevTools文档。\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_堆快照分析",
       "reference_link": "Chrome DevTools: Heap Snapshots, Memory Analysis",
       "exclusion_analysis": {
@@ -5342,12 +4555,7 @@
       "id": "js-senior-128",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "堆快照",
-        "Retained Size",
-        "内存泄漏",
-        "分析技巧"
-      ],
+      "tags": ["堆快照", "Retained Size", "内存泄漏", "分析技巧"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "在堆快照中，如果一个对象的Retained Siz...",
@@ -5363,7 +4571,7 @@
         }
       ],
       "correct_answer": "A",
-      "explanation": "正确。这种情况很常见：一个小的容器对象（如数组或Map）引用了大量数据。容器本身的Shallow Size小（只有数组头和少量属性），但Retained Size大（包含所有元素）。如果这个容器被长期持有（如全局缓存），会导致大量内存无法释放。分析时重点关注Retained Size大的对象和它们的Retaining paths。参考Chrome DevTools内存分析文档。\n\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "正确。这种情况很常见：一个小的容器对象（如数组或Map）引用了大量数据。容器本身的Shallow Size小（只有数组头和少量属性），但Retained Size大（包含所有元素）。如果这个容器被长期持有（如全局缓存），会导致大量内存无法释放。分析时重点关注Retained Size大的对象和它们的Retaining paths。参考Chrome DevTools内存分析文档。\n补充分析：此题考察堆快照相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_堆快照分析",
       "reference_link": "Chrome DevTools: Heap Snapshots, Retained Size Analysis",
       "boundary_conditions": "关键边界条件：正确。这种情况很常见：一个小的容器对象（如数组或Map）引用了大量数据。容器本身的Shallow Size小（只有数组头和少量属性），但Retained Size大（包含所有元素）。如果这个容器被长期持有（如全局缓存），会导致大量内存无法释放。分析时重点关注Retained Size大的对象和它们的"
@@ -5372,12 +4580,7 @@
       "id": "js-senior-129",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "WeakMap",
-        "Ephemeron Table",
-        "V8实现",
-        "弱引用"
-      ],
+      "tags": ["WeakMap", "Ephemeron Table", "V8实现", "弱引用"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "WeakMap在V8中的内部实现使用什么数据结构...",
@@ -5415,12 +4618,7 @@
       "id": "js-senior-130",
       "type": "single_choice",
       "difficulty": "senior",
-      "tags": [
-        "WeakMap",
-        "键类型限制",
-        "弱引用语义",
-        "规范"
-      ],
+      "tags": ["WeakMap", "键类型限制", "弱引用语义", "规范"],
       "source_company": "OpenSource",
       "score": 5,
       "title": "为什么WeakMap的键只能是对象类型，不能是原始...",
@@ -5458,12 +4656,7 @@
       "id": "js-senior-131",
       "type": "multiple_choice",
       "difficulty": "senior",
-      "tags": [
-        "WeakMap",
-        "WeakSet",
-        "内部实现",
-        "多选题"
-      ],
+      "tags": ["WeakMap", "WeakSet", "内部实现", "多选题"],
       "source_company": "OpenSource",
       "score": 8,
       "title": "关于WeakMap和WeakSet的内部实现和使用...",
@@ -5490,12 +4683,8 @@
           "text": "WeakMap的值可以是任意类型，包括函数和对象"
         }
       ],
-      "correct_answer": [
-        "B",
-        "C",
-        "E"
-      ],
-      "explanation": "A错误：键GC后，条目在下一次GC周期或WeakMap访问时被清理，不是立即。B正确：这是为了不暴露GC行为。C正确：这是WeakMap的典型用途，如缓存、私有数据存储。D错误：WeakSet.has()只检查当前是否有该键，不记录历史。E正确：值没有弱引用限制。参考ECMAScript规范#sec-weakmap-objects。\n\n补充分析：此题考察WeakMap相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "correct_answer": ["B", "C", "E"],
+      "explanation": "A错误：键GC后，条目在下一次GC周期或WeakMap访问时被清理，不是立即。B正确：这是为了不暴露GC行为。C正确：这是WeakMap的典型用途，如缓存、私有数据存储。D错误：WeakSet.has()只检查当前是否有该键，不记录历史。E正确：值没有弱引用限制。参考ECMAScript规范#sec-weakmap-objects。\n补充分析：此题考察WeakMap相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_WeakMap/WeakSet实现",
       "reference_link": "ECMAScript规范: #sec-weakmap-objects, #sec-weakset-objects",
       "exclusion_analysis": {
@@ -5507,12 +4696,7 @@
       "id": "js-senior-132",
       "type": "true_false",
       "difficulty": "senior",
-      "tags": [
-        "WeakMap",
-        "Map对比",
-        "内存效率",
-        "常见误区"
-      ],
+      "tags": ["WeakMap", "Map对比", "内存效率", "常见误区"],
       "source_company": "OpenSource",
       "score": 3,
       "title": "使用WeakMap一定比使用Map内存效率更高，因...",
@@ -5528,7 +4712,7 @@
         }
       ],
       "correct_answer": "B",
-      "explanation": "错误。WeakMap只有在键对象不再被其他地方引用时才会释放对应条目。如果键对象仍被程序其他部分持有，WeakMap条目不会被回收。选择WeakMap还是Map取决于使用场景：需要迭代、知道大小、或需要原始类型键时用Map；需要关联元数据到对象且不希望阻止对象回收时用WeakMap。WeakMap的性能开销可能比Map略高（因为GC交互）。参考MDN WeakMap文档。\n\n补充分析：此题考察WeakMap相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
+      "explanation": "错误。WeakMap只有在键对象不再被其他地方引用时才会释放对应条目。如果键对象仍被程序其他部分持有，WeakMap条目不会被回收。选择WeakMap还是Map取决于使用场景：需要迭代、知道大小、或需要原始类型键时用Map；需要关联元数据到对象且不希望阻止对象回收时用WeakMap。WeakMap的性能开销可能比Map略高（因为GC交互）。参考MDN WeakMap文档。\n补充分析：此题考察WeakMap相关知识点，需要深入理解底层原理和工程实践中的注意事项。面试中常见的误区是只关注表面现象而忽略了深层次的技术原理，建议结合实际项目经验进行回答。",
       "knowledge_point": "内存与性能_WeakMap/WeakSet实现",
       "reference_link": "MDN: WeakMap, Map",
       "boundary_conditions": "关键边界条件：错误。WeakMap只有在键对象不再被其他地方引用时才会释放对应条目。如果键对象仍被程序其他部分持有，WeakMap条目不会被回收。选择WeakMap还是Map取决于使用场景：需要迭代、知道大小、或需要原始类型键时用Map；需要关联元数据到对象且不希望阻止对象回收时用WeakMap。WeakMap的"
@@ -5537,17 +4721,12 @@
       "id": "js-senior-133",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型体操",
-        "递归类型",
-        "工具类型"
-      ],
+      "tags": ["TypeScript", "类型体操", "递归类型", "工具类型"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现一个TypeScript工具类型DeepRea...",
-      "content": "实现一个TypeScript工具类型DeepReadonly<T>，使对象所有层级的属性都变为只读。\n要求：\n1. 基本类型直接返回\n2. 对象类型递归应用DeepReadonly\n3. 数组类型转换为ReadonlyArray，元素也需要DeepReadonly\n4. 函数类型保持不变\n5. 支持Map、Set、Date等内置对象（保持不变）\n\ntype DeepReadonly<T> = \n  // 你的实现\n;\n\n// 测试用例\ninterface Test {\n  a: string;\n  b: {\n    c: number;\n    d: {\n      e: boolean;\n    };\n  };\n  arr: number[];\n  func: () => void;\n}\n\ntype ReadonlyTest = DeepReadonly<Test>;\n// 期望：所有属性只读，嵌套对象也只读，数组变为readonly number[]",
-      "code_template": "type DeepReadonly<T> = \n  // 你的实现\n;\n\n// 测试用例\ninterface Test {\n  a: string;\n  b: {\n    c: number;\n    d: {\n      e: boolean;\n    };\n  };\n  arr: number[];\n  func: () => void;\n}\n\ntype ReadonlyTest = DeepReadonly<Test>;\n// 期望：所有属性只读，嵌套对象也只读，数组变为readonly number[]",
+      "content": "实现一个TypeScript工具类型DeepReadonly<T>，使对象所有层级的属性都变为只读。\n要求：\n1. 基本类型直接返回\n2. 对象类型递归应用DeepReadonly\n3. 数组类型转换为ReadonlyArray，元素也需要DeepReadonly\n4. 函数类型保持不变\n5. 支持Map、Set、Date等内置对象（保持不变）\ntype DeepReadonly<T> = \n  // 你的实现\n;\n// 测试用例\ninterface Test {\n  a: string;\n  b: {\n    c: number;\n    d: {\n      e: boolean;\n    };\n  };\n  arr: number[];\n  func: () => void;\n}\ntype ReadonlyTest = DeepReadonly<Test>;\n// 期望：所有属性只读，嵌套对象也只读，数组变为readonly number[]",
+      "code_template": "type DeepReadonly<T> = \n  // 你的实现\n;\n// 测试用例\ninterface Test {\n  a: string;\n  b: {\n    c: number;\n    d: {\n      e: boolean;\n    };\n  };\n  arr: number[];\n  func: () => void;\n}\ntype ReadonlyTest = DeepReadonly<Test>;\n// 期望：所有属性只读，嵌套对象也只读，数组变为readonly number[]",
       "test_cases": [
         {
           "input": "{ a: 1, b: { c: 2 } }",
@@ -5577,9 +4756,9 @@
         "注意边界条件处理",
         "注意递归深度限制"
       ],
-      "reference_solution": "type Primitive = string | number | boolean | null | undefined | symbol | bigint;\n\ntype DeepReadonly<T> = \n  T extends Primitive ? T :\n  T extends Function ? T :\n  T extends Date ? T :\n  T extends Map<infer K, infer V> ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>> :\n  T extends Set<infer U> ? ReadonlySet<DeepReadonly<U>> :\n  T extends Array<infer U> ? ReadonlyArray<DeepReadonly<U>> :\n  T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } :\n  T;",
+      "reference_solution": "type Primitive = string | number | boolean | null | undefined | symbol | bigint;\ntype DeepReadonly<T> = \n  T extends Primitive ? T :\n  T extends Function ? T :\n  T extends Date ? T :\n  T extends Map<infer K, infer V> ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>> :\n  T extends Set<infer U> ? ReadonlySet<DeepReadonly<U>> :\n  T extends Array<infer U> ? ReadonlyArray<DeepReadonly<U>> :\n  T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } :\n  T;",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_类型体操",
       "reference_link": "TypeScript官方文档: Mapped Types, Conditional Types, Template Literal Types"
     },
@@ -5587,17 +4766,12 @@
       "id": "js-senior-134",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "Promise",
-        "异步编程",
-        "Promise A+",
-        "手写实现"
-      ],
+      "tags": ["Promise", "异步编程", "Promise A+", "手写实现"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现一个完整的Promise A+规范兼容的Pro...",
-      "content": "实现一个完整的Promise A+规范兼容的Promise类，要求：\n1. 三种状态：pending、fulfilled、rejected\n2. 状态只能改变一次\n3. then方法返回新Promise，支持链式调用\n4. 支持异步resolve/reject\n5. 实现值穿透（then没有回调时）\n6. 实现resolvePromise抽象操作处理循环引用\n\nclass MyPromise {\n  // 你的实现\n}\n\n// 测试用例\nconst p = new MyPromise((resolve, reject) => {\n  setTimeout(() => resolve(1), 100);\n});\n\np.then(v => v * 2)\n .then(v => new MyPromise(r => r(v + 3)))\n .then(console.log); // 期望输出: 5",
-      "code_template": "class MyPromise {\n  // 你的实现\n}\n\n// 测试用例\nconst p = new MyPromise((resolve, reject) => {\n  setTimeout(() => resolve(1), 100);\n});\n\np.then(v => v * 2)\n .then(v => new MyPromise(r => r(v + 3)))\n .then(console.log); // 期望输出: 5",
+      "content": "实现一个完整的Promise A+规范兼容的Promise类，要求：\n1. 三种状态：pending、fulfilled、rejected\n2. 状态只能改变一次\n3. then方法返回新Promise，支持链式调用\n4. 支持异步resolve/reject\n5. 实现值穿透（then没有回调时）\n6. 实现resolvePromise抽象操作处理循环引用\nclass MyPromise {\n  // 你的实现\n}\n// 测试用例\nconst p = new MyPromise((resolve, reject) => {\n  setTimeout(() => resolve(1), 100);\n});\np.then(v => v * 2)\n .then(v => new MyPromise(r => r(v + 3)))\n .then(console.log); // 期望输出: 5",
+      "code_template": "class MyPromise {\n  // 你的实现\n}\n// 测试用例\nconst p = new MyPromise((resolve, reject) => {\n  setTimeout(() => resolve(1), 100);\n});\np.then(v => v * 2)\n .then(v => new MyPromise(r => r(v + 3)))\n .then(console.log); // 期望输出: 5",
       "test_cases": [
         {
           "input": "new MyPromise(r => r(1)).then(v => v * 2)",
@@ -5627,9 +4801,9 @@
         "注意边界条件处理",
         "正确处理异步边界"
       ],
-      "reference_solution": "class MyPromise {\n  static PENDING = 'pending';\n  static FULFILLED = 'fulfilled';\n  static REJECTED = 'rejected';\n\n  constructor(executor) {\n    this.state = MyPromise.PENDING;\n    this.value = undefined;\n    this.reason = undefined;\n    this.onFulfilledCallbacks = [];\n    this.onRejectedCallbacks = [];\n\n    const resolve = (value) => {\n      if (this.state === MyPromise.PENDING) {\n        this.state = MyPromise.FULFILLED;\n        this.value = value;\n        this.onFulfilledCallbacks.forEach(cb => cb());\n      }\n    };\n\n    const reject = (reason) => {\n      if (this.state === MyPromise.PENDING) {\n        this.state = MyPromise.REJECTED;\n        this.reason = reason;\n        this.onRejectedCallbacks.forEach(cb => cb());\n      }\n    };\n\n    try {\n      executor(resolve, reject);\n    } catch (e) {\n      reject(e);\n    }\n  }\n\n  then(onFulfilled, onRejected) {\n    onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;\n    onRejected = typeof onRejected === 'function' ? onRejected : e => { throw e; };\n\n    const promise2 = new MyPromise((resolve, reject) => {\n      const fulfilledTask = () => {\n        queueMicrotask(() => {\n          try {\n            const x = onFulfilled(this.value);\n            this.resolvePromise(promise2, x, resolve, reject);\n          } catch (e) {\n            reject(e);\n          }\n        });\n      };\n\n      const rejectedTask = () => {\n        queueMicrotask(() => {\n          try {\n            const x = onRejected(this.reason);\n            this.resolvePromise(promise2, x, resolve, reject);\n          } catch (e) {\n            reject(e);\n          }\n        });\n      };\n\n      if (this.state === MyPromise.FULFILLED) {\n        fulfilledTask();\n      } else if (this.state === MyPromise.REJECTED) {\n        rejectedTask();\n      } else {\n        this.onFulfilledCallbacks.push(fulfilledTask);\n        this.onRejectedCallbacks.push(rejectedTask);\n      }\n    });\n\n    return promise2;\n  }\n\n  resolvePromise(promise2, x, resolve, reject) {\n    if (promise2 === x) {\n      return reject(new TypeError('Chaining cycle detected'));\n    }\n    if (x instanceof MyPromise) {\n      x.then(resolve, reject);\n    } else if (typeof x === 'object' && x !== null && typeof x.then === 'function') {\n      let called = false;\n      try {\n        x.then(\n          y => {\n            if (called) return;\n            called = true;\n            this.resolvePromise(promise2, y, resolve, reject);\n          },\n          r => {\n            if (called) return;\n            called = true;\n            reject(r);\n          }\n        );\n      } catch (e) {\n        if (called) return;\n        reject(e);\n      }\n    } else {\n      resolve(x);\n    }\n  }\n}",
+      "reference_solution": "class MyPromise {\n  static PENDING = 'pending';\n  static FULFILLED = 'fulfilled';\n  static REJECTED = 'rejected';\n  constructor(executor) {\n    this.state = MyPromise.PENDING;\n    this.value = undefined;\n    this.reason = undefined;\n    this.onFulfilledCallbacks = [];\n    this.onRejectedCallbacks = [];\n    const resolve = (value) => {\n      if (this.state === MyPromise.PENDING) {\n        this.state = MyPromise.FULFILLED;\n        this.value = value;\n        this.onFulfilledCallbacks.forEach(cb => cb());\n      }\n    };\n    const reject = (reason) => {\n      if (this.state === MyPromise.PENDING) {\n        this.state = MyPromise.REJECTED;\n        this.reason = reason;\n        this.onRejectedCallbacks.forEach(cb => cb());\n      }\n    };\n    try {\n      executor(resolve, reject);\n    } catch (e) {\n      reject(e);\n    }\n  }\n  then(onFulfilled, onRejected) {\n    onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;\n    onRejected = typeof onRejected === 'function' ? onRejected : e => { throw e; };\n    const promise2 = new MyPromise((resolve, reject) => {\n      const fulfilledTask = () => {\n        queueMicrotask(() => {\n          try {\n            const x = onFulfilled(this.value);\n            this.resolvePromise(promise2, x, resolve, reject);\n          } catch (e) {\n            reject(e);\n          }\n        });\n      };\n      const rejectedTask = () => {\n        queueMicrotask(() => {\n          try {\n            const x = onRejected(this.reason);\n            this.resolvePromise(promise2, x, resolve, reject);\n          } catch (e) {\n            reject(e);\n          }\n        });\n      };\n      if (this.state === MyPromise.FULFILLED) {\n        fulfilledTask();\n      } else if (this.state === MyPromise.REJECTED) {\n        rejectedTask();\n      } else {\n        this.onFulfilledCallbacks.push(fulfilledTask);\n        this.onRejectedCallbacks.push(rejectedTask);\n      }\n    });\n    return promise2;\n  }\n  resolvePromise(promise2, x, resolve, reject) {\n    if (promise2 === x) {\n      return reject(new TypeError('Chaining cycle detected'));\n    }\n    if (x instanceof MyPromise) {\n      x.then(resolve, reject);\n    } else if (typeof x === 'object' && x !== null && typeof x.then === 'function') {\n      let called = false;\n      try {\n        x.then(\n          y => {\n            if (called) return;\n            called = true;\n            this.resolvePromise(promise2, y, resolve, reject);\n          },\n          r => {\n            if (called) return;\n            called = true;\n            reject(r);\n          }\n        );\n      } catch (e) {\n        if (called) return;\n        reject(e);\n      }\n    } else {\n      resolve(x);\n    }\n  }\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_Promise实现",
       "reference_link": "Promises/A+ Specification, MDN: Promise"
     },
@@ -5637,17 +4811,12 @@
       "id": "js-senior-135",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "深拷贝",
-        "循环引用",
-        "类型处理",
-        "面试经典"
-      ],
+      "tags": ["深拷贝", "循环引用", "类型处理", "面试经典"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现一个完整的深拷贝函数deepClone，要求：...",
-      "content": "实现一个完整的深拷贝函数deepClone，要求：\n1. 处理循环引用\n2. 支持各种类型：Object、Array、Date、RegExp、Map、Set、Buffer等\n3. 保持原型链\n4. 正确处理Symbol作为键和值\n5. 处理函数（引用复制或返回新函数）\n6. 处理不可枚举属性\n\nfunction deepClone(obj, hash = new WeakMap()) {\n  // 你的实现\n}\n\n// 测试用例\nconst obj = { a: 1, b: { c: 2 } };\nobj.self = obj; // 循环引用\nconst cloned = deepClone(obj);\nconsole.log(cloned !== obj); // true\nconsole.log(cloned.self === cloned); // true",
-      "code_template": "function deepClone(obj, hash = new WeakMap()) {\n  // 你的实现\n}\n\n// 测试用例\nconst obj = { a: 1, b: { c: 2 } };\nobj.self = obj; // 循环引用\nconst cloned = deepClone(obj);\nconsole.log(cloned !== obj); // true\nconsole.log(cloned.self === cloned); // true",
+      "content": "实现一个完整的深拷贝函数deepClone，要求：\n1. 处理循环引用\n2. 支持各种类型：Object、Array、Date、RegExp、Map、Set、Buffer等\n3. 保持原型链\n4. 正确处理Symbol作为键和值\n5. 处理函数（引用复制或返回新函数）\n6. 处理不可枚举属性\nfunction deepClone(obj, hash = new WeakMap()) {\n  // 你的实现\n}\n// 测试用例\nconst obj = { a: 1, b: { c: 2 } };\nobj.self = obj; // 循环引用\nconst cloned = deepClone(obj);\nconsole.log(cloned !== obj); // true\nconsole.log(cloned.self === cloned); // true",
+      "code_template": "function deepClone(obj, hash = new WeakMap()) {\n  // 你的实现\n}\n// 测试用例\nconst obj = { a: 1, b: { c: 2 } };\nobj.self = obj; // 循环引用\nconst cloned = deepClone(obj);\nconsole.log(cloned !== obj); // true\nconsole.log(cloned.self === cloned); // true",
       "test_cases": [
         {
           "input": "{ a: 1, b: { c: 2 } }",
@@ -5672,13 +4841,10 @@
       ],
       "time_complexity": "O(n)",
       "space_complexity": "O(n)",
-      "constraints": [
-        "代码需通过所有测试用例",
-        "注意边界条件处理"
-      ],
+      "constraints": ["代码需通过所有测试用例", "注意边界条件处理"],
       "reference_solution": "function deepClone(obj, hash = new WeakMap()) {\n  // null 或 undefined\n  if (obj === null || obj === undefined) return obj;\n  \n  // 原始类型\n  if (typeof obj !== 'object') return obj;\n  \n  // 循环引用检查\n  if (hash.has(obj)) return hash.get(obj);\n  \n  // Date\n  if (obj instanceof Date) {\n    const copy = new Date(obj);\n    hash.set(obj, copy);\n    return copy;\n  }\n  \n  // RegExp\n  if (obj instanceof RegExp) {\n    const copy = new RegExp(obj.source, obj.flags);\n    copy.lastIndex = obj.lastIndex;\n    hash.set(obj, copy);\n    return copy;\n  }\n  \n  // Map\n  if (obj instanceof Map) {\n    const copy = new Map();\n    hash.set(obj, copy);\n    obj.forEach((value, key) => {\n      copy.set(deepClone(key, hash), deepClone(value, hash));\n    });\n    return copy;\n  }\n  \n  // Set\n  if (obj instanceof Set) {\n    const copy = new Set();\n    hash.set(obj, copy);\n    obj.forEach(value => {\n      copy.add(deepClone(value, hash));\n    });\n    return copy;\n  }\n  \n  // Buffer/ArrayBuffer/TypedArray\n  if (ArrayBuffer.isView(obj)) {\n    const copy = new obj.constructor(obj.buffer.slice(0));\n    hash.set(obj, copy);\n    return copy;\n  }\n  \n  if (obj instanceof ArrayBuffer) {\n    const copy = obj.slice(0);\n    hash.set(obj, copy);\n    return copy;\n  }\n  \n  // Array\n  if (Array.isArray(obj)) {\n    const copy = [];\n    hash.set(obj, copy);\n    obj.forEach((item, index) => {\n      copy[index] = deepClone(item, hash);\n    });\n    return copy;\n  }\n  \n  // Function - 引用复制（或可以返回新函数）\n  if (typeof obj === 'function') {\n    return obj;\n  }\n  \n  // 普通对象\n  const copy = Object.create(Object.getPrototypeOf(obj));\n  hash.set(obj, copy);\n  \n  // 处理所有属性（包括Symbol和不可枚举）\n  const allKeys = Reflect.ownKeys(obj);\n  for (const key of allKeys) {\n    const descriptor = Object.getOwnPropertyDescriptor(obj, key);\n    if (descriptor.value) {\n      descriptor.value = deepClone(descriptor.value, hash);\n    }\n    Object.defineProperty(copy, key, descriptor);\n  }\n  \n  return copy;\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_深拷贝",
       "reference_link": "MDN: Structured Clone Algorithm, JavaScript Deep Clone"
     },
@@ -5686,17 +4852,12 @@
       "id": "js-senior-136",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "节流",
-        "防抖",
-        "函数工具",
-        "面试经典"
-      ],
+      "tags": ["节流", "防抖", "函数工具", "面试经典"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现支持取消功能的节流函数throttle和防抖函...",
-      "content": "实现支持取消功能的节流函数throttle和防抖函数debounce：\n1. throttle: 在指定时间间隔内只执行一次，首次立即执行\n2. debounce: 在事件停止触发后延迟执行\n3. 两者都需要支持：\n   - cancel(): 取消待执行的函数\n   - flush(): 立即执行待执行的函数\n   - pending(): 返回是否有待执行的函数\n\nfunction throttle(fn, delay) {\n  // 你的实现\n}\n\nfunction debounce(fn, delay) {\n  // 你的实现\n}\n\n// 测试用例\nconst throttled = throttle(() => console.log('throttle'), 100);\nthrottled();\nthrottled(); // 被节流\nthrottled.cancel(); // 取消\n\nconst debounced = debounce(() => console.log('debounce'), 100);\ndebounced();\ndebounced(); // 重置计时\nsetTimeout(() => debounced.flush(), 50); // 立即执行",
-      "code_template": "function throttle(fn, delay) {\n  // 你的实现\n}\n\nfunction debounce(fn, delay) {\n  // 你的实现\n}\n\n// 测试用例\nconst throttled = throttle(() => console.log('throttle'), 100);\nthrottled();\nthrottled(); // 被节流\nthrottled.cancel(); // 取消\n\nconst debounced = debounce(() => console.log('debounce'), 100);\ndebounced();\ndebounced(); // 重置计时\nsetTimeout(() => debounced.flush(), 50); // 立即执行",
+      "content": "实现支持取消功能的节流函数throttle和防抖函数debounce：\n1. throttle: 在指定时间间隔内只执行一次，首次立即执行\n2. debounce: 在事件停止触发后延迟执行\n3. 两者都需要支持：\n   - cancel(): 取消待执行的函数\n   - flush(): 立即执行待执行的函数\n   - pending(): 返回是否有待执行的函数\nfunction throttle(fn, delay) {\n  // 你的实现\n}\nfunction debounce(fn, delay) {\n  // 你的实现\n}\n// 测试用例\nconst throttled = throttle(() => console.log('throttle'), 100);\nthrottled();\nthrottled(); // 被节流\nthrottled.cancel(); // 取消\nconst debounced = debounce(() => console.log('debounce'), 100);\ndebounced();\ndebounced(); // 重置计时\nsetTimeout(() => debounced.flush(), 50); // 立即执行",
+      "code_template": "function throttle(fn, delay) {\n  // 你的实现\n}\nfunction debounce(fn, delay) {\n  // 你的实现\n}\n// 测试用例\nconst throttled = throttle(() => console.log('throttle'), 100);\nthrottled();\nthrottled(); // 被节流\nthrottled.cancel(); // 取消\nconst debounced = debounce(() => console.log('debounce'), 100);\ndebounced();\ndebounced(); // 重置计时\nsetTimeout(() => debounced.flush(), 50); // 立即执行",
       "test_cases": [
         {
           "input": "连续调用throttle(fn, 100) 5次",
@@ -5721,13 +4882,10 @@
       ],
       "time_complexity": "O(n)",
       "space_complexity": "O(n)",
-      "constraints": [
-        "代码需通过所有测试用例",
-        "注意边界条件处理"
-      ],
-      "reference_solution": "function throttle(fn, delay) {\n  let timer = null;\n  let lastArgs = null;\n  let lastThis = null;\n  let lastCallTime = 0;\n\n  function invoke() {\n    fn.apply(lastThis, lastArgs);\n    lastCallTime = Date.now();\n    timer = null;\n    lastArgs = null;\n    lastThis = null;\n  }\n\n  function throttled(...args) {\n    lastArgs = args;\n    lastThis = this;\n\n    const now = Date.now();\n    const remaining = delay - (now - lastCallTime);\n\n    if (remaining <= 0) {\n      if (timer) {\n        clearTimeout(timer);\n        timer = null;\n      }\n      invoke();\n    } else if (!timer) {\n      timer = setTimeout(() => {\n        invoke();\n      }, remaining);\n    }\n  }\n\n  throttled.cancel = function() {\n    if (timer) {\n      clearTimeout(timer);\n      timer = null;\n    }\n    lastArgs = null;\n    lastThis = null;\n  };\n\n  throttled.flush = function() {\n    if (timer || lastArgs) {\n      if (timer) {\n        clearTimeout(timer);\n        timer = null;\n      }\n      invoke();\n    }\n  };\n\n  throttled.pending = function() {\n    return timer !== null;\n  };\n\n  return throttled;\n}\n\nfunction debounce(fn, delay) {\n  let timer = null;\n  let lastArgs = null;\n  let lastThis = null;\n\n  function invoke() {\n    fn.apply(lastThis, lastArgs);\n    timer = null;\n    lastArgs = null;\n    lastThis = null;\n  }\n\n  function debounced(...args) {\n    lastArgs = args;\n    lastThis = this;\n\n    if (timer) {\n      clearTimeout(timer);\n    }\n    timer = setTimeout(invoke, delay);\n  }\n\n  debounced.cancel = function() {\n    if (timer) {\n      clearTimeout(timer);\n      timer = null;\n    }\n    lastArgs = null;\n    lastThis = null;\n  };\n\n  debounced.flush = function() {\n    if (timer) {\n      clearTimeout(timer);\n      invoke();\n    }\n  };\n\n  debounced.pending = function() {\n    return timer !== null;\n  };\n\n  return debounced;\n}",
+      "constraints": ["代码需通过所有测试用例", "注意边界条件处理"],
+      "reference_solution": "function throttle(fn, delay) {\n  let timer = null;\n  let lastArgs = null;\n  let lastThis = null;\n  let lastCallTime = 0;\n  function invoke() {\n    fn.apply(lastThis, lastArgs);\n    lastCallTime = Date.now();\n    timer = null;\n    lastArgs = null;\n    lastThis = null;\n  }\n  function throttled(...args) {\n    lastArgs = args;\n    lastThis = this;\n    const now = Date.now();\n    const remaining = delay - (now - lastCallTime);\n    if (remaining <= 0) {\n      if (timer) {\n        clearTimeout(timer);\n        timer = null;\n      }\n      invoke();\n    } else if (!timer) {\n      timer = setTimeout(() => {\n        invoke();\n      }, remaining);\n    }\n  }\n  throttled.cancel = function() {\n    if (timer) {\n      clearTimeout(timer);\n      timer = null;\n    }\n    lastArgs = null;\n    lastThis = null;\n  };\n  throttled.flush = function() {\n    if (timer || lastArgs) {\n      if (timer) {\n        clearTimeout(timer);\n        timer = null;\n      }\n      invoke();\n    }\n  };\n  throttled.pending = function() {\n    return timer !== null;\n  };\n  return throttled;\n}\nfunction debounce(fn, delay) {\n  let timer = null;\n  let lastArgs = null;\n  let lastThis = null;\n  function invoke() {\n    fn.apply(lastThis, lastArgs);\n    timer = null;\n    lastArgs = null;\n    lastThis = null;\n  }\n  function debounced(...args) {\n    lastArgs = args;\n    lastThis = this;\n    if (timer) {\n      clearTimeout(timer);\n    }\n    timer = setTimeout(invoke, delay);\n  }\n  debounced.cancel = function() {\n    if (timer) {\n      clearTimeout(timer);\n      timer = null;\n    }\n    lastArgs = null;\n    lastThis = null;\n  };\n  debounced.flush = function() {\n    if (timer) {\n      clearTimeout(timer);\n      invoke();\n    }\n  };\n  debounced.pending = function() {\n    return timer !== null;\n  };\n  return debounced;\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_节流防抖",
       "reference_link": "lodash: throttle, debounce; MDN: setTimeout"
     },
@@ -5735,17 +4893,12 @@
       "id": "js-senior-137",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "发布订阅",
-        "EventEmitter",
-        "设计模式",
-        "手写实现"
-      ],
+      "tags": ["发布订阅", "EventEmitter", "设计模式", "手写实现"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现一个完整的事件发射器EventEmitter，...",
-      "content": "实现一个完整的事件发射器EventEmitter，支持：\n1. on(event, listener): 订阅事件\n2. off(event, listener): 取消订阅\n3. emit(event, ...args): 触发事件\n4. once(event, listener): 只订阅一次\n5. prependListener(event, listener): 添加到监听器队列头部\n6. removeAllListeners(event?): 移除所有或指定事件的所有监听器\n7. listenerCount(event): 获取监听器数量\n8. 处理监听器执行中的错误（不中断其他监听器）\n\nclass EventEmitter {\n  // 你的实现\n}\n\n// 测试用例\nconst ee = new EventEmitter();\nee.on('data', (x) => console.log('data:', x));\nee.once('data', () => console.log('once'));\nee.emit('data', 1); // 输出: data: 1, once\nee.emit('data', 2); // 输出: data: 2",
-      "code_template": "class EventEmitter {\n  // 你的实现\n}\n\n// 测试用例\nconst ee = new EventEmitter();\nee.on('data', (x) => console.log('data:', x));\nee.once('data', () => console.log('once'));\nee.emit('data', 1); // 输出: data: 1, once\nee.emit('data', 2); // 输出: data: 2",
+      "content": "实现一个完整的事件发射器EventEmitter，支持：\n1. on(event, listener): 订阅事件\n2. off(event, listener): 取消订阅\n3. emit(event, ...args): 触发事件\n4. once(event, listener): 只订阅一次\n5. prependListener(event, listener): 添加到监听器队列头部\n6. removeAllListeners(event?): 移除所有或指定事件的所有监听器\n7. listenerCount(event): 获取监听器数量\n8. 处理监听器执行中的错误（不中断其他监听器）\nclass EventEmitter {\n  // 你的实现\n}\n// 测试用例\nconst ee = new EventEmitter();\nee.on('data', (x) => console.log('data:', x));\nee.once('data', () => console.log('once'));\nee.emit('data', 1); // 输出: data: 1, once\nee.emit('data', 2); // 输出: data: 2",
+      "code_template": "class EventEmitter {\n  // 你的实现\n}\n// 测试用例\nconst ee = new EventEmitter();\nee.on('data', (x) => console.log('data:', x));\nee.once('data', () => console.log('once'));\nee.emit('data', 1); // 输出: data: 1, once\nee.emit('data', 2); // 输出: data: 2",
       "test_cases": [
         {
           "input": "ee.on(\"test\", fn); ee.emit(\"test\", 1)",
@@ -5770,13 +4923,10 @@
       ],
       "time_complexity": "O(n)",
       "space_complexity": "O(n)",
-      "constraints": [
-        "代码需通过所有测试用例",
-        "注意边界条件处理"
-      ],
-      "reference_solution": "class EventEmitter {\n  constructor() {\n    this._events = Object.create(null);\n    this._maxListeners = EventEmitter.defaultMaxListeners;\n  }\n\n  static defaultMaxListeners = 10;\n\n  on(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    if (!this._events[event]) {\n      this._events[event] = [];\n    }\n    if (this._events[event].length >= this._maxListeners) {\n      console.warn(`Possible EventEmitter memory leak: ${event}`);\n    }\n    this._events[event].push(listener);\n    return this;\n  }\n\n  prependListener(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    if (!this._events[event]) {\n      this._events[event] = [];\n    }\n    this._events[event].unshift(listener);\n    return this;\n  }\n\n  once(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    const onceWrapper = (...args) => {\n      this.off(event, onceWrapper);\n      listener.apply(this, args);\n    };\n    onceWrapper._original = listener;\n    return this.on(event, onceWrapper);\n  }\n\n  off(event, listener) {\n    if (!this._events[event]) return this;\n    \n    if (!listener) {\n      delete this._events[event];\n      return this;\n    }\n\n    const listeners = this._events[event];\n    for (let i = listeners.length - 1; i >= 0; i--) {\n      if (listeners[i] === listener || listeners[i]._original === listener) {\n        listeners.splice(i, 1);\n        break;\n      }\n    }\n    if (listeners.length === 0) {\n      delete this._events[event];\n    }\n    return this;\n  }\n\n  emit(event, ...args) {\n    if (!this._events[event]) return false;\n    \n    const listeners = this._events[event].slice();\n    let hasError = false;\n    \n    for (const listener of listeners) {\n      try {\n        listener.apply(this, args);\n      } catch (error) {\n        hasError = true;\n        if (this._events['error'] && event !== 'error') {\n          this.emit('error', error);\n        } else {\n          console.error('Unhandled error in listener:', error);\n        }\n      }\n    }\n    return !hasError;\n  }\n\n  removeAllListeners(event) {\n    if (event) {\n      delete this._events[event];\n    } else {\n      this._events = Object.create(null);\n    }\n    return this;\n  }\n\n  listenerCount(event) {\n    return this._events[event] ? this._events[event].length : 0;\n  }\n\n  setMaxListeners(n) {\n    this._maxListeners = n;\n    return this;\n  }\n\n  getMaxListeners() {\n    return this._maxListeners;\n  }\n}",
+      "constraints": ["代码需通过所有测试用例", "注意边界条件处理"],
+      "reference_solution": "class EventEmitter {\n  constructor() {\n    this._events = Object.create(null);\n    this._maxListeners = EventEmitter.defaultMaxListeners;\n  }\n  static defaultMaxListeners = 10;\n  on(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    if (!this._events[event]) {\n      this._events[event] = [];\n    }\n    if (this._events[event].length >= this._maxListeners) {\n      console.warn(`Possible EventEmitter memory leak: ${event}`);\n    }\n    this._events[event].push(listener);\n    return this;\n  }\n  prependListener(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    if (!this._events[event]) {\n      this._events[event] = [];\n    }\n    this._events[event].unshift(listener);\n    return this;\n  }\n  once(event, listener) {\n    if (typeof listener !== 'function') {\n      throw new TypeError('listener must be a function');\n    }\n    const onceWrapper = (...args) => {\n      this.off(event, onceWrapper);\n      listener.apply(this, args);\n    };\n    onceWrapper._original = listener;\n    return this.on(event, onceWrapper);\n  }\n  off(event, listener) {\n    if (!this._events[event]) return this;\n    \n    if (!listener) {\n      delete this._events[event];\n      return this;\n    }\n    const listeners = this._events[event];\n    for (let i = listeners.length - 1; i >= 0; i--) {\n      if (listeners[i] === listener || listeners[i]._original === listener) {\n        listeners.splice(i, 1);\n        break;\n      }\n    }\n    if (listeners.length === 0) {\n      delete this._events[event];\n    }\n    return this;\n  }\n  emit(event, ...args) {\n    if (!this._events[event]) return false;\n    \n    const listeners = this._events[event].slice();\n    let hasError = false;\n    \n    for (const listener of listeners) {\n      try {\n        listener.apply(this, args);\n      } catch (error) {\n        hasError = true;\n        if (this._events['error'] && event !== 'error') {\n          this.emit('error', error);\n        } else {\n          console.error('Unhandled error in listener:', error);\n        }\n      }\n    }\n    return !hasError;\n  }\n  removeAllListeners(event) {\n    if (event) {\n      delete this._events[event];\n    } else {\n      this._events = Object.create(null);\n    }\n    return this;\n  }\n  listenerCount(event) {\n    return this._events[event] ? this._events[event].length : 0;\n  }\n  setMaxListeners(n) {\n    this._maxListeners = n;\n    return this;\n  }\n  getMaxListeners() {\n    return this._maxListeners;\n  }\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_发布订阅",
       "reference_link": "Node.js源码: events.js, EventEmitter"
     },
@@ -5784,17 +4934,12 @@
       "id": "js-senior-138",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "异步控制",
-        "并发限制",
-        "Promise",
-        "工程实践"
-      ],
+      "tags": ["异步控制", "并发限制", "Promise", "工程实践"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现异步并发控制函数concurrencyLimi...",
-      "content": "实现异步并发控制函数concurrencyLimit，要求：\n1. 控制同时执行的Promise数量\n2. 所有任务完成后返回结果数组\n3. 支持任务失败时继续执行其他任务（收集错误）\n4. 支持abort中止所有未开始的任务\n\nfunction concurrencyLimit(tasks, limit) {\n  // tasks: (() => Promise<T>)[]\n  // limit: 最大并发数\n  // 返回: Promise<{ results: T[], errors: Error[] }>\n}\n\n// 测试用例\nconst tasks = Array.from({ length: 10 }, (_, i) => \n  () => new Promise(r => setTimeout(() => r(i), 100))\n);\n\nconcurrencyLimit(tasks, 3).then(console.log);\n// 期望：同时最多3个任务执行，最终返回所有结果",
-      "code_template": "function concurrencyLimit(tasks, limit) {\n  // tasks: (() => Promise<T>)[]\n  // limit: 最大并发数\n  // 返回: Promise<{ results: T[], errors: Error[] }>\n}\n\n// 测试用例\nconst tasks = Array.from({ length: 10 }, (_, i) => \n  () => new Promise(r => setTimeout(() => r(i), 100))\n);\n\nconcurrencyLimit(tasks, 3).then(console.log);\n// 期望：同时最多3个任务执行，最终返回所有结果",
+      "content": "实现异步并发控制函数concurrencyLimit，要求：\n1. 控制同时执行的Promise数量\n2. 所有任务完成后返回结果数组\n3. 支持任务失败时继续执行其他任务（收集错误）\n4. 支持abort中止所有未开始的任务\nfunction concurrencyLimit(tasks, limit) {\n  // tasks: (() => Promise<T>)[]\n  // limit: 最大并发数\n  // 返回: Promise<{ results: T[], errors: Error[] }>\n}\n// 测试用例\nconst tasks = Array.from({ length: 10 }, (_, i) => \n  () => new Promise(r => setTimeout(() => r(i), 100))\n);\nconcurrencyLimit(tasks, 3).then(console.log);\n// 期望：同时最多3个任务执行，最终返回所有结果",
+      "code_template": "function concurrencyLimit(tasks, limit) {\n  // tasks: (() => Promise<T>)[]\n  // limit: 最大并发数\n  // 返回: Promise<{ results: T[], errors: Error[] }>\n}\n// 测试用例\nconst tasks = Array.from({ length: 10 }, (_, i) => \n  () => new Promise(r => setTimeout(() => r(i), 100))\n);\nconcurrencyLimit(tasks, 3).then(console.log);\n// 期望：同时最多3个任务执行，最终返回所有结果",
       "test_cases": [
         {
           "input": "new MyPromise(r => r(1)).then(v => v * 2)",
@@ -5824,9 +4969,9 @@
         "注意边界条件处理",
         "正确处理异步边界"
       ],
-      "reference_solution": "function concurrencyLimit(tasks, limit) {\n  return new Promise((resolve, reject) => {\n    const results = [];\n    const errors = [];\n    let completed = 0;\n    let currentIndex = 0;\n    let aborted = false;\n    const abortController = {\n      aborted: false,\n      abort() {\n        this.aborted = true;\n        aborted = true;\n      }\n    };\n\n    function runNext() {\n      if (aborted || currentIndex >= tasks.length) {\n        if (completed === tasks.length || aborted) {\n          resolve({ results, errors, aborted });\n        }\n        return;\n      }\n\n      const index = currentIndex++;\n      const task = tasks[index];\n\n      Promise.resolve()\n        .then(() => task())\n        .then(result => {\n          results[index] = result;\n        })\n        .catch(error => {\n          errors[index] = error;\n        })\n        .finally(() => {\n          completed++;\n          runNext();\n        });\n    }\n\n    // 启动初始任务\n    const initialCount = Math.min(limit, tasks.length);\n    for (let i = 0; i < initialCount; i++) {\n      runNext();\n    }\n\n    // 返回带abort的promise\n    return Object.assign(\n      new Promise((res) => {\n        const originalResolve = resolve;\n        resolve = (value) => {\n          res(value);\n        };\n      }),\n      { abort: () => abortController.abort() }\n    );\n  });\n}",
+      "reference_solution": "function concurrencyLimit(tasks, limit) {\n  return new Promise((resolve, reject) => {\n    const results = [];\n    const errors = [];\n    let completed = 0;\n    let currentIndex = 0;\n    let aborted = false;\n    const abortController = {\n      aborted: false,\n      abort() {\n        this.aborted = true;\n        aborted = true;\n      }\n    };\n    function runNext() {\n      if (aborted || currentIndex >= tasks.length) {\n        if (completed === tasks.length || aborted) {\n          resolve({ results, errors, aborted });\n        }\n        return;\n      }\n      const index = currentIndex++;\n      const task = tasks[index];\n      Promise.resolve()\n        .then(() => task())\n        .then(result => {\n          results[index] = result;\n        })\n        .catch(error => {\n          errors[index] = error;\n        })\n        .finally(() => {\n          completed++;\n          runNext();\n        });\n    }\n    // 启动初始任务\n    const initialCount = Math.min(limit, tasks.length);\n    for (let i = 0; i < initialCount; i++) {\n      runNext();\n    }\n    // 返回带abort的promise\n    return Object.assign(\n      new Promise((res) => {\n        const originalResolve = resolve;\n        resolve = (value) => {\n          res(value);\n        };\n      }),\n      { abort: () => abortController.abort() }\n    );\n  });\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_异步控制",
       "reference_link": "p-limit库, async-pool实现"
     },
@@ -5834,17 +4979,12 @@
       "id": "js-senior-139",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "TypeScript",
-        "类型体操",
-        "联合类型",
-        "高级技巧"
-      ],
+      "tags": ["TypeScript", "类型体操", "联合类型", "高级技巧"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现TypeScript工具类型： 1...",
-      "content": "实现TypeScript工具类型：\n1. TupleToUnion<T>: 将元组类型转为联合类型\n2. UnionToTuple<U>: 将联合类型转为元组类型（高难度）\n3. UnionToIntersection<U>: 将联合类型转为交叉类型\n4. GetRequired<T>: 获取类型中所有必需属性的键\n5. GetOptional<T>: 获取类型中所有可选属性的键\n\ntype TupleToUnion<T extends any[]> = /* 实现 */;\ntype UnionToTuple<U> = /* 实现 */;\ntype UnionToIntersection<U> = /* 实现 */;\ntype GetRequired<T> = /* 实现 */;\ntype GetOptional<T> = /* 实现 */;\n\n// 测试用例\ntype Test1 = TupleToUnion<[1, 2, 3]>; // 1 | 2 | 3\ntype Test2 = UnionToIntersection<{ a: 1 } | { b: 2 }>; // { a: 1 } & { b: 2 }\ntype Test3 = GetRequired<{ a: 1; b?: 2 }>; // 'a'\ntype Test4 = GetOptional<{ a: 1; b?: 2 }>; // 'b'",
-      "code_template": "type TupleToUnion<T extends any[]> = /* 实现 */;\ntype UnionToTuple<U> = /* 实现 */;\ntype UnionToIntersection<U> = /* 实现 */;\ntype GetRequired<T> = /* 实现 */;\ntype GetOptional<T> = /* 实现 */;\n\n// 测试用例\ntype Test1 = TupleToUnion<[1, 2, 3]>; // 1 | 2 | 3\ntype Test2 = UnionToIntersection<{ a: 1 } | { b: 2 }>; // { a: 1 } & { b: 2 }\ntype Test3 = GetRequired<{ a: 1; b?: 2 }>; // 'a'\ntype Test4 = GetOptional<{ a: 1; b?: 2 }>; // 'b'",
+      "content": "实现TypeScript工具类型：\n1. TupleToUnion<T>: 将元组类型转为联合类型\n2. UnionToTuple<U>: 将联合类型转为元组类型（高难度）\n3. UnionToIntersection<U>: 将联合类型转为交叉类型\n4. GetRequired<T>: 获取类型中所有必需属性的键\n5. GetOptional<T>: 获取类型中所有可选属性的键\ntype TupleToUnion<T extends any[]> = /* 实现 */;\ntype UnionToTuple<U> = /* 实现 */;\ntype UnionToIntersection<U> = /* 实现 */;\ntype GetRequired<T> = /* 实现 */;\ntype GetOptional<T> = /* 实现 */;\n// 测试用例\ntype Test1 = TupleToUnion<[1, 2, 3]>; // 1 | 2 | 3\ntype Test2 = UnionToIntersection<{ a: 1 } | { b: 2 }>; // { a: 1 } & { b: 2 }\ntype Test3 = GetRequired<{ a: 1; b?: 2 }>; // 'a'\ntype Test4 = GetOptional<{ a: 1; b?: 2 }>; // 'b'",
+      "code_template": "type TupleToUnion<T extends any[]> = /* 实现 */;\ntype UnionToTuple<U> = /* 实现 */;\ntype UnionToIntersection<U> = /* 实现 */;\ntype GetRequired<T> = /* 实现 */;\ntype GetOptional<T> = /* 实现 */;\n// 测试用例\ntype Test1 = TupleToUnion<[1, 2, 3]>; // 1 | 2 | 3\ntype Test2 = UnionToIntersection<{ a: 1 } | { b: 2 }>; // { a: 1 } & { b: 2 }\ntype Test3 = GetRequired<{ a: 1; b?: 2 }>; // 'a'\ntype Test4 = GetOptional<{ a: 1; b?: 2 }>; // 'b'",
       "test_cases": [
         {
           "input": "{ a: 1, b: { c: 2 } }",
@@ -5869,13 +5009,10 @@
       ],
       "time_complexity": "O(n)",
       "space_complexity": "O(n)",
-      "constraints": [
-        "代码需通过所有测试用例",
-        "注意边界条件处理"
-      ],
-      "reference_solution": "// 1. TupleToUnion\ntype TupleToUnion<T extends any[]> = T extends (infer U)[] ? U : never;\n// 或更简单\ntype TupleToUnion<T extends any[]> = T[number];\n\n// 2. UnionToTuple（简化版，完整实现需要更复杂的技巧）\ntype UnionToTuple<U, Last = LastOfUnion<U>> = \n  [U] extends [never] ? [] : \n  [...UnionToTuple<Exclude<U, Last>>, Last];\n\ntype LastOfUnion<U> = \n  UnionToIntersection<U extends any ? () => U : never> extends () => infer R ? R : never;\n\n// 3. UnionToIntersection\ntype UnionToIntersection<U> = \n  (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;\n\n// 4. GetRequired\ntype GetRequired<T> = {\n  [K in keyof T as {} extends Pick<T, K> ? never : K]: T[K]\n}[keyof T];\n\n// 或使用另一种方式\ntype GetRequiredKeys<T> = keyof {\n  [K in keyof T as T extends { [_ in K]: T[K] } ? K : never]: T[K]\n};\n\n// 5. GetOptional\ntype GetOptional<T> = {\n  [K in keyof T as {} extends Pick<T, K> ? K : never]: T[K]\n}[keyof T];",
+      "constraints": ["代码需通过所有测试用例", "注意边界条件处理"],
+      "reference_solution": "// 1. TupleToUnion\ntype TupleToUnion<T extends any[]> = T extends (infer U)[] ? U : never;\n// 或更简单\ntype TupleToUnion<T extends any[]> = T[number];\n// 2. UnionToTuple（简化版，完整实现需要更复杂的技巧）\ntype UnionToTuple<U, Last = LastOfUnion<U>> = \n  [U] extends [never] ? [] : \n  [...UnionToTuple<Exclude<U, Last>>, Last];\ntype LastOfUnion<U> = \n  UnionToIntersection<U extends any ? () => U : never> extends () => infer R ? R : never;\n// 3. UnionToIntersection\ntype UnionToIntersection<U> = \n  (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;\n// 4. GetRequired\ntype GetRequired<T> = {\n  [K in keyof T as {} extends Pick<T, K> ? never : K]: T[K]\n}[keyof T];\n// 或使用另一种方式\ntype GetRequiredKeys<T> = keyof {\n  [K in keyof T as T extends { [_ in K]: T[K] } ? K : never]: T[K]\n};\n// 5. GetOptional\ntype GetOptional<T> = {\n  [K in keyof T as {} extends Pick<T, K> ? K : never]: T[K]\n}[keyof T];",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_类型体操",
       "reference_link": "TypeScript官方文档: Type Manipulation, Conditional Types"
     },
@@ -5883,17 +5020,12 @@
       "id": "js-senior-140",
       "type": "algorithm",
       "difficulty": "senior",
-      "tags": [
-        "响应式",
-        "Proxy",
-        "依赖收集",
-        "Vue原理"
-      ],
+      "tags": ["响应式", "Proxy", "依赖收集", "Vue原理"],
       "source_company": "OpenSource",
       "score": 15,
       "title": "实现响应式数据绑定系统，支持： 1...",
-      "content": "实现响应式数据绑定系统，支持：\n1. reactive(obj): 创建响应式对象\n2. effect(fn): 自动追踪依赖，响应式数据变化时重新执行\n3. computed(getter): 创建计算属性，惰性求值，缓存结果\n4. 支持嵌套effect（effect栈）\n5. 支持对象嵌套（深层响应式）\n\nfunction reactive(target) { /* 实现 */ }\nfunction effect(fn) { /* 实现 */ }\nfunction computed(getter) { /* 实现 */ }\n\n// 测试用例\nconst state = reactive({ count: 0, nested: { value: 1 } });\n\neffect(() => {\n  console.log('count:', state.count);\n}); // 立即输出: count: 0\n\nstate.count++; // 输出: count: 1\n\nconst double = computed(() => state.count * 2);\nconsole.log(double.value); // 2",
-      "code_template": "function reactive(target) { /* 实现 */ }\nfunction effect(fn) { /* 实现 */ }\nfunction computed(getter) { /* 实现 */ }\n\n// 测试用例\nconst state = reactive({ count: 0, nested: { value: 1 } });\n\neffect(() => {\n  console.log('count:', state.count);\n}); // 立即输出: count: 0\n\nstate.count++; // 输出: count: 1\n\nconst double = computed(() => state.count * 2);\nconsole.log(double.value); // 2",
+      "content": "实现响应式数据绑定系统，支持：\n1. reactive(obj): 创建响应式对象\n2. effect(fn): 自动追踪依赖，响应式数据变化时重新执行\n3. computed(getter): 创建计算属性，惰性求值，缓存结果\n4. 支持嵌套effect（effect栈）\n5. 支持对象嵌套（深层响应式）\nfunction reactive(target) { /* 实现 */ }\nfunction effect(fn) { /* 实现 */ }\nfunction computed(getter) { /* 实现 */ }\n// 测试用例\nconst state = reactive({ count: 0, nested: { value: 1 } });\neffect(() => {\n  console.log('count:', state.count);\n}); // 立即输出: count: 0\nstate.count++; // 输出: count: 1\nconst double = computed(() => state.count * 2);\nconsole.log(double.value); // 2",
+      "code_template": "function reactive(target) { /* 实现 */ }\nfunction effect(fn) { /* 实现 */ }\nfunction computed(getter) { /* 实现 */ }\n// 测试用例\nconst state = reactive({ count: 0, nested: { value: 1 } });\neffect(() => {\n  console.log('count:', state.count);\n}); // 立即输出: count: 0\nstate.count++; // 输出: count: 1\nconst double = computed(() => state.count * 2);\nconsole.log(double.value); // 2",
       "test_cases": [
         {
           "input": "reactive({ count: 0 }); count++",
@@ -5918,13 +5050,10 @@
       ],
       "time_complexity": "O(n)",
       "space_complexity": "O(n)",
-      "constraints": [
-        "代码需通过所有测试用例",
-        "注意边界条件处理"
-      ],
-      "reference_solution": "let activeEffect = null;\nconst effectStack = [];\nconst targetMap = new WeakMap();\n\nfunction reactive(target) {\n  if (typeof target !== 'object' || target === null) return target;\n  \n  return new Proxy(target, {\n    get(target, key, receiver) {\n      const result = Reflect.get(target, key, receiver);\n      track(target, key);\n      return typeof result === 'object' && result !== null \n        ? reactive(result) \n        : result;\n    },\n    set(target, key, value, receiver) {\n      const oldValue = Reflect.get(target, key, receiver);\n      const result = Reflect.set(target, key, value, receiver);\n      if (oldValue !== value) {\n        trigger(target, key);\n      }\n      return result;\n    }\n  });\n}\n\nfunction track(target, key) {\n  if (!activeEffect) return;\n  \n  let depsMap = targetMap.get(target);\n  if (!depsMap) {\n    targetMap.set(target, (depsMap = new Map()));\n  }\n  \n  let dep = depsMap.get(key);\n  if (!dep) {\n    depsMap.set(key, (dep = new Set()));\n  }\n  \n  dep.add(activeEffect);\n}\n\nfunction trigger(target, key) {\n  const depsMap = targetMap.get(target);\n  if (!depsMap) return;\n  \n  const dep = depsMap.get(key);\n  if (dep) {\n    const effects = [...dep];\n    effects.forEach(effect => {\n      if (effect !== activeEffect) {\n        effect();\n      }\n    });\n  }\n}\n\nfunction effect(fn) {\n  const effectFn = () => {\n    cleanup(effectFn);\n    effectStack.push(effectFn);\n    activeEffect = effectFn;\n    try {\n      fn();\n    } finally {\n      effectStack.pop();\n      activeEffect = effectStack[effectStack.length - 1];\n    }\n  };\n  effectFn.deps = [];\n  effectFn();\n}\n\nfunction cleanup(effectFn) {\n  effectFn.deps.forEach(dep => dep.delete(effectFn));\n  effectFn.deps = [];\n}\n\nfunction computed(getter) {\n  let cachedValue;\n  let dirty = true;\n  \n  const effectFn = effect(() => {\n    if (dirty) {\n      cachedValue = getter();\n      dirty = false;\n    }\n  });\n  \n  return {\n    get value() {\n      if (dirty) {\n        cachedValue = getter();\n        dirty = false;\n      }\n      return cachedValue;\n    }\n  };\n}",
+      "constraints": ["代码需通过所有测试用例", "注意边界条件处理"],
+      "reference_solution": "let activeEffect = null;\nconst effectStack = [];\nconst targetMap = new WeakMap();\nfunction reactive(target) {\n  if (typeof target !== 'object' || target === null) return target;\n  \n  return new Proxy(target, {\n    get(target, key, receiver) {\n      const result = Reflect.get(target, key, receiver);\n      track(target, key);\n      return typeof result === 'object' && result !== null \n        ? reactive(result) \n        : result;\n    },\n    set(target, key, value, receiver) {\n      const oldValue = Reflect.get(target, key, receiver);\n      const result = Reflect.set(target, key, value, receiver);\n      if (oldValue !== value) {\n        trigger(target, key);\n      }\n      return result;\n    }\n  });\n}\nfunction track(target, key) {\n  if (!activeEffect) return;\n  \n  let depsMap = targetMap.get(target);\n  if (!depsMap) {\n    targetMap.set(target, (depsMap = new Map()));\n  }\n  \n  let dep = depsMap.get(key);\n  if (!dep) {\n    depsMap.set(key, (dep = new Set()));\n  }\n  \n  dep.add(activeEffect);\n}\nfunction trigger(target, key) {\n  const depsMap = targetMap.get(target);\n  if (!depsMap) return;\n  \n  const dep = depsMap.get(key);\n  if (dep) {\n    const effects = [...dep];\n    effects.forEach(effect => {\n      if (effect !== activeEffect) {\n        effect();\n      }\n    });\n  }\n}\nfunction effect(fn) {\n  const effectFn = () => {\n    cleanup(effectFn);\n    effectStack.push(effectFn);\n    activeEffect = effectFn;\n    try {\n      fn();\n    } finally {\n      effectStack.pop();\n      activeEffect = effectStack[effectStack.length - 1];\n    }\n  };\n  effectFn.deps = [];\n  effectFn();\n}\nfunction cleanup(effectFn) {\n  effectFn.deps.forEach(dep => dep.delete(effectFn));\n  effectFn.deps = [];\n}\nfunction computed(getter) {\n  let cachedValue;\n  let dirty = true;\n  \n  const effectFn = effect(() => {\n    if (dirty) {\n      cachedValue = getter();\n      dirty = false;\n    }\n  });\n  \n  return {\n    get value() {\n      if (dirty) {\n        cachedValue = getter();\n        dirty = false;\n      }\n      return cachedValue;\n    }\n  };\n}",
       "correct_answer": "见参考实现代码",
-      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
+      "explanation": "本题考察核心能力：代码实现与工程实践能力。\n解题思路与分析：\n1. 理解题目需求，明确输入输出规格和边界条件\n2. 设计算法思路，考虑时间空间复杂度权衡\n3. 处理边界条件和异常情况，保证代码健壮性\n4. 编写清晰可维护的代码，注意变量命名和注释\n关键实现要点：\n- 需要正确处理各种边界情况，如空输入、极端值等\n- 代码应具有良好的可读性和可维护性\n- 注意性能优化，满足复杂度要求（O(n)时间，O(n)空间）\n- 测试用例需要覆盖正常场景、边界场景、异常场景\n工程实践建议：\n- 优先保证正确性，再考虑优化\n- 使用清晰的变量命名和必要的注释\n- 考虑代码的可测试性和可扩展性\n- 参考实现仅供面试官校验使用",
       "knowledge_point": "编程实践_观察者模式",
       "reference_link": "Vue 3源码: reactivity, Proxy-based reactivity"
     }

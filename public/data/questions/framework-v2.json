@@ -894,7 +894,7 @@
       "score": 15,
       "title": "实现自定义 useDebounce Hook",
       "content": "请实现一个 React Hook `useDebounce`，用于防抖值的变化。要求支持取消功能，且正确处理闭包问题。",
-      "code_template": "import { useEffect, useState, useRef } from 'react';\n\nfunction useDebounce<T>(value: T, delay: number): [T, () => void] {\n  // 请在此处实现\n  // 返回 [debouncedValue, cancelFunction]\n  return [value, () => {}];\n}",
+      "code_template": "import { useEffect, useState, useRef } from 'react';\nfunction useDebounce<T>(value: T, delay: number): [T, () => void] {\n  // 请在此处实现\n  // 返回 [debouncedValue, cancelFunction]\n  return [value, () => {}];\n}",
       "test_cases": [
         {
           "input": "value='test', delay=500, 快速变化 3 次",
@@ -931,7 +931,7 @@
       "score": 15,
       "title": "实现迷你响应式系统",
       "content": "请使用 Proxy 实现一个迷你响应式系统 `reactive`，支持嵌套对象监听和依赖收集。",
-      "code_template": "type Dep = Set<() => void>;\n\nfunction reactive<T extends object>(obj: T): T {\n  // 请实现 Proxy 拦截 get/set\n  // 需包含 track 和 trigger 逻辑\n  return obj;\n}",
+      "code_template": "type Dep = Set<() => void>;\nfunction reactive<T extends object>(obj: T): T {\n  // 请实现 Proxy 拦截 get/set\n  // 需包含 track 和 trigger 逻辑\n  return obj;\n}",
       "test_cases": [
         {
           "input": "修改嵌套对象属性",
@@ -967,7 +967,7 @@
       "score": 15,
       "title": "实现简化版 Diff 算法",
       "content": "实现一个函数 `diff(oldVNode, newVNode)`，返回需要执行的 DOM 操作补丁数组。仅考虑同层节点对比。",
-      "code_template": "interface VNode {\n  tag: string;\n  props: Record<string, any>;\n  children: VNode[];\n}\n\ninterface Patch {\n  type: 'REPLACE' | 'PROPS' | 'CHILDREN';\n  target: any;\n  value: any;\n}\n\nfunction diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {\n  // 请实现对比逻辑\n  return [];\n}",
+      "code_template": "interface VNode {\n  tag: string;\n  props: Record<string, any>;\n  children: VNode[];\n}\ninterface Patch {\n  type: 'REPLACE' | 'PROPS' | 'CHILDREN';\n  target: any;\n  value: any;\n}\nfunction diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {\n  // 请实现对比逻辑\n  return [];\n}",
       "test_cases": [
         {
           "input": "标签名变化",
@@ -1165,7 +1165,7 @@
       "score": 15,
       "title": "实现 usePrevious Hook",
       "content": "实现一个 React Hook `usePrevious`，用于获取上一次渲染时的 props 或 state 值。",
-      "code_template": "import { useRef, useEffect } from 'react';\n\nfunction usePrevious<T>(value: T): T | undefined {\n  // 请在此处实现\n  // 返回上一次渲染的 value\n  return undefined;\n}",
+      "code_template": "import { useRef, useEffect } from 'react';\nfunction usePrevious<T>(value: T): T | undefined {\n  // 请在此处实现\n  // 返回上一次渲染的 value\n  return undefined;\n}",
       "test_cases": [
         {
           "input": "value 从 1 变 2",
@@ -1333,7 +1333,7 @@
       "score": 15,
       "title": "实现简易虚拟列表",
       "content": "实现一个函数 `calculateVisibleItems`，根据滚动位置和 item 高度计算可见区域应渲染的项。",
-      "code_template": "interface ViewPort {\n  scrollTop: number;\n  height: number;\n}\n\nfunction calculateVisibleItems(\n  total: number,\n  itemHeight: number,\n  viewport: ViewPort\n): { start: number; end: number } {\n  // 请实现计算逻辑\n  return { start: 0, end: 0 };\n}",
+      "code_template": "interface ViewPort {\n  scrollTop: number;\n  height: number;\n}\nfunction calculateVisibleItems(\n  total: number,\n  itemHeight: number,\n  viewport: ViewPort\n): { start: number; end: number } {\n  // 请实现计算逻辑\n  return { start: 0, end: 0 };\n}",
       "test_cases": [
         {
           "input": "scrollTop=0, height=500, itemHeight=50, total=100",
@@ -1502,7 +1502,7 @@
       "score": 12,
       "title": "实现简易事件总线",
       "content": "实现一个类型安全的 EventEmitter 类，支持 on, off, emit 方法。",
-      "code_template": "type EventHandler = (...args: any[]) => void;\n\nclass EventEmitter {\n  // 请实现内部存储和方法\n  on(event: string, handler: EventHandler): void {}\n  off(event: string, handler: EventHandler): void {}\n  emit(event: string, ...args: any[]): void {}\n}",
+      "code_template": "type EventHandler = (...args: any[]) => void;\nclass EventEmitter {\n  // 请实现内部存储和方法\n  on(event: string, handler: EventHandler): void {}\n  off(event: string, handler: EventHandler): void {}\n  emit(event: string, ...args: any[]): void {}\n}",
       "test_cases": [
         {
           "input": "订阅事件 A，触发 A",
@@ -1839,7 +1839,7 @@
       "score": 15,
       "title": "实现迷你 Redux Store",
       "content": "实现一个简化版 Redux `createStore`，支持 getState, dispatch, subscribe。",
-      "code_template": "type Reducer<T> = (state: T, action: any) => T;\ntype Listener = () => void;\n\nfunction createStore<T>(reducer: Reducer<T>, preloadedState?: T) {\n  // 请实现 store 对象\n  return {\n    getState: () => {},\n    dispatch: (action: any) => {},\n    subscribe: (listener: Listener) => {}\n  };\n}",
+      "code_template": "type Reducer<T> = (state: T, action: any) => T;\ntype Listener = () => void;\nfunction createStore<T>(reducer: Reducer<T>, preloadedState?: T) {\n  // 请实现 store 对象\n  return {\n    getState: () => {},\n    dispatch: (action: any) => {},\n    subscribe: (listener: Listener) => {}\n  };\n}",
       "test_cases": [
         {
           "input": "dispatch action",
@@ -2186,7 +2186,7 @@
       "score": 15,
       "title": "实现简易路径匹配",
       "content": "实现一个函数 `matchPath`，支持动态路由参数匹配（如 /user/:id）。",
-      "code_template": "interface MatchResult {\n  matched: boolean;\n  params?: Record<string, string>;\n}\n\nfunction matchPath(pattern: string, path: string): MatchResult {\n  // 请实现匹配逻辑\n  // 支持 :param 语法\n  return { matched: false };\n}",
+      "code_template": "interface MatchResult {\n  matched: boolean;\n  params?: Record<string, string>;\n}\nfunction matchPath(pattern: string, path: string): MatchResult {\n  // 请实现匹配逻辑\n  // 支持 :param 语法\n  return { matched: false };\n}",
       "test_cases": [
         {
           "input": "pattern='/user/:id', path='/user/123'",
@@ -3048,7 +3048,7 @@
       "score": 15,
       "title": "模拟事件循环执行顺序",
       "content": "实现一个函数 `runEventLoop`，输入任务队列，输出执行顺序。区分宏任务和微任务。",
-      "code_template": "type Task = { type: 'macro' | 'micro'; id: number; };\n\nfunction runEventLoop(tasks: Task[]): number[] {\n  // 请实现调度逻辑\n  // 微任务优先于宏任务执行\n  return [];\n}",
+      "code_template": "type Task = { type: 'macro' | 'micro'; id: number; };\nfunction runEventLoop(tasks: Task[]): number[] {\n  // 请实现调度逻辑\n  // 微任务优先于宏任务执行\n  return [];\n}",
       "test_cases": [
         {
           "input": "[{macro:1}, {micro:2}, {macro:3}]",
@@ -3155,7 +3155,7 @@
       "score": 15,
       "title": "实现 useRenderCount Hook",
       "content": "实现一个 Hook `useRenderCount`，用于调试组件渲染次数。",
-      "code_template": "import { useRef, useEffect } from 'react';\n\nfunction useRenderCount(): number {\n  // 请实现逻辑\n  // 返回当前组件渲染次数\n  return 0;\n}",
+      "code_template": "import { useRef, useEffect } from 'react';\nfunction useRenderCount(): number {\n  // 请实现逻辑\n  // 返回当前组件渲染次数\n  return 0;\n}",
       "test_cases": [
         {
           "input": "组件首次挂载",
@@ -3324,7 +3324,7 @@
       "score": 15,
       "title": "模拟批量更新机制",
       "content": "实现一个简易 `batchUpdates` 函数，将多次 setState 合并为一次渲染。",
-      "code_template": "type Callback = () => void;\n\nfunction batchUpdates(callback: Callback): void {\n  // 请实现逻辑\n  // 需维护一个批量标记\n}",
+      "code_template": "type Callback = () => void;\nfunction batchUpdates(callback: Callback): void {\n  // 请实现逻辑\n  // 需维护一个批量标记\n}",
       "test_cases": [
         {
           "input": "回调内调用 3 次 setState",
@@ -3493,7 +3493,7 @@
       "score": 15,
       "title": "实现 useDeepCompareEffect",
       "content": "实现一个 Hook `useDeepCompareEffect`，仅当依赖项深度相等时不执行。",
-      "code_template": "import { useEffect, useRef } from 'react';\n\nfunction useDeepCompareEffect(\n  callback: () => void,\n  dependencies: any[]\n) {\n  // 请实现深度对比逻辑\n}",
+      "code_template": "import { useEffect, useRef } from 'react';\nfunction useDeepCompareEffect(\n  callback: () => void,\n  dependencies: any[]\n) {\n  // 请实现深度对比逻辑\n}",
       "test_cases": [
         {
           "input": "依赖对象内容不变但引用变",
@@ -4174,7 +4174,7 @@
       "score": 15,
       "title": "实现简易优先级调度器",
       "content": "实现一个函数 `scheduleWork`，支持按优先级执行任务，高优先级可打断低优先级。",
-      "code_template": "type Task = { id: number; priority: number; callback: () => void; };\n\nclass Scheduler {\n  private queue: Task[] = [];\n  \n  schedule(task: Task): void {\n    // 请实现插入逻辑，按优先级排序\n  }\n  \n  run(): void {\n    // 请实现执行逻辑，高优先级先执行\n  }\n}",
+      "code_template": "type Task = { id: number; priority: number; callback: () => void; };\nclass Scheduler {\n  private queue: Task[] = [];\n  \n  schedule(task: Task): void {\n    // 请实现插入逻辑，按优先级排序\n  }\n  \n  run(): void {\n    // 请实现执行逻辑，高优先级先执行\n  }\n}",
       "test_cases": [
         {
           "input": "插入低优先级任务 A，再插入高优先级任务 B",
@@ -5192,7 +5192,7 @@
       "score": 15,
       "title": "实现深度链接解析器",
       "content": "实现一个函数 `parseDeepLink`，解析 App 深度链接并转换为前端路由参数。",
-      "code_template": "interface DeepLinkResult {\n  route: string;\n  params: Record<string, string>;\n  query: Record<string, string>;\n}\n\nfunction parseDeepLink(url: string, scheme: string): DeepLinkResult | null {\n  // 请实现解析逻辑\n  // 支持 scheme://host/path?query 格式\n  return null;\n}",
+      "code_template": "interface DeepLinkResult {\n  route: string;\n  params: Record<string, string>;\n  query: Record<string, string>;\n}\nfunction parseDeepLink(url: string, scheme: string): DeepLinkResult | null {\n  // 请实现解析逻辑\n  // 支持 scheme://host/path?query 格式\n  return null;\n}",
       "test_cases": [
         {
           "input": "scheme='myapp', url='myapp://user/123?from=notification'",
@@ -5301,7 +5301,7 @@
       "score": 15,
       "title": "实现复合组件 Select",
       "content": "使用复合组件模式实现一个 Select 组件，支持 <Select><Option value=\"1\">A</Option></Select> 语法。",
-      "code_template": "// 请实现 Select 和 Option 组件\n// 要求：\n// 1. Select 管理选中状态\n// 2. Option 通过 Context 注册自己\n// 3. 点击 Option 更新 Select 状态\n// 4. 支持键盘导航\n\ninterface SelectContextType {\n  selectedValue: any;\n  onSelect: (value: any) => void;\n  registerOption: (option: { value: any; label: string }) => void;\n}",
+      "code_template": "// 请实现 Select 和 Option 组件\n// 要求：\n// 1. Select 管理选中状态\n// 2. Option 通过 Context 注册自己\n// 3. 点击 Option 更新 Select 状态\n// 4. 支持键盘导航\ninterface SelectContextType {\n  selectedValue: any;\n  onSelect: (value: any) => void;\n  registerOption: (option: { value: any; label: string }) => void;\n}",
       "test_cases": [
         {
           "input": "点击 Option",
@@ -5447,7 +5447,7 @@
       "score": 15,
       "title": "实现 JSBridge 通信层",
       "content": "实现一个 JSBridge 类，支持 H5 与 Native 双向通信，包含调用、回调、超时处理。",
-      "code_template": "interface BridgeCall {\n  module: string;\n  method: string;\n  params: any;\n  callbackId: string;\n}\n\nclass JSBridge {\n  private callbacks: Map<string, (result: any) => void> = new Map();\n  \n  // H5 调用 Native\n  call(module: string, method: string, params: any, callback?: (result: any) => void): void {\n    // 请实现\n  }\n  \n  // Native 回调 H5\n  onCallback(callbackId: string, result: any): void {\n    // 请实现\n  }\n}",
+      "code_template": "interface BridgeCall {\n  module: string;\n  method: string;\n  params: any;\n  callbackId: string;\n}\nclass JSBridge {\n  private callbacks: Map<string, (result: any) => void> = new Map();\n  \n  // H5 调用 Native\n  call(module: string, method: string, params: any, callback?: (result: any) => void): void {\n    // 请实现\n  }\n  \n  // Native 回调 H5\n  onCallback(callbackId: string, result: any): void {\n    // 请实现\n  }\n}",
       "test_cases": [
         {
           "input": "H5 调用 Native 方法",
@@ -5557,7 +5557,7 @@
       "score": 15,
       "title": "实现前端监控 SDK 核心",
       "content": "实现一个简化版监控 SDK，支持错误捕获和性能数据上报。",
-      "code_template": "interface MonitorConfig {\n  appId: string;\n  reportUrl: string;\n  sampleRate?: number;\n}\n\nclass FrontendMonitor {\n  constructor(config: MonitorConfig) {}\n  \n  // 捕获错误\n  captureError(error: Error, extra?: Record<string, any>): void {\n    // 请实现\n  }\n  \n  // 上报性能数据\n  reportPerformance(metrics: Record<string, number>): void {\n    // 请实现\n  }\n  \n  // 批量上报\n  flush(): void {\n    // 请实现\n  }\n}",
+      "code_template": "interface MonitorConfig {\n  appId: string;\n  reportUrl: string;\n  sampleRate?: number;\n}\nclass FrontendMonitor {\n  constructor(config: MonitorConfig) {}\n  \n  // 捕获错误\n  captureError(error: Error, extra?: Record<string, any>): void {\n    // 请实现\n  }\n  \n  // 上报性能数据\n  reportPerformance(metrics: Record<string, number>): void {\n    // 请实现\n  }\n  \n  // 批量上报\n  flush(): void {\n    // 请实现\n  }\n}",
       "test_cases": [
         {
           "input": "捕获 JS 错误",
@@ -5702,7 +5702,7 @@
       "score": 15,
       "title": "实现双框架共存适配器",
       "content": "实现一个适配器，使 Vue2 组件能在 Vue3 项目中运行（简化版）。",
-      "code_template": "// 请实现一个包装函数\n// 使 Vue2 选项式 API 组件能在 Vue3 中挂载\n\nfunction createVue2Adapter(vue2Component: any): any {\n  // 请实现适配逻辑\n  // 需处理生命周期、props、events 的兼容\n  return {};\n}",
+      "code_template": "// 请实现一个包装函数\n// 使 Vue2 选项式 API 组件能在 Vue3 中挂载\nfunction createVue2Adapter(vue2Component: any): any {\n  // 请实现适配逻辑\n  // 需处理生命周期、props、events 的兼容\n  return {};\n}",
       "test_cases": [
         {
           "input": "Vue2 组件含 data/methods",
@@ -5933,7 +5933,7 @@
       "score": 15,
       "title": "实现上报采样器",
       "content": "实现一个采样器，按配置比例上报数据，支持白名单全量上报。",
-      "code_template": "interface SamplerConfig {\n  sampleRate: number; // 0-1\n  whitelist?: string[]; // 全量上报的 userId 或特征\n}\n\nclass Sampler {\n  constructor(config: SamplerConfig) {}\n  \n  shouldReport(userId?: string): boolean {\n    // 请实现采样逻辑\n    return false;\n  }\n}",
+      "code_template": "interface SamplerConfig {\n  sampleRate: number; // 0-1\n  whitelist?: string[]; // 全量上报的 userId 或特征\n}\nclass Sampler {\n  constructor(config: SamplerConfig) {}\n  \n  shouldReport(userId?: string): boolean {\n    // 请实现采样逻辑\n    return false;\n  }\n}",
       "test_cases": [
         {
           "input": "sampleRate=0.1, 普通用户",
@@ -6101,7 +6101,7 @@
       "score": 15,
       "title": "实现动态路由权限控制",
       "content": "实现一个函数 `filterRoutesByPermission`，根据用户权限过滤路由表。",
-      "code_template": "interface Route {\n  path: string;\n  permission?: string;\n  children?: Route[];\n}\n\nfunction filterRoutesByPermission(\n  routes: Route[],\n  permissions: string[]\n): Route[] {\n  // 请实现递归过滤逻辑\n  // 无 permission 或 permission 在列表中则保留\n  return [];\n}",
+      "code_template": "interface Route {\n  path: string;\n  permission?: string;\n  children?: Route[];\n}\nfunction filterRoutesByPermission(\n  routes: Route[],\n  permissions: string[]\n): Route[] {\n  // 请实现递归过滤逻辑\n  // 无 permission 或 permission 在列表中则保留\n  return [];\n}",
       "test_cases": [
         {
           "input": "routes 含权限，permissions 匹配",
@@ -6245,7 +6245,7 @@
       "score": 15,
       "title": "实现简化版 useState",
       "content": "实现一个简化版 useState Hook，理解 Hooks 链表存储原理。",
-      "code_template": "interface HookNode {\n  memoizedState: any;\n  next: HookNode | null;\n}\n\nlet currentHook: HookNode | null = null;\nlet firstHook: HookNode | null = null;\n\nfunction useState<T>(initialState: T): [T, (newState: T) => void] {\n  // 请实现逻辑\n  // 需维护 Hook 链表\n  // 返回 [state, setState]\n  return [initialState as T, () => {}];\n}",
+      "code_template": "interface HookNode {\n  memoizedState: any;\n  next: HookNode | null;\n}\nlet currentHook: HookNode | null = null;\nlet firstHook: HookNode | null = null;\nfunction useState<T>(initialState: T): [T, (newState: T) => void] {\n  // 请实现逻辑\n  // 需维护 Hook 链表\n  // 返回 [state, setState]\n  return [initialState as T, () => {}];\n}",
       "test_cases": [
         {
           "input": "首次调用 useState(0)",
@@ -6413,7 +6413,7 @@
       "score": 15,
       "title": "实现依赖收集系统",
       "content": "实现 Vue 风格的依赖收集系统，包含 track 和 trigger 函数。",
-      "code_template": "type Dep = Set<() => void>;\ntype KeyToDepMap = Map<any, Dep>;\n\nconst targetMap = new WeakMap<any, KeyToDepMap>();\nlet activeEffect: (() => void) | null = null;\n\nfunction track(target: object, key: string | symbol): void {\n  // 请实现依赖收集\n}\n\nfunction trigger(target: object, key: string | symbol): void {\n  // 请实现触发更新\n}",
+      "code_template": "type Dep = Set<() => void>;\ntype KeyToDepMap = Map<any, Dep>;\nconst targetMap = new WeakMap<any, KeyToDepMap>();\nlet activeEffect: (() => void) | null = null;\nfunction track(target: object, key: string | symbol): void {\n  // 请实现依赖收集\n}\nfunction trigger(target: object, key: string | symbol): void {\n  // 请实现触发更新\n}",
       "test_cases": [
         {
           "input": "effect 中读取 target.key，调用 track",
@@ -6582,7 +6582,7 @@
       "score": 15,
       "title": "实现 Fiber 节点创建",
       "content": "实现一个简化版 Fiber 节点创建函数，理解 Fiber 数据结构。",
-      "code_template": "interface FiberNode {\n  tag: number; // 节点类型\n  key: string | null;\n  type: any; // 组件类型\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  return: FiberNode | null;\n  props: any;\n  stateNode: any; // DOM 实例\n}\n\nfunction createFiber(\n  tag: number,\n  key: string | null,\n  type: any,\n  props: any\n): FiberNode {\n  // 请实现 Fiber 节点创建\n  return {} as FiberNode;\n}",
+      "code_template": "interface FiberNode {\n  tag: number; // 节点类型\n  key: string | null;\n  type: any; // 组件类型\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  return: FiberNode | null;\n  props: any;\n  stateNode: any; // DOM 实例\n}\nfunction createFiber(\n  tag: number,\n  key: string | null,\n  type: any,\n  props: any\n): FiberNode {\n  // 请实现 Fiber 节点创建\n  return {} as FiberNode;\n}",
       "test_cases": [
         {
           "input": "创建 DOM 类型 Fiber",
@@ -6751,7 +6751,7 @@
       "score": 15,
       "title": "实现计算属性缓存",
       "content": "实现一个简化版 computed，支持依赖缓存和脏检查。",
-      "code_template": "interface ComputedRef<T> {\n  value: T;\n  _dirty: boolean;\n  _value: T | undefined;\n  effect: () => void;\n}\n\nfunction computed<T>(getter: () => T): ComputedRef<T> {\n  // 请实现逻辑\n  // 需支持缓存\n  // 依赖变化时标记_dirty\n  return {} as ComputedRef<T>;\n}",
+      "code_template": "interface ComputedRef<T> {\n  value: T;\n  _dirty: boolean;\n  _value: T | undefined;\n  effect: () => void;\n}\nfunction computed<T>(getter: () => T): ComputedRef<T> {\n  // 请实现逻辑\n  // 需支持缓存\n  // 依赖变化时标记_dirty\n  return {} as ComputedRef<T>;\n}",
       "test_cases": [
         {
           "input": "首次访问.value",
@@ -6919,7 +6919,7 @@
       "score": 15,
       "title": "实现简化版 WorkLoop",
       "content": "实现一个简化版 React WorkLoop，理解调度与执行流程。",
-      "code_template": "interface FiberNode {\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  workInProgress: boolean;\n}\n\nlet workInProgress: FiberNode | null = null;\n\nfunction workLoop(): void {\n  // 请实现遍历逻辑\n  // 需处理 child/sibling/return 指针\n  // 模拟可中断调度\n}",
+      "code_template": "interface FiberNode {\n  child: FiberNode | null;\n  sibling: FiberNode | null;\n  workInProgress: boolean;\n}\nlet workInProgress: FiberNode | null = null;\nfunction workLoop(): void {\n  // 请实现遍历逻辑\n  // 需处理 child/sibling/return 指针\n  // 模拟可中断调度\n}",
       "test_cases": [
         {
           "input": "遍历 Fiber 树",
@@ -7088,7 +7088,7 @@
       "score": 15,
       "title": "实现 watch 效果函数",
       "content": "实现一个简化版 watch，监听响应式数据变化并执行回调。",
-      "code_template": "interface WatchOptions {\n  deep?: boolean;\n  immediate?: boolean;\n  flush?: 'pre' | 'post' | 'sync';\n}\n\nfunction watch<T>(\n  source: () => T,\n  callback: (newVal: T, oldVal: T) => void,\n  options?: WatchOptions\n): () => void {\n  // 请实现逻辑\n  // 需支持依赖追踪\n  // 需支持回调执行时机\n  return () => {};\n}",
+      "code_template": "interface WatchOptions {\n  deep?: boolean;\n  immediate?: boolean;\n  flush?: 'pre' | 'post' | 'sync';\n}\nfunction watch<T>(\n  source: () => T,\n  callback: (newVal: T, oldVal: T) => void,\n  options?: WatchOptions\n): () => void {\n  // 请实现逻辑\n  // 需支持依赖追踪\n  // 需支持回调执行时机\n  return () => {};\n}",
       "test_cases": [
         {
           "input": "数据变化",

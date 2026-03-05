@@ -955,7 +955,7 @@
       "content": "在变高虚拟列表中，实现一个方法，根据滚动条位置计算当前应渲染的起始索引和结束索引。已知每个 item 高度动态变化。",
       "options": [],
       "correct_answer": "见代码实现",
-      "code_template": "interface Item {\n  height: number;\n  id: string;\n}\n\nclass VirtualListCalculator {\n  constructor(items: Item[], containerHeight: number) {}\n  \n  // 根据 scrollTop 返回渲染范围\n  getRenderRange(scrollTop: number): { start: number; end: number } {}\n}",
+      "code_template": "interface Item {\n  height: number;\n  id: string;\n}\nclass VirtualListCalculator {\n  constructor(items: Item[], containerHeight: number) {}\n  \n  // 根据 scrollTop 返回渲染范围\n  getRenderRange(scrollTop: number): { start: number; end: number } {}\n}",
       "test_cases": [
         {
           "input": "scrollTop=0",
@@ -2373,7 +2373,7 @@
       "content": "实现一个函数，在虚拟 DOM 树中查找所有具有特定 className 的节点，返回数组。",
       "options": [],
       "correct_answer": "见代码实现",
-      "code_template": "interface VNode {\n  tagName: string;\n  className?: string;\n  children?: VNode[];\n}\n\nfunction findNodesByClass(root: VNode, className: string): VNode[] {\n  // 请补充实现\n}",
+      "code_template": "interface VNode {\n  tagName: string;\n  className?: string;\n  children?: VNode[];\n}\nfunction findNodesByClass(root: VNode, className: string): VNode[] {\n  // 请补充实现\n}",
       "test_cases": [
         {
           "input": "树中包含多个匹配节点",
@@ -3508,7 +3508,7 @@
       "content": "实现一个 Canvas 图形命中检测函数，判断鼠标点击是否命中给定图形（支持矩形、圆形、多边形）。",
       "options": [],
       "correct_answer": "见代码实现",
-      "code_template": "interface Shape {\n  type: 'rect' | 'circle' | 'polygon';\n  x: number;\n  y: number;\n  width?: number;\n  height?: number;\n  radius?: number;\n  points?: [number, number][];\n}\n\nfunction hitTest(shape: Shape, mouseX: number, mouseY: number): boolean {\n  // 请补充实现\n}",
+      "code_template": "interface Shape {\n  type: 'rect' | 'circle' | 'polygon';\n  x: number;\n  y: number;\n  width?: number;\n  height?: number;\n  radius?: number;\n  points?: [number, number][];\n}\nfunction hitTest(shape: Shape, mouseX: number, mouseY: number): boolean {\n  // 请补充实现\n}",
       "test_cases": [
         {
           "input": "矩形 (0,0,100,100), 点击 (50,50)",
@@ -3671,7 +3671,7 @@
       "content": "实现一个时间序列数据降采样函数，将大量数据点聚合为可视化的有限点数。",
       "options": [],
       "correct_answer": "见代码实现",
-      "code_template": "interface DataPoint {\n  timestamp: number;\n  value: number;\n}\n\nfunction downsample(\n  data: DataPoint[],\n  targetPoints: number\n): DataPoint[] {\n  // 请补充实现，可使用 LTTB 等算法\n}",
+      "code_template": "interface DataPoint {\n  timestamp: number;\n  value: number;\n}\nfunction downsample(\n  data: DataPoint[],\n  targetPoints: number\n): DataPoint[] {\n  // 请补充实现，可使用 LTTB 等算法\n}",
       "test_cases": [
         {
           "input": "10000 点降采样到 100 点",
@@ -3873,7 +3873,7 @@
       "content": "实现一个简化的力导向图布局算法，计算节点位置使边长度均匀、节点不重叠。",
       "options": [],
       "correct_answer": "见代码实现",
-      "code_template": "interface Node {\n  id: string;\n  x: number;\n  y: number;\n  vx: number;\n  vy: number;\n}\n\ninterface Link {\n  source: string;\n  target: string;\n}\n\nfunction forceLayout(\n  nodes: Node[],\n  links: Link[],\n  iterations: number\n): Node[] {\n  // 请补充实现\n}",
+      "code_template": "interface Node {\n  id: string;\n  x: number;\n  y: number;\n  vx: number;\n  vy: number;\n}\ninterface Link {\n  source: string;\n  target: string;\n}\nfunction forceLayout(\n  nodes: Node[],\n  links: Link[],\n  iterations: number\n): Node[] {\n  // 请补充实现\n}",
       "test_cases": [
         {
           "input": "3 个节点 2 条边，迭代 100 次",

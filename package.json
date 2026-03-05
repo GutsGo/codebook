@@ -10,8 +10,11 @@
     "update-levels": "node scripts/update_levels.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1002.0",
     "@guolao/vue-monaco-editor": "^1.6.0",
+    "@types/marked": "^6.0.0",
     "@vueuse/core": "^14.2.1",
+    "marked": "^17.0.4",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
     "vue-router": "^5.0.3"

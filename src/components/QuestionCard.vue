@@ -184,70 +184,90 @@
 
                 <div
                   class="code-editor-wrapper"
-                  style="
-                    height: 350px;
-                    margin-bottom: 1rem;
-                    border: 1px solid var(--theme-border-color);
-                    border-radius: 4px;
-                    overflow: hidden;
-                    text-align: left;
-                  "
+                  :class="{ 'is-fullscreen': isFullscreen }"
                 >
-                  <vue-monaco-editor
-                    v-model:value="userCode"
-                    :theme="editorTheme"
-                    language="typescript"
-                    :options="{
-                      minimap: { enabled: false },
-                      fontSize: 13,
-                      scrollBeyondLastLine: false,
-                    }"
-                    @beforeMount="handleEditorBeforeMount"
-                    @mount="handleEditorMount"
-                  />
+                  <div class="editor-header">
+                    <span class="editor-title">✏️ 代码编辑器</span>
+                    <button
+                      class="editor-fullscreen-btn pixel-btn"
+                      @click="toggleFullscreen"
+                    >
+                      {{ isFullscreen ? "恢复窗口 🗗" : "全屏放大 🗖" }}
+                    </button>
+                  </div>
+                  <div class="editor-body">
+                    <vue-monaco-editor
+                      v-model:value="userCode"
+                      :theme="editorTheme"
+                      language="typescript"
+                      :options="{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        tabSize: 2,
+                      }"
+                      @beforeMount="handleEditorBeforeMount"
+                      @mount="handleEditorMount"
+                    />
+                  </div>
                 </div>
 
                 <div
                   class="test-cases-section"
                   v-if="question.test_cases?.length"
                 >
-                  <div
-                    class="section-title"
-                    style="font-weight: 800; margin-bottom: 0.5rem"
-                  >
-                    测试用例预期：
-                  </div>
-                  <div
-                    v-for="(tc, idx) in question.test_cases"
-                    :key="idx"
-                    class="tc-item pixel-card"
-                    style="
-                      padding: 1rem;
-                      margin-bottom: 0.5rem;
-                      text-align: left;
-                      background: var(--theme-card-inner);
-                    "
-                  >
-                    <div class="tc-desc">
-                      <strong>描述:</strong> {{ tc.description }}
-                    </div>
+                  <div class="section-title">🧪 测试用例验证</div>
+                  <div class="tc-list">
                     <div
-                      class="tc-expected"
-                      style="
-                        font-size: 0.9rem;
-                        color: var(--theme-text-light);
-                        margin-top: 0.3rem;
-                      "
+                      v-for="(tc, idx) in question.test_cases"
+                      :key="idx"
+                      class="tc-item"
                     >
-                      <strong>期望:</strong> {{ tc.expected_output }}
-                    </div>
-                    <div
-                      v-if="testResults[idx]"
-                      class="tc-result"
-                      :class="testResults[idx].pass ? 'text-ok' : 'text-fail'"
-                      style="margin-top: 0.5rem; font-weight: bold"
-                    >
-                      执行结果: {{ testResults[idx].msg }}
+                      <div class="tc-header">
+                        <span class="tc-num">Case {{ idx + 1 }}</span>
+                        <span
+                          v-if="testResults[idx]"
+                          class="tc-status-badge"
+                          :class="
+                            testResults[idx].pass ? 'badge-pass' : 'badge-fail'
+                          "
+                        >
+                          {{
+                            testResults[idx].pass
+                              ? "✅ 执行通过"
+                              : "❌ 执行失败"
+                          }}
+                        </span>
+                      </div>
+                      <div class="tc-body">
+                        <div class="tc-row">
+                          <span class="tc-label">描述：</span>
+                          <span class="tc-value">{{ tc.description }}</span>
+                        </div>
+                        <div class="tc-row">
+                          <span class="tc-label">期望输出：</span>
+                          <span class="tc-value tc-code">{{
+                            tc.expected_output
+                          }}</span>
+                        </div>
+                        <div
+                          v-if="testResults[idx]"
+                          class="tc-row tc-result-row"
+                        >
+                          <span class="tc-label">运行结果反馈：</span>
+                          <span
+                            class="tc-value tc-console"
+                            :class="
+                              testResults[idx].pass
+                                ? 'console-pass'
+                                : 'console-fail'
+                            "
+                          >
+                            > {{ testResults[idx].msg }}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -440,6 +460,11 @@ const testingCode = ref(false);
 const testResults = ref<{ pass: boolean; msg: string }[]>([]);
 const monacoInstance = shallowRef<any>(null);
 const monacoEditor = shallowRef<any>(null);
+const isFullscreen = ref(false);
+
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value;
+}
 
 function handleEditorBeforeMount(monaco: any) {
   monaco.editor.defineTheme("modern-theme", {
@@ -968,6 +993,200 @@ function emitNext() {
     font-size: 0.95rem;
     color: var(--theme-text-secondary);
     margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+
+    .meta-item {
+      background: var(--theme-card-inner);
+      padding: 0.4rem 0.8rem;
+      border: var(--theme-border-width-xs) solid var(--theme-border-color);
+      border-radius: var(--theme-radius-sm);
+    }
+  }
+}
+
+.code-editor-wrapper {
+  margin-bottom: 1.5rem;
+  border: var(--theme-border-width-sm) solid var(--theme-border-color);
+  border-radius: var(--theme-radius-sm);
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  background: var(--theme-card-bg);
+  box-shadow: var(--theme-shadow-inner);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:not(.is-fullscreen) {
+    height: 400px;
+  }
+
+  &.is-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+
+    .editor-body {
+      flex: 1;
+      height: 100%;
+    }
+  }
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--theme-scenario-tape-bg);
+    border-bottom: var(--theme-border-width-xs) solid var(--theme-border-color);
+
+    .editor-title {
+      font-weight: 800;
+      color: var(--theme-text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .editor-fullscreen-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  .editor-body {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.test-cases-section {
+  text-align: left;
+  margin-top: 1.5rem;
+
+  .section-title {
+    font-weight: 900;
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+    color: var(--theme-text-secondary);
+    border-bottom: 2px dashed var(--theme-border-color);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .tc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .tc-item {
+    background: var(--theme-card-inner);
+    border: var(--theme-border-width-sm) solid var(--theme-border-color);
+    border-radius: var(--theme-radius-md);
+    box-shadow: var(--theme-shadow-card);
+    overflow: hidden;
+  }
+
+  .tc-header {
+    background: var(--theme-scenario-tape-bg);
+    padding: 0.6rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--theme-border-width-xs) solid var(--theme-border-color);
+
+    .tc-num {
+      font-weight: 800;
+      color: var(--theme-text-main);
+      font-size: 1rem;
+    }
+
+    .tc-status-badge {
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+      &.badge-pass {
+        background: var(--theme-correct-bg);
+        color: #27ae60;
+      }
+      &.badge-fail {
+        background: var(--theme-wrong-bg);
+        color: #c0392b;
+      }
+    }
+  }
+
+  .tc-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .tc-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.95rem;
+
+    .tc-label {
+      color: var(--theme-text-light);
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    .tc-value {
+      color: var(--theme-text-main);
+      word-break: break-all;
+      font-weight: 600;
+    }
+
+    .tc-code {
+      font-family:
+        "Fira Code", source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+      background: rgba(0, 0, 0, 0.04);
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      display: block;
+      color: #b22222;
+      border: 1px dotted rgba(0, 0, 0, 0.15);
+    }
+
+    .tc-console {
+      font-family:
+        "Fira Code", source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+      padding: 0.6rem;
+      border-radius: 4px;
+      margin-top: 0.2rem;
+      font-size: 0.9rem;
+      display: block;
+
+      &.console-pass {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px dashed #4ade80;
+      }
+
+      &.console-fail {
+        background: #282c34;
+        color: #ef4444;
+        border: 1px solid #1e293b;
+        box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.5);
+      }
+    }
   }
 }
 

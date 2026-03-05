@@ -59,6 +59,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/Backup.vue"),
     meta: { title: "CodeBook - 云备份与恢复" },
   },
+  {
+    path: "/flashcard/:category",
+    name: "Flashcard",
+    component: () => import("@/views/Flashcard.vue"),
+    meta: { title: "CodeBook - 闪卡复习" },
+  },
 ];
 
 const router = createRouter({

@@ -1,0 +1,970 @@
+{
+  "file_metadata": {
+    "category_id": "fe-engineering",
+    "category_name": "前端工程化",
+    "total_cards": 30,
+    "target_level": "Expert"
+  },
+  "cards": [
+    {
+      "id": "fe-engineering-flashcard-001",
+      "front_concept": "Webpack 构建中，修改 Loader 配置为何有时不会导致 Contenthash 变化？",
+      "hints": ["Module Hash", "Dependency Graph", "Cache Identifier"],
+      "back_explanation": "结论：Contenthash 仅依赖最终输出内容的字节流。\n机制：Webpack 计算 hash 基于 module 内容及其依赖树，若 Loader 配置变更未改变最终输出代码（如仅修改了内部缓存策略），hash 不变。\n坑点：不要误以为 loader 配置变更一定会导致缓存失效，需验证最终输出差异。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Caching", "Hashing"]
+    },
+    {
+      "id": "fe-engineering-flashcard-002",
+      "front_concept": "在 Webpack 插件开发中，Compilation 与 Compile 钩子的核心生命周期区别是什么？",
+      "hints": ["Single Build", "Watch Mode", "Instance Persistence"],
+      "back_explanation": "结论：Compile 每次构建触发，Compilation 代表单次构建过程对象。\n机制：Watch 模式下，Compile 多次触发，但 Compilation 对象每次重建；Plugin 若需存状态应绑定 Compilation。\n坑点：避免在 Compile 钩子中挂载持久状态，否则 Watch 模式下会导致内存泄漏或状态污染。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Plugin", "Lifecycle"]
+    },
+    {
+      "id": "fe-engineering-flashcard-003",
+      "front_concept": "HMR 热更新时，为何某些组件状态丢失而某些保留？关键判断逻辑在哪里？",
+      "hints": ["Module ID", "Accept Handler", "Bubble Up"],
+      "back_explanation": "结论：取决于模块是否实现了 module.hot.accept 及冒泡机制。\n机制：HMR 运行时从变更模块向上遍历，若遇到未处理 accept 的模块则强制刷新；若全链路处理则仅替换逻辑。\n坑点：忘记在入口文件或关键组件注册 accept 会导致整页刷新，失去状态保持意义。",
+      "difficulty": "advanced",
+      "tags": ["HMR", "Webpack", "Runtime"]
+    },
+    {
+      "id": "fe-engineering-flashcard-004",
+      "front_concept": "Vite 开发服务器启动极快，核心依赖 Esbuild 预构建解决了什么瓶颈？",
+      "hints": ["CommonJS", "Dependency Flattening", "Native Binary"],
+      "back_explanation": "结论：解决了依赖包格式转换与多模块请求过多的瓶颈。\n机制：Esbuild 将 CommonJS/UMD 依赖预打包为 ESM，并进行依赖扁平化，减少浏览器请求数；Go 二进制性能极高。\n坑点：预构建缓存失效策略需关注，依赖版本变动未清除 cache 可能导致引用旧代码。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "Esbuild", "Performance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-005",
+      "front_concept": "Vite 生产构建切换为 Rollup，主要利用了 Rollup 的哪项优势？",
+      "hints": ["Tree Shaking", "Output Format", "Bundle Optimization"],
+      "back_explanation": "结论：利用 Rollup 更成熟的 Tree Shaking 与代码分割策略。\n机制：Rollup 基于 ES Module 静态分析，能更彻底地移除未使用代码；生产环境更关注包体积而非启动速度。\n坑点：开发环境与生产环境构建工具不一致可能导致某些行为差异（如动态导入处理）。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "Rollup", "Build"]
+    },
+    {
+      "id": "fe-engineering-flashcard-006",
+      "front_concept": "Webpack 中 sideEffects: false 配置不当会导致什么严重后果？",
+      "hints": ["Tree Shaking", "Global Side Effects", "CSS Import"],
+      "back_explanation": "结论：会导致必要的副作用代码被错误移除。\n机制：Tree Shaking 依赖此标记判断模块是否可安全移除；若全局样式注册或 Polyfill 被标记为无副作用，将被删减。\n坑点：包含全局样式导入或原型修改的模块必须显式声明 sideEffects 为 true 或文件列表。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Tree Shaking", "Optimization"]
+    },
+    {
+      "id": "fe-engineering-flashcard-007",
+      "front_concept": "Contenthash、Chunkhash、Hash 三者中，哪种最适合长期缓存策略？为什么？",
+      "hints": ["Granularity", "Content Dependency", "Cache Busting"],
+      "back_explanation": "结论：Contenthash 最适合。\n机制：Contenthash 基于文件内容生成，仅当内容变动时 hash 变化；Chunkhash 受依赖模块影响，Hash 受整个构建影响。\n坑点：使用 Chunkhash 可能导致未修改文件因依赖链变动而强制刷新，降低缓存命中率。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Caching", "Hash"]
+    },
+    {
+      "id": "fe-engineering-flashcard-008",
+      "front_concept": "Rollup 处理 CommonJS 模块时，为何会出现 default export 兼容性问题？",
+      "hints": ["Interop", "Module Wrapper", "Named Export"],
+      "back_explanation": "结论：CommonJS 无标准 export 语义，Rollup 需猜测导出结构。\n机制：Rollup 使用 @rollup/plugin-commonjs 包装，若配置不当，default 导出可能被包裹在 default 属性下。\n坑点：混合使用 ESM 与 CJS 依赖时，需严格检查 interop 配置，避免运行时 undefined 错误。",
+      "difficulty": "advanced",
+      "tags": ["Rollup", "CommonJS", "Compatibility"]
+    },
+    {
+      "id": "fe-engineering-flashcard-009",
+      "front_concept": "Esbuild 构建速度极快，但在某些场景下为何不建议直接替代 Webpack？",
+      "hints": ["Plugin Ecosystem", "Code Splitting", "Loader Complexity"],
+      "back_explanation": "结论：插件生态与复杂代码分割能力较弱。\n机制：Esbuild 侧重速度，插件 API 相对简单；Webpack 拥有成熟的 Chunk 优化与庞大的 Loader 社区。\n坑点：强依赖特定 Webpack Loader 或复杂优化策略的项目，迁移成本可能高于性能收益。",
+      "difficulty": "advanced",
+      "tags": ["Esbuild", "Architecture", "Trade-off"]
+    },
+    {
+      "id": "fe-engineering-flashcard-010",
+      "front_concept": "动态 import() 生成的 Chunk 命名策略不当，会导致什么运维问题？",
+      "hints": ["Chunk Name", "CDN Cache", "Debugging"],
+      "back_explanation": "结论：导致 CDN 缓存失效困难或线上排查困难。\n机制：默认 hash 命名难以关联业务逻辑；若未配置 chunkFilename，难以定位具体业务模块。\n坑点：建议结合魔法注释 /* webpackChunkName: \"user-page\" */ 进行语义化命名，便于监控与缓存管理。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Code Splitting", "Operations"]
+    },
+    {
+      "id": "fe-engineering-flashcard-011",
+      "front_concept": "pnpm 的 symlink 结构相比 npm/yarn 的 hoisting，解决了什么核心痛点？",
+      "hints": ["Phantom Dependencies", "Dependency Graph", "Disk Space"],
+      "back_explanation": "结论：解决了幽灵依赖（Phantom Dependencies）问题。\n机制：pnpm 通过硬链接 + 符号链接构建严格依赖树，未声明的依赖无法在代码中被引用。\n坑点：部分未规范声明依赖的旧库可能在 pnpm 下运行失败，需 patch 或配置 overrides。",
+      "difficulty": "advanced",
+      "tags": ["pnpm", "Monorepo", "Dependency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-012",
+      "front_concept": "Monorepo 中，Turborepo 的 Pipeline 缓存机制基于什么指纹？",
+      "hints": ["File Hash", "Env Vars", "Task Graph"],
+      "back_explanation": "结论：基于输入文件 Hash、环境变量与任务依赖图。\n机制：对比本地与远程缓存指纹，若一致则跳过执行直接恢复输出；依赖任务变更会级联失效。\n坑点：未纳入 .turboignore 的临时文件若参与 Hash 计算，会导致缓存命中率异常降低。",
+      "difficulty": "advanced",
+      "tags": ["Turborepo", "CI/CD", "Caching"]
+    },
+    {
+      "id": "fe-engineering-flashcard-013",
+      "front_concept": "Monorepo 版本管理中，独立版本（Independent）与固定版本（Fixed）模式的选择依据是什么？",
+      "hints": ["Release Cycle", "Coupling", "Version Bump"],
+      "back_explanation": "结论：依据子包耦合度与发布频率。\n机制：Fixed 模式适合强耦合组件库，统一版本号；Independent 适合业务线独立发布，互不影响。\n坑点：强耦合项目使用 Independent 会导致依赖版本混乱，增加集成测试成本。",
+      "difficulty": "intermediate",
+      "tags": ["Monorepo", "Lerna", "Versioning"]
+    },
+    {
+      "id": "fe-engineering-flashcard-014",
+      "front_concept": "pnpm workspaces 中，peerDependencies 的处理机制与 npm 有何不同？",
+      "hints": ["Hoisting", "Resolution", "Conflict"],
+      "back_explanation": "结论：pnpm 更严格，默认不自动提升 peerDependencies。\n机制：pnpm 要求宿主包显式安装 peer 依赖，避免隐式依赖导致的版本冲突；npm 会尝试自动提升。\n坑点：迁移至 pnpm 时常报 peer 依赖缺失错误，需在 workspace 根目录统一安装或配置 auto-install-peers。",
+      "difficulty": "advanced",
+      "tags": ["pnpm", "Dependencies", "Peer"]
+    },
+    {
+      "id": "fe-engineering-flashcard-015",
+      "front_concept": "Monorepo 中，如何避免工具链依赖（如 TypeScript）在每个子包中重复安装？",
+      "hints": ["Workspace Root", "DevDependencies", "Hoisting"],
+      "back_explanation": "结论：将工具链依赖提升至根目录 workspace。\n机制：根目录安装 devDependencies，子包通过 workspace 协议引用或继承配置。\n坑点：需确保 CI 环境安装命令包含根目录依赖，且子包构建脚本能正确解析根目录节点模块。",
+      "difficulty": "intermediate",
+      "tags": ["Monorepo", "Tooling", "Architecture"]
+    },
+    {
+      "id": "fe-engineering-flashcard-016",
+      "front_concept": "Module Federation 中，Shared 依赖版本不匹配时，Runtime 默认如何处理？",
+      "hints": ["Version Strategy", "Fallback", "Singleton"],
+      "back_explanation": "结论：默认优先使用宿主（Host）提供的版本。\n机制：若远程（Remote）要求版本范围不满足宿主版本，可能加载失败或运行时错误；可配置 eager 或 singleton。\n坑点：微前端架构中，核心库（如 React）版本不一致会导致 Hooks 状态混乱，必须强制 singleton。",
+      "difficulty": "advanced",
+      "tags": ["Module Federation", "Micro-frontend", "Dependency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-017",
+      "front_concept": "Module Federation 的 remoteEntry.js 加载失败，通常由什么网络策略导致？",
+      "hints": ["CORS", "Public Path", "CDN"],
+      "back_explanation": "结论：跨域策略或 publicPath 配置错误。\n机制：remoteEntry 需通过 script 标签加载，若 CDN 未配置 CORS 允许或 publicPath 指向错误，浏览器拦截请求。\n坑点：部署环境变更时，需动态调整 publicPath，避免硬编码导致资源 404。",
+      "difficulty": "advanced",
+      "tags": ["Module Federation", "Network", "Deployment"]
+    },
+    {
+      "id": "fe-engineering-flashcard-018",
+      "front_concept": "Module Federation 中，Eager 模式共享依赖有何优缺点？",
+      "hints": ["Bundle Size", "Load Time", "Availability"],
+      "back_explanation": "结论：优点是立即可用，缺点是增加初始包体积。\n机制：Eager 将共享依赖打包进本地 bundle，无需异步请求；Lazy 则异步加载。\n坑点：核心小库可用 Eager 减少请求，大库建议 Lazy 避免阻塞首屏渲染。",
+      "difficulty": "advanced",
+      "tags": ["Module Federation", "Performance", "Strategy"]
+    },
+    {
+      "id": "fe-engineering-flashcard-019",
+      "front_concept": "编写 ESLint 自定义规则时，Context.report 的 fix 函数何时不会生效？",
+      "hints": ["Auto-fix", "Rule Conflict", "AST Mutation"],
+      "back_explanation": "结论：当多个规则的 fix 冲突或修复后导致语法错误时。\n机制：ESLint 按顺序应用 fix，若重叠或产生无效代码，后续 fix 被丢弃；需确保 fix 逻辑幂等。\n坑点：避免在 fix 中删除必要节点，建议在 dry-run 模式下验证修复安全性。",
+      "difficulty": "advanced",
+      "tags": ["ESLint", "AST", "Quality"]
+    },
+    {
+      "id": "fe-engineering-flashcard-020",
+      "front_concept": "Babel 插件开发中，visitor 路径遍历为何有时需要 path.skip()？",
+      "hints": ["Infinite Loop", "Node Mutation", "Traversal"],
+      "back_explanation": "结论：避免对已修改节点重复遍历导致死循环或错误。\n机制：当 visitor 替换了当前节点子树，继续遍历旧子节点无意义且可能报错。\n坑点：修改 AST 结构后务必检查遍历逻辑，必要时手动控制遍历流程。",
+      "difficulty": "advanced",
+      "tags": ["Babel", "AST", "Plugin"]
+    },
+    {
+      "id": "fe-engineering-flashcard-021",
+      "front_concept": "Source Map 在生产环境开启，主要面临什么安全风险？如何缓解？",
+      "hints": ["Code Exposure", "Access Control", "Obfuscation"],
+      "back_explanation": "结论：面临源码泄露风险。\n机制：浏览器可下载 map 文件还原原始代码；需配置服务器禁止公开访问或上传至错误监控平台。\n坑点：切勿将 map 文件部署到公开 CDN，应仅上传至 Sentry 等内部监控服务。",
+      "difficulty": "intermediate",
+      "tags": ["Source Map", "Security", "Debugging"]
+    },
+    {
+      "id": "fe-engineering-flashcard-022",
+      "front_concept": "CLI 工具开发中，如何处理进程被 kill 信号中断后的清理工作？",
+      "hints": ["Process Signal", "Cleanup Hook", "Temp Files"],
+      "back_explanation": "结论：监听 process.on('SIGINT') 等信号。\n机制：捕获信号后执行清理函数（删除临时文件、释放端口），再手动 process.exit。\n坑点：未处理信号会导致临时文件或锁文件残留，影响下次启动，需确保同步清理完成。",
+      "difficulty": "advanced",
+      "tags": ["CLI", "Node.js", "Process"]
+    },
+    {
+      "id": "fe-engineering-flashcard-023",
+      "front_concept": "Husky Git Hooks 在 CI 环境中为何通常建议跳过？",
+      "hints": ["Performance", "Redundancy", "Lint Step"],
+      "back_explanation": "结论：避免重复检查与性能浪费。\n机制：CI 流水线已有专门 lint/test 步骤，Hooks 会重复执行且可能因环境差异导致失败。\n坑点：使用 HUSKY=0 环境变量或在 CI 脚本中显式跳过 husky install。",
+      "difficulty": "intermediate",
+      "tags": ["Git Hooks", "CI/CD", "Husky"]
+    },
+    {
+      "id": "fe-engineering-flashcard-024",
+      "front_concept": "Commitlint 规则配置中，为何要限制 Commit Message 的 Type 枚举？",
+      "hints": ["Changelog", "Automation", "Standardization"],
+      "back_explanation": "结论：为了自动化生成 Changelog 与版本管理。\n机制：脚本根据 Type（feat/fix）判断语义化版本升级类型；随意填写会导致自动化失效。\n坑点：团队需统一 Type 规范，并在 CI 中强制校验，避免历史数据污染。",
+      "difficulty": "intermediate",
+      "tags": ["Commitlint", "Convention", "Automation"]
+    },
+    {
+      "id": "fe-engineering-flashcard-025",
+      "front_concept": "Webpack Bundle Analyzer 显示模块体积大，但实际代码少，可能是什么原因？",
+      "hints": ["Source Map", "Polyfill", "Duplicate Modules"],
+      "back_explanation": "结论：可能包含了 Source Map 或重复依赖。\n机制：Analyzer 统计的是 bundle 原始大小，若包含 inline sourcemap 会虚高；或多版本依赖共存。\n坑点：配置 analysisMode: 'stat' 仅统计逻辑大小，并检查是否存在多版本库（如 lodash）。",
+      "difficulty": "advanced",
+      "tags": ["Analysis", "Performance", "Webpack"]
+    },
+    {
+      "id": "fe-engineering-flashcard-026",
+      "front_concept": "Polyfill 注入策略中，useBuiltIns: 'usage' 相比 'entry' 有何优势？",
+      "hints": ["Tree Shaking", "Granularity", "Babel Config"],
+      "back_explanation": "结论：按需注入，体积更小。\n机制：'usage' 扫描代码实际使用的 API 仅引入对应 Polyfill；'entry' 引入整个库。\n坑点：'usage' 需配合 core-js 版本严格匹配，且无法 Polyfill 全局隐式依赖（如某些库内部使用）。",
+      "difficulty": "advanced",
+      "tags": ["Polyfill", "Babel", "Optimization"]
+    },
+    {
+      "id": "fe-engineering-flashcard-027",
+      "front_concept": "CSS 提取插件（MiniCssExtractPlugin）在 HMR 模式下为何需要特殊配置？",
+      "hints": ["Style Loader", "Hot Update", "Condition"],
+      "back_explanation": "结论：HMR 需要 JS 注入样式以支持热更新。\n机制：生产环境提取 CSS 文件，开发环境使用 style-loader 注入 DOM；需根据 mode 动态切换 use。\n坑点：配置错误会导致 HMR 失效或生产环境样式丢失，建议封装函数统一处理 loader 逻辑。",
+      "difficulty": "advanced",
+      "tags": ["CSS", "Webpack", "HMR"]
+    },
+    {
+      "id": "fe-engineering-flashcard-028",
+      "front_concept": "构建工具中引入 Worker Thread 并行处理，主要瓶颈通常在哪里？",
+      "hints": ["Serialization", "IO Bound", "Data Transfer"],
+      "back_explanation": "结论：数据序列化与传输开销。\n机制：主线程与 Worker 间通过消息传递，大对象序列化成本高；若任务本身 IO 密集，多线程收益低。\n坑点：仅适合 CPU 密集任务（如压缩、转换），小文件过多反而因通信开销降低性能。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Worker", "Parallelism"]
+    },
+    {
+      "id": "fe-engineering-flashcard-029",
+      "front_concept": "Webpack 5 持久缓存（cache: 'filesystem'）在 CI 环境中为何可能失效？",
+      "hints": ["Cache Directory", "Environment Hash", "Clean Install"],
+      "back_explanation": "结论：CI 环境通常无持久存储或环境指纹变化。\n机制：缓存依赖文件路径与构建环境 Hash，CI 每次全新克隆导致路径变化或 cache 目录被清理。\n坑点：需配置 cacheDirectory 至可持久化卷，并确保构建环境一致性以复用缓存。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Caching", "CI/CD"]
+    },
+    {
+      "id": "fe-engineering-flashcard-030",
+      "front_concept": "Rspack 等 Rust 基构建工具相比 Webpack，最大性能提升来源是什么？",
+      "hints": ["Parallelism", "Memory Safety", "Compilation Speed"],
+      "back_explanation": "结论：多核并行编译与更高效的内存管理。\n机制：Rust 无 GC 停顿，天然支持多线程安全并行处理模块；Webpack JS 主线程单点瓶颈。\n坑点：插件兼容性是最大障碍，现有 Webpack 插件需重写或适配，迁移需评估生态支持度。",
+      "difficulty": "advanced",
+      "tags": ["Rspack", "Rust", "Performance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-031",
+      "front_concept": "为何从 CommonJS 模块导入命名 export 会导致 Webpack Tree Shaking 失效？",
+      "hints": ["Dynamic Require", "Static Analysis", "Namespace Object"],
+      "back_explanation": "结论：CommonJS 导出是动态对象，无法静态分析确定未使用属性。\n机制：Webpack 需将 CJS 模块包裹为 namespace object，所有属性被视为潜在使用，无法移除未引用部分。\n坑点：发布库时务必使用 ESM 格式（package.json 中 module 字段），否则消耗方无法享受 Tree Shaking。",
+      "difficulty": "advanced",
+      "tags": ["Tree Shaking", "CommonJS", "Webpack"]
+    },
+    {
+      "id": "fe-engineering-flashcard-032",
+      "front_concept": "Webpack 中 preload 与 prefetch 资源提示指令的核心行为差异是什么？",
+      "hints": ["Current Navigation", "Next Navigation", "Bandwidth"],
+      "back_explanation": "结论：preload 用于当前页关键资源，prefetch 用于下一跳资源。\n机制：preload 立即加载并执行，阻塞 onload；prefetch 空闲时加载，不阻塞，存入缓存供未来使用。\n坑点：误用 preload 加载非关键资源会抢占带宽，导致首屏渲染变慢（LCP 恶化）。",
+      "difficulty": "intermediate",
+      "tags": ["Performance", "Loading", "Webpack"]
+    },
+    {
+      "id": "fe-engineering-flashcard-033",
+      "front_concept": "Vite SSR 构建中，为何 external 配置必须包含所有 node_modules 依赖？",
+      "hints": ["Node Runtime", "Bundle Size", "Context"],
+      "back_explanation": "结论：避免将 Node 环境依赖打包进 SSR  bundle。\n机制：SSR 运行在 Node 环境，可直接 require node_modules；打包会导致路径解析错误或体积膨胀。\n坑点：某些 ESM _only 包在 Node 下需特殊处理，需配置 ssr.noExternal 强制打包并转换格式。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "SSR", "Configuration"]
+    },
+    {
+      "id": "fe-engineering-flashcard-034",
+      "front_concept": "Rollup 构建库时，output.format 选 umd 与 es 的主要场景区别是什么？",
+      "hints": ["Browser Direct", "Bundler Input", "Global Variable"],
+      "back_explanation": "结论：umd 用于浏览器直接引用，es 用于被其他打包工具二次构建。\n机制：umd 生成自执行函数挂载全局变量；es 保留 import/export 语句供 Tree Shaking。\n坑点：现代库建议同时输出 es 和 cjs/umd，package.json 中通过 exports 字段区分场景。",
+      "difficulty": "intermediate",
+      "tags": ["Rollup", "Library", "Distribution"]
+    },
+    {
+      "id": "fe-engineering-flashcard-035",
+      "front_concept": "Webpack Resolve Plugin 中，doResolve 与 resolve 钩子的调用时机差异？",
+      "hints": ["Inner Pipeline", "Outer Pipeline", "Alias"],
+      "back_explanation": "结论：resolve 是外层入口，doResolve 是内部具体解析步骤。\n机制：resolve 触发整个解析流程；doResolve 针对特定解析器（如 FileResolver）。\n坑点：自定义别名或虚拟模块通常拦截 resolve，修改文件扩展名逻辑需介入 doResolve。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Plugin", "Resolution"]
+    },
+    {
+      "id": "fe-engineering-flashcard-036",
+      "front_concept": "Monorepo 版本管理中，Changeset 相比 Lerna 的核心优势是什么？",
+      "hints": ["File Based", "PR Workflow", "Granularity"],
+      "back_explanation": "结论：基于文件变更集，更适配 Git Flow 与 PR _review 流程。\n机制：每次提交生成 .changeset 文件，合并后统一计算版本；Lerna 依赖提交历史解析。\n坑点：需配置 CI 自动提交 changeset 文件，否则版本发布流程会中断。",
+      "difficulty": "advanced",
+      "tags": ["Monorepo", "Changeset", "Versioning"]
+    },
+    {
+      "id": "fe-engineering-flashcard-037",
+      "front_concept": "AST 转换中，Recast 相比 Babel 的核心保留特性是什么？",
+      "hints": ["Original Code", "Formatting", "Comments"],
+      "back_explanation": "结论：Recast 能最大程度保留原始代码格式与注释。\n机制：Recast 维护原始 AST 与源码映射，未修改节点直接复用原文本；Babel 重新打印所有代码。\n坑点：适合编写 Codemod 脚本，若需深度语义分析仍首选 Babel。",
+      "difficulty": "advanced",
+      "tags": ["AST", "Refactoring", "Tooling"]
+    },
+    {
+      "id": "fe-engineering-flashcard-038",
+      "front_concept": "npm 供应链攻击中，package-lock.json 被篡改如何防御？",
+      "hints": ["Integrity Hash", "CI Check", "Lockfile"],
+      "back_explanation": "结论：依赖 integrity 哈希校验与 CI 锁文件检查。\n机制：npm install 会验证 lock 文件中子资源哈希；CI 应禁止 lock 文件自动更新。\n坑点：定期审计 npm audit，并配置 CI 阻止 lock 文件变更未经过审批的 PR。",
+      "difficulty": "advanced",
+      "tags": ["Security", "npm", "Supply Chain"]
+    },
+    {
+      "id": "fe-engineering-flashcard-039",
+      "front_concept": "Webpack Bundle Size 预算配置后，为何 CI 未报错但本地构建警告？",
+      "hints": ["Performance Budget", "CI Env", "Threshold"],
+      "back_explanation": "结论：CI 环境未开启 enforce 策略或阈值配置不一致。\n机制：budgets 配置需配合 CI 脚本显式检查退出码；本地仅警告不影响构建成功。\n坑点：在 CI 脚本中解析 webpack 输出日志，若超过预算强制 fail 构建流程。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "CI/CD", "Quality"]
+    },
+    {
+      "id": "fe-engineering-flashcard-040",
+      "front_concept": "HMR WebSocket 连接频繁断开，通常由什么网络中间件导致？",
+      "hints": ["Proxy Timeout", "Keep-Alive", "Nginx"],
+      "back_explanation": "结论：反向代理（如 Nginx）超时设置短于 HMR 心跳。\n机制：HMR 依赖长连接，代理默认 60s 超时可能切断空闲连接。\n坑点：配置 proxy_read_timeout 与 send_timeout 大于 HMR 心跳间隔（通常默认 30s）。",
+      "difficulty": "advanced",
+      "tags": ["HMR", "Network", "DevOps"]
+    },
+    {
+      "id": "fe-engineering-flashcard-041",
+      "front_concept": "Rspack 兼容 Webpack 插件时，为何部分 Plugin 无法正常工作？",
+      "hints": ["Internal API", "Compilation Object", "Private Properties"],
+      "back_explanation": "结论：插件依赖了 Webpack 未暴露的内部私有 API。\n机制：Rspack 仅实现公开 API 标准，私有属性访问会导致 undefined 或结构差异。\n坑点：迁移前需审计插件源码，优先选用官方维护或明确支持 Rspack 的插件。",
+      "difficulty": "advanced",
+      "tags": ["Rspack", "Compatibility", "Migration"]
+    },
+    {
+      "id": "fe-engineering-flashcard-042",
+      "front_concept": "Esbuild 的 Loader 机制相比 Webpack Loader 有何局限性？",
+      "hints": ["Transformation", "Resolution", "Context"],
+      "back_explanation": "结论：Esbuild Loader 仅支持内容转换，不支持模块解析拦截。\n机制：Webpack Loader 可介入 resolve 流程；Esbuild Plugin 需分 onResolve 与 onLoad 两阶段。\n坑点：需自定义解析逻辑（如 alias）时，必须编写 Esbuild Plugin 而非单纯 Loader。",
+      "difficulty": "advanced",
+      "tags": ["Esbuild", "Plugin", "Architecture"]
+    },
+    {
+      "id": "fe-engineering-flashcard-043",
+      "front_concept": "Vite 生产构建中，CSS 代码分割策略不当会导致什么 FOUC 问题？",
+      "hints": ["Critical CSS", "Async Chunk", "Render Blocking"],
+      "back_explanation": "结论：异步 chunk 的 CSS 加载滞后于 JS 执行。\n机制：默认 CSS 随 JS _chunk 异步加载，若组件渲染依赖样式，会出现无样式闪烁。\n坑点：关键路径 CSS 建议提取至主 bundle 或使用 preload 链接提前加载异步 CSS。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "CSS", "Performance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-044",
+      "front_concept": "Webpack Runtime Chunk 分离后，为何每次构建 hash 都会变化？",
+      "hints": ["Module ID", "Manifest", "Chunk Order"],
+      "back_explanation": "结论：模块 ID 或 Chunk 顺序变动影响了 Runtime 内容。\n机制：Runtime 包含模块映射表，新增模块会改变映射索引，导致 hash 变动。\n坑点：启用 recordIds 或 deterministicModuleIds 固定模块 ID，稳定长期缓存。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Caching", "Runtime"]
+    },
+    {
+      "id": "fe-engineering-flashcard-045",
+      "front_concept": "Turborepo 与 Nx 在任务调度算法上的核心区别是什么？",
+      "hints": ["Graph Calculation", "Affected Command", "Configuration"],
+      "back_explanation": "结论：Nx 提供更细粒度的依赖图计算与受影响项目分析。\n机制：Turborepo 基于文件 hash 快速匹配；Nx 内置更复杂的投影图与缓存策略。\n坑点：超大型 Monorepo 选 Nx 更优，中小型选 Turborepo 配置更简单。",
+      "difficulty": "advanced",
+      "tags": ["Monorepo", "Tooling", "Comparison"]
+    },
+    {
+      "id": "fe-engineering-flashcard-046",
+      "front_concept": "CI 环境中构建产物缓存策略，为何推荐基于依赖锁文件 hash 而非时间戳？",
+      "hints": ["Deterministic", "Cache Key", "Invalidation"],
+      "back_explanation": "结论：时间戳不可靠，依赖锁文件 hash 能精准反映依赖变更。\n机制：package-lock.json 不变则 node_modules 理论上不变，可复用缓存。\n坑点：需确保 CI 清理策略正确，避免旧缓存污染新依赖环境。",
+      "difficulty": "intermediate",
+      "tags": ["CI/CD", "Caching", "Strategy"]
+    },
+    {
+      "id": "fe-engineering-flashcard-047",
+      "front_concept": "TypeScript 构建pipeline中，tsconfig 的 isolatedModules 为何建议开启？",
+      "hints": ["Transpile Only", "Babel Compatibility", "Error Checking"],
+      "back_explanation": "结论：确保单文件转译兼容性，避免 Babel 等工具报错。\n机制：开启后禁止依赖跨文件类型推断的特性（如 const enum），保证工具链独立处理文件。\n坑点：开启后部分高级类型特性不可用，需权衡类型安全与构建速度。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Configuration", "Compatibility"]
+    },
+    {
+      "id": "fe-engineering-flashcard-048",
+      "front_concept": "自定义 ESLint 规则中，如何获取变量的定义位置以进行跨文件分析？",
+      "hints": ["Scope Manager", "Reference", "Program Node"],
+      "back_explanation": "结论：通过 context.getScope() 与 reference.resolved 获取。\n机制：ESLint 维护作用域树，可追踪变量引用指向的具体节点。\n坑点：跨文件分析需配合 TypeScript ESLint  parser，普通 ESLint 仅限单文件作用域。",
+      "difficulty": "advanced",
+      "tags": ["ESLint", "AST", "Analysis"]
+    },
+    {
+      "id": "fe-engineering-flashcard-049",
+      "front_concept": "Module Federation 中，Shared 依赖的 singleton: true 配置失效的常见原因？",
+      "hints": ["Version Mismatch", "Load Order", "Scope Key"],
+      "back_explanation": "结论：宿主与远程的 shared 配置 key 不一致或版本范围不兼容。\n机制：singleton 需双方显式声明同一 key 且版本兼容，否则各自打包。\n坑点：确保所有微应用根配置中 shared 键名完全一致，建议封装统一配置包。",
+      "difficulty": "advanced",
+      "tags": ["Module Federation", "Debugging", "Configuration"]
+    },
+    {
+      "id": "fe-engineering-flashcard-050",
+      "front_concept": "构建工具中实现增量编译（Incremental Build），核心依赖什么数据结构？",
+      "hints": ["Dependency Graph", "File Watcher", "Dirty Marking"],
+      "back_explanation": "结论：依赖有向无环图（DAG）标记脏节点。\n机制：文件变更触发图更新，仅重新编译受影响的下游节点。\n坑点：需精确处理文件删除与重命名事件，否则图状态不一致导致构建错误。",
+      "difficulty": "advanced",
+      "tags": ["Architecture", "Performance", "Algorithm"]
+    },
+    {
+      "id": "fe-engineering-flashcard-051",
+      "front_concept": "Webpack 多入口项目中，如何避免公共依赖被重复打包进每个入口 chunk？",
+      "hints": ["SplitChunks", "Cache Group", "Min Size"],
+      "back_explanation": "结论：配置 optimization.splitChunks 提取公共模块。\n机制：设置 chunks: 'all' 与 minChunks 阈值，自动抽取复用模块至 vendor。\n坑点：阈值设置过高导致提取失败，过低导致碎片化，需根据实际依赖图谱调整。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Optimization", "SplitChunks"]
+    },
+    {
+      "id": "fe-engineering-flashcard-052",
+      "front_concept": "Vite 插件钩子中，configResolved 与 configureServer 的执行顺序及用途？",
+      "hints": ["Final Config", "Dev Server", "Initialization"],
+      "back_explanation": "结论：configResolved 先于 configureServer，前者获取最终配置，后者启动服务。\n机制：configResolved 用于读取最终合并配置；configureServer 用于注册中间件。\n坑点：勿在 configResolved 中修改配置，此时已锁定；修改配置应在 config 钩子。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "Plugin", "Lifecycle"]
+    },
+    {
+      "id": "fe-engineering-flashcard-053",
+      "front_concept": "Rollup 构建时，context 选项配置不当会导致什么全局变量污染？",
+      "hints": ["Top Level", "Undefined", "Window"],
+      "back_explanation": "结论：未声明的全局变量默认指向 undefined 或抛出错误。\n机制：Rollup 默认顶层 this 为 undefined，可通过 context 配置改为 window 或全局对象。\n坑点：依赖旧库使用 this 指向全局时，需显式配置 context: 'window' 兼容。",
+      "difficulty": "advanced",
+      "tags": ["Rollup", "Compatibility", "Scope"]
+    },
+    {
+      "id": "fe-engineering-flashcard-054",
+      "front_concept": "npm scripts 中，cross-env 包的核心作用是什么？为何 Windows 必装？",
+      "hints": ["Environment Variables", "Shell Compatibility", "Syntax"],
+      "back_explanation": "结论：解决不同操作系统设置环境变量的语法差异。\n机制：Windows cmd 不支持 VAR=value command 语法，cross-env 抹平差异。\n坑点：未在 Windows 测试的脚本常因缺少 cross-env 导致 CI 失败，建议统一使用。",
+      "difficulty": "intermediate",
+      "tags": ["CLI", "Cross Platform", "npm"]
+    },
+    {
+      "id": "fe-engineering-flashcard-055",
+      "front_concept": "AST 遍历中，enter 与 exit 回调的执行顺序对代码转换有何影响？",
+      "hints": ["DFS Traversal", "Bottom-Up", "Mutation"],
+      "back_explanation": "结论：enter 是自顶向下，exit 是自底向上。\n机制：修改子节点逻辑应在 exit 执行，确保父节点处理时子节点已稳定。\n坑点：在 enter 中删除子节点可能导致遍历索引错乱，优先使用 exit 进行结构变更。",
+      "difficulty": "advanced",
+      "tags": ["AST", "Traversal", "Algorithm"]
+    },
+    {
+      "id": "fe-engineering-flashcard-056",
+      "front_concept": "Webpack Asset Modules 中，asset/inline 与 asset/resource 的选择依据？",
+      "hints": ["Base64", "File URL", "Size Threshold"],
+      "back_explanation": "结论：小文件用 inline 减少请求，大文件用 resource 利用缓存。\n机制：inline 转 Base64 嵌入 JS；resource 输出独立文件。\n坑点：默认阈值 8kb，需根据实际网络环境调整，避免大图 Base64 导致 JS 体积膨胀。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Assets", "Optimization"]
+    },
+    {
+      "id": "fe-engineering-flashcard-057",
+      "front_concept": "构建 reproducibility（可复现性）校验失败，通常由什么非代码因素导致？",
+      "hints": ["Timestamp", "Absolute Path", "Randomness"],
+      "back_explanation": "结论：构建产物中嵌入了时间戳、绝对路径或随机 ID。\n机制：插件或配置将构建时刻信息写入 bundle，导致不同机器 hash 不一致。\n坑点：检查 BannerPlugin 或自定义插件，确保输出内容纯依赖源码与配置。",
+      "difficulty": "advanced",
+      "tags": ["Build", "Security", "Reproducibility"]
+    },
+    {
+      "id": "fe-engineering-flashcard-058",
+      "front_concept": "Monorepo 中，如何高效处理子包间的循环依赖（Circular Dependency）？",
+      "hints": ["Architecture Refactor", "Shared Lib", "Detection"],
+      "back_explanation": "结论：循环依赖是架构设计缺陷，应重构而非工具规避。\n机制：提取公共逻辑至新包，或调整依赖方向；工具仅能检测无法解决。\n坑点：强行忽略警告会导致运行时初始化顺序错误，必须从代码结构层面解耦。",
+      "difficulty": "advanced",
+      "tags": ["Monorepo", "Architecture", "Dependency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-059",
+      "front_concept": "CLI 工具发布前，bin 字段配置错误会导致什么现象？",
+      "hints": ["Command Not Found", "Shebang", "Permissions"],
+      "back_explanation": "结论：全局安装后无法通过命令调用。\n机制：package.json bin 需指向可执行文件，且文件首行需有 #!/usr/bin/env node。\n坑点：Windows 下需确保文件扩展名正确，且发布前 chmod +x 确保执行权限。",
+      "difficulty": "intermediate",
+      "tags": ["CLI", "npm", "Publishing"]
+    },
+    {
+      "id": "fe-engineering-flashcard-060",
+      "front_concept": "Rolldown 作为 Rust 版 Rollup，当前阶段主要面临什么生态挑战？",
+      "hints": ["Plugin Compatibility", "JS API", "Maturity"],
+      "back_explanation": "结论：插件生态尚未成熟，JS  API 兼容性待验证。\n机制：底层 Rust 性能强，但上层 JS 插件适配层仍在开发中，现有 Rollup 插件无法直接使用。\n坑点：生产环境慎用，适合尝鲜或内部工具链探索，核心业务建议等待稳定版。",
+      "difficulty": "advanced",
+      "tags": ["Rolldown", "Ecosystem", "Trend"]
+    },
+    {
+      "id": "fe-engineering-flashcard-061",
+      "front_concept": "编写 Webpack 插件时，SyncBailHook 与 AsyncSeriesHook 的核心执行差异是什么？",
+      "hints": ["Return Value", "Execution Flow", "Promise"],
+      "back_explanation": "结论：SyncBail 同步且可中断，AsyncSeries 异步串行。\n机制：SyncBail 返回非 undefined 值则停止后续监听器；AsyncSeries 等待所有异步任务完成。\n坑点：在同步钩子中执行异步操作会导致后续逻辑不可控，需严格匹配钩子类型。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Tapable", "Plugin"]
+    },
+    {
+      "id": "fe-engineering-flashcard-062",
+      "front_concept": "Vite 开发环境中，optimizeDeps 的 force 选项何时必须使用？",
+      "hints": ["Cache Invalidation", "Linkage", "Development"],
+      "back_explanation": "结论：依赖内容变更但版本未变，或链接包（pnpm link）更新时。\n机制：Vite 默认缓存预构建结果，force 强制重新扫描并构建依赖。\n坑点：频繁使用 force 会丧失开发启动速度优势，仅在调试本地依赖包时使用。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "Optimization", "Dev"]
+    },
+    {
+      "id": "fe-engineering-flashcard-063",
+      "front_concept": "pnpm patch 命令修改依赖后，如何确保团队协作时补丁生效？",
+      "hints": ["patches Folder", "Version Control", "Install"],
+      "back_explanation": "结论：需提交生成的 patches 文件夹至版本控制。\n机制：pnpm patch 创建临时副本，修改后生成 patch 文件，install 时自动应用。\n坑点：忽略 .gitignore 中的 patches 目录会导致同事拉取代码后补丁失效，必须提交。",
+      "difficulty": "advanced",
+      "tags": ["pnpm", "Workflow", "Dependency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-064",
+      "front_concept": "AST 遍历中，如何判断一个标识符（Identifier）是否为全局变量？",
+      "hints": ["Scope Lookup", "Reference", "Undefined"],
+      "back_explanation": "结论：查询作用域链直至顶层，若未找到定义则为全局。\n机制：通过 scope.lookup(name) 向上遍历，返回 null 表示全局或未定义。\n坑点：需排除隐式全局（未声明直接赋值），此类在严格模式下会报错。",
+      "difficulty": "advanced",
+      "tags": ["AST", "Scope", "Analysis"]
+    },
+    {
+      "id": "fe-engineering-flashcard-065",
+      "front_concept": "Webpack 配置中，externals 与 alias 的核心用途区别是什么？",
+      "hints": ["Exclusion", "Redirection", "Bundle"],
+      "back_explanation": "结论：externals 排除打包，alias 重定向路径。\n机制：externals 假设依赖由环境提供（如 CDN）；alias 修改模块解析路径。\n坑点：externals 配置后需确保运行时环境已加载对应全局变量，否则报错。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Configuration", "Resolution"]
+    },
+    {
+      "id": "fe-engineering-flashcard-066",
+      "front_concept": "CSS Modules 的 localIdentName 配置包含 [hash] 有何安全意义？",
+      "hints": ["Class Name", "Collision", "Obfuscation"],
+      "back_explanation": "结论：防止类名冲突并增加逆向难度。\n机制：基于文件路径和内容生成唯一哈希，避免不同组件类名覆盖。\n坑点：生产环境勿使用可读名称（如 [name]），避免暴露组件结构信息。",
+      "difficulty": "intermediate",
+      "tags": ["CSS", "Security", "Modules"]
+    },
+    {
+      "id": "fe-engineering-flashcard-067",
+      "front_concept": "Webpack 构建生成的 manifest.json 文件主要服务于什么场景？",
+      "hints": ["Server Side", "Resource Mapping", "Preload"],
+      "back_explanation": "结论：服务于服务端渲染（SSR）或 HTML 模板注入。\n机制：记录模块 ID 与输出文件名的映射，便于服务端动态引用最新资源。\n坑点：未提取 manifest 会导致 SSR  hydration  mismatch 或资源引用 404。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "SSR", "Manifest"]
+    },
+    {
+      "id": "fe-engineering-flashcard-068",
+      "front_concept": "Turbopack 的持久缓存机制相比 Webpack 文件系统缓存有何架构优势？",
+      "hints": ["Granularity", "Rust Engine", "Incremental"],
+      "back_explanation": "结论：基于更细粒度的模块图与 Rust 高性能序列化。\n机制：Turbopack 追踪文件内部变更（而非仅文件级别），复用率更高。\n坑点：目前生态插件支持较少，适合新项目尝鲜，老项目迁移需谨慎。",
+      "difficulty": "advanced",
+      "tags": ["Turbopack", "Performance", "Architecture"]
+    },
+    {
+      "id": "fe-engineering-flashcard-069",
+      "front_concept": "CI 环境中优化 pnpm 安装速度，最关键的缓存目录是哪个？",
+      "hints": ["Store Dir", "Global Cache", "Hard Links"],
+      "back_explanation": "结论：pnpm store 目录（~/.pnpm-store）。\n机制：pnpm 通过全局存储硬链接到项目，缓存该目录可避免重复下载。\n坑点：需配置 CI 缓存 key 基于 pnpm-lock.yaml hash，避免缓存污染。",
+      "difficulty": "advanced",
+      "tags": ["CI/CD", "pnpm", "Optimization"]
+    },
+    {
+      "id": "fe-engineering-flashcard-070",
+      "front_concept": "Docker 部署 SPA 应用时，Nginx 配置缺失 try_files 会导致什么现象？",
+      "hints": ["Refresh", "404", "Routing"],
+      "back_explanation": "结论：刷新页面或非根路由访问报 404。\n机制：Nginx 默认查找物理文件，SPA 路由需统一 fallback 到 index.html。\n坑点：配置 location / { try_files $uri $uri/ /index.html; } 解决前端路由问题。",
+      "difficulty": "intermediate",
+      "tags": ["Docker", "Nginx", "Deployment"]
+    },
+    {
+      "id": "fe-engineering-flashcard-071",
+      "front_concept": "Vite 开发服务器在 HTTPS 环境下，HMR 连接失败通常需配置什么协议？",
+      "hints": ["wss", "secure", "WebSocket"],
+      "back_explanation": "结论：需使用 wss 协议而非 ws。\n机制：HTTPS 页面只能加载安全 WebSocket 连接，否则浏览器拦截。\n坑点：配置 server.hmr.protocol 为 'wss' 或通过 proxy 自动升级协议。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "HMR", "Network"]
+    },
+    {
+      "id": "fe-engineering-flashcard-072",
+      "front_concept": "开发公共库时，为何建议让消耗方自行处理 Polyfill 而非库作者打包？",
+      "hints": ["Duplication", "Environment", "Bundle Size"],
+      "back_explanation": "结论：避免多库重复打包 Polyfill 导致体积膨胀。\n机制：应用层统一按需注入 Polyfill，库仅关注核心逻辑。\n坑点：库代码中避免使用需 Polyfill 的新特性，或声明 peerDependencies 要求环境支持。",
+      "difficulty": "advanced",
+      "tags": ["Library", "Polyfill", "Strategy"]
+    },
+    {
+      "id": "fe-engineering-flashcard-073",
+      "front_concept": "Webpack 动态 import 中，webpackIgnore: true 注释的作用是什么？",
+      "hints": ["Disable Splitting", "Static Path", "Context"],
+      "back_explanation": "结论：阻止 Webpack 解析该动态导入，保持原样。\n机制：用于加载非构建资源或外部脚本，避免打包报错。\n坑点：使用后需确保运行时路径正确，否则浏览器加载失败且无构建警告。",
+      "difficulty": "advanced",
+      "tags": ["Webpack", "Dynamic Import", "Configuration"]
+    },
+    {
+      "id": "fe-engineering-flashcard-074",
+      "front_concept": "Rollup 配置 preserveModules: true 后，输出目录结构有何变化？",
+      "hints": ["Source Structure", "Bundle", "Tree Shaking"],
+      "back_explanation": "结论：保持与源码一致的目录结构，不打包成单文件。\n机制：每个模块输出独立文件，便于调试与按需加载。\n坑点：需配合 output.dir 使用，且无法生成单一入口文件，适合组件库构建。",
+      "difficulty": "advanced",
+      "tags": ["Rollup", "Build", "Structure"]
+    },
+    {
+      "id": "fe-engineering-flashcard-075",
+      "front_concept": "Esbuild 构建参数中，--pure 选项配合函数名使用能达到什么效果？",
+      "hints": ["Dead Code", "Side Effect Free", "Removal"],
+      "back_explanation": "结论：标记函数无副作用，未调用时可被移除。\n机制：告知压缩器该函数调用结果不影响环境，可安全 Tree Shake。\n坑点：仅适用于纯函数，若函数含副作用（如修改全局）误标会导致逻辑丢失。",
+      "difficulty": "advanced",
+      "tags": ["Esbuild", "Optimization", "Tree Shaking"]
+    },
+    {
+      "id": "fe-engineering-flashcard-076",
+      "front_concept": "Turborepo 运行任务时，--concurrency 参数设置过小会导致什么问题？",
+      "hints": ["Resource Idle", "Build Time", "Parallelism"],
+      "back_explanation": "结论：导致 CPU 资源闲置，构建时间延长。\n机制：限制并行任务数，多核机器未充分利用。\n坑点：建议设置为 CPU 核心数 +1，或根据 CI 内存限制调整，避免 OOM。",
+      "difficulty": "intermediate",
+      "tags": ["Turborepo", "Performance", "CI/CD"]
+    },
+    {
+      "id": "fe-engineering-flashcard-077",
+      "front_concept": "Monorepo 架构中，Git Submodule 相比 Packages 目录的主要劣势是什么？",
+      "hints": ["Dependency Linking", "Version Sync", "Tooling"],
+      "back_explanation": "结论：依赖管理与版本同步困难。\n机制：Submodule 是独立仓库，无法享受 workspace 协议与统一版本控制。\n坑点：现代 Monorepo 首选 pnpm workspace，Submodule 仅适合隔离极强的独立项目。",
+      "difficulty": "advanced",
+      "tags": ["Monorepo", "Git", "Architecture"]
+    },
+    {
+      "id": "fe-engineering-flashcard-078",
+      "front_concept": "ESLint Flat Config (eslint.config.js) 相比传统 .eslintrc 的核心改进是什么？",
+      "hints": ["Native JS", "Async Config", "Simplification"],
+      "back_explanation": "结论：使用原生 JS 配置，支持异步与动态逻辑。\n机制：移除 JSON/YAML 限制，可直接 import 插件与规则，配置更灵活。\n坑点：迁移成本高，需更新所有插件至支持 Flat Config 的版本。",
+      "difficulty": "advanced",
+      "tags": ["ESLint", "Configuration", "Migration"]
+    },
+    {
+      "id": "fe-engineering-flashcard-079",
+      "front_concept": "Prettier 配置中，overrides 字段的主要应用场景是什么？",
+      "hints": ["File Specific", "Parser", "Rules"],
+      "back_explanation": "结论：针对不同文件类型应用不同格式化规则。\n机制：基于 glob 匹配文件，覆盖全局配置（如 Markdown 不使用单引号）。\n坑点：配置顺序敏感，后匹配的 overrides 会覆盖先前的，需仔细排序。",
+      "difficulty": "intermediate",
+      "tags": ["Prettier", "Configuration", "Formatting"]
+    },
+    {
+      "id": "fe-engineering-flashcard-080",
+      "front_concept": "Husky v9 相比 v4，在安装与配置方式上有何重大变化？",
+      "hints": ["Git Dir", "Install Command", "Simplification"],
+      "back_explanation": "结论：移除自动 install 脚本，需手动配置 git dir。\n机制：v9 更轻量，不再自动修改 package.json scripts，需显式运行 husky install。\n坑点：升级后若未重新安装 hooks，提交校验将失效，需检查 .husky 目录。",
+      "difficulty": "advanced",
+      "tags": ["Husky", "Git Hooks", "Upgrade"]
+    },
+    {
+      "id": "fe-engineering-flashcard-081",
+      "front_concept": "Semantic Release 配置中，branches 数组定义的主要作用是什么？",
+      "hints": ["Channel", "Version Strategy", "Branch Name"],
+      "back_explanation": "结论：定义不同分支对应的发布渠道与版本策略。\n机制：main 发布 latest，beta 分支发布 next 版本，实现多版本并行维护。\n坑点：配置错误可能导致测试分支发布正式版本，需严格限制发布权限。",
+      "difficulty": "advanced",
+      "tags": ["Semantic Release", "CI/CD", "Versioning"]
+    },
+    {
+      "id": "fe-engineering-flashcard-082",
+      "front_concept": "Webpack 构建报错信息模糊时，如何利用 stats 配置获取详细错误栈？",
+      "hints": ["Error Details", "Verbose", "Json Output"],
+      "back_explanation": "结论：配置 stats: { errors: true, errorDetails: true }。\n机制：默认隐藏部分细节，开启后显示模块解析路径与 loader 错误链。\n坑点：输出信息量巨大，建议重定向至文件分析，避免终端刷屏。",
+      "difficulty": "intermediate",
+      "tags": ["Webpack", "Debugging", "Stats"]
+    },
+    {
+      "id": "fe-engineering-flashcard-083",
+      "front_concept": "Vite _legacy 插件在构建旧浏览器兼容包时，为何会引入 SystemJS？",
+      "hints": ["Module Loader", "Dynamic Import", "Polyfill"],
+      "back_explanation": "结论：旧浏览器不支持 ESM 动态导入，需 SystemJS 模拟。\n机制：插件生成两套包，旧包使用 System.register 格式，依赖 SystemJS 加载。\n坑点：显著增加体积，若无需支持 IE 建议禁用，改用 Babel 仅转译语法。",
+      "difficulty": "advanced",
+      "tags": ["Vite", "Legacy", "Compatibility"]
+    },
+    {
+      "id": "fe-engineering-flashcard-084",
+      "front_concept": "Module Federation 中，多个 Remote 同时加载同一 Shared 依赖，如何避免版本冲突？",
+      "hints": ["Share Scope", "Initialization", "Host"],
+      "back_explanation": "结论：依赖 Host 初始化的 Share Scope。\n机制：Host 优先初始化共享作用域，Remote 加载时检查是否已存在；若未初始化可能导致多实例。\n坑点：确保 Host 入口最早加载，或配置 eager: true 强制预加载共享依赖。",
+      "difficulty": "advanced",
+      "tags": ["Module Federation", "Race Condition", "Shared"]
+    },
+    {
+      "id": "fe-engineering-flashcard-085",
+      "front_concept": "构建产物中引入 SRI（子资源完整性）校验，主要防御什么攻击？",
+      "hints": ["CDN Tampering", "Hash Match", "Integrity"],
+      "back_explanation": "结论：防御 CDN 被篡改或中间人攻击。\n机制：浏览器计算资源哈希并与 integrity 属性比对，不一致则拒绝执行。\n坑点：构建后需更新 HTML 中的 hash，否则资源变更会导致加载失败。",
+      "difficulty": "advanced",
+      "tags": ["Security", "SRI", "CDN"]
+    },
+    {
+      "id": "fe-engineering-flashcard-086",
+      "front_concept": "CSP 策略中，nonce 值动态注入脚本的主要目的是什么？",
+      "hints": ["Inline Script", "Random Token", "XSS"],
+      "back_explanation": "结论：允许受信任的内联脚本执行，防止 XSS。\n机制：每次请求生成随机 nonce，脚本标签与 HTTP 头匹配才执行。\n坑点：需服务端配合生成并注入，静态 HTML 无法使用此策略。",
+      "difficulty": "advanced",
+      "tags": ["Security", "CSP", "XSS"]
+    },
+    {
+      "id": "fe-engineering-flashcard-087",
+      "front_concept": "构建时将 process.env.API_KEY 打入前端代码，存在什么安全隐患？",
+      "hints": ["Client Exposure", "Secret Leak", "Bundle"],
+      "back_explanation": "结论：敏感信息完全暴露给客户端。\n机制：构建时替换为字符串，任何用户均可查看源码获取密钥。\n坑点：前端仅可存公开配置，敏感密钥需通过后端代理转发，严禁打入 Bundle。",
+      "difficulty": "advanced",
+      "tags": ["Security", "Environment", "Secret"]
+    },
+    {
+      "id": "fe-engineering-flashcard-088",
+      "front_concept": "Monorepo 中，Vitest 配置 workspace 文件的主要优势是什么？",
+      "hints": ["Multi Project", "Isolation", "Config"],
+      "back_explanation": "结论：统一管理多个子包的测试配置与运行。\n机制：根目录定义 workspace 数组，一次性运行所有项目测试并隔离上下文。\n坑点：需确保各子包依赖已安装，否则工作区解析失败。",
+      "difficulty": "advanced",
+      "tags": ["Vitest", "Monorepo", "Testing"]
+    },
+    {
+      "id": "fe-engineering-flashcard-089",
+      "front_concept": "CI 环境中运行 Playwright 测试，使用 shard 参数的核心目的是什么？",
+      "hints": ["Parallel Execution", "Time Split", "Resource"],
+      "back_explanation": "结论：将测试任务分片并行执行，缩短总耗时。\n机制：将测试用例集分成 N 份，多台机器同时运行不同分片。\n坑点：需确保测试用例无状态依赖，否则分片执行可能导致顺序错误。",
+      "difficulty": "advanced",
+      "tags": ["Playwright", "CI/CD", "Performance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-090",
+      "front_concept": "前端构建产物压缩，Brotli 相比 Gzip 的核心优劣对比是什么？",
+      "hints": ["Compression Ratio", "CPU Cost", "Support"],
+      "back_explanation": "结论：Brotli 压缩率更高但消耗更多 CPU。\n机制：Brotli 算法更复杂，体积通常比 Gzip 小 15-20%；现代浏览器均支持。\n坑点：构建服务器 CPU 负载高时慎用，建议静态预压缩后上传 CDN。",
+      "difficulty": "intermediate",
+      "tags": ["Performance", "Compression", "Network"]
+    },
+    {
+      "id": "fe-engineering-flashcard-091",
+      "front_concept": "测试金字塔中，为何过度依赖 E2E 测试会导致维护成本急剧上升？",
+      "hints": ["Fragility", "Execution Time", "Debugging"],
+      "back_explanation": "结论：E2E 测试脆弱且执行慢，定位问题困难。\n机制：UI 变动易导致测试失败，全链路运行耗时久，错误堆栈难以定位具体单元。\n坑点：建议遵循 70% 单元 +20% 集成 +10% E2E 比例，核心链路才用 E2E 覆盖。",
+      "difficulty": "advanced",
+      "tags": ["Testing", "Strategy", "Maintenance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-092",
+      "front_concept": "单元测试中，Mock 定时器（setTimeout）未清理会导致什么后果？",
+      "hints": ["Test Pollution", "Async Leak", "Jest FakeTimers"],
+      "back_explanation": "结论：导致测试用例间污染或测试永不结束。\n机制：FakeTimers 拦截全局时间，若未 restore，后续测试时间逻辑错乱或 pending 任务阻塞。\n坑点：务必在 afterEach 中调用 jest.useRealTimers() 或 vi.useRealTimers()。",
+      "difficulty": "advanced",
+      "tags": ["Testing", "Mocking", "Async"]
+    },
+    {
+      "id": "fe-engineering-flashcard-093",
+      "front_concept": "代码覆盖率阈值（Coverage Threshold）设置过高（如 100%）有何负面影响？",
+      "hints": ["False Security", "Productivity", "Meaningless Tests"],
+      "back_explanation": "结论：导致为了覆盖率而写测试，降低开发效率。\n机制：开发者可能编写无断言的测试仅为了覆盖行号，掩盖真实质量风险。\n坑点：建议设置合理阈值（如 80%），并结合 Mutation Testing 验证测试有效性。",
+      "difficulty": "intermediate",
+      "tags": ["Testing", "Quality", "Metrics"]
+    },
+    {
+      "id": "fe-engineering-flashcard-094",
+      "front_concept": "Vitest 中，Mock 外部 API 请求时，vi.mock 与 vi.spyOn 的核心区别是什么？",
+      "hints": ["Implementation Replace", "Method Monitor", "Hoisting"],
+      "back_explanation": "结论：vi.mock 替换整个模块实现，vi.spyOn 监听现有方法。\n机制：mock 需提升作用域，完全接管模块；spyOn 保留原实现仅包裹监听。\n坑点：Mock 第三方库需注意 ES Module 互操作性，有时需配合 __esModule: true。",
+      "difficulty": "advanced",
+      "tags": ["Vitest", "Mocking", "API"]
+    },
+    {
+      "id": "fe-engineering-flashcard-095",
+      "front_concept": "E2E 测试中，如何有效减少因网络波动导致的 Flaky Tests（不稳定测试）？",
+      "hints": ["Network Interception", "Retry Logic", "Deterministic"],
+      "back_explanation": "结论：拦截网络请求使用固定 Mock 数据，避免真实依赖。\n机制：使用 Cypress/Playwright 路由拦截，返回可控响应，消除外部不确定性。\n坑点：仅核心集成测试走真实网络，且需配置自动重试机制，但不可滥用。",
+      "difficulty": "advanced",
+      "tags": ["E2E", "Stability", "Network"]
+    },
+    {
+      "id": "fe-engineering-flashcard-096",
+      "front_concept": "测试环境中，为何需要隔离全局状态（如 window.localStorage）？",
+      "hints": ["Side Effects", "Test Isolation", "Cleanup"],
+      "back_explanation": "结论：防止测试用例间状态串扰，保证幂等性。\n机制：每个测试应独立运行，全局状态残留会导致后续测试基于错误前提。\n坑点：使用 beforeEach 清理 storage，或封装测试工具自动沙箱化全局对象。",
+      "difficulty": "intermediate",
+      "tags": ["Testing", "Isolation", "State"]
+    },
+    {
+      "id": "fe-engineering-flashcard-097",
+      "front_concept": "组件库实现多主题切换，CSS Variables 相比 JS 动态注入样式有何优势？",
+      "hints": ["Performance", "Native Support", "Runtime"],
+      "back_explanation": "结论：性能更好，无 FOUC，支持原生级联。\n机制：CSS 变量修改仅触发重绘，不重排；JS 注入需操作 DOM 样式表，开销大。\n坑点：需考虑旧浏览器兼容性，必要时使用 PostCSS 降级方案。",
+      "difficulty": "advanced",
+      "tags": ["Component Library", "Theming", "CSS"]
+    },
+    {
+      "id": "fe-engineering-flashcard-098",
+      "front_concept": "组件库发布时，package.json 的 exports 字段如何配置才能实现最佳 Tree Shaking？",
+      "hints": ["Subpath Exports", "ESM", "Side Effects"],
+      "back_explanation": "结论：为每个组件配置独立子路径导出。\n机制：允许用户 import Button from 'lib/button'，打包工具可精准剔除未用组件。\n坑点：需配合 sideEffects: false 声明，否则打包工具不敢移除未用模块。",
+      "difficulty": "advanced",
+      "tags": ["Component Library", "Package.json", "Tree Shaking"]
+    },
+    {
+      "id": "fe-engineering-flashcard-099",
+      "front_concept": "Design Token 管理中，为何建议将 Token 定义为中间格式（如 JSON）而非直接写死 CSS？",
+      "hints": ["Platform Agnostic", "Transformation", "Style Dictionary"],
+      "back_explanation": "结论：实现多端复用与自动化转换。\n机制：通过 Style Dictionary 等工具将 JSON 转为 CSS/Web/iOS/Android 所需格式。\n坑点：Token 命名规范需统一，否则转换脚本维护成本极高。",
+      "difficulty": "advanced",
+      "tags": ["Design System", "Tokens", "Automation"]
+    },
+    {
+      "id": "fe-engineering-flashcard-100",
+      "front_concept": "组件库按需加载实现中，Babel Plugin 与 ES Module 原生支持的差异是什么？",
+      "hints": ["Transform Time", "Static Analysis", "Compatibility"],
+      "back_explanation": "结论：Babel 插件转换导入路径，ES Module 依赖打包工具优化。\n机制：Babel 将 import { Button } 转为 import Button from 'lib/Button'；ESM 需配合 exports 字段。\n坑点：现代构建工具优先推荐 ESM 原生方案，Babel 插件仅作为旧项目兼容手段。",
+      "difficulty": "advanced",
+      "tags": ["Component Library", "On-demand", "Babel"]
+    },
+    {
+      "id": "fe-engineering-flashcard-101",
+      "front_concept": "组件库版本迭代中，如何安全地废弃（Deprecate）某个 API 而不破坏现有用户？",
+      "hints": ["Warning", "Soft Remove", "Changelog"],
+      "back_explanation": "结论：先标记 deprecated 警告，次版本再移除。\n机制：保留旧 API 逻辑但打印控制台警告，给予用户迁移缓冲期。\n坑点：需在 changelog 明确标注迁移路径，避免用户升级后无感知失效。",
+      "difficulty": "intermediate",
+      "tags": ["Component Library", "Versioning", "API"]
+    },
+    {
+      "id": "fe-engineering-flashcard-102",
+      "front_concept": "构建组件库类型声明时，为何有时需要手动编写 .d.ts 而非完全依赖 tsc 生成？",
+      "hints": ["Complex Types", "Public API", "Encapsulation"],
+      "back_explanation": "结论：隐藏内部实现细节，仅暴露稳定公共 API。\n机制：自动生成的类型可能包含内部私有类型，手动编写可收敛接口表面。\n坑点：维护成本高，需确保手动声明与实现代码同步，否则导致类型错误。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Component Library", "Types"]
+    },
+    {
+      "id": "fe-engineering-flashcard-103",
+      "front_concept": "Chrome DevTools 中，Workspaces 功能的核心价值是什么？",
+      "hints": ["Live Edit", "Source Mapping", "Persistence"],
+      "back_explanation": "结论：允许直接在浏览器编辑本地文件并持久化保存。\n机制：映射网络资源到本地文件系统，修改后自动同步回磁盘。\n坑点：需配置正确权限，且仅适合调试，正式修改仍需回到 IDE 提交代码。",
+      "difficulty": "advanced",
+      "tags": ["Debugging", "Chrome", "Workflow"]
+    },
+    {
+      "id": "fe-engineering-flashcard-104",
+      "front_concept": "排查内存泄漏时，Heap Snapshot 中 Detached DOM 节点意味着什么？",
+      "hints": ["Garbage Collection", "Reference", "Listener"],
+      "back_explanation": "结论：DOM 已从文档树移除，但仍被 JS 引用导致无法回收。\n机制：通常由闭包、全局变量或未移除的事件监听器持有引用。\n坑点：重点检查组件卸载时是否清理了定时器、监听器及第三方实例。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Memory Leak", "DOM"]
+    },
+    {
+      "id": "fe-engineering-flashcard-105",
+      "front_concept": "Node.js 内存泄漏排查中，--inspect 标志配合 Chrome 如何使用？",
+      "hints": ["Remote Debugging", "Heap Profile", "Connection"],
+      "back_explanation": "结论：启动 Node 调试进程，Chrome 连接进行内存分析。\n机制：Node 暴露 WebSocket 端口，Chrome DevTools 作为前端界面查看堆快照。\n坑点：生产环境慎用，会显著降低性能；建议仅在预发环境复现问题。",
+      "difficulty": "advanced",
+      "tags": ["Node.js", "Debugging", "Memory"]
+    },
+    {
+      "id": "fe-engineering-flashcard-106",
+      "front_concept": "Chrome DevTools 中，Blackboxing 脚本的主要用途是什么？",
+      "hints": ["Stack Trace", "Noise Reduction", "Vendor Code"],
+      "back_explanation": "结论：忽略第三方库代码，使断点仅停在业务代码。\n机制：调试器跳过被黑盒化的脚本帧，简化调用堆栈。\n坑点：配置正则匹配库路径，避免误伤业务代码，提升调试效率。",
+      "difficulty": "intermediate",
+      "tags": ["Debugging", "Chrome", "Efficiency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-107",
+      "front_concept": "Performance 面板中，Long Task 超过 50ms 通常由什么操作引起？",
+      "hints": ["Main Thread", "JS Execution", "Layout"],
+      "back_explanation": "结论：主线程被复杂 JS 计算或大规模 DOM 操作阻塞。\n机制：单任务执行过长阻塞输入响应，导致 FID 恶化。\n坑点：使用 Web Worker 卸载计算，或拆分大任务为多个小任务（Time Slicing）。",
+      "difficulty": "advanced",
+      "tags": ["Performance", "Main Thread", "Optimization"]
+    },
+    {
+      "id": "fe-engineering-flashcard-108",
+      "front_concept": "Node.js 进程中，内存使用率持续升高但 Heap Snapshot 无明显泄漏，可能原因是什么？",
+      "hints": ["Native Memory", "Buffer", "Stream"],
+      "back_explanation": "结论：可能是非 JS 堆内存泄漏（如 Native 模块或 Buffer）。\n机制：Heap Snapshot 仅统计 JS 堆，C++ 层分配内存需使用 process.memoryUsage() 分析。\n坑点：检查图片处理、文件流操作是否未正确关闭，或 Native 插件存在内存问题。",
+      "difficulty": "advanced",
+      "tags": ["Node.js", "Memory", "Native"]
+    },
+    {
+      "id": "fe-engineering-flashcard-109",
+      "front_concept": "Serverless 函数中，Cold Start（冷启动）延迟主要消耗在哪个阶段？",
+      "hints": ["Initialization", "Runtime Boot", "Dependency Load"],
+      "back_explanation": "结论：消耗在运行时环境初始化与依赖加载。\n机制：容器创建、代码下载、模块 require 过程耗时；热启动则复用容器。\n坑点：减少依赖体积，使用轻量运行时，或配置预并发（Provisioned Concurrency）。",
+      "difficulty": "advanced",
+      "tags": ["Serverless", "Performance", "Cloud"]
+    },
+    {
+      "id": "fe-engineering-flashcard-110",
+      "front_concept": "Vercel/Netlify 部署中，Edge Middleware 执行顺序与普通 API Route 有何不同？",
+      "hints": ["Request Flow", "Latency", "Global"],
+      "back_explanation": "结论：Middleware 在请求到达函数前执行，全局拦截。\n机制：运行在边缘节点，可修改请求/响应，优先级高于具体 Page/API。\n坑点：避免在 Middleware 中执行重逻辑，否则影响所有路由的响应速度。",
+      "difficulty": "advanced",
+      "tags": ["Serverless", "Edge", "Architecture"]
+    },
+    {
+      "id": "fe-engineering-flashcard-111",
+      "front_concept": "Cloudflare Workers 中，全局作用域代码为何只在冷启动时执行一次？",
+      "hints": ["Instance Reuse", "Stateless", "Handler"],
+      "back_explanation": "结论：Worker 实例复用机制，全局变量可在请求间共享。\n机制：fetch handler 外代码仅初始化一次，适合缓存数据库连接等重型资源。\n坑点：严禁存储用户特定状态，因实例可能被不同请求复用，导致数据泄露。",
+      "difficulty": "advanced",
+      "tags": ["Cloudflare", "Serverless", "State"]
+    },
+    {
+      "id": "fe-engineering-flashcard-112",
+      "front_concept": "Serverless 构建中，为何需要严格限制 Bundle 体积（如 50MB 限制）？",
+      "hints": ["Deployment Time", "Unzip Limit", "Memory"],
+      "back_explanation": "结论：超出限制会导致部署失败或运行时内存不足。\n机制：云平台限制包大小以控制解压时间与容器内存占用。\n坑点：使用外部依赖需小心，建议将大资源移至对象存储，函数仅保留逻辑代码。",
+      "difficulty": "intermediate",
+      "tags": ["Serverless", "Build", "Constraints"]
+    },
+    {
+      "id": "fe-engineering-flashcard-113",
+      "front_concept": "Edge Function 中，为何不支持 Node.js 全部 API（如 fs, path）？",
+      "hints": ["V8 Isolates", "Security", "Environment"],
+      "back_explanation": "结论：运行在隔离的 V8 环境，无文件系统访问权限。\n机制：边缘节点安全限制，仅支持 Web Standard API（Fetch, URL 等）。\n坑点：迁移 Node 代码需替换文件操作为 KV 存储或远程 API 调用。",
+      "difficulty": "advanced",
+      "tags": ["Edge", "Compatibility", "Security"]
+    },
+    {
+      "id": "fe-engineering-flashcard-114",
+      "front_concept": "Serverless 环境下，环境变量管理为何建议使用加密参数而非明文？",
+      "hints": ["Secret Management", "Log Exposure", "Security"],
+      "back_explanation": "结论：防止日志泄露或权限滥用导致密钥暴露。\n机制：云平台提供加密存储，运行时解密注入，避免明文出现在配置文件中。\n坑点：切勿将密钥硬编码在代码中，即使私有仓库也存在泄露风险。",
+      "difficulty": "intermediate",
+      "tags": ["Security", "Serverless", "Env"]
+    },
+    {
+      "id": "fe-engineering-flashcard-115",
+      "front_concept": "TypeScript Monorepo 中，project references (tsconfig.json) 的核心优势是什么？",
+      "hints": ["Incremental Build", "Dependency Graph", "Performance"],
+      "back_explanation": "结论：支持增量编译，仅构建变更项目。\n机制：tsc --build 根据引用关系图，跳过未变更子项目，大幅提升速度。\n坑点：需配置 composite: true，且引用路径必须正确，否则无法识别依赖。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Monorepo", "Performance"]
+    },
+    {
+      "id": "fe-engineering-flashcard-116",
+      "front_concept": "发布 TS 库时，types 字段与 typings 字段有何区别？优先使用哪个？",
+      "hints": ["Standard", "Legacy", "Resolution"],
+      "back_explanation": "结论：types 是新标准，typings 是旧兼容，优先用 types。\n机制：TS 编译器优先查找 types 字段，若无则回退 typings。\n坑点：确保指向正确的 .d.ts 入口文件，否则使用者无法获得类型提示。",
+      "difficulty": "intermediate",
+      "tags": ["TypeScript", "Publishing", "Package.json"]
+    },
+    {
+      "id": "fe-engineering-flashcard-117",
+      "front_concept": "Monorepo 中，深层依赖类型冲突（如两个包依赖不同版本 TS）如何解决？",
+      "hints": ["Peer Dependency", "Hoisting", "Resolution"],
+      "back_explanation": "结论：将 TypeScript 提升为根目录 peerDependency。\n机制：强制所有子包使用同一 TS 版本，避免类型定义不一致。\n坑点：需配置 pnpm overrides 或 npm resolutions 强制版本统一。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Monorepo", "Dependency"]
+    },
+    {
+      "id": "fe-engineering-flashcard-118",
+      "front_concept": "TS 构建中，skipLibCheck 配置为 true 有何风险与收益？",
+      "hints": ["Build Speed", "Type Safety", "Node Modules"],
+      "back_explanation": "结论：收益是构建提速，风险是忽略依赖库类型错误。\n机制：跳过 node_modules 中声明文件的检查，减少编译量。\n坑点：生产环境建议关闭或仅 CI 开启，避免依赖库类型变更导致运行时错误。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Configuration", "Trade-off"]
+    },
+    {
+      "id": "fe-engineering-flashcard-119",
+      "front_concept": "发布 TS 包时，为何建议将 .d.ts 文件与 JS 文件放在同一目录结构？",
+      "hints": ["Resolution Logic", "Import Mapping", "Simplicity"],
+      "back_explanation": "结论：符合 TS 默认解析逻辑，减少配置复杂度。\n机制：TS 导入 JS 时自动寻找同名 .d.ts，分离目录需额外配置 paths。\n坑点：构建脚本需确保类型文件输出路径与 JS 完全一致，避免找不到类型。",
+      "difficulty": "intermediate",
+      "tags": ["TypeScript", "Structure", "Publishing"]
+    },
+    {
+      "id": "fe-engineering-flashcard-120",
+      "front_concept": "Monorepo 中，如何使用 TypeScript 的 paths 配置实现本地依赖链接？",
+      "hints": ["Alias", "Local Development", "Compilation"],
+      "back_explanation": "结论：映射包名到本地 src 目录，实现实时联动。\n机制：编译时直接引用源码而非构建产物，修改依赖包无需重新构建。\n坑点：仅用于开发环境，发布时需确保构建产物路径正确，避免 paths 泄露。",
+      "difficulty": "advanced",
+      "tags": ["TypeScript", "Monorepo", "Development"]
+    }
+  ]
+}

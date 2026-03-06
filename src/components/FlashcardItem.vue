@@ -61,7 +61,11 @@
       </div>
 
       <!-- 背面 -->
-      <div class="flashcard-face flashcard-back pixel-card" ref="backRef">
+      <div
+        class="flashcard-face flashcard-back pixel-card"
+        ref="backRef"
+        @click="flipCard"
+      >
         <div class="tape"></div>
         <div class="card-header">
           <div class="tags-row">
@@ -95,7 +99,7 @@
           ></div>
         </div>
 
-        <div class="card-footer interactive">
+        <div class="card-footer interactive" @click.stop>
           <p class="rate-hint">本次掌握程度如何？</p>
           <div class="rating-buttons">
             <button class="pixel-btn danger-btn" @click.stop="rate('forgot')">

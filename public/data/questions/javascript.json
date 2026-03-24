@@ -1,0 +1,3916 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "JavaScript 基础与进阶",
+    "generated_at": "2025-02-14T00:00:00.000Z",
+    "total_questions": 30,
+    "target_level": "Senior",
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
+  },
+  "questions": [
+    {
+      "id": "js-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["作用域", "执行上下文", "变量提升", "TDZ", "ECMAScript"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "块级作用域与TDZ",
+      "content": "阅读以下代码，输出结果是什么？\\n\\nvar x = 1;\\nfunction foo() {\\n  console.log(x);\\n  if (true) {\\n    let x = 2;\\n  }\\n}\\nfoo();",
+      "explanation": "正确答案是 C。进入 foo 执行上下文后，会先创建词法环境。函数体内存在块级作用域中的 let x 声明，因此在 if 块内部会形成新的 Declarative Environment Record，但 console.log(x) 发生在块外部，解析标识符时先查找 foo 函数级环境，没有 x，再到外层全局环境，得到 var x = 1，因此打印 1。\\n\\n错误选项剖析：A 认为会打印 2，混淆了块级作用域的可见性，let 仅在其所在块内生效；B 认为是 undefined，常见于把 var 提升规则错误套用到 let；D 认为抛出 ReferenceError，则是把 TDZ 误认为会影响整个函数体，实际上这里只影响 if 块内部对该 let x 的访问。\\n\\n从规范角度看，ECMAScript 中 let/const 通过词法环境管理，未初始化阶段访问才会触发 TDZ。工程实践中，复杂函数里混用 var 和 let 容易导致作用域判断错误，建议统一使用 let/const，并通过 ESLint 的 no-shadow、no-use-before-define 规则减少隐式遮蔽带来的维护风险。",
+      "knowledge_point": "ECMAScript_Lexical_Environment",
+      "common_mistake": "误以为块内 let 声明会像 var 一样提升到函数顶部，或者误把 TDZ 作用范围扩大到整个外层函数。",
+      "hints": [
+        "先区分 console.log 所在位置是否处于 if 块内部。",
+        "再回忆 let 的 TDZ 只在其词法作用域内生效。"
+      ],
+      "reference_link": "https://tc39.es/ecma262/#sec-lexical-environments",
+      "options": [
+        {
+          "id": "A",
+          "text": "2"
+        },
+        {
+          "id": "B",
+          "text": "undefined"
+        },
+        {
+          "id": "C",
+          "text": "1"
+        },
+        {
+          "id": "D",
+          "text": "ReferenceError"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "B": "把 let 误判为 var 提升后的初始化值 undefined。",
+        "C": "正确选项，不应出现在干扰项分析中，但该字段按接口为可选，实际只分析其他迷惑项。",
+        "D": "误把 TDZ 扩展到 if 块外，忽略了词法作用域边界。"
+      }
+    },
+    {
+      "id": "js-senior-002",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["闭包", "内存管理", "V8", "垃圾回收", "性能"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "闭包的真实影响",
+      "content": "关于 JavaScript 闭包及其工程影响，下列说法哪些是正确的？",
+      "explanation": "正确答案是 A、C、D。闭包的本质是函数在定义时捕获其外层词法环境中的变量绑定，而不是变量值的简单拷贝。只要内部函数仍然可达，对应环境记录中的变量就可能继续存活，因此闭包可能延长对象生命周期。V8 等引擎通常会对上下文对象做优化，不一定把整个外层作用域都原封不动保留，但被引用的绑定需要保留。\\n\\nB 错在把闭包绝对化为内存泄漏来源。闭包本身不是泄漏，泄漏来自不再需要的引用链未被释放，例如事件监听器、全局缓存、定时器回调等仍持有闭包。A 正确，因为闭包捕获的是变量绑定；C 正确，闭包可用于封装私有状态，但要警惕长期引用；D 正确，引擎会针对未逃逸变量、上下文裁剪等场景做优化。\\n\\n工程实践中，闭包在防抖、节流、柯里化、模块隔离中非常常见，但大对象、DOM 节点或长生命周期任务若被闭包持有，容易导致内存上涨。建议结合 Performance Memory、Heap Snapshot 分析 Retainer Path，确认真实引用链，而不是简单把闭包当作罪魁祸首。",
+      "knowledge_point": "Closure_Context_Retention",
+      "common_mistake": "把闭包等价于内存泄漏，忽略闭包只是形成引用链的一种方式。",
+      "hints": [
+        "思考闭包捕获的是值还是绑定。",
+        "再区分内存泄漏与正常对象存活。"
+      ],
+      "reference_link": "https://v8.dev/docs",
+      "options": [
+        {
+          "id": "A",
+          "text": "闭包捕获的是外层变量的绑定，多个闭包可能共享同一个变量"
+        },
+        {
+          "id": "B",
+          "text": "只要使用闭包，就一定会造成内存泄漏"
+        },
+        {
+          "id": "C",
+          "text": "闭包常用于实现私有状态与函数工厂"
+        },
+        {
+          "id": "D",
+          "text": "现代引擎可能对闭包上下文做优化，不一定完整保留整个作用域对象"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "闭包不是泄漏的充分条件，真正问题是不必要的长引用链未释放。"
+      }
+    },
+    {
+      "id": "js-senior-003",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["原型链", "__proto__", "prototype", "继承"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "prototype与__proto__",
+      "content": "判断正误：所有 JavaScript 对象都有 prototype 属性。",
+      "explanation": "正确答案是 B。并不是所有对象都有 prototype 属性。prototype 属性通常存在于函数对象上，用于在其作为构造函数时为实例提供原型对象。而普通对象通过内部槽 [[Prototype]] 关联其原型，很多运行时环境提供 __proto__ 作为访问器，但它不是标准层面的数据属性等价物。\\n\\n常见误解在于把函数对象的 prototype 和普通对象的 [[Prototype]] 混为一谈。比如 {} 没有自有 prototype 属性，但它有 [[Prototype]]，通常指向 Object.prototype。箭头函数也没有作为构造器使用的能力，因此也没有有意义的 prototype 行为。\\n\\n工程实践中，排查继承链或属性查找问题时，应优先使用 Object.getPrototypeOf，而不是依赖 __proto__。另外在实现继承和元编程时，需要区分构造函数的 prototype、实例对象的原型链、以及类语法糖背后的原型连接机制，避免面向对象设计中出现错误判断。",
+      "knowledge_point": "Prototype_vs_InternalPrototype",
+      "boundary_conditions": "函数对象通常有 prototype 自有属性，但普通对象没有。对象可能通过 [[Prototype]] 关联原型；Object.create(null) 创建的对象甚至没有继承自 Object.prototype。箭头函数不能作为构造器，其 prototype 行为与普通函数不同。",
+      "reference_link": "https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["this", "箭头函数", "绑定规则", "执行上下文"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "箭头函数this绑定",
+      "content": "以下关于箭头函数 this 绑定的描述，哪一项是正确的？",
+      "explanation": "正确答案是 B。箭头函数没有自己的 this、arguments、super 和 new.target，它的 this 在定义时从外层最近的非箭头函数或模块环境中词法捕获，而不是在调用时根据调用位置动态绑定。也因此 call、apply、bind 无法改变箭头函数的 this 指向。\\n\\nA 错在认为箭头函数的 this 取决于调用者，这实际上是普通函数的隐式绑定规则；C 错在认为箭头函数可以被 new 调用，箭头函数没有 [[Construct]]；D 错在认为 bind 总是生效，bind 对箭头函数返回的新函数也无法改写其词法 this。\\n\\n从规范与实现看，箭头函数创建时 Environment 会记录其外层 thisMode。工程实践中，React class 时代常通过箭头函数避免手动绑定 this，但在对象方法定义场景滥用箭头函数会导致 this 不指向对象本身，尤其是需要动态接收实例上下文的方法不应写成箭头函数。",
+      "knowledge_point": "ArrowFunction_ThisMode",
+      "common_mistake": "把箭头函数当作普通方法来写，导致 this 指向外层作用域而不是对象实例。",
+      "options": [
+        {
+          "id": "A",
+          "text": "箭头函数的 this 在调用时由调用者决定"
+        },
+        {
+          "id": "B",
+          "text": "箭头函数的 this 在定义时从外层词法作用域捕获"
+        },
+        {
+          "id": "C",
+          "text": "箭头函数可以通过 new 调用并创建实例"
+        },
+        {
+          "id": "D",
+          "text": "使用 bind 总能修改箭头函数的 this"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "B": "正确选项，不应作为错误项分析。",
+        "C": "箭头函数没有构造能力，不存在 prototype 构造语义。",
+        "D": "bind 只能包装调用，不能改变箭头函数已词法确定的 this。"
+      }
+    },
+    {
+      "id": "js-senior-005",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["执行上下文", "调用栈", "AO", "VO", "规范"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "执行上下文创建阶段",
+      "content": "关于 JavaScript 执行上下文创建阶段，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。执行上下文创建阶段会完成词法环境、变量环境、this 绑定等初始化工作。函数声明会在创建阶段完成绑定，因此可以在源码中声明前调用；var 声明会创建绑定并初始化为 undefined；let/const 也会在环境记录中创建绑定，但在初始化前处于 TDZ。\\n\\nC 错在认为 let/const 不提升。更准确地说，它们会被提升到词法环境中完成绑定创建，但不会像 var 那样初始化为 undefined，因此访问会抛出 ReferenceError。A 正确说明了函数声明可提前使用；B 正确区分了 var 的初始化行为；D 正确指出 this 绑定也是执行上下文创建的重要部分，只是模块、严格模式、普通函数、构造调用的规则各不相同。\\n\\n工程实践中，理解创建阶段可以解释大量看似诡异的问题，如同名函数与变量覆盖、TDZ 异常、默认参数作用域等。排查线上 bug 时，应从源码执行前的环境建立顺序入手，而不是只看运行时语句顺序。",
+      "knowledge_point": "ExecutionContext_CreationPhase",
+      "reference_link": "https://tc39.es/ecma262/#sec-execution-contexts",
+      "options": [
+        {
+          "id": "A",
+          "text": "函数声明在创建阶段会完成绑定"
+        },
+        {
+          "id": "B",
+          "text": "var 声明的变量在创建阶段会初始化为 undefined"
+        },
+        {
+          "id": "C",
+          "text": "let/const 不会提升，因此创建阶段不会出现"
+        },
+        {
+          "id": "D",
+          "text": "this 绑定的确定属于执行上下文建立的一部分"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "let/const 会创建绑定，只是未初始化，访问受 TDZ 限制。"
+      }
+    },
+    {
+      "id": "js-senior-006",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["事件循环", "微任务", "宏任务", "Promise"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "微任务清空时机",
+      "content": "判断正误：浏览器事件循环中，每执行完一个宏任务后，都会在进入下一个宏任务前尽可能清空当前微任务队列。",
+      "explanation": "正确答案是 A。浏览器事件循环的核心规则之一就是在一个 task 执行结束后，会进行 microtask checkpoint，持续执行微任务直到队列为空，然后才可能进行渲染或进入下一个宏任务。Promise.then、queueMicrotask、MutationObserver 等通常都会进入微任务队列。\\n\\n常见误解是把微任务理解为一定比渲染早或一定在所有场景下绝对优先。实际上不同宿主环境有自己的调度细节，但浏览器中的标准事件循环明确要求在适当时机执行 microtask checkpoint。Node.js 还存在 process.nextTick 等更细粒度机制，不能简单类比。\\n\\n工程实践上，滥用微任务会导致长时间占用主线程，使渲染饥饿或交互卡顿。例如递归 queueMicrotask 或 Promise 链无限扩展，会让 UI 迟迟得不到刷新。因此在高频更新场景应结合 requestAnimationFrame、MessageChannel 或分片调度策略控制执行节奏。",
+      "knowledge_point": "EventLoop_MicrotaskCheckpoint",
+      "boundary_conditions": "浏览器通常在每个宏任务后清空微任务，但渲染时机受宿主环境调度影响；Node.js 中事件循环阶段与浏览器不同，process.nextTick 还拥有比普通微任务更高的优先级语义。",
+      "reference_link": "https://html.spec.whatwg.org/multipage/webappapis.html#event-loops",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-007",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Promise", "thenable", "Promise Resolution Procedure", "规范"],
+      "source_company": "OpenSource",
+      "score": 10,
+      "title": "Promise解析过程",
+      "content": "关于 Promise.resolve(x) 对 thenable 的处理，哪项描述最准确？",
+      "explanation": "正确答案是 A。Promise 解析过程并不是简单地把 x 包装起来，而是遵循 Promise Resolution Procedure。如果 x 是对象或函数，并且存在可调用的 then 属性，那么会尝试以 then 的语义去吸收其最终状态，这也是为何 Promise 可以兼容第三方 thenable。规范中还要求防止多次决议和自解析。\\n\\nB 错在认为 Promise.resolve 永远同步返回最终值，它只会同步返回一个 Promise 实例，但该 Promise 的决议可能依赖 thenable 的异步行为；C 错在认为只有原生 Promise 才会被展开，实际上 thenable 也会被吸收；D 错在说遇到 then 属性就抛错，规范恰恰定义了读取与调用 then 的完整流程及异常处理。\\n\\n工程实践中，手写 Promise、封装异步库、桥接多种 Promise 实现时，最容易出错的就是 thenable 吸收和异常冒泡。若实现不符合规范，常出现重复 resolve、链式结果错乱、无法捕获 getter 抛错等问题。高级工程师需要理解这一层，而不仅仅会使用 async/await。",
+      "knowledge_point": "Promise_Resolution_Procedure",
+      "reference_link": "https://tc39.es/ecma262/#sec-promise-resolve-functions",
+      "options": [
+        {
+          "id": "A",
+          "text": "若 x 是对象或函数且其 then 可调用，Promise 会尝试吸收它的最终状态"
+        },
+        {
+          "id": "B",
+          "text": "Promise.resolve(x) 会立即同步展开所有 thenable 并返回最终普通值"
+        },
+        {
+          "id": "C",
+          "text": "只有原生 Promise 实例才会被展开，普通 thenable 不会"
+        },
+        {
+          "id": "D",
+          "text": "只要对象上存在 then 属性，就会直接抛出 TypeError"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "混淆了返回 Promise 实例与最终状态落定的时间。",
+        "C": "忽略了规范对 thenable assimilation 的兼容要求。",
+        "D": "规范会先取 then，再按规则调用并处理异常，而非一律报错。"
+      }
+    },
+    {
+      "id": "js-senior-008",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["async/await", "Promise", "异常处理", "语义糖"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "async函数本质",
+      "content": "关于 async/await 的本质与行为，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。async 函数调用后总是返回一个 Promise，这是语言层面的约定；await 会对其后表达式执行类似 Promise.resolve 的封装，因此即便 await 一个普通值，也会以 Promise fulfilled 的形式继续；try/catch 可以捕获 await 的 reject，就像同步代码中的异常处理一样。\\n\\nB 错在认为 await 会阻塞整个线程。实际上 await 只会暂停当前 async 函数的后续执行，把剩余逻辑挂到微任务链上，JavaScript 主线程仍会继续执行其他任务。A 正确体现语义糖本质，C 正确说明了 await 的包裹机制，D 正确反映了错误传播路径。\\n\\n从编译角度，Babel 早期会把 async/await 转换为 Generator + Promise 驱动器。工程实践中，应避免在循环里串行 await 导致不必要的性能损失，可结合 Promise.all、并发控制池、AbortController 做更细粒度调度；同时注意顶层 await 会影响模块图的初始化顺序。",
+      "knowledge_point": "AsyncAwait_Desugaring",
+      "reference_link": "https://tc39.es/ecma262/#sec-async-function-definitions",
+      "options": [
+        {
+          "id": "A",
+          "text": "async 函数调用后一定返回 Promise"
+        },
+        {
+          "id": "B",
+          "text": "await 会阻塞整个 JavaScript 主线程"
+        },
+        {
+          "id": "C",
+          "text": "await 普通值时也会按 Promise fulfilled 语义继续"
+        },
+        {
+          "id": "D",
+          "text": "try/catch 可以捕获 await 的 reject"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "await 暂停的是当前 async 函数，不是宿主线程本身。"
+      }
+    },
+    {
+      "id": "js-senior-009",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Generator", "迭代器", "yield", "控制流"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "Generator即迭代器",
+      "content": "判断正误：调用 Generator 函数后返回的对象，既是迭代器，也是可迭代对象。",
+      "explanation": "正确答案是 A。Generator 函数执行后返回一个 Generator 对象，该对象实现了 next、throw、return 等迭代器接口，同时也实现了 [Symbol.iterator] 并返回自身，因此它既是 Iterator，也是 Iterable。这种双重身份使其可以直接用于 for...of、展开运算符等消费场景。\\n\\n常见误解是把生成器函数本身当成迭代器，实际上只有调用后返回的对象才是。另一个误区是认为所有迭代器都自动可迭代，规范并没有强制要求普通迭代器必须实现 [Symbol.iterator] 返回自身，只是 Generator 对象这么做了。\\n\\n工程实践里，Generator 在现代业务代码中虽然不如 async/await 常见，但在实现惰性序列、协程式流程控制、手写 saga 中仍然很重要。理解其 iterator protocol 与 iterable protocol 的关系，有助于实现自定义数据结构的遍历能力和异步调度框架。",
+      "knowledge_point": "Generator_Iterator_Iterable",
+      "boundary_conditions": "Generator 对象天然同时满足 Iterator 与 Iterable；但一般手写迭代器如果没有实现 [Symbol.iterator]，则未必能被 for...of 直接消费。生成器函数本身只是函数，不是迭代器。",
+      "reference_link": "https://tc39.es/ecma262/#sec-generator-function-definitions",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-010",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Proxy", "Reflect", "不变量", "元编程"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "Proxy不变量限制",
+      "content": "下列关于 Proxy trap 与 Reflect 的说法，哪项最准确？",
+      "explanation": "正确答案是 C。Proxy 提供对象内部操作的拦截能力，但它并非可以任意篡改语言语义。ECMAScript 对某些 trap 定义了 invariants，例如目标对象上某个属性若是不可配置且不可写的数据属性，get/set/defineProperty 等拦截不得返回与目标状态冲突的结果，否则会抛出 TypeError。Reflect 常用于以默认语义转发内部操作，并帮助保持返回值与语言内部方法一致。\\n\\nA 错在夸大 Proxy 能力，忽略规范不变量约束；B 错在认为 Reflect 是 Proxy 的语法糖，实际上 Reflect 是一组与内部方法对应的标准 API；D 错在说 trap 返回什么都可以，很多 trap 的返回结果、描述符一致性都受规范校验。\\n\\n工程实践中，使用 Proxy 做响应式、权限控制、日志采集时，应优先以 Reflect.xxx 转发底层行为，再叠加业务逻辑，避免破坏对象描述符一致性。否则在冻结对象、类实例、数组 length 等边界场景下，容易出现难以定位的 TypeError 或框架兼容性问题。",
+      "knowledge_point": "Proxy_Invariants_Reflect",
+      "reference_link": "https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots",
+      "options": [
+        {
+          "id": "A",
+          "text": "Proxy 可以无视目标对象的属性描述符限制，自由返回任意结果"
+        },
+        {
+          "id": "B",
+          "text": "Reflect 只是为了替代 Proxy 而设计的语法糖"
+        },
+        {
+          "id": "C",
+          "text": "Proxy trap 受规范不变量约束，Reflect 常用于按默认语义转发操作"
+        },
+        {
+          "id": "D",
+          "text": "只要定义了 trap，返回值是否与目标对象一致都不会报错"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "B": "Reflect 是标准对象操作 API，并非 Proxy 替代品。",
+        "C": "正确选项，不应作为错误项分析。",
+        "D": "忽略了 Proxy invariants，某些不一致会直接触发 TypeError。"
+      }
+    },
+    {
+      "id": "js-senior-011",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Symbol", "元属性", "枚举", "私有化"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "Symbol特性辨析",
+      "content": "关于 Symbol 的描述，哪些是正确的？",
+      "explanation": "正确答案是 A、B、D。Symbol 是一种原始类型，创建出的值唯一，可作为对象属性键避免命名冲突。通过字面枚举方式如 for...in、Object.keys、JSON.stringify，通常不会遍历到 Symbol 键，但 Object.getOwnPropertySymbols 和 Reflect.ownKeys 可以获取。Symbol.for 会从全局注册表中复用同名 Symbol。\\n\\nC 错在认为 Symbol 可通过 new 调用构造，实际上 Symbol 不是构造函数，使用 new Symbol() 会抛错。A 正确说明其唯一性与原始类型属性；B 正确体现枚举特征；D 正确说明全局注册表机制。\\n\\n工程实践中，Symbol 常用于定义框架内部协议位，如 iterator、toStringTag、自定义元行为等。但它不是严格私有化方案，仍可被反射 API 取出。若需要真正私有字段，应优先使用 class #private 或模块级闭包封装。大型代码库中，合理利用 Symbol 能减少跨团队属性命名冲突。",
+      "knowledge_point": "Symbol_GlobalRegistry_Enumeration",
+      "options": [
+        {
+          "id": "A",
+          "text": "Symbol 是原始类型，通常用于创建唯一属性键"
+        },
+        {
+          "id": "B",
+          "text": "Object.keys 默认不会返回 Symbol 键"
+        },
+        {
+          "id": "C",
+          "text": "可以使用 new Symbol() 创建 Symbol 实例"
+        },
+        {
+          "id": "D",
+          "text": "Symbol.for(\"x\") 可能返回同一个全局注册表中的 Symbol"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "Symbol 不是构造器，不能使用 new 调用。"
+      }
+    },
+    {
+      "id": "js-senior-012",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Iterator", "for...of", "可迭代协议"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "for...of消费对象",
+      "content": "判断正误：普通对象字面量 {} 默认可以直接被 for...of 遍历，因为它本质上也是键值对集合。",
+      "explanation": "正确答案是 B。for...of 遍历的是可迭代对象，而不是所有容器型对象。一个值要能被 for...of 消费，必须实现 iterable protocol，即存在 [Symbol.iterator] 方法并返回迭代器。普通对象字面量默认并未实现该协议，因此直接 for...of 会抛出 TypeError。\\n\\n常见误区是把 for...in 与 for...of 混淆。for...in 枚举的是可枚举属性键，且会沿原型链查找；for...of 消费的是迭代器产生的值，常见于数组、字符串、Map、Set、Generator 等。\\n\\n工程实践中，如需遍历普通对象，通常应结合 Object.keys、Object.entries、Reflect.ownKeys，或自行定义 [Symbol.iterator]。在设计 SDK 或数据结构库时，是否实现 iterable protocol 会直接影响 API 的可组合性和与语言特性的兼容程度。",
+      "knowledge_point": "Iterable_Protocol",
+      "boundary_conditions": "数组、字符串、Map、Set、Generator 默认可迭代；普通对象默认不可迭代，除非显式定义 [Symbol.iterator]。for...in 与 for...of 的语义完全不同，不应混用。",
+      "reference_link": "https://tc39.es/ecma262/#sec-iteration",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-013",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["深拷贝", "structuredClone", "循环引用", "类型系统"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "深拷贝方案选择",
+      "content": "对于需要正确处理循环引用、Map、Set、Date、RegExp，并尽量遵循平台标准的深拷贝需求，优先应选择哪种方案？",
+      "explanation": "正确答案是 D。在现代运行环境中，structuredClone 是平台标准提供的结构化克隆能力，能够正确处理多种内建类型和循环引用，语义上也更接近浏览器与平台底层消息传递所使用的 structured clone algorithm。相比 JSON 序列化，它不会丢失 Date、Map、Set、RegExp 等结构，也不会因循环引用直接报错。\\n\\nA 的 JSON.parse(JSON.stringify()) 只能处理有限子集，会丢失 undefined、Symbol、函数、原型信息，还会把 Date 变成字符串；B 递归遍历浅实现很容易漏掉描述符、循环引用、特殊对象；C Object.assign 只是浅拷贝。\\n\\n工程实践中，深拷贝本身往往是设计味道而非默认方案。应先评估是否真的需要完整复制对象图，还是可以通过不可变数据、结构共享、领域建模避免大规模复制。对于跨线程传输或 Worker 通信，structuredClone 及 Transferable 支持往往比自定义递归实现更安全、更高性能。",
+      "knowledge_point": "StructuredClone_Algorithm",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/structuredClone",
+      "options": [
+        {
+          "id": "A",
+          "text": "JSON.parse(JSON.stringify(obj))"
+        },
+        {
+          "id": "B",
+          "text": "手写递归并只处理 plain object 和 array"
+        },
+        {
+          "id": "C",
+          "text": "Object.assign({}, obj)"
+        },
+        {
+          "id": "D",
+          "text": "structuredClone(obj)"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "B": "只能覆盖有限类型，且容易在循环引用、特殊对象上失效。",
+        "C": "Object.assign 是浅拷贝，不会复制嵌套对象图。",
+        "D": "正确选项，不应出现在错误分析中。"
+      }
+    },
+    {
+      "id": "js-senior-014",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["函数式编程", "纯函数", "不可变", "高阶函数"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "纯函数与副作用",
+      "content": "下列关于纯函数与函数式编程的说法，哪些正确？",
+      "explanation": "正确答案是 A、C、D。纯函数的核心约束是相同输入得到相同输出，且不依赖或修改外部可观察状态。它有利于缓存、测试、并行推理与可组合性。不可变数据结构和高阶函数常作为函数式编程的重要工具。\\n\\nB 错在把闭包与纯函数对立起来。闭包本身不必然导致不纯，关键在于是否读取或修改外部可变状态。例如一个仅捕获常量配置并据此计算结果的函数仍可能是纯的。A 正确说明纯函数特性，C 正确说明其工程价值，D 正确指出不可变与高阶函数在函数式实践中的地位。\\n\\n工程实践中，前端状态管理、选择器缓存、数据转换管道都很适合函数式思维。但完全函数式并非银弹，在性能敏感路径下要注意频繁复制对象带来的 GC 压力。高级工程师需要在可维护性和运行时成本之间取得平衡，而不是教条地追求纯度。",
+      "knowledge_point": "PureFunction_SideEffect",
+      "options": [
+        {
+          "id": "A",
+          "text": "纯函数在相同输入下应返回相同输出"
+        },
+        {
+          "id": "B",
+          "text": "只要函数使用了闭包，就一定不是纯函数"
+        },
+        {
+          "id": "C",
+          "text": "纯函数更容易做缓存和单元测试"
+        },
+        {
+          "id": "D",
+          "text": "不可变数据和高阶函数常用于函数式编程实践"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "闭包是否导致不纯取决于是否依赖或修改外部可变状态，而非是否使用闭包本身。"
+      }
+    },
+    {
+      "id": "js-senior-015",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["柯里化", "高阶函数", "参数复用"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "柯里化目的辨析",
+      "content": "判断正误：柯里化的核心价值之一是通过部分应用实现参数复用与函数组合能力增强。",
+      "explanation": "正确答案是 A。柯里化通常把接收多个参数的函数转换为一系列接收单一参数的函数调用，从而提升参数复用、延迟执行、函数组合和配置预绑定的能力。它常用于构造更通用的高阶函数，例如日志工厂、校验器、选择器生成器等。\\n\\n常见误区是把柯里化理解为单纯的面试手写题，或者等同于 bind。实际上柯里化更强调函数变换与组合式建模，而 bind 更偏向 this 和预置参数绑定。两者虽有交集，但语义目标不同。\\n\\n工程实践中，过度柯里化会降低可读性，尤其是参数层级过深、调试堆栈不直观时。因此在业务代码中应适度使用，优先在通用库、数据变换管道、DSL 设计中发挥其组合优势，而不是机械地把所有多参函数都改写成柯里化风格。",
+      "knowledge_point": "Currying_PartialApplication",
+      "boundary_conditions": "柯里化不等于必须每次只收一个参数的教条式实现，实际工程中常结合占位符和部分应用增强可用性；bind 可做部分参数预置，但其核心语义还涉及 this 绑定，不完全等同于柯里化。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-016",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["节流", "防抖", "高频事件", "性能优化"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "节流防抖场景选择",
+      "content": "在输入框搜索建议接口请求场景中，为减少无效请求并尽量获取用户停止输入后的最终值，优先选择哪种策略？",
+      "explanation": "正确答案是 B。输入框联想请求更适合使用防抖，因为其目标是等待用户停止输入一段时间后再发起请求，从而减少大量中间态请求。节流更适合固定频率执行，如滚动监听、窗口 resize 统计等。\\n\\nA 立即执行且不控制频率会造成请求风暴；C 节流虽然能限制调用频率，但在快速输入过程中仍可能发出多个中间态请求，不符合此场景对最终值的偏好；D requestAnimationFrame 主要用于视觉更新节奏对齐，不适合网络请求去抖控制。\\n\\n工程实践中，防抖实现还应考虑 leading、trailing、cancel、flush，以及异步请求竞争问题。例如后发请求先返回会导致结果倒灌，需要配合 AbortController、请求序列号或最后一次有效响应策略。真正高级的实现不是只写一个 setTimeout，而是把时序一致性也一并处理。",
+      "knowledge_point": "Debounce_vs_Throttle",
+      "options": [
+        {
+          "id": "A",
+          "text": "每次 input 事件都立即发请求"
+        },
+        {
+          "id": "B",
+          "text": "使用防抖，在用户停止输入一段时间后发请求"
+        },
+        {
+          "id": "C",
+          "text": "使用节流，固定时间间隔内持续发请求"
+        },
+        {
+          "id": "D",
+          "text": "使用 requestAnimationFrame 替代请求调度"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "B": "正确选项，不应作为错误项分析。",
+        "C": "节流控制频率但不天然保证只取最终输入态。",
+        "D": "rAF 面向渲染帧调度，不是请求防抖机制。"
+      }
+    },
+    {
+      "id": "js-senior-017",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["发布订阅", "观察者模式", "事件系统", "内存泄漏"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "发布订阅系统设计",
+      "content": "设计一个健壮的前端发布订阅系统时，以下哪些点是关键考虑？",
+      "explanation": "正确答案是 A、B、D。成熟的发布订阅系统不仅是 on/emit/off 三个 API，还要考虑订阅取消、一次性订阅、异常隔离、监听器迭代时修改、以及长期不释放监听器带来的泄漏问题。对监听器列表做快照或版本控制，能够避免 emit 过程中增删监听器导致行为不一致。\\n\\nC 错在认为 emit 时抛出的异常应自然中断全部后续监听器。对工程系统来说，更稳妥的做法通常是隔离单个监听器异常，收集错误并继续分发，以免一个模块阻断整个事件链。当然这也取决于领域要求，但通用事件总线不应默认脆弱。A 正确体现内存回收与退订能力的重要性；B 正确说明迭代稳定性；D 正确强调 once、优先级、异步调度等增强能力的设计价值。\\n\\n工程实践中，事件总线最常见的问题不是功能不够，而是无边界使用导致架构耦合和不可追踪。建议在大型项目中控制事件域、加上类型约束、埋点监控和自动清理策略，避免把总线演化为隐式全局依赖网络。",
+      "knowledge_point": "PubSub_Emitter_Design",
+      "reference_link": "https://nodejs.org/api/events.html",
+      "options": [
+        {
+          "id": "A",
+          "text": "需要提供退订能力，避免监听器长期滞留"
+        },
+        {
+          "id": "B",
+          "text": "触发过程中若监听器列表发生变化，应考虑快照或稳定遍历策略"
+        },
+        {
+          "id": "C",
+          "text": "任意监听器抛错时应立即中断并放弃后续全部监听器执行，这是最佳实践"
+        },
+        {
+          "id": "D",
+          "text": "once、优先级或异步派发等能力在复杂场景中很有价值"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "单个监听器异常通常应隔离处理，否则系统鲁棒性很差。"
+      }
+    },
+    {
+      "id": "js-senior-018",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["面向对象", "class", "语法糖", "原型链"],
+      "source_company": "Google",
+      "score": 6,
+      "title": "class是否新对象模型",
+      "content": "判断正误：ES6 class 为 JavaScript 引入了一套完全独立于原型链的新对象模型。",
+      "explanation": "正确答案是 B。ES6 class 本质上仍然是基于原型链和构造函数机制的语法糖，并没有引入独立于原型系统之外的全新对象模型。class 声明的实例方法依旧挂载在 prototype 上，继承仍通过原型链连接实现，只是语法表达更接近传统面向对象语言。\\n\\n常见误解来自 class 语法与 Java、C++ 的相似外观，但 JavaScript 底层对象模型并未改变。甚至像 super、extends、静态方法等能力，也都可以映射回原型、构造器和内部槽语义。\\n\\n工程实践中，理解 class 的语法糖本质非常重要，这能帮助你解释 this 绑定、实例方法共享、静态成员、继承链、以及 Babel 转译后的代码结构。否则在调试老代码与新语法并存的项目时，很容易产生错误心智模型，导致继承和原型扩展上的问题难以排查。",
+      "knowledge_point": "Class_SyntaxSugar_Prototype",
+      "boundary_conditions": "class 提供了更强约束的语法形式，例如必须通过 new 调用、方法默认严格模式、存在 TDZ 等，但底层仍然依赖原型链。class 字段与私有字段是后续语法扩展，也没有改变原型系统本质。",
+      "reference_link": "https://tc39.es/ecma262/#sec-class-definitions",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-019",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["继承", "super", "class", "构造流程"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "派生类super调用",
+      "content": "在 ES6 class 继承中，为什么派生类构造函数中必须在使用 this 之前调用 super()？",
+      "explanation": "正确答案是 A。派生类构造函数在规范上属于 derived constructor，其 this 不是在进入函数时立即创建，而是由 super() 调用父类构造逻辑后完成 this 绑定和初始化。若在 super() 之前访问 this，会因为实例尚未建立而抛出 ReferenceError。\\n\\nB 错在认为这是 Babel 的实现限制，实际上是 ECMAScript 规范要求；C 错在说 super 只用于继承静态属性，忽略实例初始化过程；D 错在认为只是编码风格建议，并非语义必须。\\n\\n工程实践中，复杂继承链上经常会在 constructor 中做依赖注入、字段初始化和方法绑定。如果不了解 derived constructor 的初始化时机，很容易在 class field、super、this 三者交互中踩坑。尤其是结合 TypeScript 参数属性、装饰器或旧版本转译产物时，更应清楚实例到底何时可安全访问。",
+      "knowledge_point": "DerivedConstructor_ThisInitialization",
+      "reference_link": "https://tc39.es/ecma262/#sec-super-keyword",
+      "options": [
+        {
+          "id": "A",
+          "text": "因为派生类的 this 需要在 super() 执行后才完成初始化绑定"
+        },
+        {
+          "id": "B",
+          "text": "因为 Babel 编译器不支持在 super 前使用 this"
+        },
+        {
+          "id": "C",
+          "text": "因为 super() 只负责继承父类静态方法"
+        },
+        {
+          "id": "D",
+          "text": "因为这是推荐写法，但不调用也不会报错"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "这是语言规范要求，不是某个编译器私有约束。",
+        "C": "super 在构造器中与父类实例初始化直接相关。",
+        "D": "派生类中 this-before-super 会直接报错。"
+      }
+    },
+    {
+      "id": "js-senior-020",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["CommonJS", "ESM", "模块化", "循环依赖", "静态分析"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "CJS与ESM差异",
+      "content": "关于 CommonJS 与 ES Module 的关键差异，哪些说法正确？",
+      "explanation": "正确答案是 A、B、D。ESM 是静态结构，import/export 关系在编译阶段可分析，有利于 tree shaking、提前依赖图构建和更规范的循环依赖处理；CommonJS 是运行时加载，exports 是对象赋值语义，require 可放在条件分支中。ESM 的导出绑定是 live binding，导入方观察到的是绑定的最新值，而不是简单值拷贝。\\n\\nC 错在认为 ESM 与 CJS 一样都是值拷贝。实际上 ESM 导出的是绑定引用语义，但导入方对该绑定只读。A 正确体现静态分析优势；B 正确说明 CJS 的运行时特征；D 正确指出 ESM 在现代构建工具中的优化基础。\\n\\n工程实践中，模块系统差异会直接影响循环依赖行为、打包效果、SSR 兼容性和 Node 运行方式。高级工程师应理解 transpile 后代码与原生模块语义的偏差，特别是在混用 CJS/ESM、默认导出互操作和 top-level await 场景下，很多线上问题都来自模块语义误判。",
+      "knowledge_point": "CJS_vs_ESM_LiveBinding",
+      "reference_link": "https://nodejs.org/api/esm.html",
+      "options": [
+        {
+          "id": "A",
+          "text": "ESM 的依赖关系可静态分析，利于 tree shaking"
+        },
+        {
+          "id": "B",
+          "text": "CommonJS 的 require 是运行时执行，可出现在条件分支中"
+        },
+        {
+          "id": "C",
+          "text": "ESM 的导入本质上是对导出值的深拷贝"
+        },
+        {
+          "id": "D",
+          "text": "ESM 的 live binding 语义与 CommonJS exports 对象赋值模型不同"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "ESM 导入的是绑定，不是深拷贝，也不是简单快照值。"
+      }
+    },
+    {
+      "id": "js-senior-021",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["模块化", "ESM", "tree shaking", "静态分析"],
+      "source_company": "ByteDance",
+      "score": 7,
+      "title": "tree shaking前提",
+      "content": "判断正误：tree shaking 能较好发挥作用的重要前提之一，是模块依赖关系可静态分析。",
+      "explanation": "正确答案是 A。tree shaking 的核心在于构建工具能够在构建阶段分析 import/export 关系、符号使用情况和副作用边界，从而移除未使用的导出代码。ESM 的静态语法正好提供了这种分析前提，因此比运行时动态的 CommonJS 更适合实现可靠的死代码消除。\\n\\n常见误区是把 tree shaking 看成任何打包器都能自动完成的魔法。实际上如果模块存在副作用、动态导入边界不清晰、转译成 CommonJS、或库未正确标记 sideEffects，tree shaking 效果都会明显下降。\\n\\n工程实践上，除了使用 ESM，还需要关注包结构设计、避免聚合导出带来的连带引用、正确声明 package.json 中的 sideEffects，以及减少顶层副作用代码。高级工程师在做基础库建设时，应从发布产物和消费链路两侧共同优化，而不是只依赖打包器默认能力。",
+      "knowledge_point": "TreeShaking_StaticAnalysis",
+      "boundary_conditions": "静态分析是必要基础，但不是充分条件；模块副作用、构建配置、转译目标、打包器实现都会影响 tree shaking 效果。即便是 ESM，如果顶层副作用很多，未使用代码也未必能安全移除。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-022",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["事件循环", "Promise", "setTimeout", "输出顺序"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "事件循环输出顺序",
+      "content": "阅读代码并判断输出顺序：\\n\\nconsole.log(1);\\nsetTimeout(() => console.log(2), 0);\\nPromise.resolve().then(() => {\\n  console.log(3);\\n  return Promise.resolve();\\n}).then(() => console.log(4));\\nconsole.log(5);",
+      "explanation": "正确答案是 D，输出顺序为 1、5、3、4、2。同步代码先执行，因此先打印 1 和 5。Promise.then 回调进入微任务队列，setTimeout 进入宏任务队列。当前宏任务执行完毕后，事件循环先清空微任务，执行第一个 then 打印 3，并返回一个已决议 Promise，后续 then 继续以微任务形式排入队列，因此接着打印 4。最后才轮到 setTimeout 对应的宏任务打印 2。\\n\\n错误选项往往源于两个误区：一是认为 setTimeout(fn, 0) 会立即执行；二是忽略 then 链式调用中后续 then 仍属于微任务调度。源码与规范层面，Promise reaction job 属于 microtask，宿主会在任务结束后执行 microtask checkpoint。\\n\\n工程实践中，这类时序问题会影响状态更新、日志顺序、测试断言与异常边界。高级工程师不仅要能背结果，更要能从任务队列、job queue 和宿主调度机制角度解释原因，避免在框架调度、批处理和异步状态同步中埋下竞态 bug。",
+      "knowledge_point": "EventLoop_PromiseJobs",
+      "options": [
+        {
+          "id": "A",
+          "text": "1、3、4、5、2"
+        },
+        {
+          "id": "B",
+          "text": "1、5、2、3、4"
+        },
+        {
+          "id": "C",
+          "text": "1、3、5、4、2"
+        },
+        {
+          "id": "D",
+          "text": "1、5、3、4、2"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "B": "把 setTimeout 错误地放在微任务之前执行。",
+        "C": "忽略同步代码必须先完整执行完毕，5 不可能晚于 3。",
+        "D": "正确选项，不应作为错误项分析。"
+      }
+    },
+    {
+      "id": "js-senior-023",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["this", "bind", "call", "new", "优先级"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "this绑定优先级",
+      "content": "关于 this 绑定规则及优先级，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。this 绑定的常见优先级中，new 绑定通常高于显式绑定；显式绑定 call/apply/bind 高于隐式绑定；箭头函数则跳出这套动态绑定规则，直接捕获词法 this。若一个 bind 后的函数被 new 调用，this 会指向新创建的实例，而不是 bind 指定对象，但预置参数仍会保留。\\n\\nC 错在认为 bind 后就绝对无法被 new 改变。实际上规范中 bound function 若作为构造器调用，会将 this 指向新实例。A 正确反映 new 优先级；B 正确说明显式绑定优于隐式绑定；D 正确指出箭头函数是词法 this，不参与动态优先级竞争。\\n\\n工程实践中，this 问题往往出现在事件回调、类方法透传、HOC 包装和函数式工具组合中。建议优先减少对动态 this 的依赖，明确使用箭头函数、bind 或闭包变量保存上下文。同时在阅读第三方库源码时，要特别警惕 bind 与 new 混用带来的构造语义变化。",
+      "knowledge_point": "This_Binding_Precedence",
+      "reference_link": "https://tc39.es/ecma262/#sec-bound-function-exotic-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "new 绑定的优先级通常高于显式 bind 绑定"
+        },
+        {
+          "id": "B",
+          "text": "call/apply 属于显式绑定，优先于隐式对象调用绑定"
+        },
+        {
+          "id": "C",
+          "text": "被 bind 过的函数再用 new 调用时，this 仍一定指向 bind 时传入的对象"
+        },
+        {
+          "id": "D",
+          "text": "箭头函数的 this 不适用普通函数的动态绑定优先级规则"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "new 调用 bound function 时 this 会指向新实例，而不是 bind 的 thisArg。"
+      }
+    },
+    {
+      "id": "js-senior-024",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Promise", "错误处理", "then", "catch"],
+      "source_company": "Meituan",
+      "score": 7,
+      "title": "then第二参数替代catch",
+      "content": "判断正误：Promise.then(onFulfilled, onRejected) 在工程中总能完全替代 .catch(onRejected)。",
+      "explanation": "正确答案是 B。虽然 then 的第二个参数可以处理前一个 Promise 的 reject，但它不能完全替代 catch。一个关键区别是，catch 能捕获其前面链路中同步抛出的异常与 rejected Promise，而 then 的第二参数只处理其直接上游 Promise 的 reject，无法捕获当前 then 的 onFulfilled 内部抛出的异常，除非后面再接 catch。\\n\\n常见误区是只从表面 API 形态看，忽略链式错误传播路径。catch 本质上是 then(undefined, onRejected) 的语法糖，但放置位置决定了它所覆盖的链路范围。\\n\\n工程实践中，统一在链尾使用 catch 往往可读性更好，也更容易形成统一错误收敛点。对于复杂异步链、资源释放和重试逻辑，还应配合 finally、错误分类与日志上下文，避免把异常吞掉或只处理部分路径，造成线上问题难以追踪。",
+      "knowledge_point": "Promise_Error_Propagation",
+      "boundary_conditions": "then 第二参数可以处理上游 reject，但不能像链尾 catch 一样覆盖更大范围的异常链路；若 onFulfilled 内部抛错，需要后续 catch 才能接住。不同放置位置会改变异常捕获范围。",
+      "reference_link": "https://tc39.es/ecma262/#sec-promise.prototype.catch",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-025",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Object.create", "原型", "继承", "空对象"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "Object.create(null)",
+      "content": "Object.create(null) 创建对象的最准确描述是？",
+      "explanation": "正确答案是 C。Object.create(null) 会创建一个没有原型的对象，其 [[Prototype]] 为 null，因此它不继承 Object.prototype 上的方法，如 toString、hasOwnProperty 等。这类对象常被用作纯字典表，以避免原型链上的属性干扰。\\n\\nA 错在认为它等价于 {}，实际上 {} 的原型通常是 Object.prototype；B 错在说该对象无法添加属性，这是错误的，它只是没有原型，不是不可扩展；D 错在认为其 prototype 指向 null，普通对象没有 prototype 自有属性，这里应描述其 [[Prototype]]。\\n\\n工程实践中，使用纯字典对象可以减少原型污染干扰，但也要注意缺少 hasOwnProperty 等方法，通常需使用 Object.prototype.hasOwnProperty.call 或 Object.hasOwn。若业务需要任意键且频繁增删，Map 往往比对象更清晰、更安全，也更适合表达字典语义。",
+      "knowledge_point": "ObjectCreate_NullPrototype",
+      "options": [
+        {
+          "id": "A",
+          "text": "它与 {} 完全等价，只是写法不同"
+        },
+        {
+          "id": "B",
+          "text": "它创建出的对象不能添加任何新属性"
+        },
+        {
+          "id": "C",
+          "text": "它创建出的对象没有原型链顶层的 Object.prototype 方法"
+        },
+        {
+          "id": "D",
+          "text": "它创建出的对象自带 prototype 属性且值为 null"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "B": "无原型不代表不可扩展，仍然可以正常增删自有属性。",
+        "C": "正确选项，不应作为错误项分析。",
+        "D": "混淆了对象的 [[Prototype]] 与函数对象的 prototype 属性。"
+      }
+    },
+    {
+      "id": "js-senior-026",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["数组", "稀疏数组", "性能", "V8", "elements kind"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "稀疏数组影响",
+      "content": "关于 JavaScript 稀疏数组及其性能影响，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。数组在引擎中通常有不同的 elements kind 优化路径，连续、类型稳定的数组更容易走高性能存储。当数组变得稀疏、有洞、或混入不同类型时，引擎可能退化到 dictionary elements 等较慢结构。部分数组方法会跳过空槽，这也是语义与 undefined 元素不同的重要区别。\\n\\nB 错在认为数组空洞和显式赋值 undefined 完全等价。二者在遍历语义与引擎内部表示上都可能不同，例如 map、forEach、some 等对空洞的处理与真实存在的 undefined 元素不同。A 正确说明了稀疏化的性能风险；C 正确指出语义差异；D 正确强调引擎会根据形态做内部存储策略切换。\\n\\n工程实践中，在高性能场景应尽量保持数组连续、避免 delete arr[i] 制造空洞，优先使用 splice 或新建数组。理解引擎层面的 elements kind 退化，对解释某些热点代码为何突然变慢、JIT 优化为何失效非常关键。",
+      "knowledge_point": "V8_ElementsKind_HoleyArray",
+      "reference_link": "https://v8.dev/blog/elements-kinds",
+      "options": [
+        {
+          "id": "A",
+          "text": "稀疏数组可能导致引擎放弃对连续元素存储的优化"
+        },
+        {
+          "id": "B",
+          "text": "数组中的空洞与值为 undefined 的元素在所有语义上完全等价"
+        },
+        {
+          "id": "C",
+          "text": "某些数组方法会跳过空洞"
+        },
+        {
+          "id": "D",
+          "text": "数组形态变化可能触发引擎内部存储策略退化"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "空洞与显式 undefined 在遍历行为和内部表示上都可能不同。"
+      }
+    },
+    {
+      "id": "js-senior-027",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["严格模式", "this", "函数调用"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "严格模式默认this",
+      "content": "判断正误：在严格模式下，普通函数直接调用时，函数体内 this 会默认指向全局对象。",
+      "explanation": "正确答案是 B。在非严格模式下，普通函数直接调用时 this 通常会发生默认绑定到全局对象；但在严格模式下，这种默认绑定不会发生，this 保持为 undefined。这一差异可以避免意外污染全局对象，是严格模式的重要安全改进之一。\\n\\n常见误解来自历史遗留习惯，很多开发者把浏览器中的 window 绑定当成语言永恒规则。实际上严格模式、模块顶层、类方法中 this 行为都更严格。\\n\\n工程实践中，现代打包产物、ESM 模块、class 方法基本都处于严格语义环境，因此依赖“裸调用时 this 指向全局”的代码非常脆弱。迁移旧代码时，应显式传递上下文或改用闭包变量，避免因为模式差异出现线上兼容问题。",
+      "knowledge_point": "StrictMode_DefaultThis",
+      "boundary_conditions": "非严格模式下普通函数裸调用常绑定到全局对象；严格模式下为 undefined。箭头函数不走这条规则，this 取决于外层词法环境；模块与类默认使用严格语义。",
+      "reference_link": "https://tc39.es/ecma262/#sec-strict-mode-code",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-028",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Reflect", "defineProperty", "代理转发", "元编程"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "Reflect设计价值",
+      "content": "在实现 Proxy 的 defineProperty trap 时，为什么通常推荐内部转发给 Reflect.defineProperty？",
+      "explanation": "正确答案是 A。Reflect.defineProperty 与对象内部 [[DefineOwnProperty]] 语义更一致，返回布尔值表示是否成功，便于在 Proxy trap 中直接转发并与规范期望保持一致。相比 Object.defineProperty 在失败时抛异常的接口风格，Reflect 更适合作为元编程底层原语，与 Proxy 的各类 trap 一一对应。\\n\\nB 错在说 Reflect.defineProperty 性能一定更高，这不是设计初衷也无法普适保证；C 错在说它会自动忽略描述符校验，实际仍遵循规范；D 错在认为 Reflect 专门用于深拷贝，与此无关。\\n\\n工程实践中，Proxy trap 中优先使用对应的 Reflect API，不仅能减少手写分支，也能避免返回值语义与规范不一致。例如 set、deleteProperty、defineProperty 等 trap 的返回值直接影响语言行为和异常抛出路径。高级工程师应养成“拦截 + Reflect 转发 + 增强逻辑”的稳健模式。",
+      "knowledge_point": "Reflect_InternalMethod_Mapping",
+      "options": [
+        {
+          "id": "A",
+          "text": "因为 Reflect API 与对象内部方法语义更一致，适合在 trap 中做默认转发"
+        },
+        {
+          "id": "B",
+          "text": "因为 Reflect.defineProperty 一定比 Object.defineProperty 更快"
+        },
+        {
+          "id": "C",
+          "text": "因为 Reflect.defineProperty 会自动绕过所有描述符校验"
+        },
+        {
+          "id": "D",
+          "text": "因为 Reflect 专门用于深拷贝对象"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "Reflect 的核心价值在语义一致性，不是保证性能更高。",
+        "C": "Reflect 仍严格遵循属性定义规则，不会绕过校验。",
+        "D": "Reflect 是元编程 API 集合，与深拷贝无直接关系。"
+      }
+    },
+    {
+      "id": "js-senior-029",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["新ES规范", "WeakMap", "WeakSet", "垃圾回收", "缓存"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "WeakMap适用场景",
+      "content": "关于 WeakMap/WeakSet 的特性与适用场景，哪些说法正确？",
+      "explanation": "正确答案是 A、B、D。WeakMap 的键必须是对象，且键是弱引用语义：当外部不再持有该键对象时，其对应条目可被垃圾回收，这使它很适合给对象附加元数据或做缓存，而不强行延长对象生命周期。WeakSet 也只能存对象，并具有类似弱引用特点。\\n\\nC 错在认为 WeakMap 可被完整遍历。为了不暴露 GC 时机、保持语义稳定，WeakMap 和 WeakSet 不提供 entries、keys、forEach 之类的可枚举接口。A 正确说明弱引用价值；B 正确指出对象键限制；D 正确体现其在私有元数据和缓存中的实际用途。\\n\\n工程实践中，WeakMap 常用于 DOM 节点关联数据、类实例私有状态、memoization 缓存等。但要注意“弱引用”不等于“立刻回收”，GC 时机不可控，因此不能将其当作精确定时清理机制。设计缓存系统时，仍需结合容量策略、命中率与回收行为整体评估。",
+      "knowledge_point": "WeakMap_WeakReferenceSemantics",
+      "reference_link": "https://tc39.es/ecma262/#sec-weakmap-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "WeakMap 适合给对象关联元数据，而不希望该关联阻止对象被回收"
+        },
+        {
+          "id": "B",
+          "text": "WeakMap 的键必须是对象"
+        },
+        {
+          "id": "C",
+          "text": "WeakMap 可以像 Map 一样安全完整遍历所有条目"
+        },
+        {
+          "id": "D",
+          "text": "WeakSet 也只能存放对象类型成员"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "WeakMap/WeakSet 不提供可枚举接口，以避免暴露 GC 可观察性。"
+      }
+    },
+    {
+      "id": "js-senior-030",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["新API", "Object.hasOwn", "原型污染", "对象属性"],
+      "source_company": "OpenSource",
+      "score": 7,
+      "title": "Object.hasOwn优势",
+      "content": "判断正误：相较于 obj.hasOwnProperty(key)，Object.hasOwn(obj, key) 在面对无原型对象或 hasOwnProperty 被覆盖的场景时更稳健。",
+      "explanation": "正确答案是 A。Object.hasOwn 是较新的标准 API，用于直接判断对象是否拥有某个自有属性。相比调用 obj.hasOwnProperty(key)，它不依赖对象本身原型链上是否存在该方法，也不会因为对象是 null 原型或 hasOwnProperty 被自定义覆盖而失效，因此在安全性和健壮性上更优。\\n\\n常见误区是默认认为所有对象都继承自 Object.prototype，或者忽略原型污染、恶意输入对象和字典对象场景。历史上常写 Object.prototype.hasOwnProperty.call(obj, key)，而 Object.hasOwn 则提供了更直接的标准形式。\\n\\n工程实践中，在处理外部 JSON、配置对象、键值映射和安全边界校验时，统一使用 Object.hasOwn 能降低很多隐蔽 bug。特别是在服务端渲染、插件系统、低信任输入场景下，这种小细节常直接关系到原型污染防护和逻辑正确性。",
+      "knowledge_point": "ObjectHasOwn_SafePropertyCheck",
+      "boundary_conditions": "Object.hasOwn 只判断自有属性，不会沿原型链查找；对于 null/undefined 仍需注意调用参数合法性。若运行环境较旧，需要确认是否有兼容性或 polyfill 支持。",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+
+    {
+      "id": "js-senior-031",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["arguments", "严格模式", "形参映射", "执行上下文"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "arguments映射规则",
+      "content": "关于非严格模式下 arguments 与具名形参的关系，哪项描述最准确？",
+      "explanation": "正确答案是 A。在非严格模式的普通函数中，arguments 对象与具名形参之间通常存在映射关系，对形参赋值可能反映到 arguments，反之亦然。但这种映射并不是在所有情况下都完全一致，例如默认参数、剩余参数、解构参数、严格模式等都会改变该行为。规范上通过 ParameterMap 等机制描述这种历史兼容语义。\\n\\nB 错在认为二者永远无关，这只在严格模式或某些现代参数形式下更接近真实；C 错在说 arguments 始终是真数组，它实际上是类数组对象；D 错在认为箭头函数也有自己的 arguments，箭头函数没有自己的 arguments，会向外层捕获。\\n\\n工程实践中，依赖 arguments 与形参联动是强烈不推荐的历史遗留写法，可读性差且在严格模式、转译产物和现代参数语法中容易产生认知偏差。建议优先使用剩余参数 ...args 替代 arguments，以获得更清晰的语义和更好的类型推导能力。",
+      "knowledge_point": "Arguments_ParameterMap",
+      "reference_link": "https://tc39.es/ecma262/#sec-arguments-exotic-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "非严格模式下普通函数中，arguments 与具名形参可能存在双向映射关系"
+        },
+        {
+          "id": "B",
+          "text": "arguments 与具名形参在任何模式和写法下都互不影响"
+        },
+        {
+          "id": "C",
+          "text": "arguments 本质上始终是一个真正的 Array 实例"
+        },
+        {
+          "id": "D",
+          "text": "箭头函数会自动生成自己的 arguments 对象"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "忽略了非严格模式下历史兼容的参数映射语义。",
+        "C": "arguments 只有类数组特征，没有 Array 原型方法。",
+        "D": "箭头函数没有自己的 arguments，会捕获外层。"
+      }
+    },
+    {
+      "id": "js-senior-032",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["属性描述符", "Object.freeze", "Object.seal", "defineProperty"],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "对象冻结密封差异",
+      "content": "关于 Object.preventExtensions、Object.seal、Object.freeze 的描述，哪些是正确的？",
+      "explanation": "正确答案是 A、B、D。preventExtensions 只能阻止对象新增属性，但不会自动修改已有属性的 configurable 或 writable；seal 在不可扩展基础上，会把现有自有属性设为 configurable: false；freeze 则更进一步，对于数据属性还会把 writable 设为 false，因此对象更接近浅层只读。\\n\\nC 错在把 freeze 误认为深冻结。实际上 freeze 只作用于对象当前层级的自有属性，不会递归冻结嵌套对象。若属性值本身是对象，内部状态仍可变化。A 正确说明 preventExtensions 的最小限制；B 正确说明 seal 的行为；D 正确指出 freeze 仍是浅语义。\\n\\n工程实践中，冻结对象常用于配置常量、防变更契约、开发期防误修改，但不能当作完整不可变方案。若需要真正深不可变，通常要结合递归冻结、持久化数据结构或领域层约束。理解属性描述符还能帮助排查 Proxy、继承、序列化和库内部魔法属性的兼容问题。",
+      "knowledge_point": "PropertyDescriptor_Freeze_Seal",
+      "reference_link": "https://tc39.es/ecma262/#sec-object.freeze",
+      "options": [
+        {
+          "id": "A",
+          "text": "Object.preventExtensions 只阻止新增属性，不会自动让已有属性不可写"
+        },
+        {
+          "id": "B",
+          "text": "Object.seal 会阻止新增属性，并把现有自有属性设为不可配置"
+        },
+        {
+          "id": "C",
+          "text": "Object.freeze 会递归冻结所有嵌套对象，因此它天然是深冻结"
+        },
+        {
+          "id": "D",
+          "text": "Object.freeze 对嵌套对象默认仍只是浅层约束"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "freeze 默认只冻结当前对象本身，不会递归处理嵌套引用对象。"
+      }
+    },
+    {
+      "id": "js-senior-033",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["私有字段", "#private", "class", "封装"],
+      "source_company": "ByteDance",
+      "score": 7,
+      "title": "私有字段可反射",
+      "content": "判断正误：JavaScript class 的 #private 私有字段可以通过 obj[\"#x\"] 或 Reflect.ownKeys(obj) 直接访问出来。",
+      "explanation": "正确答案是 B。#private 私有字段并不是普通字符串键，也不是 Symbol 键，而是语法级私有名机制，访问权限在语法和内部槽层面受限。obj[\"#x\"] 只是访问名为 \"#x\" 的普通字符串属性，不会映射到私有字段；Reflect.ownKeys 也无法枚举出 #private 字段。\\n\\n常见误解是把 #private 当作更隐蔽的属性键实现。实际上它与闭包私有化、WeakMap 私有化都不同，属于语言层封装能力，未在类定义外声明的代码甚至无法通过合法语法访问该私有名。\\n\\n工程实践中，#private 很适合组件实例内部状态、基础库内部缓存、不可暴露实现细节等场景。但要注意它在继承中的可见性不是 protected 语义，子类也不能直接访问父类私有字段。若需要跨实例层级共享但对外隐藏，可能仍需闭包、WeakMap 或模块私有变量配合设计。",
+      "knowledge_point": "PrivateField_BrandCheck",
+      "boundary_conditions": "#private 是语法级私有，不会被常规反射 API 枚举。只有在声明该私有名的类体内部才能合法访问，且会做 brand check。若需要可反射但避免冲突，可考虑 Symbol；若需要跨实例共享隐藏状态，可考虑 WeakMap。",
+      "reference_link": "https://tc39.es/ecma262/#sec-privatefieldget",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-034",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Symbol.toPrimitive", "类型转换", "ToPrimitive", "隐式转换"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "对象转原始值顺序",
+      "content": "关于对象参与隐式类型转换时的 ToPrimitive 过程，哪项描述最准确？",
+      "explanation": "正确答案是 C。对象转原始值时，规范会优先检查是否定义了 Symbol.toPrimitive 方法；若存在则按 hint 调用并使用其结果。若不存在，则根据 hint 采用 OrdinaryToPrimitive 的回退逻辑，通常会在 valueOf 与 toString 之间按特定顺序尝试。不同 hint，如 string、number、default，会影响回退顺序和调用语义。\\n\\nA 错在说始终只调用 toString；B 错在忽略 Symbol.toPrimitive 的最高优先级；D 错在认为对象不能参与隐式转换，实际上加法、模板字符串、比较等场景都会触发。\\n\\n工程实践中，复杂对象若重载 Symbol.toPrimitive、valueOf 或 toString，虽然能提升 DSL 表达力，但也容易制造阅读负担和调试困难。对于金额、时间、数值包装器等类型，只有在语义极其明确时才建议定制转换行为，并应避免与框架序列化、日志输出、Map key 语义产生冲突。",
+      "knowledge_point": "ToPrimitive_SymbolToPrimitive",
+      "reference_link": "https://tc39.es/ecma262/#sec-toprimitive",
+      "options": [
+        {
+          "id": "A",
+          "text": "对象转原始值时始终先调用 toString，再调用 valueOf"
+        },
+        {
+          "id": "B",
+          "text": "对象转原始值时永远不会检查 Symbol.toPrimitive"
+        },
+        {
+          "id": "C",
+          "text": "若对象实现了 Symbol.toPrimitive，会优先使用它决定原始值转换结果"
+        },
+        {
+          "id": "D",
+          "text": "对象参与 +、==、模板字符串时不会发生原始值转换"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "回退顺序取决于 hint，不是固定始终 toString 优先。",
+        "B": "Symbol.toPrimitive 是最高优先级的显式转换钩子。",
+        "D": "这些操作都可能触发 ToPrimitive。"
+      }
+    },
+    {
+      "id": "js-senior-035",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["instanceof", "原型链", "跨Realm", "Symbol.hasInstance"],
+      "source_company": "Meta",
+      "score": 10,
+      "title": "instanceof边界",
+      "content": "关于 instanceof 的行为与边界，哪些说法正确？",
+      "explanation": "正确答案是 A、C、D。instanceof 的默认语义是沿左操作数对象的原型链查找，判断右操作数的 prototype 是否出现在链上；右操作数若定义了 Symbol.hasInstance，还可以自定义判断逻辑。跨 iframe 或跨 Realm 场景中，即使结构相似，因构造器来自不同全局环境，其原型链和内建构造器身份不同，instanceof 结果可能与预期不一致。\\n\\nB 错在认为 instanceof 只比较 constructor 引用是否相等，这过于简化，真正关键是原型链匹配或自定义 Symbol.hasInstance。A 正确说明原型链查找机制；C 正确体现跨 Realm 陷阱；D 正确指出可定制性。\\n\\n工程实践中，做类型判断时不应迷信 instanceof，尤其是在多窗口、微前端、SSR/VM 沙箱、第三方 SDK 环境中。对数组可用 Array.isArray，对 plain object 可结合 Object.prototype.toString 或品牌字段，对自定义类型可以设计更稳定的 brand check 或显式类型标签。",
+      "knowledge_point": "Instanceof_CrossRealm_HasInstance",
+      "reference_link": "https://tc39.es/ecma262/#sec-instanceofoperator",
+      "options": [
+        {
+          "id": "A",
+          "text": "instanceof 默认会沿对象原型链查找右侧构造器的 prototype"
+        },
+        {
+          "id": "B",
+          "text": "instanceof 的本质只是比较对象 constructor 是否严格相等"
+        },
+        {
+          "id": "C",
+          "text": "跨 iframe 场景中，Array instanceof Array 之类判断可能出现认知偏差"
+        },
+        {
+          "id": "D",
+          "text": "构造器可通过 Symbol.hasInstance 自定义 instanceof 行为"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "constructor 并不是 instanceof 的唯一依据，原型链与 Symbol.hasInstance 才是关键。"
+      }
+    },
+    {
+      "id": "js-senior-036",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["尾调用", "调用栈", "规范", "优化"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "尾调用已普遍优化",
+      "content": "判断正误：ES 规范定义了 Proper Tail Calls，因此当前主流 JavaScript 引擎在生产环境中都普遍开启了尾调用优化。",
+      "explanation": "正确答案是 B。虽然 ECMAScript 规范曾定义 Proper Tail Calls 语义，但现实中主流引擎对其支持并不统一，也未在日常生产环境里形成广泛稳定可依赖的优化前提。很多开发者把“规范存在”误解为“各引擎普遍启用”，这是错误的。\\n\\n从实现角度看，尾调用优化涉及调用栈调试、错误堆栈可读性、性能收益与复杂度权衡，因此引擎层面存在现实考量。结果就是，不能在业务代码中假设深递归必然因为尾调用而安全。\\n\\n工程实践中，若面对可能很深的递归，应优先考虑显式迭代、手动栈、生成器分步执行或任务分片，而不是寄希望于宿主自动尾调优化。高级工程师在评估算法可用性时，必须以真实运行时行为而非理想规范推断作为依据。",
+      "knowledge_point": "ProperTailCalls_ImplementationReality",
+      "boundary_conditions": "规范定义不等于引擎普遍支持；即便某些环境在特定模式或版本下有相关行为，也不能作为跨环境稳定依赖。深递归仍应谨慎处理栈溢出风险。",
+      "reference_link": "https://tc39.es/ecma262/",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-037",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["top-level await", "ESM", "模块图", "初始化顺序"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "顶层await影响",
+      "content": "关于 ES Module 中 top-level await 的影响，哪项描述最准确？",
+      "explanation": "正确答案是 D。top-level await 会让模块初始化过程变为异步，并可能影响整个依赖图中相关模块的执行时机。导入依赖该模块的其他模块，可能需要等待其异步初始化完成后才能继续执行。这使模块加载从单纯静态依赖分析，进一步扩展到异步求值依赖管理。\\n\\nA 错在认为 top-level await 对导入方完全无影响；B 错在说它只能在 CommonJS 中使用，实际是 ESM 能力；C 错在认为它会阻塞整个线程，真正被延迟的是模块求值与依赖链时序。\\n\\n工程实践中，top-level await 很适合初始化配置、动态加载 wasm、建立连接前置条件等，但若滥用会拉长首屏依赖链，甚至制造模块级死锁与难以诊断的初始化阻塞。高级工程师在设计模块边界时，应尽量把异步前置收敛到少数稳定入口，而不是让大量基础模块带上隐式异步语义。",
+      "knowledge_point": "TopLevelAwait_ModuleEvaluation",
+      "reference_link": "https://tc39.es/ecma262/#sec-moduleevaluation",
+      "options": [
+        {
+          "id": "A",
+          "text": "top-level await 只影响当前模块文件，对导入方执行顺序没有任何影响"
+        },
+        {
+          "id": "B",
+          "text": "top-level await 是 CommonJS 独有能力"
+        },
+        {
+          "id": "C",
+          "text": "使用 top-level await 会同步阻塞整个 JavaScript 线程"
+        },
+        {
+          "id": "D",
+          "text": "top-level await 可能使模块求值异步化，并影响依赖图的初始化顺序"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "B": "top-level await 属于 ESM 能力，不是 CommonJS 特性。",
+        "C": "它影响模块求值时序，而不是把线程同步阻塞住。",
+        "D": "正确选项，不应作为错误项分析。"
+      }
+    },
+    {
+      "id": "js-senior-038",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["动态import", "模块化", "代码分割", "异步加载"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "dynamic import特性",
+      "content": "关于动态 import() 的说法，哪些是正确的？",
+      "explanation": "正确答案是 A、B、D。import() 是一个返回 Promise 的表达式，用于在运行时异步加载模块，非常适合代码分割、按需加载和条件性模块获取。它属于 ESM 体系的一部分，但不同于静态 import 声明，可出现在表达式位置。\\n\\nC 错在认为 import() 返回模块源码字符串，它实际 resolve 为模块命名空间对象。A 正确说明其异步返回 Promise；B 正确体现运行时按需加载价值；D 正确指出它与静态 import 在语法层和时机上的区别。\\n\\n工程实践中，动态 import 常用于路由级切包、重型编辑器按需加载、实验功能灰度和 locale 包延迟加载。但要注意过度碎片化可能增加请求数与初始化开销，且动态表达式路径会影响构建工具的可分析性。高级工程师需要在首屏包大小、缓存命中与异步边界复杂度之间平衡。",
+      "knowledge_point": "DynamicImport_CodeSplitting",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import",
+      "options": [
+        {
+          "id": "A",
+          "text": "import() 返回一个 Promise"
+        },
+        {
+          "id": "B",
+          "text": "import() 适合按需加载和代码分割场景"
+        },
+        {
+          "id": "C",
+          "text": "import() 成功后得到的是模块源码的字符串内容"
+        },
+        {
+          "id": "D",
+          "text": "import() 与静态 import 在语法位置和执行时机上不同"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "动态 import 成功后得到的是模块命名空间对象，而非源码字符串。"
+      }
+    },
+    {
+      "id": "js-senior-039",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["AsyncIterator", "for await...of", "异步迭代"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "for await消费同步迭代器",
+      "content": "判断正误：for await...of 只能消费实现了 Symbol.asyncIterator 的异步可迭代对象，不能消费普通同步可迭代对象。",
+      "explanation": "正确答案是 B。for await...of 优先查找 Symbol.asyncIterator，但如果对象没有该接口，规范允许回退到同步迭代协议，并将其产生的值包装到 Promise 语义中处理。因此普通同步可迭代对象在很多情况下也可以被 for await...of 消费。\\n\\n常见误区是把异步迭代协议理解为完全独立、互不兼容的世界。实际上语言为了增强一致性，对同步可迭代提供了兼容消费路径。\\n\\n工程实践中，for await...of 很适合统一处理异步数据流、分页拉取、流式结果、Web Streams 包装等场景。但在性能敏感场景下要注意每轮 await 带来的时序成本；若数据本身本来就是纯同步结构，则使用普通 for...of 更直接，避免无意义的异步包装。",
+      "knowledge_point": "ForAwaitOf_SyncFallback",
+      "boundary_conditions": "for await...of 优先使用 Symbol.asyncIterator；若不存在，通常可回退到同步迭代器协议。具体对象若 next 返回值不符合预期，仍可能在运行时报错。纯同步场景不必强行使用 for await...of。",
+      "reference_link": "https://tc39.es/ecma262/#sec-for-in-and-for-of-statements",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-040",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Promise.all", "并发控制", "失败策略", "规范"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "Promise.all失败语义",
+      "content": "关于 Promise.all(iterable) 的行为，哪项描述最准确？",
+      "explanation": "正确答案是 B。Promise.all 会并发等待所有输入项，但只要任意一个成员 reject，返回的聚合 Promise 就会立即以该原因 reject，属于 fail-fast 语义。不过这并不意味着其他异步任务会被宿主自动取消，它们通常仍会继续执行，只是聚合结果已不再关心。\\n\\nA 错在说 Promise.all 会等待所有 Promise 都 settle 后才决定 reject，这更接近 allSettled；C 错在认为成员 reject 时其他任务会自动中止，JavaScript Promise 本身没有内建取消能力；D 错在说输入里只能是 Promise，实际上普通值也会被 Promise.resolve 语义吸收。\\n\\n工程实践中，Promise.all 适合多个依赖全部成功的并发场景，但若需要容错聚合应选择 allSettled，若需要最快成功则可考虑 any。更高级的设计还应考虑请求取消、超时、重试和并发上限，而不是只会套一个 Promise.all。",
+      "knowledge_point": "PromiseAll_FailFast",
+      "reference_link": "https://tc39.es/ecma262/#sec-promise.all",
+      "options": [
+        {
+          "id": "A",
+          "text": "Promise.all 一定等所有成员都完成后，才可能进入 reject"
+        },
+        {
+          "id": "B",
+          "text": "任一成员 reject 会使返回的 Promise 尽快 reject，但其他任务未必自动取消"
+        },
+        {
+          "id": "C",
+          "text": "任一成员 reject 时，其他未完成 Promise 会被语言层自动 abort"
+        },
+        {
+          "id": "D",
+          "text": "Promise.all 的输入必须全部是原生 Promise 实例"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "这是把 all 与 allSettled 的语义混淆了。",
+        "C": "Promise 没有内建取消语义，任务通常仍会继续。",
+        "D": "普通值和 thenable 也可作为输入。"
+      }
+    },
+    {
+      "id": "js-senior-041",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Promise.any", "AggregateError", "组合器", "异步"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "Promise.any边界",
+      "content": "关于 Promise.any 的说法，哪些正确？",
+      "explanation": "正确答案是 A、C、D。Promise.any 只要有任意一个输入 fulfilled，就会以该值 fulfill；只有当所有输入都 reject 时，才会 reject，并抛出 AggregateError 汇总所有拒绝原因。它适合“多个候选源只要有一个成功即可”的场景，例如多 CDN 探测、冗余请求源。\\n\\nB 错在把 any 误认为 race。race 关注最先 settle，无论 fulfill 还是 reject；any 则忽略 reject，直到出现第一个 fulfill 或全部失败。A 正确说明成功语义；C 正确指出全失败时的 AggregateError；D 正确体现其适用场景。\\n\\n工程实践中，使用 any 时要注意其成功策略可能掩盖部分失败，因此需要单独记录失败样本；同时其他仍在进行的请求不会自动取消，应配合 AbortController 控制资源浪费。对于真正的“抢最快结果”场景，应清楚区分 race 与 any，避免容错策略与业务语义错配。",
+      "knowledge_point": "PromiseAny_AggregateError",
+      "reference_link": "https://tc39.es/ecma262/#sec-promise.any",
+      "options": [
+        {
+          "id": "A",
+          "text": "只要有一个输入 fulfilled，Promise.any 就会 fulfilled"
+        },
+        {
+          "id": "B",
+          "text": "Promise.any 与 Promise.race 完全等价"
+        },
+        {
+          "id": "C",
+          "text": "当所有输入都 reject 时，Promise.any 会以 AggregateError reject"
+        },
+        {
+          "id": "D",
+          "text": "它适合多个候选异步源中任选一个成功即可的场景"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "race 取最先 settle，any 取最先 fulfilled，语义明显不同。"
+      }
+    },
+    {
+      "id": "js-senior-042",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Map", "对象键", "SameValueZero", "引用比较"],
+      "source_company": "Meta",
+      "score": 6,
+      "title": "Map对象键比较",
+      "content": "判断正误：Map 以对象作为 key 时，比较的是对象内容是否深度相等，而不是引用身份。",
+      "explanation": "正确答案是 B。Map 对 key 的比较遵循 SameValueZero 语义，对于对象而言，本质上仍是引用身份比较，而不是结构深比较。两个内容完全相同但不是同一引用的对象，会被视为不同 key。\\n\\n常见误区是把 Map 想象成具备“智能对象键比较”的高级字典。实际上 JavaScript 并未内建结构化哈希对象语义，Map 只是允许更丰富的 key 类型，并保留引用身份。\\n\\n工程实践中，若确实需要按对象内容做缓存键，通常要自己构造稳定序列化键、哈希函数或领域唯一标识。否则在 memoization、实体缓存、请求去重等场景中，使用临时对象做 Map key 很容易导致命中率低和内存膨胀。",
+      "knowledge_point": "Map_KeyEquality_SameValueZero",
+      "boundary_conditions": "Map 对基本类型键使用 SameValueZero，比 === 略有差异，如 NaN 可等于自身；但对对象键仍以引用身份为准，不做深比较。若跨 Realm 对象引用不同，也不会命中同一 key。",
+      "reference_link": "https://tc39.es/ecma262/#sec-map-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-043",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["NaN", "Object.is", "SameValue", "相等性"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Object.is语义",
+      "content": "下列关于 Object.is 与 === 的差异描述，哪项是正确的？",
+      "explanation": "正确答案是 A。Object.is 与 === 大体相似，但在两个关键点上不同：Object.is(NaN, NaN) 为 true，而 NaN === NaN 为 false；Object.is(+0, -0) 为 false，而 +0 === -0 为 true。Object.is 更接近 SameValue 语义，而 === 更接近严格相等但对这两个边界有特殊处理。\\n\\nB 错在说两者完全等价；C 错在说 Object.is 会进行类型转换，它不会；D 错在说 Object.is 用于深比较对象，这完全不符合定义。\\n\\n工程实践中，在比较缓存键、状态变化、不可变数据引用与边界数值时，Object.is 的语义更稳定。例如 React 某些内部比较就采用 Object.is 风格。高级工程师需要理解各种相等算法：==、===、SameValue、SameValueZero，各自适用场景不同，不能混用。",
+      "knowledge_point": "ObjectIs_SameValue",
+      "reference_link": "https://tc39.es/ecma262/#sec-object.is",
+      "options": [
+        {
+          "id": "A",
+          "text": "Object.is(NaN, NaN) 为 true，且 Object.is(+0, -0) 为 false"
+        },
+        {
+          "id": "B",
+          "text": "Object.is 与 === 在所有情况下完全一致"
+        },
+        {
+          "id": "C",
+          "text": "Object.is 会像 == 一样发生隐式类型转换"
+        },
+        {
+          "id": "D",
+          "text": "Object.is 主要用于深度比较两个对象内容"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "忽略了 NaN 与 ±0 这两个关键边界差异。",
+        "C": "Object.is 不做类型转换。",
+        "D": "Object.is 比较的是同一值语义，不是深比较。"
+      }
+    },
+    {
+      "id": "js-senior-044",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["==", "隐式类型转换", "ToNumber", "相等比较"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "宽松相等陷阱",
+      "content": "关于宽松相等 == 的描述，哪些是正确的？",
+      "explanation": "正确答案是 A、B、D。== 会根据操作数类型执行复杂的抽象相等比较规则，包括布尔值转数字、字符串与数字互转、对象先做 ToPrimitive，再参与比较。正因规则繁复，它容易制造边界陷阱。null == undefined 为 true，是规范中特殊定义的一对；但它们与其他值通常不宽松相等。\\n\\nC 错在认为 [] == ![] 为 false。实际 ![] 先变为 false，再在比较中转为 0；[] 经 ToPrimitive 得到空字符串，再转数字为 0，因此结果为 true，这是经典面试陷阱。A 正确说明复杂转换；B 正确指出 null 与 undefined 的特殊关系；D 正确反映对象比较会先走 ToPrimitive。\\n\\n工程实践中，除少数明确利用 null == undefined 统一判空的场景外，应优先使用 ===。高级工程师不仅要知道“少用 ==”，更要能解释其具体转换路径，这样在排查线上脏数据与边界判断问题时才真正有把握。",
+      "knowledge_point": "AbstractEqualityComparison",
+      "reference_link": "https://tc39.es/ecma262/#sec-abstract-equality-comparison",
+      "options": [
+        {
+          "id": "A",
+          "text": "== 可能触发多步隐式类型转换，因此边界行为复杂"
+        },
+        {
+          "id": "B",
+          "text": "null == undefined 的结果为 true"
+        },
+        {
+          "id": "C",
+          "text": "[] == ![] 的结果为 false"
+        },
+        {
+          "id": "D",
+          "text": "对象参与 == 比较时，通常会先进行 ToPrimitive"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "[] == ![] 实际结果为 true，典型原因是多步隐式转换后两边都变成 0。"
+      }
+    },
+    {
+      "id": "js-senior-045",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["装箱", "拆箱", "String", "原始值"],
+      "source_company": "Meituan",
+      "score": 6,
+      "title": "原始值调用方法",
+      "content": "判断正误：字符串原始值能够调用 toUpperCase 等方法，说明原始值在 JavaScript 中本质上就是对象。",
+      "explanation": "正确答案是 B。字符串、数字、布尔等原始值并不是对象。之所以可以调用某些方法，是因为语言在访问属性时会发生临时装箱，即把原始值包装成对应的对象包装器供本次属性访问使用，随后立即丢弃。这只是语义层便利机制，不改变原始值的本质。\\n\\n常见误解是看到 \"abc\".length 或 \"abc\".toUpperCase() 就认为字符串是对象。实际上原始值不能持久保存自定义属性，例如给字符串字面量挂属性通常无法如预期保留。\\n\\n工程实践中，应尽量避免显式使用 new String、new Number、new Boolean 这类包装对象，因为它们在比较、布尔判断和序列化中容易引发歧义。理解装箱拆箱机制有助于解释为什么有些语法能工作、但对象身份和属性持久性却与预期不符。",
+      "knowledge_point": "Boxing_Unboxing_PrimitiveWrapper",
+      "boundary_conditions": "属性访问时会发生临时装箱，但原始值仍不是对象；显式 new String() 得到的是对象包装器，与字符串原始值在 typeof、比较和真值判断上都不同。Symbol 与 BigInt 也有对应包装行为，但语义边界需特别注意。",
+      "reference_link": "https://tc39.es/ecma262/#sec-toobject",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-046",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["eval", "作用域", "优化", "安全"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "eval的工程风险",
+      "content": "关于 eval 的工程风险与运行时影响，哪项描述最准确？",
+      "explanation": "正确答案是 C。eval 会在运行时解析并执行字符串代码，这不仅带来严重安全风险，也会破坏引擎对作用域和变量访问的静态分析能力，影响优化效果。直接 eval 甚至可能访问当前词法环境中的绑定，令编译器很难做激进优化。\\n\\nA 错在认为 eval 只是性能略差，不涉及安全与语义风险；B 错在说 eval 总在独立沙箱执行，实际 direct eval 会影响当前执行上下文；D 错在认为现代引擎已彻底优化掉 eval 带来的问题，这与事实不符。\\n\\n工程实践中，应尽量避免 eval，配置解析可用 JSON，表达式求值可用受限解释器，动态模块加载可用 import()，模板编译应在构建期完成。若确实需要动态执行能力，也应隔离权限边界，避免将用户输入直接拼接执行。安全、性能、可维护性三个维度上，eval 都是高风险点。",
+      "knowledge_point": "Eval_Scope_Deopt_Security",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval",
+      "options": [
+        {
+          "id": "A",
+          "text": "eval 只会带来轻微性能损耗，对安全和作用域优化没有本质影响"
+        },
+        {
+          "id": "B",
+          "text": "eval 执行的代码一定运行在完全隔离的沙箱环境中"
+        },
+        {
+          "id": "C",
+          "text": "eval 会带来安全风险，并干扰引擎对作用域与变量访问的优化"
+        },
+        {
+          "id": "D",
+          "text": "现代引擎已经完全消除了 eval 对可优化性的负面影响"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "低估了 eval 在安全与优化层面的破坏性。",
+        "B": "direct eval 可以访问当前作用域，不是天然沙箱。",
+        "D": "eval 仍然是典型的优化杀手之一。"
+      }
+    },
+    {
+      "id": "js-senior-047",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["with", "作用域链", "优化", "严格模式"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "with语句问题",
+      "content": "关于 with 语句，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。with 会把对象临时插入作用域链前端，导致标识符解析变得动态且不明确，严重影响可读性与引擎优化，因此在严格模式下被禁止。它会让变量查找行为变得难以预测，也容易和外层同名变量产生歧义。\\n\\nB 错在说 with 能提升性能。事实恰恰相反，它破坏静态可分析性，是典型的优化阻碍。A 正确说明其对作用域解析的影响；C 正确反映严格模式限制；D 正确指出可维护性问题。\\n\\n工程实践中，with 基本应视为历史遗留特性，不应出现在现代代码中。需要简化对象访问时，可用解构赋值、局部变量别名或模块化封装替代。高级工程师在阅读老旧脚本或低质量 SDK 时，如果看到 with，应立刻警惕其对调试和优化的负面作用。",
+      "knowledge_point": "WithStatement_ScopeAmbiguity",
+      "reference_link": "https://tc39.es/ecma262/#sec-with-statement",
+      "options": [
+        {
+          "id": "A",
+          "text": "with 会让标识符解析变得动态，降低可预测性"
+        },
+        {
+          "id": "B",
+          "text": "with 有助于引擎静态分析，因此通常能提升性能"
+        },
+        {
+          "id": "C",
+          "text": "with 在严格模式下被禁止"
+        },
+        {
+          "id": "D",
+          "text": "with 会显著降低代码可维护性与可读性"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "with 会破坏静态作用域分析，通常不利于优化。"
+      }
+    },
+    {
+      "id": "js-senior-048",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["delete", "变量", "对象属性", "严格模式"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "delete删除局部变量",
+      "content": "判断正误：delete 可以删除通过 let 或 const 声明的局部变量，只要在块作用域内调用即可。",
+      "explanation": "正确答案是 B。delete 主要作用于对象属性，并不能删除通过 let、const 或一般变量声明创建的词法绑定。对于变量绑定，删除操作并不适用；在严格模式中某些 delete 非法用法甚至会直接是语法错误。\\n\\n常见误区是把“变量”与“对象属性”混为一谈。window.x 这类历史浏览器环境下的全局属性行为，也常让人误以为所有变量都能被 delete。实际上规范中的 Environment Record 绑定与对象属性是两套不同概念。\\n\\n工程实践中，若需要移除动态键，应面向对象属性使用 delete，或在高性能场景下考虑赋值 undefined/null 并配合结构重建；若是局部变量生命周期控制，则应通过作用域与引用管理解决，而不是试图 delete。理解这一点对排查闭包引用、缓存失效和内存保留问题很有帮助。",
+      "knowledge_point": "Delete_EnvironmentBinding_vs_Property",
+      "boundary_conditions": "delete 适用于对象属性，不适用于 let/const/一般局部变量绑定。浏览器中 var 声明的某些全局行为与全局对象属性存在历史关联，但不能据此推广到块级绑定或所有运行环境。",
+      "reference_link": "https://tc39.es/ecma262/#sec-delete-operator",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-049",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["for循环", "闭包", "let", "var"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "for循环闭包差异",
+      "content": "为什么在 for 循环中使用 let 定义索引变量，通常能解决 var + 异步回调打印同一最终值的问题？",
+      "explanation": "正确答案是 B。let 在 for 循环中会为每次迭代创建新的词法环境绑定，因此异步回调闭包捕获的是该轮迭代独立的 i 绑定，而不是所有回调共享同一个变量。这与 var 只有函数作用域、所有回调共享同一绑定形成鲜明对比。\\n\\nA 错在认为 let 会把变量复制为值常量，这并不准确；C 错在说异步回调会自动同步执行，问题根源不在此；D 错在认为 var 和 let 在闭包中的行为没有区别。\\n\\n从规范角度，for 声明中的 per-iteration environment 是关键。工程实践中，理解这一点不仅能解释 setTimeout 场景，也能帮助你阅读 Babel 对 let 循环的转译产物。高级工程师要避免只记结论，而应明确是“每轮新绑定”而不是“闭包复制值”这一机制在起作用。",
+      "knowledge_point": "PerIterationEnvironment",
+      "reference_link": "https://tc39.es/ecma262/#sec-for-statement-runtime-semantics-labelledevaluation",
+      "options": [
+        {
+          "id": "A",
+          "text": "因为 let 会把每次循环的值都复制成不可变常量"
+        },
+        {
+          "id": "B",
+          "text": "因为 let 在循环中会为每次迭代创建新的词法绑定"
+        },
+        {
+          "id": "C",
+          "text": "因为使用 let 后异步回调会被转成同步执行"
+        },
+        {
+          "id": "D",
+          "text": "因为 var 和 let 在闭包捕获机制上没有实际差异"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "关键不是简单复制值，而是创建了新的绑定环境。",
+        "C": "异步调度机制未改变，变化点是变量绑定方式。",
+        "D": "var 共享函数级绑定，let 可形成每轮独立绑定。"
+      }
+    },
+    {
+      "id": "js-senior-050",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Generator", "throw", "return", "控制流"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "Generator控制流接口",
+      "content": "关于 Generator 对象的 next、throw、return 方法，哪些说法正确？",
+      "explanation": "正确答案是 A、B、D。Generator 对象不仅支持 next 推进执行，还支持 throw 向生成器内部注入异常，以及 return 提前结束迭代。若生成器内部有 try/finally，return 并不一定立刻彻底终止，finally 仍会执行，这也是很多人忽略的边界。\\n\\nC 错在认为 return 会无条件跳过 finally。实际上 finally 块在控制流清理中依然重要。A 正确说明 throw 的能力；B 正确说明 return 的提前结束语义；D 正确体现 finally 的边界行为。\\n\\n工程实践中，Redux-Saga 等基于 Generator 的调度框架就依赖这些能力来做取消、异常传播和资源清理。高级工程师若只会 next 而不了解 throw/return 的控制流价值，就无法真正读懂这类框架内部调度模型，也容易在自定义迭代协议和清理逻辑上出错。",
+      "knowledge_point": "Generator_Throw_Return_Finally",
+      "reference_link": "https://tc39.es/ecma262/#sec-generatorresumeabrupt",
+      "options": [
+        {
+          "id": "A",
+          "text": "throw 可以把异常重新抛回生成器内部当前暂停点"
+        },
+        {
+          "id": "B",
+          "text": "return 可以请求生成器提前结束"
+        },
+        {
+          "id": "C",
+          "text": "调用 return 一定会跳过生成器中的 finally 块"
+        },
+        {
+          "id": "D",
+          "text": "若生成器内部存在 try/finally，提前结束时 finally 仍可能执行"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "finally 在生成器提前结束或异常传播时通常仍会执行。"
+      }
+    },
+    {
+      "id": "js-senior-051",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Promise", "finally", "异常传播", "链式调用"],
+      "source_company": "Meta",
+      "score": 7,
+      "title": "finally不改变结果",
+      "content": "判断正误：Promise.prototype.finally 中的回调不会接收上一个结果值，但它抛出的异常或返回的 rejected Promise 仍会改变后续链路状态。",
+      "explanation": "正确答案是 A。finally 的设计目标是无论前序 Promise fulfilled 还是 rejected，都执行一段清理逻辑；它本身不接收前一个结果值，也通常不会改变原有值的透传。但如果 finally 回调内部抛出异常，或返回一个 rejected Promise，那么后续链路会以该新错误为准，这一点经常被忽略。\\n\\n常见误区是把 finally 理解为“绝不会影响结果”的纯旁路钩子。准确地说，它在正常完成时会透传原结果，但一旦自身失败，就会覆盖链路状态。\\n\\n工程实践中，finally 很适合做 loading 关闭、资源释放、埋点收尾，但不应在里面写可能引入新失败且未被感知的逻辑。若 finally 中还要执行异步清理，应明确评估其耗时和失败策略，否则可能把原始业务错误掩盖掉，增加排障难度。",
+      "knowledge_point": "Promise_Finally_Propagation",
+      "boundary_conditions": "finally 回调抛出的异常或返回的 rejected Promise 仍会改变后续链路状态。",
+      "reference_link": "https://tc39.es/ecma262/#sec-promise.prototype.finally",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-052",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["微任务", "queueMicrotask", "Promise", "异常"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "queueMicrotask与Promise差异",
+      "content": "关于 queueMicrotask(fn) 与 Promise.resolve().then(fn) 作为微任务调度手段的区别，哪项描述更准确？",
+      "explanation": "正确答案是 C。两者都可把回调放入微任务队列，但 queueMicrotask 更直接表达“调度一个微任务”的意图，且不需要创建额外的 Promise 链语义。一个实际差异是异常处理路径：在回调抛错时，queueMicrotask 的错误通常作为宿主环境中的普通异常上报，而 Promise.then 回调抛错会转化为 rejected Promise，进入未处理拒绝链路。\\n\\nA 错在说二者完全等价；B 错在说 queueMicrotask 属于宏任务；D 错在认为 Promise.then 不属于微任务。\\n\\n工程实践中，如果只是需要纯粹的微任务调度，queueMicrotask 语义更清晰；若还需要链式值传递、错误收敛和组合，则 Promise 更合适。高级工程师需要理解的不只是“都很快”，而是它们在错误传播、可读性和资源开销上的差异。",
+      "knowledge_point": "queueMicrotask_vs_PromiseThen",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/API/queueMicrotask",
+      "options": [
+        {
+          "id": "A",
+          "text": "二者在语义、异常传播和资源开销上完全没有区别"
+        },
+        {
+          "id": "B",
+          "text": "queueMicrotask 调度的是宏任务，而 Promise.then 调度的是微任务"
+        },
+        {
+          "id": "C",
+          "text": "二者都可调度微任务，但异常传播路径与表达语义存在差异"
+        },
+        {
+          "id": "D",
+          "text": "Promise.then 的回调不属于微任务，它会比 setTimeout 更晚"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "忽略了 Promise 链式语义与异常转 rejected 的差异。",
+        "B": "queueMicrotask 本身就是微任务调度 API。",
+        "D": "Promise.then 属于典型微任务。"
+      }
+    },
+    {
+      "id": "js-senior-053",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Proxy", "数组", "响应式", "length", "陷阱"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Proxy代理数组难点",
+      "content": "使用 Proxy 代理数组实现响应式时，以下哪些点需要重点关注？",
+      "explanation": "正确答案是 A、B、D。数组不同于普通对象，其索引写入、length 变化、方法调用和稀疏化行为都可能触发额外语义。对数组索引赋值可能隐式更新 length；对 length 的修改可能截断元素；某些方法内部会批量触发多次 get/set 或依赖 this 正确绑定。若实现响应式框架，必须细致处理这些边界。\\n\\nC 错在认为数组与普通对象完全等价，只拦截 set 即可。实际像 push、splice、sort、length 截断、稀疏数组、迭代方法等都涉及更复杂行为。A 正确指出 length 联动；B 正确说明方法内部和 this 语义；D 正确反映高频数组操作的性能与一致性挑战。\\n\\n工程实践中，Vue3 等框架对数组代理都有专门优化和方法劫持策略。高级工程师若要自行设计响应式系统，不能仅停留在“Proxy 很万能”的层面，而要理解数组对象在规范与引擎中的特殊性，以及依赖收集与触发的粒度控制问题。",
+      "knowledge_point": "Proxy_Array_Length_Reactivity",
+      "reference_link": "https://tc39.es/ecma262/#sec-array-exotic-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "数组索引写入与 length 之间存在联动语义"
+        },
+        {
+          "id": "B",
+          "text": "数组方法调用涉及 this、内部多次操作和批量触发问题"
+        },
+        {
+          "id": "C",
+          "text": "数组与普通对象在代理层面完全一样，只拦截 set 即可覆盖全部场景"
+        },
+        {
+          "id": "D",
+          "text": "高频数组操作下，响应式实现还需要关注性能与重复触发控制"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "数组是 exotic object，length 和索引语义都比普通对象更特殊。"
+      }
+    },
+    {
+      "id": "js-senior-054",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["JSON", "序列化", "undefined", "Symbol", "函数"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "JSON序列化保真",
+      "content": "判断正误：JSON.stringify 可以完整保留对象中的 undefined、函数、Symbol 以及循环引用结构。",
+      "explanation": "正确答案是 B。JSON.stringify 只支持 JSON 数据模型的有限子集。对象中的 undefined、函数、Symbol 属性通常会被忽略，数组中的这些值会转成 null；循环引用则会直接抛出 TypeError。它并不是通用对象图序列化方案。\\n\\n常见误区是把 JSON 当成 JavaScript 对象的无损快照格式。实际上 Date、Map、Set、BigInt、原型链、访问器属性等也都无法被完整保真。\\n\\n工程实践中，JSON 适合做跨系统传输和简单配置持久化，但若需要高保真对象复制、缓存或跨线程通信，应考虑 structuredClone、自定义序列化协议或专用格式。高级工程师需要先确认数据模型目标，而不是遇到“拷贝/存储”就默认 JSON 化。",
+      "knowledge_point": "JSON_Stringify_Limitations",
+      "boundary_conditions": "JSON.stringify 只适用于 JSON 支持的数据类型子集；对象属性中的 undefined、函数、Symbol 会被忽略，数组中对应位置可能转成 null；循环引用会报错，BigInt 也不能直接序列化。",
+      "reference_link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-055",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Object.assign", "浅拷贝", "访问器", "描述符"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "Object.assign本质",
+      "content": "关于 Object.assign 的语义，哪项描述最准确？",
+      "explanation": "正确答案是 B。Object.assign 会按源对象的可枚举自有属性做赋值拷贝，其本质是取值再设值，而不是复制完整属性描述符。因此若源对象属性是 getter，assign 时会触发 getter 取出当前值，再以普通赋值方式写到目标对象；访问器本身不会被原样复制。\\n\\nA 错在把它当作深拷贝；C 错在认为它会完整保留 writable、configurable、getter/setter 等描述符；D 错在说它只复制原型链上的属性，实际上只处理源对象的自有可枚举属性。\\n\\n工程实践中，Object.assign 适合浅层合并配置对象，但对嵌套结构、类实例、访问器、不可枚举属性都不可靠。若需要保留属性描述符，应结合 Object.getOwnPropertyDescriptors 与 Object.defineProperties。高级工程师要清楚“值拷贝”和“描述符复制”是完全不同的操作层级。",
+      "knowledge_point": "ObjectAssign_GetSet_Descriptors",
+      "reference_link": "https://tc39.es/ecma262/#sec-object.assign",
+      "options": [
+        {
+          "id": "A",
+          "text": "Object.assign 是标准深拷贝方案，适用于复杂对象图复制"
+        },
+        {
+          "id": "B",
+          "text": "Object.assign 本质是对可枚举自有属性做取值再设值，不会保留访问器描述符"
+        },
+        {
+          "id": "C",
+          "text": "Object.assign 会完整复制属性的 configurable、writable 和 getter/setter"
+        },
+        {
+          "id": "D",
+          "text": "Object.assign 会优先复制原型链上的可枚举属性"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "它只做浅层赋值，不处理嵌套对象图。",
+        "C": "assign 不复制完整描述符，只复制取出的值。",
+        "D": "只处理源对象自有可枚举属性，不遍历原型链。"
+      }
+    },
+    {
+      "id": "js-senior-056",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["Descriptor", "getter", "setter", "enumerable", "configurable"],
+      "source_company": "Google",
+      "score": 10,
+      "title": "属性描述符规则",
+      "content": "关于数据属性描述符与访问器属性描述符，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。数据属性描述符包含 value、writable、enumerable、configurable；访问器属性描述符包含 get、set、enumerable、configurable。一个属性不能同时既是数据属性又是访问器属性，若在 defineProperty 中混用 value 与 get/set，会触发异常。\\n\\nB 错在认为 getter/setter 与 value/writable 可以自由并存。规范不允许同一属性描述符同时具备这两类互斥字段。A 正确区分了两类描述符；C 正确指出字段互斥；D 正确强调 enumerable/configurable 是两类属性都可拥有的公共元信息。\\n\\n工程实践中，属性描述符广泛用于只读配置、懒计算 getter、框架响应式和库内部 API 约束。高级工程师需要理解它们，否则在封装对象接口、冻结对象、代理属性和序列化行为时，很容易因为描述符默认值或互斥规则而踩坑。",
+      "knowledge_point": "PropertyDescriptor_Data_vs_Accessor",
+      "reference_link": "https://tc39.es/ecma262/#sec-property-descriptor-specification-type",
+      "options": [
+        {
+          "id": "A",
+          "text": "数据属性描述符通常包含 value 和 writable"
+        },
+        {
+          "id": "B",
+          "text": "同一个属性可以同时自由拥有 value、writable、get、set 四类字段"
+        },
+        {
+          "id": "C",
+          "text": "访问器属性与数据属性在描述符层面是互斥的"
+        },
+        {
+          "id": "D",
+          "text": "enumerable 和 configurable 可出现在两类属性描述符中"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "value/writable 与 get/set 描述的是两种互斥属性模型，不能混用。"
+      }
+    },
+    {
+      "id": "js-senior-057",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["模块化", "ESM", "live binding", "循环依赖"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "ESM导入可重赋值",
+      "content": "判断正误：ESM 中通过 import 导入的绑定，在导入方模块内部可以直接重新赋值，以便覆盖导出方的值。",
+      "explanation": "正确答案是 B。ESM 导入的是 live binding，但导入方拿到的是只读视图，不能直接对 import 绑定重新赋值。导出方内部若更新该绑定，导入方可观察到新值；但导入方本身无权覆写它，这也是 ESM 设计上相较 CommonJS 更清晰的一点。\\n\\n常见误区是把 live binding 理解成“双方都能改”。实际它更像单向可观察绑定。导入方尝试重赋值通常会在语法或运行时层面报错。\\n\\n工程实践中，这一特性有助于保持模块边界清晰，避免外部随意篡改依赖模块内部状态。若确实需要共享可变状态，应导出对象、类实例、状态容器或显式 setter API，而不是试图修改 import 绑定本身。",
+      "knowledge_point": "ESM_ImportBinding_ReadOnly",
+      "boundary_conditions": "导入绑定是 live binding 但对导入方只读；若导出的是对象，导入方仍可修改对象内部可变属性，但这与重写 import 绑定本身不是一回事。循环依赖中这一特性尤其重要。",
+      "reference_link": "https://tc39.es/ecma262/#sec-imports",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-058",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["async/await", "循环", "并发", "性能"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "循环中await优化",
+      "content": "在不要求严格串行依赖的场景下，下面哪种写法通常更能发挥并发性能？",
+      "explanation": "正确答案是 D。如果各异步任务之间没有前后依赖，在循环中逐个 await 会把并发退化为串行，总耗时接近各任务耗时之和。更合理的方式通常是先构造 Promise 列表，再使用 Promise.all 或并发池统一等待，从而并行发起任务。\\n\\nA、B、C 这类逐轮 await 的写法会显著降低吞吐；D 体现了先启动再聚合的思路。需要注意的是，并发不等于无限并行，过多请求也可能导致服务端压力、浏览器连接数限制和资源竞争，因此更高级的方案是并发上限控制。\\n\\n工程实践中，性能优化不能只看语法“是否用了 async/await”，而要分析调度策略。高级工程师在处理批量请求、文件上传、资源预加载时，应根据依赖关系、限流约束和错误策略选择串行、全并发或受控并发，而不是机械地在循环里 await。",
+      "knowledge_point": "AsyncAwait_Sequential_vs_Concurrent",
+      "options": [
+        {
+          "id": "A",
+          "text": "for (const item of list) { await task(item); }"
+        },
+        {
+          "id": "B",
+          "text": "for (let i = 0; i < list.length; i++) { await task(list[i]); }"
+        },
+        {
+          "id": "C",
+          "text": "list.reduce(async (p, item) => { await p; return task(item); }, Promise.resolve())"
+        },
+        {
+          "id": "D",
+          "text": "const tasks = list.map(item => task(item)); await Promise.all(tasks);"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "B": "只是换了循环形式，本质仍是串行 await。",
+        "C": "reduce 方案显式串行化，适合依赖链，不适合并发优化。",
+        "D": "正确选项，不应作为错误项分析。"
+      }
+    },
+    {
+      "id": "js-senior-059",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["防抖", "节流", "leading", "trailing", "cancel"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "高质量防抖实现",
+      "content": "一个工程上可用的高质量 debounce 实现，通常应考虑哪些能力？",
+      "explanation": "正确答案是 A、B、D。成熟的 debounce 不只是 setTimeout 包一层，还要考虑 leading/trailing 触发策略、取消 cancel、立即执行后的尾调用、this 与参数透传、以及返回值和 Promise 场景兼容等。若函数用于组件销毁前后，还需要确保可主动清理定时器，避免幽灵执行。\\n\\nC 错在认为只要延迟执行就足够，不需要任何额外控制。在真实工程里，缺乏取消与边界控制的 debounce 往往会引入状态错乱、内存滞留和交互不一致。A 正确体现 leading/trailing 配置价值；B 正确强调 cancel/flush 等控制能力；D 正确指出上下文与参数保持的重要性。\\n\\n工程实践中，防抖函数若承载异步请求，还应处理竞态、过期结果回流和异常传播。高级工程师写工具函数时，不能只满足“能跑”，还要覆盖生命周期管理和复杂交互边界。",
+      "knowledge_point": "Debounce_Leading_Trailing_Cancel",
+      "options": [
+        {
+          "id": "A",
+          "text": "支持 leading 或 trailing 等触发策略配置"
+        },
+        {
+          "id": "B",
+          "text": "支持 cancel 或 flush 等控制方法更利于工程使用"
+        },
+        {
+          "id": "C",
+          "text": "只要简单延迟调用即可，this 和参数是否保留不重要"
+        },
+        {
+          "id": "D",
+          "text": "应考虑 this、参数透传及组件卸载场景的清理问题"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "忽略 this/参数透传与清理能力，会导致大量工程边界问题。"
+      }
+    },
+    {
+      "id": "js-senior-060",
+      "type": "true_false",
+      "difficulty": "expert",
+      "tags": ["事件循环", "Node.js", "浏览器", "nextTick", "微任务"],
+      "source_company": "OpenSource",
+      "score": 8,
+      "title": "Node与浏览器事件循环一致",
+      "content": "判断正误：Node.js 与浏览器的事件循环模型可以完全等同理解，Promise 微任务、setTimeout、I/O 回调和 process.nextTick 的优先级与阶段规则没有本质差异。",
+      "explanation": "正确答案是 B。Node.js 与浏览器都存在任务调度与微任务概念，但它们的事件循环阶段、I/O 处理模型和特有队列并不完全一致。Node.js 有 timers、poll、check 等阶段，还存在 process.nextTick 这样的特殊队列，其优先级与普通 Promise 微任务关系也需要单独理解，不能简单照搬浏览器心智模型。\\n\\n常见误区是把“都是 JS”误认为“调度机制完全一致”。实际上宿主环境差异会直接影响回调时序、异常行为和性能表现。\\n\\n工程实践中，写同构代码、SSR、CLI 工具、BFF 服务或测试框架时，如果不了解 Node 与浏览器调度差异，就很容易写出在一个环境稳定、另一个环境顺序异常的代码。高级工程师必须把 ECMAScript 语言层 Promise job 与宿主层事件循环阶段区分开来。",
+      "knowledge_point": "Node_vs_Browser_EventLoop",
+      "boundary_conditions": "两者都存在微任务概念，但 Node.js 的事件循环阶段与浏览器不同，且 process.nextTick 是 Node 特有高优先级机制。不同 Node 版本与宿主实现细节也可能影响观察结果，不应做绝对化推断。",
+      "reference_link": "https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-061",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["new", "构造器", "原型链", "对象创建"],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "new操作符步骤",
+      "content": "手写实现 new 操作符时，核心步骤不包括下列哪一项？",
+      "explanation": "正确答案是 C。new 操作符的核心语义包括：创建一个全新的对象；将该对象的原型指向构造函数的 prototype；执行构造函数并将 this 绑定到新对象；若构造函数返回对象则使用该返回值，否则返回新创建的对象。如果构造函数显式返回一个非对象值（如数字、字符串），则会被忽略，仍然返回新创建的对象，而不是抛出错误。\\n\\nA 是创建新对象的原型链接步骤；B 是建立原型链的基础；D 是处理构造函数返回值的边界情况。\\n\\n工程实践中，理解 new 的实现原理有助于掌握原型链、继承和类构造过程。在实现无 new 构造工厂模式时，也需要利用这些步骤手动控制对象创建流程。需要注意的是，ES6 class 必须通过 new 调用，这与其内部 [[Construct]] 方法有关。",
+      "knowledge_point": "NewOperator_Implementation",
+      "reference_link": "https://tc39.es/ecma262/#sec-new-operator",
+      "options": [
+        {
+          "id": "A",
+          "text": "创建一个空对象，并将其原型指向构造函数的 prototype"
+        },
+        {
+          "id": "B",
+          "text": "执行构造函数，将 this 绑定到新对象"
+        },
+        {
+          "id": "C",
+          "text": "若构造函数返回非对象值，则抛出 TypeError"
+        },
+        {
+          "id": "D",
+          "text": "若构造函数显式返回对象，则使用该返回值"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "这是原型链建立的关键步骤。",
+        "B": "这是执行构造函数逻辑的步骤。",
+        "D": "这是处理构造函数显式返回值的边界情况。"
+      }
+    },
+    {
+      "id": "js-senior-062",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["bind", "new", "this", "手写实现"],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "bind与new交互",
+      "content": "在实现 Function.prototype.bind 时，为了支持 new 调用，需要考虑哪些关键点？",
+      "explanation": "正确答案是 A、B、D。当 bind 返回的函数被 new 调用时，规范要求 this 指向新创建的实例，而不是 bind 时绑定的 thisArg。同时，bind 时预设的参数需要正常传递给原构造函数。实现中需要判断当前 this 是否是 new 调用的实例，这通常通过检测 this instanceof boundFn 来实现。\\n\\nC 错在认为 new 调用时应该忽略预设参数，实际上参数需要合并。A 正确描述了 new 调用时的 this 指向规则；B 正确说明了参数需要合并传递；D 正确指出需要通过实例关系判断调用方式。\\n\\n工程实践中，bind 的完整实现还需要处理原型链继承关系，确保 new boundFn() instanceof OriginalFn 为 true。这是手写 bind 函数中最容易出错的边界情况，也是区分初级和高级实现的关键点。",
+      "knowledge_point": "Bind_New_Interaction",
+      "options": [
+        {
+          "id": "A",
+          "text": "当作为构造函数被 new 调用时，this 指向新创建的实例"
+        },
+        {
+          "id": "B",
+          "text": "预设参数需要与调用时传入的参数合并"
+        },
+        {
+          "id": "C",
+          "text": "new 调用时应该忽略所有预设参数"
+        },
+        {
+          "id": "D",
+          "text": "需要判断当前调用方式是普通调用还是构造调用"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "预设参数需要正常传递，这是 bind 柯里化功能的一部分。"
+      }
+    },
+    {
+      "id": "js-senior-063",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["super", "HomeObject", "原型链", "继承"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "super内部机制",
+      "content": "关于 ES6 class 中 super 关键字的行为，下列描述哪项最准确？",
+      "explanation": "正确答案是 B。super 在方法内部调用时，引擎通过函数对象的内部槽 [[HomeObject]] 找到该方法所属的对象，再沿原型链向上查找。这意味着 super 的绑定是在方法定义时确定的，而不是调用时。这也解释了为什么将包含 super 的方法解构出来单独调用时，仍能正确找到父类方法。\\n\\nA 错在认为 super 是动态查找，这与静态特性不符；C 错在说 super 只能用于构造函数，实际上可以用于方法调用 super.method()；D 错在认为解构后 super 会失效。\\n\\n工程实践中，理解 [[HomeObject]] 机制对于理解为什么不能随意复制包含 super 的方法至关重要。这也是为什么箭头函数没有自己的 super，它会从外层继承。",
+      "knowledge_point": "Super_HomeObject_StaticBinding",
+      "reference_link": "https://tc39.es/ecma262/#sec-super-keyword",
+      "options": [
+        {
+          "id": "A",
+          "text": "super 在运行时动态查找父类方法"
+        },
+        {
+          "id": "B",
+          "text": "super 通过函数的 [[HomeObject]] 静态确定父类原型"
+        },
+        {
+          "id": "C",
+          "text": "super 只能用于调用父类构造函数"
+        },
+        {
+          "id": "D",
+          "text": "将方法解构赋值后 super 绑定会失效"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "super 是静态绑定的，通过 [[HomeObject]] 实现。",
+        "C": "super 也可以调用父类方法。",
+        "D": "由于 [[HomeObject]] 的存在，解构后仍能正确工作。"
+      }
+    },
+    {
+      "id": "js-senior-064",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["new.target", "反射", "构造器", "class"],
+      "source_company": "Meta",
+      "score": 7,
+      "title": "new.target行为",
+      "content": "判断正误：new.target 只能在构造函数中使用，在其他函数中访问会报错。",
+      "explanation": "正确答案是 B。new.target 可以在任何函数中使用，只是值不同。在通过 new 调用的构造函数或 class 中，它指向构造函数本身；在普通函数调用中，它的值是 undefined；在箭头函数中，它从外层函数继承。它不会在普通函数中报错，只是返回 undefined。\\n\\n常见误区是把 new.target 当成专属于 class 的语法。实际上它是检测函数是否被 new 调用的通用机制，可以用于实现必须 new 调用的构造函数保护逻辑。\\n\\n工程实践中，可以利用 new.target 实现抽象类或必须继承才能实例化的基类设计，通过在基类构造函数中检测 new.target 是否为基类本身来抛出错误。",
+      "knowledge_point": "NewTarget_Scope",
+      "boundary_conditions": "在普通函数调用中返回 undefined，不会报错；箭头函数中从外层继承；Reflect.construct 可以手动指定 new.target。",
+      "reference_link": "https://tc39.es/ecma262/#sec-new.target",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-065",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["静态块", "class", "初始化", "ES2022"],
+      "source_company": "Tencent",
+      "score": 9,
+      "title": "静态初始化块",
+      "content": "关于 ES2022 class 的静态初始化块 static {...}，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。静态初始化块在类定义评估时同步执行，可以访问私有静态字段，提供了比在类外直接赋值更优雅的静态复杂初始化方式。它允许多个块按声明顺序执行，且在块内部可以访问私有静态成员，这是外部无法做到的。\\n\\nB 错在认为静态块是实例初始化逻辑，这是构造函数的作用。A 正确说明执行时机；C 正确指出私有访问能力；D 正确描述了多个块的执行顺序。\\n\\n工程实践中，静态块适合处理需要复杂计算、异常捕获或访问私有静态状态的初始化逻辑，比传统的立即执行函数或类外初始化更符合类的封装性。",
+      "knowledge_point": "StaticInitializationBlock",
+      "reference_link": "https://tc39.es/ecma262/#sec-class-definitions",
+      "options": [
+        {
+          "id": "A",
+          "text": "静态初始化块在类加载时同步执行"
+        },
+        {
+          "id": "B",
+          "text": "静态初始化块在每次实例创建时执行"
+        },
+        {
+          "id": "C",
+          "text": "静态初始化块可以访问私有静态字段"
+        },
+        {
+          "id": "D",
+          "text": "一个类可以有多个静态初始化块，按声明顺序执行"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "静态块只执行一次，实例初始化由构造函数负责。"
+      }
+    },
+    {
+      "id": "js-senior-066",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["sort", "算法稳定性", "ES2019"],
+      "source_company": "Meituan",
+      "score": 7,
+      "title": "Array.sort稳定性",
+      "content": "关于 Array.prototype.sort 的排序稳定性，从 ES2019 开始发生了什么变化？",
+      "explanation": "正确答案是 C。在 ES2019 之前，规范并未要求 sort 必须稳定，各引擎实现可能使用不稳定的快速排序变体。从 ES2019 开始，规范明确要求 sort 必须是稳定排序，即相等元素的相对顺序必须保持不变。这是一个重要的规范性改进，使开发者可以依赖这一特性。\\n\\nA 错在认为 ES2019 放弃了稳定性要求，事实正好相反；B 错在说 sort 完全被废弃；D 错在说稳定性只在严格模式下生效。\\n\\n工程实践中，稳定排序对于多字段排序非常重要。例如先按日期排序再按优先级排序，如果第二个排序是稳定的，第一个排序的结果会在相等元素中保留。了解这一特性保证可以避免很多排序逻辑的 bug。",
+      "knowledge_point": "Sort_Stability_ES2019",
+      "reference_link": "https://tc39.es/ecma262/#sec-array.prototype.sort",
+      "options": [
+        {
+          "id": "A",
+          "text": "ES2019 放弃了对稳定性的要求，允许各引擎自由实现"
+        },
+        {
+          "id": "B",
+          "text": "sort 方法被废弃，推荐使用新的排序 API"
+        },
+        {
+          "id": "C",
+          "text": "ES2019 明确要求 sort 必须是稳定排序"
+        },
+        {
+          "id": "D",
+          "text": "稳定性要求只在严格模式下生效"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "ES2019 明确要求了稳定性。",
+        "B": "sort 方法仍是标准排序方式。",
+        "D": "稳定性是全局要求，与模式无关。"
+      }
+    },
+    {
+      "id": "js-senior-067",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["parseInt", "类型转换", "基数"],
+      "source_company": "OpenSource",
+      "score": 6,
+      "title": "parseInt解析规则",
+      "content": "判断正误：parseInt('010') 在所有现代 JavaScript 环境中都一定返回 8。",
+      "explanation": "正确答案是 B。parseInt 的行为在不同环境下可能有差异。虽然 ES5 规范要求 parseInt 在没有指定基数时将 '0' 开头的字符串视为十进制，但某些旧环境可能仍遵循旧规范将其视为八进制。更重要的是，最佳实践是始终显式指定第二个参数基数，如 parseInt('010', 10)，以避免歧义。\\n\\n工程实践中，永远不要省略 parseInt 的基数参数。现代代码应该使用 Number() 或一元加号 + 进行数值转换，除非确实需要解析特定进制的字符串。parseInt 主要用于解析不同进制的数字字符串，而不是通用类型转换。",
+      "knowledge_point": "ParseInt_Radix_BestPractice",
+      "boundary_conditions": "ES5 之前某些环境将 '0' 开头视为八进制；ES5 之后默认十进制但行为可能因实现而异；强烈建议显式指定基数。",
+      "reference_link": "https://tc39.es/ecma262/#sec-parseint-string-radix",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-068",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["NaN", "isNaN", "Number.isNaN", "类型检查"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "isNaN与Number.isNaN",
+      "content": "关于全局 isNaN 与 Number.isNaN 的区别，哪项描述正确？",
+      "explanation": "正确答案是 A。全局 isNaN 会先将参数转换为数值，再判断是否为 NaN，因此 isNaN('hello') 返回 true，因为字符串 'hello' 转为数值是 NaN。Number.isNaN 则不会进行类型转换，只有参数严格等于 NaN 时才返回 true，因此 Number.isNaN('hello') 返回 false。\\n\\nB、C、D 都是对这两个函数行为的错误描述。Number.isNaN 提供了更精确的 NaN 检测，是现代 JavaScript 中推荐使用的方法。\\n\\n工程实践中，检查 NaN 是个特殊问题，因为 NaN !== NaN。使用 Number.isNaN 是最可靠的方式，而 x !== x 这种 hack 虽然也能工作，但可读性差。TypeScript 和 ESLint 规则通常会建议使用 Number.isNaN。",
+      "knowledge_point": "NaN_Detection_Methods",
+      "options": [
+        {
+          "id": "A",
+          "text": "全局 isNaN 会进行类型转换，Number.isNaN 不会"
+        },
+        {
+          "id": "B",
+          "text": "两者完全等价，只是命名空间不同"
+        },
+        {
+          "id": "C",
+          "text": "Number.isNaN 会尝试将参数转换为数值"
+        },
+        {
+          "id": "D",
+          "text": "两者都会返回 true 对于所有非数值类型"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "行为不同，全局 isNaN 会先转数值。",
+        "C": "Number.isNaN 不进行类型转换。",
+        "D": "Number.isNaN 对于非 NaN 值返回 false。"
+      }
+    },
+    {
+      "id": "js-senior-069",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["类型判断", "toString", "Symbol.toStringTag", "Object.prototype"],
+      "source_company": "Google",
+      "score": 9,
+      "title": "Object.prototype.toString",
+      "content": "关于使用 Object.prototype.toString 进行类型检测，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。Object.prototype.toString 是最可靠的类型检测方法之一，返回类似 '[object Type]' 的字符串。它通过内部槽 [[Class]] 或 Symbol.toStringTag 来确定类型。自定义对象可以通过定义 Symbol.toStringTag 来改变返回值。它能够区分数组、Date、RegExp、Map、Set 等各种内置对象。\\n\\nB 错在认为它只能检测基本类型，实际上它对内置对象类型检测非常强大。A 正确说明它返回规范格式；C 正确指出 Symbol.toStringTag 的定制能力；D 正确描述了其对内置对象的检测能力。\\n\\n工程实践中，这是很多类型判断库的核心方法。虽然 typeof 对基本类型有用，instanceof 有跨域问题，但 toString 方法提供了稳定且全面的类型识别方案。",
+      "knowledge_point": "ToString_TypeDetection",
+      "options": [
+        {
+          "id": "A",
+          "text": "它返回 '[object Type]' 格式的字符串"
+        },
+        {
+          "id": "B",
+          "text": "它只能检测基本类型，对对象类型都返回 '[object Object]'"
+        },
+        {
+          "id": "C",
+          "text": "自定义对象可以通过 Symbol.toStringTag 改变检测结果"
+        },
+        {
+          "id": "D",
+          "text": "它能区分 Array、Date、RegExp 等不同内置对象"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "它能识别多种内置对象类型，不只是 '[object Object]'。"
+      }
+    },
+    {
+      "id": "js-senior-070",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["V8", "隐藏类", "性能优化", "内联缓存"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "隐藏类机制",
+      "content": "关于 V8 引擎的隐藏类和内联缓存机制，哪项描述最准确？",
+      "explanation": "正确答案是 C。V8 使用隐藏类来优化对象属性访问。当对象以相同顺序添加相同属性时，它们共享相同的隐藏类，使引擎可以使用偏移量快速访问属性。内联缓存会缓存属性访问路径，如果对象结构稳定，访问速度接近数组索引。\\n\\nA 错在认为隐藏类是开发者定义的；B 错在说对象结构变化不影响性能，实际上结构频繁变化会导致隐藏类转换开销；D 错在认为删除属性是优化行为，实际上 delete 操作会影响隐藏类效率。\\n\\n工程实践中，为了优化性能，应该：保持对象结构一致，以相同顺序初始化属性，避免删除属性，避免混合类型数组。这些实践能让 V8 保持最佳优化状态。",
+      "knowledge_point": "V8_HiddenClass_InlineCache",
+      "reference_link": "https://v8.dev/blog/fast-properties",
+      "options": [
+        {
+          "id": "A",
+          "text": "隐藏类是 JavaScript 语法层面的概念，需要开发者显式定义"
+        },
+        {
+          "id": "B",
+          "text": "对象属性的添加顺序和删除操作对隐藏类完全无影响"
+        },
+        {
+          "id": "C",
+          "text": "相同属性添加顺序的对象共享隐藏类，有利于优化属性访问"
+        },
+        {
+          "id": "D",
+          "text": "使用 delete 删除属性是推荐的性能优化手段"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "隐藏类是引擎内部机制，对开发者透明。",
+        "B": "属性操作顺序直接影响隐藏类结构。",
+        "D": "delete 会导致隐藏类转换，通常应避免。"
+      }
+    },
+    {
+      "id": "js-senior-071",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["垃圾回收", "引用计数", "标记清除", "循环引用"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "循环引用与GC",
+      "content": "判断正误：现代 JavaScript 引擎主要使用引用计数算法进行垃圾回收，因此循环引用会导致内存泄漏。",
+      "explanation": "正确答案是 B。现代 JavaScript 引擎（如 V8）主要使用标记-清除算法，而不是引用计数。标记-清除从根对象出发遍历可达对象，不可达的对象会被回收。循环引用的对象如果不可达，仍会被正确回收。引用计数算法才会因循环引用导致内存泄漏，但这不是主流引擎的实现方式。\\n\\n工程实践中，虽然纯对象循环引用不会导致内存泄漏，但某些场景如未清理的事件监听器、闭包、全局变量引用等仍会导致内存泄漏。理解 GC 原理有助于排查内存问题，但更重要的是保持良好的代码卫生习惯。",
+      "knowledge_point": "GC_MarkSweep_ReferenceCounting",
+      "boundary_conditions": "IE6/7 的某些对象使用引用计数，现代浏览器已不再有此问题。但仍需注意 DOM 与 JS 对象的循环引用在旧版本中的特殊表现。",
+      "reference_link": "https://v8.dev/blog/trash-talk",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-072",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["WeakRef", "FinalizationRegistry", "内存管理", "ES2021"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "WeakRef与FinalizationRegistry",
+      "content": "关于 WeakRef 和 FinalizationRegistry，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。WeakRef 允许持有对象的弱引用，不阻止垃圾回收。FinalizationRegistry 可以在对象被垃圾回收时执行回调。这些 API 旨在用于特定场景如缓存、资源清理等，但由于 GC 时机不可预测，应谨慎使用。\\n\\nC 错在认为 FinalizationRegistry 的回调一定会执行，实际上规范不保证回调的执行时机甚至是否执行。A 正确说明 WeakRef 的弱引用特性；B 正确描述 FinalizationRegistry 的功能；D 正确强调这些 API 的不确定性。\\n\\n工程实践中，这些 API 是双刃剑。合理用途包括：缓存失效处理、调试工具、资源监控等。滥用会导致代码难以预测和调试。最佳实践是尽量避免使用，优先考虑其他架构方案。",
+      "knowledge_point": "WeakRef_FinalizationRegistry",
+      "reference_link": "https://tc39.es/ecma262/#sec-weak-ref-objects",
+      "options": [
+        {
+          "id": "A",
+          "text": "WeakRef 不会阻止对象被垃圾回收"
+        },
+        {
+          "id": "B",
+          "text": "FinalizationRegistry 可以注册对象被回收时的回调"
+        },
+        {
+          "id": "C",
+          "text": "FinalizationRegistry 的回调保证会在对象回收后立即执行"
+        },
+        {
+          "id": "D",
+          "text": "应谨慎使用这些 API，因为 GC 时机不可预测"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "回调执行时机不确定，甚至可能不执行，完全依赖引擎实现。"
+      }
+    },
+    {
+      "id": "js-senior-073",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["BigInt", "数值类型", "精度", "类型转换"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "BigInt混合运算",
+      "content": "关于 BigInt 类型的使用限制，下列描述哪项正确？",
+      "explanation": "正确答案是 D。BigInt 和 Number 不能直接混合运算，必须显式转换。BigInt 只能表示整数，不支持小数，不能与 Number 进行算术运算，也不能传给 Math 函数。Number 类型有安全整数限制，而 BigInt 可以表示任意大整数。\\n\\nA 错在说 BigInt 支持小数；B 错在说可以混合运算；C 错在说 Math 函数接受 BigInt。这些限制都是出于设计考量：混合运算可能导致精度丢失。\\n\\n工程实践中，BigInt 主要用于大整数场景如 ID、加密、精确计算等。需要与 Number 交互时，应明确转换逻辑并考虑精度边界。JSON 序列化 BigInt 也需要特殊处理，可使用 toJSON 方法或自定义序列化器。",
+      "knowledge_point": "BigInt_Number_Interoperability",
+      "options": [
+        {
+          "id": "A",
+          "text": "BigInt 可以表示小数，只是精度较低"
+        },
+        {
+          "id": "B",
+          "text": "BigInt 和 Number 可以自由混合运算"
+        },
+        {
+          "id": "C",
+          "text": "Math 函数接受 BigInt 参数"
+        },
+        {
+          "id": "D",
+          "text": "BigInt 和 Number 不能直接混合运算，必须显式转换"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "BigInt 只能表示整数。",
+        "B": "混合运算会抛出 TypeError。",
+        "C": "Math 函数只接受 Number 类型。"
+      }
+    },
+    {
+      "id": "js-senior-074",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["IEEE 754", "浮点数", "精度", "0.1+0.2"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "浮点数精度问题",
+      "content": "关于 JavaScript 中 0.1 + 0.2 !== 0.3 的问题，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。JavaScript 采用 IEEE 754 双精度浮点数，0.1 和 0.2 在二进制中是无限循环小数，存储时会有精度损失，累加后结果约为 0.30000000000000004。这是所有使用 IEEE 754 标准的语言共有的问题，不是 JavaScript 特有。解决方案包括使用整数运算、专门的库或 Number.EPSILON 进行误差比较。\\n\\nC 错在认为这是 JavaScript 的特有 bug，实际上是 IEEE 754 标准的固有特性。A 正确说明原因；B 正确指出这是普遍问题；D 正确提供了解决思路。\\n\\n工程实践中，涉及金额、精确计算的场景应该使用整数（如分为单位）或专门的 decimal 库。比较浮点数时应该使用误差范围比较，而不是直接相等比较。",
+      "knowledge_point": "IEEE754_FloatingPoint_Precision",
+      "options": [
+        {
+          "id": "A",
+          "text": "原因是浮点数在二进制中无法精确表示"
+        },
+        {
+          "id": "B",
+          "text": "这是 IEEE 754 标准的固有特性，不是 JavaScript 特有"
+        },
+        {
+          "id": "C",
+          "text": "这是 JavaScript 引擎的实现 bug，未来版本会修复"
+        },
+        {
+          "id": "D",
+          "text": "可以使用 Number.EPSILON 或整数运算来处理精度问题"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "这不是 bug，是标准的固有特性。"
+      }
+    },
+    {
+      "id": "js-senior-075",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Proxy", "apply", "construct", "函数代理"],
+      "source_company": "Tencent",
+      "score": 9,
+      "title": "代理函数调用",
+      "content": "要代理函数的调用行为（包括普通调用和 new 调用），需要拦截哪些 trap？",
+      "explanation": "正确答案是 C。要完整代理函数行为，需要拦截 apply 和 construct 两个 trap。apply 拦截普通函数调用，construct 拦截 new 调用。target 必须是可调用的对象（函数），否则会抛出 TypeError。\\n\\nA 中 get 拦截属性访问，不是调用；B 只有 apply 无法处理 new 调用；D 中的 call 不是 Proxy trap。完整的函数代理需要同时处理这两种调用方式。\\n\\n工程实践中，代理函数可用于实现装饰器、参数验证、调用统计、构造函数保护等功能。需要注意的是，代理后的函数 prototype 属性需要正确设置，否则 instanceof 可能失效。",
+      "knowledge_point": "Proxy_FunctionTraps",
+      "reference_link": "https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots",
+      "options": [
+        {
+          "id": "A",
+          "text": "只需要拦截 get"
+        },
+        {
+          "id": "B",
+          "text": "只需要拦截 apply"
+        },
+        {
+          "id": "C",
+          "text": "需要同时拦截 apply 和 construct"
+        },
+        {
+          "id": "D",
+          "text": "需要拦截 call 和 apply"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "get 拦截属性访问，不拦截调用。",
+        "B": "缺少 construct 无法代理 new 调用。",
+        "D": "call 不是 Proxy trap 名称。"
+      }
+    },
+    {
+      "id": "js-senior-076",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Reflect", "元编程", "Reflect.apply", "函数调用"],
+      "source_company": "OpenSource",
+      "score": 7,
+      "title": "Reflect.apply用途",
+      "content": "判断正误：Reflect.apply(target, thisArg, argumentsList) 与 Function.prototype.apply.call(target, thisArg, argumentsList) 功能完全等价。",
+      "explanation": "正确答案是 A。Reflect.apply 是调用函数的标准方式，它接受目标函数、this 绑定和参数数组。它的行为与 Function.prototype.apply.call 完全一致，但语法更简洁易读。Reflect 方法的设计初衷之一就是提供与 Proxy trap 对应的标准操作方法。\\n\\n工程实践中，Reflect.apply 在需要动态调用函数时特别有用，尤其是处理可能被覆盖的 apply 方法时更安全。在 Proxy 的 apply trap 中，通常使用 Reflect.apply 来转发原始调用。",
+      "knowledge_point": "Reflect_apply_equivalence",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-077",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["模块化", "循环依赖", "ESM", "CommonJS"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "循环依赖处理差异",
+      "content": "关于 ESM 和 CommonJS 处理循环依赖的差异，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。CommonJS 输出的是值的拷贝，模块加载时执行，遇到循环依赖时返回已执行部分的值。ESM 输出的是值的引用，模块加载时先建立依赖图再执行，遇到循环依赖时可以使用未初始化的绑定。由于 ESM 的 live binding 特性，循环依赖中的值可能更及时更新。\\n\\nC 错在认为 ESM 循环依赖一定报错，实际上规范定义了处理机制。A 正确说明输出值差异；B 正确描述 live binding 的优势；D 正确指出执行时机差异。\\n\\n工程实践中，循环依赖通常应避免，但理解两种模块系统的处理方式差异对排查复杂依赖问题至关重要。ESM 在设计上对循环依赖更友好，但仍可能导致未初始化值被访问的问题。",
+      "knowledge_point": "CircularDependency_ESM_vs_CJS",
+      "options": [
+        {
+          "id": "A",
+          "text": "CommonJS 输出值的拷贝，ESM 输出值的引用"
+        },
+        {
+          "id": "B",
+          "text": "ESM 的 live binding 可能让循环依赖中的值更新更及时"
+        },
+        {
+          "id": "C",
+          "text": "ESM 遇到循环依赖一定会报错"
+        },
+        {
+          "id": "D",
+          "text": "CommonJS 模块在加载时执行，ESM 模块先构建图再执行"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "ESM 有明确的循环依赖处理机制，不一定报错。"
+      }
+    },
+    {
+      "id": "js-senior-078",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["展开运算符", "浅拷贝", "对象合并"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "对象展开顺序",
+      "content": "关于对象展开运算符 {...a, ...b} 的行为，下列描述哪项正确？",
+      "explanation": "正确答案是 D。对象展开运算符是浅拷贝，后面的属性会覆盖前面的同名属性。展开时只复制对象自身的可枚举属性，不包括原型链上的属性。这是 Object.assign 的简化语法糖，但展开运算符创建新对象而不修改原对象。\\n\\nA 错在说后面属性不覆盖；B 错在说会复制原型属性；C 错在说是深拷贝。理解属性覆盖顺序对于合并配置对象非常重要。\\n\\n工程实践中，对象展开常用于合并配置、添加属性、制作对象副本等场景。但需要注意它是浅拷贝，嵌套对象仍然是引用。对于复杂配置合并，可能需要深拷贝策略或专门的合并库。",
+      "knowledge_point": "ObjectSpread_Order_ShallowCopy",
+      "options": [
+        {
+          "id": "A",
+          "text": "后面的属性不会覆盖前面的同名属性"
+        },
+        {
+          "id": "B",
+          "text": "会复制对象原型链上的属性"
+        },
+        {
+          "id": "C",
+          "text": "会进行深拷贝，嵌套对象也会被复制"
+        },
+        {
+          "id": "D",
+          "text": "后面的属性会覆盖前面的同名属性，只复制自有可枚举属性"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "后面的属性会覆盖前面的。",
+        "B": "只复制自有可枚举属性。",
+        "C": "是浅拷贝。"
+      }
+    },
+    {
+      "id": "js-senior-079",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Set", "Map", "迭代", "修改"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "Set迭代修改",
+      "content": "判断正误：在遍历 Set 或 Map 时，可以在回调中安全地删除当前正在遍历的元素。",
+      "explanation": "正确答案是 A。Set 和 Map 的迭代器规范允许在迭代过程中删除当前元素，这是与数组遍历不同的地方。在 forEach 或 for...of 中删除当前元素是安全的，不会影响迭代正确性。规范明确支持这种操作模式。\\n\\n工程实践中，这为过滤集合元素提供了便利。但需要注意的是，在遍历过程中添加元素的迭代行为可能不确定，应尽量避免。如果需要大量修改，建议先收集要操作的元素，遍历结束后统一处理。",
+      "knowledge_point": "Set_Map_Iteration_Safety",
+      "boundary_conditions": "删除当前元素安全，但添加元素行为不确定；不同实现可能有差异，建议避免在遍历中添加。",
+      "reference_link": "https://tc39.es/ecma262/#sec-set.prototype.forEach",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-080",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["String", "迭代器", "代理对", "Unicode"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "字符串迭代与代理对",
+      "content": "对于包含代理对的字符串，如 '😊'，String.prototype.length 和 for...of 迭代的行为差异是什么？",
+      "explanation": "正确答案是 B。JavaScript 字符串使用 UTF-16 编码，某些 Unicode 字符（如 emoji）需要两个代码单元（代理对）表示。String.prototype.length 返回的是代码单元数量，因此 '😊'.length 为 2。for...of 迭代器会识别代理对，每次迭代返回一个完整的 Unicode 字符，因此 '😊' 在 for...of 中迭代一次。\\n\\nA 错在说 length 返回 1；C 错在说 for...of 会迭代两次；D 错在说两者行为一致。理解这个差异对处理国际化文本非常重要。\\n\\n工程实践中，处理可能包含 emoji 或其他代理对字符的文本时，应使用 Array.from(str) 或 [...str] 来正确分割字符，而不是 str.split('')。需要计算实际字符数时也应使用迭代器方式。",
+      "knowledge_point": "String_Iterator_SurrogatePairs",
+      "options": [
+        {
+          "id": "A",
+          "text": "length 返回 1，for...of 迭代一次"
+        },
+        {
+          "id": "B",
+          "text": "length 返回 2，for...of 迭代一次"
+        },
+        {
+          "id": "C",
+          "text": "length 返回 2，for...of 迭代两次"
+        },
+        {
+          "id": "D",
+          "text": "两者行为完全一致"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "length 返回的是代码单元数，不是字符数。",
+        "C": "for...of 能正确识别代理对。",
+        "D": "两者处理代理对的方式不同。"
+      }
+    },
+    {
+      "id": "js-senior-081",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["Array.prototype.flat", "数组方法", "ES2019"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "flat深度参数",
+      "content": "关于 Array.prototype.flat 的深度参数，下列说法哪些正确？",
+      "explanation": "正确答案是 A、C、D。flat 默认深度为 1，只展开一层嵌套。可以传入具体数字指定展开深度，Infinity 可以完全展开任意深度的嵌套数组。它会移除数组中的空位，而不是保留为 undefined。\\n\\nB 错在说默认展开所有层级。A 正确说明默认深度；C 正确指出 Infinity 的用法；D 正确描述空位处理行为。\\n\\n工程实践中，flat 提供了简洁的数组扁平化方案。对于未知深度的嵌套结构，使用 Infinity。需要注意性能影响，极大深度的递归结构可能导致栈溢出。配合 flatMap 可以实现映射后再扁平化的常见操作。",
+      "knowledge_point": "ArrayFlat_DepthParameter",
+      "options": [
+        {
+          "id": "A",
+          "text": "默认深度为 1，只展开一层"
+        },
+        {
+          "id": "B",
+          "text": "默认深度为 Infinity，展开所有层级"
+        },
+        {
+          "id": "C",
+          "text": "传入 Infinity 可以展开任意深度的嵌套数组"
+        },
+        {
+          "id": "D",
+          "text": "flat 会移除数组中的空位"
+        }
+      ],
+      "correct_answer": ["A", "C", "D"],
+      "exclusion_analysis": {
+        "B": "默认深度是 1，不是 Infinity。"
+      }
+    },
+    {
+      "id": "js-senior-082",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Object.fromEntries", "Map转换", "键值对"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "fromEntries键类型",
+      "content": "判断正误：Object.fromEntries(entries) 可以将 Map 转换为普通对象，但会丢失非字符串类型的键。",
+      "explanation": "正确答案是 A。Object.fromEntries 可以接受任何可迭代对象（包括 Map），将其转换为普通对象。但对象的键只能是字符串或 Symbol，如果 entries 中包含其他类型的键（如数字、对象），它们会被转换为字符串。因此非字符串类型的键信息会丢失或改变。\\n\\n工程实践中，从 Map 转换为对象时需要注意键类型转换问题。如果 Map 使用对象作为键，转换后这些键会变成 '[object Object]' 字符串。需要保留原始键类型时，应继续使用 Map。",
+      "knowledge_point": "ObjectFromEntries_KeyConversion",
+      "boundary_conditions": "数字键会被转换为字符串；对象键会被转换为 '[object Object]'；Symbol 键会被保留。",
+      "reference_link": "https://tc39.es/ecma262/#sec-object.fromentries",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-083",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["RegExp", "lastIndex", "粘性标志", "全局匹配"],
+      "source_company": "OpenSource",
+      "score": 9,
+      "title": "正则lastIndex与标志",
+      "content": "关于正则表达式的 lastIndex 属性和粘性标志 y，哪项描述正确？",
+      "explanation": "正确答案是 D。粘性标志 y 要求匹配必须从 lastIndex 位置开始，不会自动向前搜索。全局标志 g 会影响 lastIndex 的更新，匹配成功后 lastIndex 会更新为匹配结束位置。两者可以组合使用，表示既全局又必须从 lastIndex 开始匹配。\\n\\nA 错在说只读；B 错在说 y 标志允许偏移匹配；C 错在说 y 和 g 不能组合。理解 lastIndex 对于复杂正则匹配非常重要。\\n\\n工程实践中，y 标志常用于词法分析、逐字符解析等场景，需要精确控制匹配位置。手动修改 lastIndex 可以实现分步匹配、从特定位置开始匹配等高级功能。但要注意 lastIndex 会影响 exec 和 test 的行为，容易产生意外副作用。",
+      "knowledge_point": "RegExp_lastIndex_StickyFlag",
+      "options": [
+        {
+          "id": "A",
+          "text": "lastIndex 是只读属性，不能手动修改"
+        },
+        {
+          "id": "B",
+          "text": "粘性标志 y 允许匹配从 lastIndex 位置向后偏移"
+        },
+        {
+          "id": "C",
+          "text": "粘性标志 y 和全局标志 g 不能同时使用"
+        },
+        {
+          "id": "D",
+          "text": "粘性标志 y 要求匹配必须从 lastIndex 开始，不自动搜索"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "lastIndex 可读可写。",
+        "B": "y 标志要求精确匹配，不偏移。",
+        "C": "可以组合使用。"
+      }
+    },
+    {
+      "id": "js-senior-084",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["正则", "命名捕获组", "ES2018"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "命名捕获组特性",
+      "content": "关于正则表达式命名捕获组，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。命名捕获组使用 (?<name>...) 语法，匹配结果存储在 match.groups 对象中。它提供了更好的可读性，特别是在有多个捕获组时。命名捕获组可以与编号捕获组混用，编号规则不受影响。\\n\\nC 错在说命名捕获组不能与编号组混用。A 正确说明语法；B 正确描述访问方式；D 正确指出可混用。\\n\\n工程实践中，命名捕获组显著提升了正则代码的可维护性。在替换字符串中可以使用 $<name> 引用命名组。结合解构赋值可以更清晰地提取匹配结果。",
+      "knowledge_point": "Regex_NamedCaptureGroups",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 (?<name>...) 语法定义命名捕获组"
+        },
+        {
+          "id": "B",
+          "text": "匹配结果通过 match.groups.name 访问"
+        },
+        {
+          "id": "C",
+          "text": "命名捕获组不能与传统编号捕获组混用"
+        },
+        {
+          "id": "D",
+          "text": "命名捕获组提升了正则的可读性和可维护性"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "可以混用，编号规则保持一致。"
+      }
+    },
+    {
+      "id": "js-senior-085",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["String.raw", "模板字面量", "转义"],
+      "source_company": "ByteDance",
+      "score": 7,
+      "title": "String.raw用途",
+      "content": "String.raw`\\n` 的返回值是什么？",
+      "explanation": "正确答案是 C。String.raw 是模板字面量的标签函数，用于获取模板字符串的原始字符串形式。它会忽略转义序列，将反斜杠作为普通字符保留。因此 String.raw`\\n` 返回的是两个字符：反斜杠和 n，而不是换行符。\\n\\nA 是普通模板字符串的行为；B 和 D 是对 String.raw 的误解。理解 String.raw 对于处理正则表达式、文件路径等需要保留反斜杠的场景很有用。\\n\\n工程实践中，String.raw 常用于构建正则表达式字符串、文件路径等场景，避免双重转义的麻烦。但它只处理模板字面量，对普通字符串无效。",
+      "knowledge_point": "StringRaw_EscapeHandling",
+      "options": [
+        {
+          "id": "A",
+          "text": "换行符"
+        },
+        {
+          "id": "B",
+          "text": "空字符串"
+        },
+        {
+          "id": "C",
+          "text": "两个字符：反斜杠和 n"
+        },
+        {
+          "id": "D",
+          "text": "字符串 \\'\\\\n\\'"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "普通模板字符串会解释转义序列。",
+        "B": "返回的是包含转义序列的原始字符串。",
+        "D": "不需要额外的引号。"
+      }
+    },
+    {
+      "id": "js-senior-086",
+      "type": "true_false",
+      "difficulty": "beginner",
+      "tags": ["全局对象", "globalThis", "跨平台"],
+      "source_company": "Meituan",
+      "score": 5,
+      "title": "globalThis标准化",
+      "content": "判断正误：globalThis 是 ES2020 引入的标准全局对象引用，可以在浏览器和 Node.js 中统一使用。",
+      "explanation": "正确答案是 A。ES2020 引入了 globalThis，作为访问全局对象的标准方式。在浏览器中它指向 window（或 WorkerGlobalScope），在 Node.js 中指向 global，在其他环境中指向各自的全局对象。这解决了跨平台代码中访问全局对象的碎片化问题。\\n\\n工程实践中，globalThis 是编写跨平台 JavaScript 代码时的最佳选择。它避免了需要检测环境再选择 window、self、global 的复杂逻辑。现代代码应该优先使用 globalThis。",
+      "knowledge_point": "GlobalThis_Standard",
+      "reference_link": "https://tc39.es/ecma262/#sec-globalthis",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-087",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Error", "cause", "错误链", "ES2022"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "Error.cause用途",
+      "content": "关于 ES2022 引入的 Error cause 属性，其主要用途是什么？",
+      "explanation": "正确答案是 B。Error cause 用于构建错误链，允许在抛出新错误时保留原始错误信息。通过 new Error('message', { cause: originalError }) 可以创建带有原因链的错误。这对于在多层调用栈中追踪错误根源非常有用，是错误处理最佳实践的重要补充。\\n\\nA 错在说它是错误类型标识；C 错在说它是堆栈优化；D 错在说它自动附加。错误链是大型应用中调试复杂问题的关键能力。\\n\\n工程实践中，错误链可以帮助理解错误的完整传播路径。在捕获错误后重新抛出时，应该附加原始错误作为 cause，而不是简单地包装或丢弃。这使得错误日志和监控系统能够展示完整的错误上下文。",
+      "knowledge_point": "ErrorCause_ErrorChaining",
+      "options": [
+        {
+          "id": "A",
+          "text": "标识错误的类型分类"
+        },
+        {
+          "id": "B",
+          "text": "构建错误链，保留原始错误信息"
+        },
+        {
+          "id": "C",
+          "text": "优化错误堆栈跟踪性能"
+        },
+        {
+          "id": "D",
+          "text": "自动附加函数调用参数信息"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "错误类型通过构造函数区分。",
+        "C": "cause 是数据属性，与性能无关。",
+        "D": "需要手动附加，不会自动添加。"
+      }
+    },
+    {
+      "id": "js-senior-088",
+      "type": "multiple_choice",
+      "difficulty": "advanced",
+      "tags": ["Array.prototype.at", "负索引", "ES2022"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "数组at方法特性",
+      "content": "关于 Array.prototype.at() 方法，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。at() 方法接受整数索引，支持负数从数组末尾访问。arr.at(-1) 等价于 arr[arr.length - 1]，但更简洁直观。它适用于所有类数组对象，包括字符串。这是 ES2022 引入的语法糖。\\n\\nC 错在说只适用于数组。A 正确说明负索引功能；B 正确指出简洁性；D 正确指出适用范围。\\n\\n工程实践中，at() 方法显著提升了从数组末尾访问元素的可读性。过去需要 arr[arr.length - 1] 的写法现在可以简化为 arr.at(-1)。对于经常需要访问末尾元素的场景特别有用。",
+      "knowledge_point": "ArrayAt_NegativeIndex",
+      "options": [
+        {
+          "id": "A",
+          "text": "支持负索引，从数组末尾开始计数"
+        },
+        {
+          "id": "B",
+          "text": "arr.at(-1) 是访问数组最后一个元素的简洁写法"
+        },
+        {
+          "id": "C",
+          "text": "只能用于数组，不能用于字符串"
+        },
+        {
+          "id": "D",
+          "text": "适用于所有支持索引访问的可迭代对象"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "字符串也支持 at() 方法。"
+      }
+    },
+    {
+      "id": "js-senior-089",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["原型污染", "安全", "Object.freeze", "防御"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "原型污染防御",
+      "content": "关于 JavaScript 原型污染攻击，下列防御策略哪项效果最差？",
+      "explanation": "正确答案是 C。原型污染攻击的核心是向 Object.prototype 注入恶意属性。防御策略包括：使用 Object.create(null) 创建无原型对象、冻结 Object.prototype、使用 Map 代替对象存储键值对、对用户输入进行深拷贝而非浅合并。这些措施能有效阻断原型链污染路径。\\n\\n但严格模式对原型污染几乎没有防御效果。严格模式主要限制变量声明、this 绑定等行为，并不阻止对 Object.prototype 的修改。原型污染是动态修改原型链，与是否严格模式无关。\\n\\n工程实践中，原型污染是安全漏洞的高危来源。合并对象、深拷贝、JSON 解析等场景都可能成为攻击入口。推荐使用安全的合并库、冻结关键原型、创建无原型对象等措施。",
+      "knowledge_point": "PrototypePollution_Defense",
+      "options": [
+        {
+          "id": "A",
+          "text": "使用 Object.create(null) 创建无原型对象"
+        },
+        {
+          "id": "B",
+          "text": "冻结 Object.prototype"
+        },
+        {
+          "id": "C",
+          "text": "使用严格模式"
+        },
+        {
+          "id": "D",
+          "text": "使用 Map 代替普通对象存储用户数据"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "无原型对象天然免疫原型污染。",
+        "B": "冻结原型阻止修改。",
+        "D": "Map 不基于原型链，不受此攻击影响。"
+      }
+    },
+    {
+      "id": "js-senior-090",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["ReDoS", "正则", "安全", "性能"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "ReDoS风险识别",
+      "content": "判断正误：正则表达式 /^(a+)+$/ 在匹配字符串 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!' 时可能导致性能问题。",
+      "explanation": "正确答案是 A。这个正则表达式包含重复量词的嵌套，这是典型的 ReDoS（正则表达式拒绝服务）攻击模式。当匹配失败时，正则引擎会尝试大量回溯路径，时间复杂度呈指数级增长。字符串越长，回溯次数越多，可能导致应用假死。\\n\\n工程实践中，应避免使用嵌套量词、重叠分支等可能导致大量回溯的正则模式。对于用户输入的正则或用于验证用户输入的正则，需要特别注意性能测试。可以使用原子组、占有量词（部分引擎支持）或重构正则模式来避免此问题。",
+      "knowledge_point": "ReDoS_Backtracking",
+      "boundary_conditions": "并非所有正则都有风险，关键在于量词嵌套、重叠分支和特定输入组合；原子组等特性可限制回溯。",
+      "reference_link": "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-091",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["Function.length", "参数默认值", "函数定义"],
+      "source_company": "Alibaba",
+      "score": 7,
+      "title": "Function.length语义",
+      "content": "关于 Function.prototype.length 属性，下列描述哪项是正确的？",
+      "explanation": "正确答案是 D。Function.length 表示函数期望接收的命名参数个数，即形参个数。关键规则是：它只计算第一个具有默认值的参数之前的参数个数，且不包含剩余参数。例如 = (a, b = 1, c) => {} 的 length 为 1，因为 b 有默认值，所以 b 和后面的 c 都不计入。\\n\\nA 错在包含默认值参数；B 错在包含剩余参数；C 错在计算所有命名参数。这个属性常用于函数式编程中的柯里化和参数校验。\\n\\n工程实践中，Function.length 提供了函数元信息，可用于实现多态函数、参数验证库等。理解默认值对 length 的影响对于正确使用这些工具非常重要。",
+      "knowledge_point": "Function_Length_DefaultParameters",
+      "options": [
+        {
+          "id": "A",
+          "text": "返回函数所有命名参数的个数"
+        },
+        {
+          "id": "B",
+          "text": "返回函数所有参数的个数，包括剩余参数"
+        },
+        {
+          "id": "C",
+          "text": "返回函数实际调用时传入的参数个数"
+        },
+        {
+          "id": "D",
+          "text": "返回第一个有默认值的参数之前的参数个数"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "不计算有默认值参数及其后面的参数。",
+        "B": "剩余参数不计入 length。",
+        "C": "实际参数个数由 arguments.length 获取。"
+      }
+    },
+    {
+      "id": "js-senior-092",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["Array.reduce", "空数组", "异常处理"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "reduce空数组行为",
+      "content": "调用 [].reduce((acc, cur) => acc + cur) 会发生什么？",
+      "explanation": "正确答案是 C。在没有提供初始值的情况下，对空数组调用 reduce 会抛出 TypeError。这是因为 reduce 需要一个初始累积值，如果没有提供初始值，它会尝试使用数组的第一个元素作为初始值，但空数组没有第一个元素。\\n\\nA 错在认为返回 undefined；B 错在认为返回 null；D 错在认为返回 0。这是 reduce 的一个常见陷阱。\\n\\n工程实践中，使用 reduce 时应该总是考虑空数组的情况，要么提供初始值，要么进行空数组检查。对于可能为空的数组，建议总是提供初始值参数。",
+      "knowledge_point": "ArrayReduce_EmptyArray_NoInitial",
+      "options": [
+        {
+          "id": "A",
+          "text": "返回 undefined"
+        },
+        {
+          "id": "B",
+          "text": "返回 null"
+        },
+        {
+          "id": "C",
+          "text": "抛出 TypeError"
+        },
+        {
+          "id": "D",
+          "text": "返回 0"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "没有初始值且数组为空时会报错。",
+        "D": "提供初始值 0 才会返回 0。"
+      }
+    },
+    {
+      "id": "js-senior-093",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["JSON.stringify", "toJSON", "序列化"],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "toJSON方法行为",
+      "content": "如果一个对象定义了 toJSON 方法，JSON.stringify 会如何处理？",
+      "explanation": "正确答案是 B。JSON.stringify 在序列化对象时，会先检查对象是否有 toJSON 方法。如果有，会调用该方法并使用其返回值进行序列化，而不是直接序列化原对象。这允许对象自定义其 JSON 表示形式。\\n\\nA 错在说忽略 toJSON；C 错在说只序列化 toJSON 方法本身；D 错在说会报错。Date 对象就是内置 toJSON 方法的典型例子。\\n\\n工程实践中，toJSON 常用于：格式化日期、隐藏敏感字段、简化复杂对象结构、处理循环引用等。理解这个机制对于控制 API 响应格式非常重要。",
+      "knowledge_point": "JSONStringify_ToJSON_CustomSerialization",
+      "options": [
+        {
+          "id": "A",
+          "text": "忽略 toJSON 方法，按默认方式序列化对象"
+        },
+        {
+          "id": "B",
+          "text": "调用 toJSON 方法，序列化其返回值"
+        },
+        {
+          "id": "C",
+          "text": "只序列化 toJSON 方法本身"
+        },
+        {
+          "id": "D",
+          "text": "抛出错误，因为 toJSON 是保留方法"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "toJSON 是自定义序列化的标准方式。",
+        "C": "序列化的是 toJSON 的返回值。",
+        "D": "toJSON 是约定的接口方法，不会报错。"
+      }
+    },
+    {
+      "id": "js-senior-094",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["异步流程", "代码输出", "Promise"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "Promise.resolve输出顺序",
+      "content": "执行以下代码，输出顺序是什么？\\n\\nPromise.resolve().then(() => {\\n  console.log(0);\\n  return Promise.resolve(4);\\n}).then((res) => {\\n  console.log(res);\\n});\\n\\nPromise.resolve().then(() => {\\n  console.log(1);\\n}).then(() => {\\n  console.log(2);\\n}).then(() => {\\n  console.log(3);\\n}).then(() => {\\n  console.log(5);\\n});",
+      "explanation": "正确答案是 A，输出顺序为 0、1、2、3、4、5。关键在于第一个链式调用中返回了 Promise.resolve(4)，这会触发额外的微任务队列轮转。当 then 回调返回一个 Promise 时，其后续 then 需要等待该 Promise 状态确定，这相当于多了一层异步延迟。\\n\\n详细过程：第一个 Promise 打印 0 后返回 Promise.resolve(4)，这需要等待两个微任务才能解析出值 4。第二个 Promise 链在第一个 then 后继续执行，打印 1、2、3，此时第一个链的 4 才被解析并打印，最后打印 5。\\n\\n工程实践中，理解 Promise 链式返回 Promise 的行为对于分析复杂异步流程至关重要。返回 Promise 会引入额外的微任务等待，这与直接返回值的行为不同。",
+      "knowledge_point": "Promise_Chaining_ReturnPromise",
+      "options": [
+        {
+          "id": "A",
+          "text": "0、1、2、3、4、5"
+        },
+        {
+          "id": "B",
+          "text": "0、1、2、4、3、5"
+        },
+        {
+          "id": "C",
+          "text": "0、1、4、2、3、5"
+        },
+        {
+          "id": "D",
+          "text": "0、4、1、2、3、5"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "忽略了返回 Promise 时的额外微任务延迟。",
+        "C": "高估了返回 Promise 的延迟程度。",
+        "D": "低估了微任务队列的处理顺序。"
+      }
+    },
+    {
+      "id": "js-senior-095",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Object.create", "原型", "constructor"],
+      "source_company": "Google",
+      "score": 7,
+      "title": "Object.create与constructor",
+      "content": "判断正误：通过 Object.create(null) 创建的对象，访问其 constructor 属性会返回 Object。",
+      "explanation": "正确答案是 B。Object.create(null) 创建的对象没有原型链，也就是 [[Prototype]] 为 null。constructor 属性通常存在于原型对象上，既然没有原型链，自然访问不到 constructor 属性，会返回 undefined 而不是 Object。\\n\\n工程实践中，Object.create(null) 常用于创建纯净的字典对象，避免原型链污染。但这种对象缺少 hasOwnProperty、toString 等方法，使用时需要额外注意。",
+      "knowledge_point": "ObjectCreate_Null_Constructor",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "js-senior-096",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Function.name", "匿名函数", "推断"],
+      "source_company": "Meta",
+      "score": 7,
+      "title": "函数name属性推断",
+      "content": "const obj = { foo: function() {} }; console.log(obj.foo.name); 输出什么？",
+      "explanation": "正确答案是 B。现代 JavaScript 引擎会对匿名函数进行名称推断。当匿名函数作为对象字面量的属性值时，函数的 name 属性会被推断为属性名 'foo'。这是 ES6 规范定义的行为，方便调试和错误追踪。\\n\\nA 错在认为 name 为空；C 错在认为会包含对象名；D 错在认为 name 属性不存在。\\n\\n工程实践中，函数名称推断对于错误堆栈、调试器显示非常有帮助。但某些压缩工具可能会重写函数名，生产环境中 name 可能会被缩短或改变。",
+      "knowledge_point": "Function_Name_Inference",
+      "options": [
+        {
+          "id": "A",
+          "text": "空字符串 ''"
+        },
+        {
+          "id": "B",
+          "text": "'foo'"
+        },
+        {
+          "id": "C",
+          "text": "'obj.foo'"
+        },
+        {
+          "id": "D",
+          "text": "undefined"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "ES6 支持名称推断。",
+        "C": "不会包含对象名前缀。",
+        "D": "name 属性始终存在。"
+      }
+    },
+    {
+      "id": "js-senior-097",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["String.matchAll", "正则", "迭代器"],
+      "source_company": "OpenSource",
+      "score": 7,
+      "title": "matchAll返回值",
+      "content": "String.prototype.matchAll 方法返回什么类型的对象？",
+      "explanation": "正确答案是 C。matchAll 返回一个迭代器，包含所有匹配结果的详细信息。每个匹配结果都是与 RegExp.prototype.exec 相同格式的数组，包含匹配字符串、捕获组和 index、input 属性。与 match 不同，matchAll 不会修改正则的 lastIndex，且要求正则必须是全局模式。\\n\\nA 错在认为返回数组；B 错在认为返回第一个匹配；D 错在认为返回字符串。\\n\\n工程实践中，matchAll 是处理全局正则匹配的最佳方式，比循环调用 exec 更简洁。它返回的迭代器可以用 for...of 遍历，也可以用 Array.from 或展开运算符转换为数组。",
+      "knowledge_point": "MatchAll_Iterator_ReturnType",
+      "options": [
+        {
+          "id": "A",
+          "text": "包含所有匹配结果的数组"
+        },
+        {
+          "id": "B",
+          "text": "第一个匹配结果"
+        },
+        {
+          "id": "C",
+          "text": "包含所有匹配结果的迭代器"
+        },
+        {
+          "id": "D",
+          "text": "所有匹配字符串组成的数组"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "返回迭代器，可转为数组但不是数组。",
+        "B": "match 返回第一个匹配，matchAll 返回所有。",
+        "D": "返回的是详细匹配信息，不只是字符串。"
+      }
+    },
+    {
+      "id": "js-senior-098",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["TypedArray", "ArrayBuffer", "二进制"],
+      "source_company": "Alibaba",
+      "score": 9,
+      "title": "TypedArray特性",
+      "content": "关于 TypedArray 的说法，哪些是正确的？",
+      "explanation": "正确答案是 A、B、D。TypedArray 是类数组对象，用于处理二进制数据。它不是真正的 Array，没有 Array 的某些方法如 push、pop、splice。所有 TypedArray 元素初始化为 0，且元素类型是固定的。它基于 ArrayBuffer 创建，是内存的直接视图。\\n\\nC 错在说 TypedArray 拥有所有 Array 方法。实际上它没有会改变数组长度的方法，因为 TypedArray 长度由底层 ArrayBuffer 固定。\\n\\n工程实践中，TypedArray 广泛用于处理文件、网络数据、WebGL、WebAssembly 等场景。理解它与普通数组的区别对于高效处理二进制数据至关重要。",
+      "knowledge_point": "TypedArray_ArrayBuffer_Binary",
+      "options": [
+        {
+          "id": "A",
+          "text": "TypedArray 元素类型固定，不能存储不同类型的数据"
+        },
+        {
+          "id": "B",
+          "text": "TypedArray 视图基于 ArrayBuffer 创建"
+        },
+        {
+          "id": "C",
+          "text": "TypedArray 拥有 Array 的所有方法"
+        },
+        {
+          "id": "D",
+          "text": "TypedArray 所有元素初始化为 0"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "TypedArray 缺少会改变长度的方法，如 push、pop。"
+      }
+    },
+    {
+      "id": "js-senior-099",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["寄生组合式继承", "原型链", "class"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "寄生组合式继承优势",
+      "content": "相比组合继承，寄生组合式继承的主要优势是什么？",
+      "explanation": "正确答案是 B。组合继承会调用两次父类构造函数：一次是在创建子类原型时，一次是在子类构造函数中。寄生组合式继承通过 Object.create 或 Object.setPrototypeOf 来建立原型链，避免了创建父类实例这一步，只调用一次父类构造函数。\\n\\nA 错在说不需要调用父类构造函数；C 错在说无法访问父类方法；D 错在说不能传递参数。寄生组合式继承是最理想的继承方式，ES6 class 的继承本质上也是类似实现。\\n\\n工程实践中，虽然 class 已经成为主流，但理解寄生组合式继承对于理解原型链和继承机制仍然重要。它展示了如何通过原型链操作避免不必要的构造函数调用。",
+      "knowledge_point": "ParasiticCombinationInheritance",
+      "options": [
+        {
+          "id": "A",
+          "text": "不需要调用父类构造函数"
+        },
+        {
+          "id": "B",
+          "text": "只调用一次父类构造函数，避免属性冗余"
+        },
+        {
+          "id": "C",
+          "text": "子类无法访问父类原型上的方法"
+        },
+        {
+          "id": "D",
+          "text": "不能向父类构造函数传递参数"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "子类构造函数中仍需调用父类构造函数。",
+        "C": "可以通过原型链访问父类方法。",
+        "D": "可以通过 call/apply 传递参数。"
+      }
+    },
+    {
+      "id": "js-senior-100",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["in操作符", "hasOwnProperty", "属性检查"],
+      "source_company": "ByteDance",
+      "score": 6,
+      "title": "in操作符与原型链",
+      "content": "判断正误：'toString' in {} 的结果为 true，即使对象本身没有 toString 属性。",
+      "explanation": "正确答案是 A。in 操作符检查属性是否在对象或其原型链上，而不是只检查自有属性。空对象 {} 从 Object.prototype 继承了 toString 方法，因此 'toString' in {} 返回 true。如果要只检查自有属性，应使用 hasOwnProperty 或 Object.hasOwn。\\n\\n工程实践中，区分 in 操作符和 hasOwnProperty 是理解原型链的基础。in 操作符常用于检查对象是否支持某个属性或方法，而自有属性检查则用于确定属性是否直接定义在对象上。",
+      "knowledge_point": "InOperator_PrototypeChain",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-101",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["copyWithin", "数组方法", "ES6"],
+      "source_company": "Meituan",
+      "score": 7,
+      "title": "copyWithin行为",
+      "content": "[1, 2, 3, 4, 5].copyWithin(0, 3, 4) 的结果是什么？",
+      "explanation": "正确答案是 B。copyWithin 方法在数组内部复制元素，接受三个参数：目标位置、开始位置、结束位置。它将从开始位置到结束位置的元素复制到目标位置，不会改变数组长度。参数 0 表示目标位置，3 表示开始位置，4 表示结束位置（不含），即复制索引 3 的元素（值为 4）到索引 0 位置。\\n\\ncopyWithin 是修改数组的方法，返回修改后的数组引用。它不会改变数组长度，且是原地操作。\\n\\n工程实践中，copyWithin 较少使用，主要用于高性能场景下的数组填充操作，避免创建新数组的内存开销。",
+      "knowledge_point": "ArrayCopyWithin_InPlace",
+      "options": [
+        {
+          "id": "A",
+          "text": "[3, 4, 5, 4, 5]"
+        },
+        {
+          "id": "B",
+          "text": "[4, 2, 3, 4, 5]"
+        },
+        {
+          "id": "C",
+          "text": "[1, 2, 3, 4, 5]"
+        },
+        {
+          "id": "D",
+          "text": "[4, 5, 3, 4, 5]"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "误解了参数含义。",
+        "C": "copyWithin 会修改原数组。",
+        "D": "复制范围应该是 [3, 4)，只有索引 3 的元素。"
+      }
+    },
+    {
+      "id": "js-senior-102",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["内存泄漏", "闭包", "DOM", "事件监听"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "常见内存泄漏场景",
+      "content": "在浏览器环境中，下列哪些情况可能导致内存泄漏？",
+      "explanation": "正确答案是 A、B、C、D，全选。这些是 JavaScript 应用中常见的内存泄漏模式：未清理的事件监听器会保持对 DOM 节点和回调函数的引用；闭包意外持有大对象引用；游离的 DOM 节点被 JS 引用而无法回收；定时器未被清理会持续引用回调及其作用域中的变量。\\n\\n工程实践中，内存泄漏往往隐蔽且难以定位。建议使用浏览器开发者工具的内存分析功能，关注 Detached DOM 节点、事件监听器数量、堆内存趋势等指标。良好的编码习惯包括：组件卸载时清理监听器和定时器、避免闭包捕获不必要的大对象、使用 WeakMap 存储 DOM 关联数据等。",
+      "knowledge_point": "MemoryLeak_CommonPatterns",
+      "options": [
+        {
+          "id": "A",
+          "text": "未清理的事件监听器"
+        },
+        {
+          "id": "B",
+          "text": "闭包意外持有大对象引用"
+        },
+        {
+          "id": "C",
+          "text": "游离的 DOM 节点被 JavaScript 引用"
+        },
+        {
+          "id": "D",
+          "text": "未清理的定时器或 requestAnimationFrame"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"]
+    },
+    {
+      "id": "js-senior-103",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["setTimeout", "setInterval", "最小延迟", "事件循环"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "setTimeout最小延迟",
+      "content": "关于 setTimeout 的最小延迟，下列描述哪项正确？",
+      "explanation": "正确答案是 D。浏览器对 setTimeout 的最小延迟有限制。在现代浏览器中，嵌套层级超过一定深度时，最小延迟会被限制到 4ms。后台标签页的定时器会被节流到 1秒。即使设置 0ms 延迟，实际执行也会有一定延迟，因为定时器需要在当前任务完成后执行。\\n\\nA 错在认为总是精确执行；B 错在认为不能小于 0；C 错在说固定 10ms。\\n\\n工程实践中，如果需要比 4ms 更短的延迟或更精确的定时，应使用 MessageChannel 或 requestAnimationFrame。理解定时器的精度限制对于动画、游戏等实时应用非常重要。",
+      "knowledge_point": "setTimeout_MinimumDelay_Throttling",
+      "options": [
+        {
+          "id": "A",
+          "text": "设置 0ms 就会立即执行"
+        },
+        {
+          "id": "B",
+          "text": "延迟不能小于 0，否则报错"
+        },
+        {
+          "id": "C",
+          "text": "所有浏览器固定最小延迟为 10ms"
+        },
+        {
+          "id": "D",
+          "text": "嵌套定时器最小延迟通常被限制到 4ms"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "存在最小延迟限制。",
+        "B": "负值会被当作 0 处理。",
+        "C": "标准规定 4ms，后台标签页更严格。"
+      }
+    },
+    {
+      "id": "js-senior-104",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["requestIdleCallback", "调度", "性能"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "requestIdleCallback用途",
+      "content": "requestIdleCallback 的主要用途是什么？",
+      "explanation": "正确答案是 B。requestIdleCallback 用于在浏览器空闲时期执行低优先级任务。它允许开发者在不影响关键交互的情况下执行后台任务，如分析、预加载、状态同步等。回调函数会接收一个 IdleDeadline 参数，包含剩余空闲时间和是否已超时信息。\\n\\nA 错在这是 requestAnimationFrame 的用途；C 错在这是 setTimeout 的功能；D 错在这是同步代码的行为。\\n\\n工程实践中，requestIdleCallback 适合处理非关键任务，但要注意它可能不会频繁触发，且有兼容性问题。对于必须执行的任务，应设置超时选项确保执行。",
+      "knowledge_point": "RequestIdleCallback_Scheduling",
+      "options": [
+        {
+          "id": "A",
+          "text": "在每一帧渲染前执行动画代码"
+        },
+        {
+          "id": "B",
+          "text": "在浏览器空闲时期执行低优先级任务"
+        },
+        {
+          "id": "C",
+          "text": "延迟执行代码直到指定时间"
+        },
+        {
+          "id": "D",
+          "text": "立即执行高优先级任务"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "这是 requestAnimationFrame 的用途。",
+        "C": "这是 setTimeout 的功能。",
+        "D": "requestIdleCallback 用于低优先级任务。"
+      }
+    },
+    {
+      "id": "js-senior-105",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["defineProperty", "数组劫持", "响应式"],
+      "source_company": "ByteDance",
+      "score": 9,
+      "title": "defineProperty数组劫持局限",
+      "content": "使用 Object.defineProperty 劫持数组变更时，有哪些局限性？",
+      "explanation": "正确答案是 A、B、D。Object.defineProperty 可以劫持数组元素的读写，但无法直接监听数组长度变化、无法拦截 push/pop/splice 等方法调用、无法捕获通过索引直接新增元素的操作。Vue 2 通过重写数组原型方法来解决部分问题。\\n\\nC 错在说性能开销大，实际上数组元素劫持的性能问题可控。主要问题在于无法全面监听数组变更。\\n\\n工程实践中，Vue 2 通过重写数组变异方法实现响应式，但仍有局限。Vue 3 使用 Proxy 彻底解决了这个问题，可以监听数组长度变化、索引赋值等各种操作。",
+      "knowledge_point": "DefineProperty_Array_Limitations",
+      "options": [
+        {
+          "id": "A",
+          "text": "无法监听数组长度变化"
+        },
+        {
+          "id": "B",
+          "text": "无法拦截数组方法如 push、pop"
+        },
+        {
+          "id": "C",
+          "text": "无法劫持数组元素的读写"
+        },
+        {
+          "id": "D",
+          "text": "无法捕获通过索引新增元素"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "defineProperty 可以劫持已存在元素的读写。"
+      }
+    },
+    {
+      "id": "js-senior-106",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["Symbol.species", "继承", "内置对象"],
+      "source_company": "OpenSource",
+      "score": 9,
+      "title": "Symbol.species用途",
+      "content": "Symbol.species 的主要用途是什么？",
+      "explanation": "正确答案是 C。Symbol.species 是一个函数值属性，用于指定创建派生对象的构造函数。当子类继承内置对象（如 Array、Map、Promise）时，内置方法返回的新对象默认使用 this.constructor[Symbol.species] 指定的构造函数。这允许子类控制返回实例的类型。\\n\\nA 错在说迭代器；B 错在说类型检查；D 错在说私有属性。\\n\\n工程实践中，Symbol.species 主要用于库和框架开发。例如，继承 Array 的子类希望 map、filter 等方法返回原生 Array 而非子类实例时，可以覆盖 Symbol.species。",
+      "knowledge_point": "SymbolSpecies_DerivedObjects",
+      "options": [
+        {
+          "id": "A",
+          "text": "定义对象的迭代器行为"
+        },
+        {
+          "id": "B",
+          "text": "检查对象的类型"
+        },
+        {
+          "id": "C",
+          "text": "指定派生对象的构造函数"
+        },
+        {
+          "id": "D",
+          "text": "定义对象的私有属性"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "这是 Symbol.iterator 的功能。",
+        "B": "这是 instanceof 或 typeof 的功能。",
+        "D": "这是 #private 语法的功能。"
+      }
+    },
+    {
+      "id": "js-senior-107",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Array.from", "类数组", "迭代器"],
+      "source_company": "Meituan",
+      "score": 6,
+      "title": "Array.from转换能力",
+      "content": "判断正误：Array.from 可以将任何可迭代对象或类数组对象转换为真正的数组。",
+      "explanation": "正确答案是 A。Array.from 接受两类参数：可迭代对象（部署了 Symbol.iterator）和类数组对象（有 length 属性和索引属性）。它会创建一个新的数组实例，包含转换后的元素。还可以接受一个 mapFn 参数对每个元素进行处理。\\n\\n工程实践中，Array.from 是转换 arguments、NodeList、Map、Set 等为真数组的标准方法。它比 Array.prototype.slice.call 更语义化，且支持迭代器。",
+      "knowledge_point": "ArrayFrom_Conversion",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-108",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["事件监听", "passive", "滚动性能"],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "passive事件监听器",
+      "content": "addEventListener 的 passive 选项主要用于什么目的？",
+      "explanation": "正确答案是 B。passive: true 告诉浏览器监听器不会调用 preventDefault，浏览器可以安全地在不等待监听器执行完毕的情况下开始滚动，从而提升滚动性能。这对于 touch 和 wheel 事件尤其重要，因为浏览器默认会等待监听器执行完才能确定是否阻止默认行为。\\n\\nA 错在说捕获阶段；C 错在说一次性监听；D 错在说异步执行。\\n\\n工程实践中，对于不影响滚动的 touch/wheel 监听器，应设置 passive: true。现代浏览器对于这些事件默认 passive 为 true，但显式设置仍是好习惯。",
+      "knowledge_point": "EventPassive_ScrollPerformance",
+      "options": [
+        {
+          "id": "A",
+          "text": "指定监听器在捕获阶段执行"
+        },
+        {
+          "id": "B",
+          "text": "声明监听器不会调用 preventDefault，提升滚动性能"
+        },
+        {
+          "id": "C",
+          "text": "让监听器只执行一次"
+        },
+        {
+          "id": "D",
+          "text": "让监听器异步执行"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "这是 capture 选项的功能。",
+        "C": "这是 once 选项的功能。",
+        "D": "passive 与执行时机无关。"
+      }
+    },
+    {
+      "id": "js-senior-109",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["AbortController", "异步取消", "Fetch"],
+      "source_company": "Meta",
+      "score": 9,
+      "title": "AbortController应用场景",
+      "content": "AbortController 可以用于哪些场景？",
+      "explanation": "正确答案是 A、B、C、D。AbortController 提供了取消异步操作的机制。它最初用于取消 fetch 请求，但现代 API 如 ReadableStream、事件监听器也支持 AbortSignal。自定义异步操作也可以通过检查 signal.aborted 状态来实现取消逻辑。\\n\\n工程实践中，AbortController 是处理组件卸载时取消请求、避免竞态条件、优化资源使用的重要工具。在 React 等框架中，应在 useEffect 清理函数中取消异步操作。",
+      "knowledge_point": "AbortController_Cancellation",
+      "options": [
+        {
+          "id": "A",
+          "text": "取消 fetch 请求"
+        },
+        {
+          "id": "B",
+          "text": "取消 ReadableStream 读取"
+        },
+        {
+          "id": "C",
+          "text": "移除事件监听器（部分 API 支持）"
+        },
+        {
+          "id": "D",
+          "text": "实现自定义异步操作的取消逻辑"
+        }
+      ],
+      "correct_answer": ["A", "B", "C", "D"]
+    },
+    {
+      "id": "js-senior-110",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Promise.allSettled", "错误处理", "并发"],
+      "source_company": "Alibaba",
+      "score": 6,
+      "title": "allSettled返回格式",
+      "content": "判断正误：Promise.allSettled 返回的数组中，每个元素都包含 status 和 value/ reason 属性。",
+      "explanation": "正确答案是 A。Promise.allSettled 等待所有 Promise 完成（无论成功或失败），返回一个数组，每个元素是一个对象：成功时为 { status: 'fulfilled', value: ... }，失败时为 { status: 'rejected', reason: ... }。这与 Promise.all 不同，allSettled 永远不会 reject（除非传入的 iterable 本身无效）。\\n\\n工程实践中，allSettled 适合需要知道所有 Promise 结果的场景，如批量请求、并行任务执行等。它允许统一处理成功和失败情况，而不是在第一个失败时停止。",
+      "knowledge_point": "PromiseAllSettled_ResultFormat",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-111",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": ["异步流程", "代码输出", "微任务"],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "嵌套微任务输出",
+      "content": "执行以下代码，输出顺序是什么？\\n\\nconsole.log('script start');\\n\\nsetTimeout(function() {\\n  console.log('setTimeout');\\n}, 0);\\n\\nPromise.resolve().then(function() {\\n  console.log('promise1');\\n}).then(function() {\\n  console.log('promise2');\\n});\\n\\nconsole.log('script end');",
+      "explanation": "正确答案是 A，输出顺序为 script start、script end、promise1、promise2、setTimeout。执行过程：同步代码先执行，打印 script start 和 script end。setTimeout 回调进入宏任务队列。Promise.then 回调进入微任务队列。当前宏任务结束后，先清空微任务队列，依次打印 promise1、promise2。最后执行宏任务，打印 setTimeout。\\n\\n工程实践中，理解宏任务和微任务的执行顺序对于分析复杂异步流程至关重要。微任务在每个宏任务之后执行，Promise 的回调属于微任务，setTimeout 属于宏任务。",
+      "knowledge_point": "Microtask_MacroTask_Order",
+      "options": [
+        {
+          "id": "A",
+          "text": "script start、script end、promise1、promise2、setTimeout"
+        },
+        {
+          "id": "B",
+          "text": "script start、setTimeout、script end、promise1、promise2"
+        },
+        {
+          "id": "C",
+          "text": "script start、script end、setTimeout、promise1、promise2"
+        },
+        {
+          "id": "D",
+          "text": "script start、promise1、script end、promise2、setTimeout"
+        }
+      ],
+      "correct_answer": "A",
+      "wrong_options_analysis": {
+        "B": "微任务先于宏任务执行。",
+        "C": "微任务在宏任务之前执行。",
+        "D": "同步代码先于微任务执行。"
+      }
+    },
+    {
+      "id": "js-senior-112",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["new.target", "继承", "构造函数"],
+      "source_company": "Google",
+      "score": 7,
+      "title": "继承中的new.target",
+      "content": "在 ES6 class 继承中，子类构造函数中 new.target 指向什么？",
+      "explanation": "正确答案是 B。new.target 始终指向最初被 new 调用的构造函数。在继承关系中，即使父类构造函数被 super() 调用，new.target 仍然指向子类。这允许父类构造函数根据实际实例化的子类进行不同初始化。\\n\\nA 错在说指向父类；C 错在说指向 Object；D 错在说指向 super。\\n\\n工程实践中，new.target 可用于实现抽象类：在父类构造函数中检查 new.target 是否为父类本身，如果是则抛出错误，防止父类被直接实例化。",
+      "knowledge_point": "NewTarget_Inheritance_Subclass",
+      "options": [
+        {
+          "id": "A",
+          "text": "指向父类"
+        },
+        {
+          "id": "B",
+          "text": "指向子类"
+        },
+        {
+          "id": "C",
+          "text": "指向 Object"
+        },
+        {
+          "id": "D",
+          "text": "指向 super"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "new.target 是最初被调用的构造函数。",
+        "C": "与 Object 无关。",
+        "D": "super 不是构造函数引用。"
+      }
+    },
+    {
+      "id": "js-senior-113",
+      "type": "true_false",
+      "difficulty": "advanced",
+      "tags": ["Object.isExtensible", "扩展性", "冻结"],
+      "source_company": "Tencent",
+      "score": 6,
+      "title": "isExtensible与freeze",
+      "content": "判断正误：Object.isExtensible(Object.freeze({})) 返回 false。",
+      "explanation": "正确答案是 A。Object.freeze 会冻结对象，使其不可扩展、所有属性不可配置、所有数据属性不可写。Object.isExtensible 检查对象是否可以添加新属性。被冻结的对象不可扩展，因此 isExtensible 返回 false。\\n\\n工程实践中，理解对象的可扩展性、密封、冻结三个层级很重要。preventExtensions 禁止添加属性；seal 禁止添加和删除属性；freeze 完全锁定对象。isExtensible 可用于检测对象状态。",
+      "knowledge_point": "ObjectIsExtensible_Freeze",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-114",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["Date", "月份", "边界"],
+      "source_company": "Meituan",
+      "score": 7,
+      "title": "Date月份边界",
+      "content": "new Date(2024, 12, 1) 创建的日期表示什么？",
+      "explanation": "正确答案是 B。Date 构造函数的月份参数从 0 开始，0 表示一月，11 表示十二月。当月份超过 11 时，会进位到下一年。12 会变成下一年的 1 月（月份 0）。因此 new Date(2024, 12, 1) 表示 2025 年 1 月 1 日。\\n\\nA 错在认为 12 表示 12 月；C 错在认为会报错；D 错在认为会溢出错误。\\n\\n工程实践中，Date 的月份从 0 开始是常见的错误来源。建议使用新的 Temporal API（未来）或日期库如 date-fns、dayjs 来处理日期。注意日期参数的自动溢出处理有时可以简化代码，但也可能导致意外。",
+      "knowledge_point": "Date_Month_ZeroBased_Overflow",
+      "options": [
+        {
+          "id": "A",
+          "text": "2024 年 12 月 1 日"
+        },
+        {
+          "id": "B",
+          "text": "2025 年 1 月 1 日"
+        },
+        {
+          "id": "C",
+          "text": "抛出错误"
+        },
+        {
+          "id": "D",
+          "text": "Invalid Date"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "月份从 0 开始，12 不是 12 月。",
+        "C": "日期构造函数会自动溢出处理。",
+        "D": "不会产生 Invalid Date。"
+      }
+    },
+    {
+      "id": "js-senior-115",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": ["柯里化", "函数式编程", "高阶函数"],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "柯里化的特点",
+      "content": "关于函数柯里化，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。柯里化将多参数函数转换为一系列单参数函数，支持部分应用、延迟执行和函数组合。它是函数式编程的重要概念，常用于创建可复用的函数工厂、参数复用和延迟计算。\\n\\nC 错在说会改变函数最终结果。柯里化只是改变了调用形式，不改变函数的计算逻辑和结果。\\n\\n工程实践中，柯里化广泛应用于：事件处理器的预配置、API 请求的参数预设、验证函数的复用等场景。理解柯里化有助于编写更灵活、可组合的代码。",
+      "knowledge_point": "Currying_Characteristics",
+      "options": [
+        {
+          "id": "A",
+          "text": "将多参数函数转换为一系列单参数函数"
+        },
+        {
+          "id": "B",
+          "text": "支持部分应用和参数复用"
+        },
+        {
+          "id": "C",
+          "text": "会改变函数的最终计算结果"
+        },
+        {
+          "id": "D",
+          "text": "有利于函数组合和延迟执行"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "柯里化不改变函数的计算结果。"
+      }
+    },
+    {
+      "id": "js-senior-116",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["Object.values", "Object.entries", "遍历顺序"],
+      "source_company": "OpenSource",
+      "score": 7,
+      "title": "对象遍历顺序",
+      "content": "Object.keys、Object.values、Object.entries 的遍历顺序是怎样的？",
+      "explanation": "正确答案是 C。现代 JavaScript 规范明确定义了对象属性遍历顺序：整数键（如 '1'、'2'）按数值升序排列，字符串键按创建顺序排列，Symbol 键按创建顺序排列。整数键会优先于其他字符串键。\\n\\nA 错在认为完全无序；B 错在认为只按创建顺序；D 错在描述的顺序相反。\\n\\n工程实践中，虽然顺序已规范化，但不建议依赖对象键的顺序。如果需要有序结构，应使用 Map 或数组。理解遍历顺序有助于调试和预期代码行为。",
+      "knowledge_point": "ObjectKeys_TraversalOrder",
+      "options": [
+        {
+          "id": "A",
+          "text": "完全随机，无保证"
+        },
+        {
+          "id": "B",
+          "text": "严格按属性创建顺序"
+        },
+        {
+          "id": "C",
+          "text": "整数键按升序，其他键按创建顺序"
+        },
+        {
+          "id": "D",
+          "text": "Symbol 键优先，然后是整数键，最后是字符串键"
+        }
+      ],
+      "correct_answer": "C",
+      "wrong_options_analysis": {
+        "A": "现代规范已定义顺序。",
+        "B": "整数键会被重新排序。",
+        "D": "Symbol 键不在 Object.keys 结果中。"
+      }
+    },
+    {
+      "id": "js-senior-117",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": ["Array.prototype.includes", "NaN", "查找"],
+      "source_company": "Tencent",
+      "score": 7,
+      "title": "includes与NaN",
+      "content": "判断正误：[NaN].includes(NaN) 返回 true，而 [NaN].indexOf(NaN) 返回 -1。",
+      "explanation": "正确答案是 A。includes 使用 SameValueZero 算法判断相等性，能够正确识别 NaN。indexOf 使用严格相等 ===，而 NaN === NaN 为 false，所以 indexOf 找不到 NaN。这是 includes 和 indexOf 的重要区别之一。\\n\\n工程实践中，如果需要在数组中查找 NaN，应使用 includes 方法。对于其他值的查找，indexOf 可以提供索引位置，而 includes 只返回布尔值。",
+      "knowledge_point": "Includes_vs_IndexOf_NaN",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "js-senior-118",
+      "type": "single_choice",
+      "difficulty": "advanced",
+      "tags": ["Object.isFrozen", "冻结", "浅冻结"],
+      "source_company": "ByteDance",
+      "score": 7,
+      "title": "Object.freeze浅冻结",
+      "content": "关于 Object.freeze 的浅冻结特性，下列描述哪项正确？",
+      "explanation": "正确答案是 B。Object.freeze 是浅冻结，只冻结对象的直接属性。如果属性值是对象，该内部对象的属性仍然可以被修改。要实现深冻结，需要递归冻结所有嵌套对象。\\n\\nA 错在认为是深冻结；C 错在说会自动递归；D 错在说会抛出错误。\\n\\n工程实践中，深冻结需要手动实现或使用工具库。对于复杂配置对象，应考虑是否需要深冻结。Vue 的响应式系统也无法追踪冻结对象的变化。",
+      "knowledge_point": "ObjectFreeze_ShallowFreeze",
+      "options": [
+        {
+          "id": "A",
+          "text": "Object.freeze 会递归冻结所有嵌套对象"
+        },
+        {
+          "id": "B",
+          "text": "Object.freeze 只冻结对象的直接属性"
+        },
+        {
+          "id": "C",
+          "text": "Object.freeze 会自动递归冻结数组元素"
+        },
+        {
+          "id": "D",
+          "text": "尝试修改冻结对象的嵌套属性会抛出错误"
+        }
+      ],
+      "correct_answer": "B",
+      "wrong_options_analysis": {
+        "A": "freeze 是浅操作。",
+        "C": "需要手动递归冻结。",
+        "D": "嵌套对象未被冻结，修改不会报错。"
+      }
+    },
+    {
+      "id": "js-senior-119",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": ["Unicode", "字符串长度", "代理对"],
+      "source_company": "Google",
+      "score": 8,
+      "title": "字符串长度与Unicode",
+      "content": "关于 JavaScript 字符串中的 Unicode，下列说法哪项正确？",
+      "explanation": "正确答案是 D。JavaScript 使用 UTF-16 编码，BMP（基本多语言平面）字符用 1 个代码单元表示，补充平面的字符（如大部分 emoji）用 2 个代码单元（代理对）表示。length 返回代码单元数，不是字符数。ES6 提供了 [...str] 或 Array.from 来正确分割字符。\\n\\nA 错在说所有字符 1 个代码单元；B 错在说 length 返回字符数；C 错在说 emoji 无法表示。\\n\\n工程实践中，处理国际化文本时应注意字符数和代码单元数的区别。使用 [...str].length 或字符串迭代器来获取正确的字符数。",
+      "knowledge_point": "Unicode_Utf16_SurrogatePairs",
+      "options": [
+        {
+          "id": "A",
+          "text": "所有 Unicode 字符都用 1 个代码单元表示"
+        },
+        {
+          "id": "B",
+          "text": "String.length 返回 Unicode 字符数"
+        },
+        {
+          "id": "C",
+          "text": "Emoji 无法在 JavaScript 中表示"
+        },
+        {
+          "id": "D",
+          "text": "补充平面字符需要 2 个代码单元，length 不是字符数"
+        }
+      ],
+      "correct_answer": "D",
+      "wrong_options_analysis": {
+        "A": "补充平面字符需要代理对。",
+        "B": "length 返回代码单元数。",
+        "C": "可以表示，但需要代理对。"
+      }
+    },
+    {
+      "id": "js-senior-120",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": ["import.meta", "ESM", "模块元信息"],
+      "source_company": "Meta",
+      "score": 8,
+      "title": "import.meta用途",
+      "content": "关于 import.meta 对象，下列说法哪些正确？",
+      "explanation": "正确答案是 A、B、D。import.meta 是一个对象，包含当前模块的元信息。在浏览器中，import.meta.url 返回当前模块的 URL。它是 ES 模块特有的特性，在 CommonJS 中不可用。可以使用 import.meta 动态导入相对路径的模块。\\n\\nC 错在说 CommonJS 支持 import.meta。这是 ES 模块特有的特性。\\n\\n工程实践中，import.meta 常用于：获取模块 URL、动态导入资源、判断运行环境等。在构建工具中，import.meta.env 等扩展提供了环境变量访问能力。",
+      "knowledge_point": "ImportMeta_ESM_Metadata",
+      "options": [
+        {
+          "id": "A",
+          "text": "import.meta.url 返回当前模块的 URL"
+        },
+        {
+          "id": "B",
+          "text": "import.meta 只在 ES 模块中可用"
+        },
+        {
+          "id": "C",
+          "text": "CommonJS 模块也可以使用 import.meta"
+        },
+        {
+          "id": "D",
+          "text": "可以使用 import.meta 进行动态资源加载"
+        }
+      ],
+      "correct_answer": ["A", "B", "D"],
+      "exclusion_analysis": {
+        "C": "import.meta 是 ES 模块特有的特性。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1184 @@
+{
+  "file_metadata": {
+    "version": "1.0.0",
+    "category": "TypeScript Engineering",
+    "generated_at": "2023-10-27T10:00:00Z",
+    "total_questions": 30,
+    "target_level": "Senior",
+    "continuation": true,
+    "next_batch_id": "031",
+    "id_range": "001-030"
+  },
+  "questions": [
+    {
+      "id": "code-senior-001",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Conditional Types",
+        "Distributive Law",
+        "Generics"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "条件类型的分配律",
+      "content": "在 TypeScript 中，关于条件类型的分配律，以下代码的输出类型是什么？\\n\\n```typescript\\ntype Example<T> = T extends any ? { id: T } : never;\\ntype Result = Example<string | number>;\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "{ id: string | number }"
+        },
+        {
+          "id": "B",
+          "text": "{ id: string } | { id: number }"
+        },
+        {
+          "id": "C",
+          "text": "never"
+        },
+        {
+          "id": "D",
+          "text": "{ id: string } & { id: number }"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "在 TypeScript 中，当条件类型作用于泛型类型 T 时，如果 T 是一个裸类型参数且接收的是一个联合类型，那么条件类型会自动分配到联合类型的每一个成员上。\\n\\n因此 Example<string | number> 会被解析为 Example<string> | Example<number>，最终结果为 { id: string } | { id: number }。\\n\\n选项 A 是错误的，因为分配律会将联合类型拆解。选项 C 是错误的，因为条件成立。选项 D 使用了交叉类型，这是错误的逻辑。如果希望禁止这种分配行为，可以将 T 包裹在元组中：[T] extends [any] ? ...。",
+      "knowledge_point": "TS_Distributive_Conditional_Types",
+      "common_mistake": "容易误选 A，认为泛型 T 会保持联合类型的整体性，忽略了裸类型参数在条件类型中的自动分发特性。",
+      "hints": [
+        "提示：检查 T 是否为裸类型参数。",
+        "提示：联合类型在条件类型中如何表现？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types"
+    },
+    {
+      "id": "code-senior-002",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Variance",
+        "Type Safety",
+        "Function Types"
+      ],
+      "source_company": "Microsoft",
+      "score": 12,
+      "title": "函数参数的协变与逆变",
+      "content": "考虑以下 TypeScript 代码：\\n\\n```typescript\\ntype Animal = { name: string };\\ntype Dog = { name: string; bark: () => void };\\n\\nlet f1 = (a: Animal) => void;\\nlet f2 = (d: Dog) => void;\\n\\n// 在开启 strictFunctionTypes 的情况下\\nf1 = f2; // Assignment 1\\nf2 = f1; // Assignment 2\\n```\\n\\n关于赋值操作的正确性，以下描述正确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "Assignment 1 合法，Assignment 2 非法"
+        },
+        {
+          "id": "B",
+          "text": "Assignment 1 非法，Assignment 2 合法"
+        },
+        {
+          "id": "C",
+          "text": "两者都合法"
+        },
+        {
+          "id": "D",
+          "text": "两者都非法"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "在 TypeScript 中，函数参数在严格模式下是逆变的，而不是协变的。这是为了保证类型安全。\\n\\n对于 Assignment 1 (f1 = f2)：f1 的参数类型是 Animal，f2 的参数类型是 Dog。如果允许赋值，调用 f1(new Animal()) 时，实际执行的是 f2，但 f2 期望 Dog 类型（需要 bark 方法），Animal 没有该方法，会导致运行时错误。因此不安全，非法。\\n\\n对于 Assignment 2 (f2 = f1)：f1 处理 Animal，f2 期望 Dog。传入 Dog 给 f2（即执行 f1），Dog 包含 name，满足 f1 的需求，安全。\\n\\n选项 A 是常见的误解，认为子类关系可以传递。但在函数参数中，方向是反的。",
+      "knowledge_point": "TS_Function_Parameter_Variance",
+      "common_mistake": "误选 A。习惯了对象的协变（Dog 可以赋值给 Animal），误以为函数参数也是协变的。实际上函数参数是逆变的。",
+      "hints": [
+        "提示：里氏替换原则在函数参数中的应用。",
+        "提示：思考调用函数时传入参数的安全性。"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/type-compatibility.html#function-parameter-bivariance"
+    },
+    {
+      "id": "code-senior-003",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "infer",
+        "Conditional Types",
+        "Tuple"
+      ],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "infer 与递归类型推断",
+      "content": "请问以下 TypeScript 类型定义 `Unshift<T, U>` 的作用是什么？\\n\\n```typescript\\ntype Unshift<T extends any[], U> = T extends [infer First, ...infer Rest] ? [U, First, ...Rest] : [U];\\ntype Result = Unshift<[1, 2, 3], 0>;\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "将 U 添加到 T 的末尾"
+        },
+        {
+          "id": "B",
+          "text": "移除 T 的第一个元素"
+        },
+        {
+          "id": "C",
+          "text": "将 U 添加到 T 的开头"
+        },
+        {
+          "id": "D",
+          "text": "替换 T 的第一个元素为 U"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "该类型利用了 TypeScript 的条件类型和 `infer` 关键字来实现元组的操作。\\n\\n1. `T extends [infer First, ...infer Rest]`：尝试推断元组 T 的第一个元素为 First，剩余部分为 Rest。\\n2. 如果推断成功，返回 `[U, First, ...Rest]`：构造一个新的元组，U 在最前面，紧接着是原来的 First 和 Rest。\\n3. 示例 `Result` 计算过程：T 是 [1, 2, 3]，First 是 1，Rest 是 [2, 3]。结果为 [0, 1, 2, 3]。\\n\\n这模拟了数组的 `unshift` 操作。选项 A 是 Push 操作，选项 B 是 Shift 操作（且未包含 U），选项 D 是替换操作，逻辑不符。",
+      "knowledge_point": "TS_Infer_Tuple",
+      "common_mistake": "误选 B，被 infer 的解构语法混淆，忽略了返回值中包含 U 且 U 在首位。",
+      "hints": [
+        "提示：观察返回元组的构造顺序。",
+        "提示：infer 关键字用于提取类型组件。"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types"
+    },
+    {
+      "id": "code-senior-004",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Type Guards",
+        "Type Narrowing",
+        "Control Flow"
+      ],
+      "source_company": "Tencent",
+      "score": 8,
+      "title": "TypeScript 类型守卫失效",
+      "content": "在 TypeScript 中，为什么以下代码中的类型守卫在运行时可能是无效的，或者无法正确收窄类型？\\n\\n```typescript\\ninterface Square {\\n  kind: 'square';\\n  size: number;\\n}\\n\\ninterface Rectangle {\\n  kind: 'rectangle';\\n  width: number;\\n  height: number;\\n}\\n\\nfunction area(s: Square | Rectangle) {\\n  if (s.kind === 'square') {\\n    return s.size * s.size;\\n  } else {\\n    return s.width * s.height;\\n  }\\n}\\n```\\n（假设代码在严格模式下编译且没有报错）",
+      "options": [
+        {
+          "id": "A",
+          "text": "因为 `kind` 属性类型不同，编译器无法比较。"
+        },
+        {
+          "id": "B",
+          "text": "因为 TypeScript 接口在运行时被擦除，无法进行 `instanceof` 检查。"
+        },
+        {
+          "id": "C",
+          "text": "该代码是正确的，利用了可辨识联合，类型守卫有效。"
+        },
+        {
+          "id": "D",
+          "text": "因为 `else` 分支中 `s` 的类型未收窄。"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "这段代码展示了 TypeScript 中经典的“可辨识联合”模式。\\n\\n1. `Square` 和 `Rectangle` 都有一个共同的属性 `kind`，但字面量类型不同。\\n2. TypeScript 的控制流分析能够理解 `if (s.kind === 'square')` 的检查，并在 `if` 块内将 `s` 的类型收窄为 `Square`。\\n3. 在 `else` 块中，编译器知道 `s` 不是 `Square`，因此自动收窄为 `Rectangle`。\\n\\n选项 A 错误，字面量类型是可以比较的。选项 B 虽然陈述了接口擦除的事实，但这里使用的是属性检查（`kind`），而非 `instanceof`，所以与本题场景无关。选项 D 错误，`else` 分支类型已正确收窄。",
+      "knowledge_point": "TS_Discriminated_Unions",
+      "common_mistake": "误选 B。混淆了“接口擦除导致 instanceof 失效”与“属性检查作为类型守卫”的区别。属性检查在运行时是存在的，且 TS 能静态分析。",
+      "hints": [
+        "提示：注意观察 `kind` 属性的定义。",
+        "提示：TS 静态分析如何处理 if 语句中的类型？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions"
+    },
+    {
+      "id": "code-senior-005",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Declaration Merging",
+        "Namespace",
+        "Module"
+      ],
+      "source_company": "Google",
+      "score": 10,
+      "title": "声明合并",
+      "content": "关于 TypeScript 的声明合并，以下哪些说法是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "接口之间的声明合并会合并同名成员，如果成员类型不兼容则报错。"
+        },
+        {
+          "id": "B",
+          "text": "命名空间之间的声明合并会合并导出成员，但非导出成员仅在各自的命名空间内可见。"
+        },
+        {
+          "id": "C",
+          "text": "类可以与命名空间合并，此时命名空间内的成员会成为类的静态成员。"
+        },
+        {
+          "id": "D",
+          "text": "函数可以与命名空间合并，用于扩展函数的属性（如 `MyApp.version`）。"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "TypeScript 支持多种类型的声明合并：\\n\\nA 正确：接口合并时，非函数成员必须唯一，若不唯一则类型必须兼容；函数成员则被视为重载。\\nB 正确：命名空间合并时，导出的成员会被合并到同一个命名空间对象中，而未导出的成员作用域仅限于定义它的源文件。\\nC 正确：这是扩展类功能的一种常见方式，例如定义内部类或静态工具方法。需注意类定义必须在命名空间定义之前。\\nD 正确：这是 JavaScript 中常见的模式（如 jQuery），TS 支持通过声明合并来描述这种模式。",
+      "knowledge_point": "TS_Declaration_Merging",
+      "common_mistake": "容易忽略选项 C 或 D，认为类或函数不能与命名空间合并。实际上这是 TS 模拟 JS 运行时行为的重要特性。",
+      "hints": [
+        "提示：思考 Interface 合并冲突的处理规则。",
+        "提示：思考 Namespace 合并后的作用域边界。"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/declaration-merging.html"
+    },
+    {
+      "id": "code-senior-006",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Mapped Types",
+        "Key Remapping",
+        "Template Literal Types"
+      ],
+      "source_company": "ByteDance",
+      "score": 12,
+      "title": "映射类型与键重映射",
+      "content": "以下代码定义了一个工具类型 `Getters`，旨在将对象 T 的所有属性变为 getter 函数类型。请选择正确的 `???` 处的代码：\\n\\n```typescript\\ntype Getters = {\\n  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];\\n};\\n\\ninterface Person {\\n  name: string;\\n  age: number;\\n}\\n\\ntype PersonGetters = Getters<Person>;\\n// 期望结果: { getName: () => string; getAge: () => number; }\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "as `get${K}`"
+        },
+        {
+          "id": "B",
+          "text": "as `get${Capitalize<K>}`"
+        },
+        {
+          "id": "C",
+          "text": "as `get${Capitalize<string & K>}`"
+        },
+        {
+          "id": "D",
+          "text": "as `get${Uppercase<K>}`"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "TypeScript 4.1 引入了映射类型中的键重映射，允许通过 `as` 子句改变键名。\\n\\n1. `Capitalize<K>` 会报错，因为 `keyof T`（即 K）可能是 `string | number | symbol`，而 `Capitalize` 内置类型仅接受 `string` 类型的约束。因此需要 `string & K` 来过滤掉非字符串类型的键（或者确保 T 的键是 string）。\\n2. `Capitalize<string & K>` 能够正确将 'name' 转换为 'Name'。\\n3. 模板字面量类型 `get${...}` 将其拼接为 'getName'。\\n\\n选项 A 没有大写化。选项 B 类型约束错误。选项 D 全大写不符合预期。",
+      "knowledge_point": "TS_Mapped_Types_Remapping",
+      "common_mistake": "误选 B。忽略了 `keyof T` 包含 `number` 或 `symbol` 的可能性，导致 Capitalize 报错。",
+      "hints": [
+        "提示：Capitalize 工具类型需要什么类型的参数？",
+        "提示：K 的类型范围是什么？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as"
+    },
+    {
+      "id": "code-senior-007",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Generics",
+        "Type Inference",
+        "Constraints"
+      ],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "泛型约束与推断",
+      "content": "分析以下代码：\\n\\n```typescript\\nfunction getProperty<T, K extends keyof T>(obj: T, key: K) {\\n  return obj[key];\\n}\\n\\nconst obj = { a: 1, b: 2, c: 3 };\\n\\nconst value = getProperty(obj, 'd');\\n```\\n\\n这段代码会发生什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "编译成功，value 类型为 any。"
+        },
+        {
+          "id": "B",
+          "text": "编译报错：Argument of type '\"d\"' is not assignable to parameter of type '\"a\" | \"b\" | \"c\"'."
+        },
+        {
+          "id": "C",
+          "text": "编译成功，运行时报错。"
+        },
+        {
+          "id": "D",
+          "text": "编译报错：'d' does not exist in type '{ a: number; b: number; c: number; }'."
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是 TypeScript 泛型约束的典型应用。\\n\\n1. 函数签名中 `K extends keyof T` 约束了参数 `key` 必须是对象 `T` 的键之一。\\n2. 对于 `obj`，`keyof T` 推断为 `'a' | 'b' | 'c'`。\\n3. 调用 `getProperty(obj, 'd')` 时，字面量 `'d'` 不在联合类型 `'a' | 'b' | 'c'` 中。\\n4. TypeScript 编译器会立即捕获这个错误，阻止编译通过。\\n\\n这体现了 TS 静态检查的优势。选项 A 和 C 都低估了 TS 的类型推断能力。选项 D 的错误信息描述不够精确，标准的错误信息通常是类型不匹配。",
+      "knowledge_point": "TS_Generic_Constraints",
+      "common_mistake": "误选 C。认为 TS 只能检查对象是否存在属性，而忽略了泛型约束对字面量参数的静态检查能力。",
+      "hints": [
+        "提示：keyof T 在这里起到了什么作用？",
+        "提示：'d' 是否满足 K 的约束？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints"
+    },
+    {
+      "id": "code-senior-008",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": [
+        "Type System",
+        "Structural Typing"
+      ],
+      "source_company": "Meta",
+      "score": 5,
+      "title": "结构化类型系统",
+      "content": "判断题：在 TypeScript 中，两个类型即使具有不同的名称，只要它们的成员结构完全相同，它们就是兼容的类型。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "TypeScript 采用的是结构化类型系统，而非名义类型系统（如 Java 或 C#）。\\n\\n在结构化类型系统中，类型的兼容性基于其成员结构。如果两个类型具有相同的属性和方法签名，它们就是兼容的，无论它们的名称是什么。\\n\\n例外情况：对于类，私有或受保护的成员会影响兼容性。如果两个类具有相同的结构但私有成员来源不同，它们是不兼容的。但在本题的通用描述下，结构决定兼容性是 TS 的核心原则。",
+      "knowledge_point": "TS_Structural_Typing",
+      "boundary_conditions": "如果类包含私有或受保护的成员，则结构兼容性规则会考虑这些成员的来源（必须是同一个类的声明）。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/type-compatibility.html"
+    },
+    {
+      "id": "code-senior-009",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Enums",
+        "Union Types",
+        "Best Practices"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "Enum vs 字面量联合类型",
+      "content": "关于 TypeScript 中使用 `enum` 和字面量联合类型（如 `type Status = 'Open' | 'Closed'`），以下说法**错误**的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "字符串枚举在运行时会生成额外的双向映射代码，增加包体积。"
+        },
+        {
+          "id": "B",
+          "text": "常量枚举在编译后会被内联，不会生成运行时代码。"
+        },
+        {
+          "id": "C",
+          "text": "字面量联合类型在编译后无运行时开销，是更轻量的选择。"
+        },
+        {
+          "id": "D",
+          "text": "字符串枚举比字面量联合类型提供了更严格的类型安全，因为枚举成员是名义类型的。"
+        }
+      ],
+      "correct_answer": "D",
+      "explanation": "选项 D 是错误的描述。TypeScript 的枚举（Enum）本质上也是结构化类型的（尽管在某些方面表现得像名义类型，但这并不是严格的名义类型系统），而且字符串枚举并没有提供比字面量联合类型更严格的类型安全。实际上，字面量联合类型更符合 TypeScript 的整体类型系统设计理念，且更轻量。\\n\\n选项 A 正确：字符串枚举会生成 ` { \"Open\": \"Open\", \"Closed\": \"Closed\" } ` 这样的对象。\\n选项 B 正确：常量枚举默认会被 TS 编译器完全内联。\\n选项 C 正确：这是现代 TS 开发推荐使用字面量联合类型替代普通枚举的主要原因。",
+      "knowledge_point": "TS_Enum_vs_Union",
+      "common_mistake": "可能误选 A，以为枚举不生成代码。或者误选 D，认为枚举具有特殊的类型魔力。实际上 TS 的枚举比较宽松，普通字符串也可以赋值给宽松的枚举（虽然字符串枚举比较严格，但在类型兼容性上依然遵循结构化原则）。",
+      "hints": [
+        "提示：检查各个选项关于运行时开销的描述。",
+        "提示：TS 的类型系统是基于结构的还是基于名义（Nominal）的？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/enums.html"
+    },
+    {
+      "id": "code-senior-010",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Mapped Types",
+        "Homomorphic",
+        "Readonly"
+      ],
+      "source_company": "Tencent",
+      "score": 15,
+      "title": "同态映射类型",
+      "content": "关于 TypeScript 映射类型的“同态”特性，以下代码的输出结果是？\\n\\n```typescript\\ninterface Example {\\n  readonly a: string;\\n  b?: number;\\n}\\n\\ntype MyPartial = { [P in keyof T]?: T[P]; };\\ntype Result = MyPartial<Example>;\\n```\\n\\nResult 中属性 'a' 是否仍为 readonly？",
+      "options": [
+        {
+          "id": "A",
+          "text": "是，因为同态映射类型会保留原类型的修饰符。"
+        },
+        {
+          "id": "B",
+          "text": "否，因为 `?:` 修饰符会覆盖原有的 readonly。"
+        },
+        {
+          "id": "C",
+          "text": "是，但仅因为 T 是接口，如果是 type 别名则会丢失。"
+        },
+        {
+          "id": "D",
+          "text": "否，映射类型总是产生新的普通对象类型，修饰符会丢失。"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "在 TypeScript 中，如果映射类型遍历的是 `keyof T`，它被认为是“同态”的。同态映射类型的一个关键特性是它会保留源类型的属性修饰符（如 `readonly` 和 `?`），除非你显式地添加或移除它们。\\n\\n在本题中，`MyPartial` 只显式添加了 `?` 修饰符，并没有移除 `readonly`。因此，`Result` 中的 `a` 属性既保留了 `readonly`，又添加了 `?`。\\n\\n选项 B 错误，修饰符互不影响。选项 D 错误，这是对映射类型的误解。选项 C 关于接口和别名的区分是无意义的。",
+      "knowledge_point": "TS_Homomorphic_Mapped_Types",
+      "common_mistake": "误选 D。认为写了 `[P in ...]` 就是重写，忽略了 TS 的智能保留机制。",
+      "hints": [
+        "提示：映射类型如何处理原有的修饰符？",
+        "提示：什么是同态映射类型？"
+      ],
+      "reference_link": "https://github.com/microsoft/TypeScript/pull/12571"
+    },
+    {
+      "id": "code-senior-011",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Utility Types",
+        "Immutability"
+      ],
+      "source_company": "OpenSource",
+      "score": 12,
+      "title": "DeepReadonly 实现",
+      "content": "要实现一个深度只读的工具类型 `DeepReadonly`，使对象的所有嵌套属性都变为只读，以下哪些代码片段是正确的？",
+      "options": [
+        {
+          "id": "A",
+          "text": "type DeepReadonly<T> = { readonly [P in keyof T]: T[P] };"
+        },
+        {
+          "id": "B",
+          "text": "type DeepReadonly<T> = { readonly [P in keyof T]: DeepReadonly<T[P]> };"
+        },
+        {
+          "id": "C",
+          "text": "type DeepReadonly<T> = { readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P] };"
+        },
+        {
+          "id": "D",
+          "text": "type DeepReadonly<T> = T extends Function ? T : { readonly [P in keyof T]: DeepReadonly<T[P]> };"
+        }
+      ],
+      "correct_answer": [
+        "C",
+        "D"
+      ],
+      "explanation": "选项 A 只是浅层 Readonly，不满足“深度”要求。\\n选项 B 虽然看起来像递归，但会有问题：基础类型（如 string, number）没有 keyof，直接递归会导致编译错误或无限循环。\\n选项 C 是标准实现：判断如果是对象则递归，否则直接返回。这处理了基础类型的边界。\\n选项 D 是更健壮的实现：特别处理了 Function 类型。因为 Function 也是 object，直接递归处理 Function 会破坏函数类型，通常我们需要函数保持原样。因此 D 是工程实践中的最佳选择。",
+      "knowledge_point": "TS_Recursive_Types",
+      "common_mistake": "选择 B。忽略了基础类型和 Function 类型的边界情况。",
+      "hints": [
+        "提示：string 或 number 是否有 keyof？",
+        "提示：Function 是否应该被递归处理？"
+      ],
+      "reference_link": "https://github.com/microsoft/TypeScript/issues/13923"
+    },
+    {
+      "id": "code-senior-012",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Type Assertion",
+        "as const",
+        "Immutability"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "as const 断言",
+      "content": "关于 `as const` 断言，以下描述错误的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "它可以将数组类型转换为只读的元组类型。"
+        },
+        {
+          "id": "B",
+          "text": "它可以将对象属性变为 readonly。"
+        },
+        {
+          "id": "C",
+          "text": "它可以将字面量类型放宽为基础类型（如 'hello' 变为 string）。"
+        },
+        {
+          "id": "D",
+          "text": "它不能用于顶层类型表达式，只能用于值后面。"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "`as const` 的作用恰恰与选项 C 描述的相反。它会将类型收窄为最具体的字面量类型。例如，`let x = 'hello'` 默认 x 是 string，而 `'hello' as const` 使 x 变为类型 'hello'。\\n\\n选项 A 和 B 都是 `as const` 的正确用途：锁定结构为元组和深度只读。\\n选项 D 也是正确的语法限制，`as const` 是一个后缀操作符。",
+      "knowledge_point": "TS_Const_Assertion",
+      "common_mistake": "可能误选 D，但在旧版本中确实是表达式后缀，在新版本中语法虽有扩展但本质仍是针对值的断言。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions"
+    },
+    {
+      "id": "code-senior-013",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Generics",
+        "Type Inference",
+        "Default Values"
+      ],
+      "source_company": "Google",
+      "score": 10,
+      "title": "泛型默认值与推断",
+      "content": "请分析以下代码的输出类型：\\n\\n```typescript\\ntype Event = { type: T; data: D };\\ntype UserEvent = Event<{ name: string }>;\\n```\\n`UserEvent` 的最终类型是什么？",
+      "options": [
+        {
+          "id": "A",
+          "text": "{ type: { name: string }; data: any }"
+        },
+        {
+          "id": "B",
+          "text": "{ type: { name: string }; data: undefined }"
+        },
+        {
+          "id": "C",
+          "text": "{ type: { name: string }; data: {} }"
+        },
+        {
+          "id": "D",
+          "text": "编译错误"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "泛型默认值 `D = {}` 在显式传入其他泛型参数时会生效，前提是显式传入的泛型参数顺序正确。\\n\\n这里 `Event<{ name: string }>` 只传了一个参数 T。D 没有被显式传入，因此使用默认值 `{}`。\\n注意：虽然 `{}` 是空对象类型，但在 TS 中它是除 null/undefined 外所有类型的基类。\\n\\n如果代码是 `Event<{ name: string }, undefined>`，才会是 B。选项 A 的 `any` 需要显式指定或开启 noImplicitAny 某些情况下的推断，这里有默认值。",
+      "knowledge_point": "TS_Generic_Defaults",
+      "common_mistake": "误选 A，认为未指定就是 any。忽略了泛型默认值机制。",
+      "hints": [
+        "提示：泛型定义中等号的作用是什么？",
+        "提示：只传了一个参数时，第二个参数如何确定？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-parameter-defaults"
+    },
+    {
+      "id": "code-senior-014",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Omit",
+        "keyof",
+        "Key Remapping"
+      ],
+      "source_company": "Alibaba",
+      "score": 8,
+      "title": "Omit 类型实现原理",
+      "content": "TypeScript 标准库中的 `Omit` 类型通常定义为：\\n```typescript\\ntype Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;\\n```\\n在 TS 4.1+ 版本中，更直观的键重映射写法是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "type Omit<T, K extends keyof any> = { [P in keyof T as P extends K ? never : P]: T[P]; };"
+        },
+        {
+          "id": "B",
+          "text": "type Omit<T, K extends keyof any> = { [P in Exclude<keyof T, K>]: T[P]; };"
+        },
+        {
+          "id": "C",
+          "text": "type Omit<T, K extends keyof any> = { [P in K]: T[P]; };"
+        },
+        {
+          "id": "D",
+          "text": "type Omit<T, K extends keyof any> = { [P in keyof T]: P extends K ? never : T[P]; };"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "选项 A 是 TS 4.1 引入键重映射后的实现方式。它遍历 T 的所有键 P，通过 `as` 子句检查 P 是否在要排除的键 K 中，如果是则返回 never（导致该属性被移除），否则保留键 P。\\n\\n选项 B 虽然在旧版本或标准库中常见，但它不是利用“键重映射”的写法。\\n选项 C 会保留 K 中的键，逻辑反了，且可能报错。\\n选项 D 的 value 变成了 never 或 T[P]，而不是移除键，这会导致类型结构不同。",
+      "knowledge_point": "TS_Omit_Implementation",
+      "common_mistake": "误选 D。混淆了“键的重映射”和“值的条件类型”。键重映射通过 `as` 修改键名，返回 never 则移除该键。",
+      "hints": [
+        "提示：如何利用 `as` 子句过滤键？",
+        "提示：映射类型中返回 never 会发生什么？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as"
+    },
+    {
+      "id": "code-senior-015",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Type Narrowing",
+        "never"
+      ],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "穷尽性检查",
+      "content": "在使用可辨识联合时，通常会在 switch 语句的 default 分支中使用 `never` 来进行穷尽性检查。以下代码为何会报错？\\n\\n```typescript\\ntype Shape = { kind: 'circle'; radius: number } | { kind: 'square'; size: number };\\n\\nfunction getArea(shape: Shape) {\\n  switch (shape.kind) {\\n    case 'circle': return Math.PI * shape.radius ** 2;\\n    default:\\n      const _exhaustiveCheck: never = shape;\\n      return _exhaustiveCheck;\\n  }\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "default 分支中 shape 的类型是 never，不能赋值给 never 类型变量。"
+        },
+        {
+          "id": "B",
+          "text": "少处理了 'square' 分支，导致 default 中 shape 的类型是 { kind: 'square'; size: number }，该类型不能赋值给 never。"
+        },
+        {
+          "id": "C",
+          "text": "TypeScript 不支持在 default 分支进行类型收窄。"
+        },
+        {
+          "id": "D",
+          "text": "never 类型的变量不能有返回值。"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "穷尽性检查的原理是：如果一个 switch 语句处理了联合类型中的所有成员，那么在 default 分支中，该变量的类型应该被收窄为 `never`（因为不可能存在其他情况）。\\n\\n在本题中，没有处理 'square' 分支。因此，在 default 分支中，shape 的类型仍然是 `{ kind: 'square'; size: number }`。将一个具体的对象类型赋值给 `never` 类型的变量会引发编译错误，这正是预期的行为，提示开发者遗漏了 case 分支。\\n\\n选项 A 错误，如果处理了所有情况，shape 确实是 never，赋值是合法的，不会报错。选项 C 和 D 都是概念性错误。",
+      "knowledge_point": "TS_Exhaustive_Check",
+      "common_mistake": "误选 A。混淆了正确实现和错误实现时的状态。如果 shape 是 never，赋值给 never 是合法的。报错正是因为 shape 不是 never。",
+      "hints": [
+        "提示：检查 switch 语句是否覆盖了所有 case。",
+        "提示：default 分支中 shape 的实际类型推断是什么？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking"
+    },
+    {
+      "id": "code-senior-016",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Conditional Types",
+        "Union Distribution",
+        "never"
+      ],
+      "source_company": "ByteDance",
+      "score": 15,
+      "title": "never 在联合类型分发中的行为",
+      "content": "以下代码的输出类型是什么？\\n\\n```typescript\\ntype ToArray = T extends any ? T[] : never;\\ntype Result = ToArray<never>;\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "never[]"
+        },
+        {
+          "id": "B",
+          "text": "never"
+        },
+        {
+          "id": "C",
+          "text": "any[]"
+        },
+        {
+          "id": "D",
+          "text": "unknown[]"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "这是一个非常隐蔽的高级特性。\\n\\n当条件类型作用于泛型参数 T，且 T 为裸类型参数时，会发生联合类型分发。\\n关键规则：当 T 为 `never` 时，联合类型分发规则规定：**分发是针对联合类型的，而 never 是空的联合类型，所以分发操作会立即返回 never**。\\n\\n代码不会进入条件分支，而是直接返回 never。\\n\\n如果希望返回 `never[]`，需要禁止分发行为，例如：`type ToArray = [T] extends [any] ? T[] : never;`。",
+      "knowledge_point": "TS_Never_Distribution",
+      "common_mistake": "误选 A。认为条件成立，返回 never 的数组。忽略了裸参数分发对 never 的特殊处理。",
+      "hints": [
+        "提示：never 可以被视为空的联合类型吗？",
+        "提示：联合类型分发的形式规则是什么？"
+      ],
+      "reference_link": "https://github.com/microsoft/TypeScript/issues/31751"
+    },
+    {
+      "id": "code-senior-017",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Declaration Files",
+        "Module Resolution"
+      ],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": ".d.ts 文件作用",
+      "content": "关于 TypeScript 的 `.d.ts` 声明文件，以下说法正确的有？",
+      "options": [
+        {
+          "id": "A",
+          "text": ".d.ts 文件仅包含类型声明，不包含实现逻辑，编译后不会生成 .js 文件。"
+        },
+        {
+          "id": "B",
+          "text": "在 .d.ts 文件中，顶层导出必须使用 `export default`。"
+        },
+        {
+          "id": "C",
+          "text": "可以使用 `declare module` 来扩展第三方库的类型定义。"
+        },
+        {
+          "id": "D",
+          "text": ".d.ts 文件中的类型在运行时会被擦除。"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "C",
+        "D"
+      ],
+      "explanation": "A 正确：这是声明文件的核心特征。\\nB 错误：.d.ts 文件支持标准 ES 模块语法，也支持全局声明，并非必须使用 `export default`。实际上，`export =` 或具名导出都很常见。\\nC 正确：这是模块扩充的常见用法，用于为没有类型的 JS 库或未导出内部方法的库补充类型。\\nD 正确：TypeScript 的类型在编译阶段就被移除，.d.ts 仅供编译器静态分析使用。",
+      "knowledge_point": "TS_Declaration_Files",
+      "common_mistake": "误选 B。对声明文件的模块语法规范不熟悉。",
+      "hints": [
+        "提示：.d.ts 文件的编译产物是什么？",
+        "提示：如何为 jQuery 等库补充类型？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html"
+    },
+    {
+      "id": "code-senior-018",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Type Assertion",
+        "unknown",
+        "any"
+      ],
+      "source_company": "Google",
+      "score": 8,
+      "title": "unknown vs any",
+      "content": "关于 `any` 和 `unknown` 的区别，以下描述最准确的是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "any 和 unknown 都允许赋值给任何类型的变量，也都允许接受任何类型的值。"
+        },
+        {
+          "id": "B",
+          "text": "any 类型的变量可以调用任意方法，unknown 类型的变量在类型收窄前不能调用方法。"
+        },
+        {
+          "id": "C",
+          "text": "unknown 是 any 的别名，仅在 strict 模式下行为不同。"
+        },
+        {
+          "id": "D",
+          "text": "any 类型不能赋值给 never，unknown 可以。"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "`any` 和 `unknown` 都是 Top Type（顶层类型），可以接受任何类型的值。但在赋值操作和属性访问上有关键区别：\\n\\n1. `any` 放弃了类型检查，允许赋值给任何类型（除非 noImplicitAny），允许访问任意属性。\\n2. `unknown` 是类型安全的。不能将 unknown 赋值给其他类型（除了 any/unknown），且必须通过类型守卫或断言收窄后才能访问属性。\\n\\n选项 A 错误，any 可以赋值给任何变量，unknown 不行。选项 C 完全错误。选项 D 描述混乱且不准确。",
+      "knowledge_point": "TS_Type_Safety",
+      "common_mistake": "误选 A。忽略了 unknown 向下赋值的限制。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/functions.html#unknown"
+    },
+    {
+      "id": "code-senior-019",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Template Literal Types",
+        "Intrinsic"
+      ],
+      "source_company": "Microsoft",
+      "score": 15,
+      "title": "模板字面量类型机制",
+      "content": "TypeScript 内置了 `Uppercase` 等工具类型。关于它们的实现机制，以下描述正确的是？\\n\\n```typescript\\ntype Greeting = 'hello';\\ntype Shout = Uppercase<Greeting>; // 'HELLO'\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "完全由 TypeScript 编译器在编译时通过字符串替换实现，运行时无特殊逻辑。"
+        },
+        {
+          "id": "B",
+          "text": "编译为 JavaScript 的 `String.prototype.toUpperCase()` 调用。"
+        },
+        {
+          "id": "C",
+          "text": "依赖于运行时注入的辅助函数 __uppercase。"
+        },
+        {
+          "id": "D",
+          "text": "仅支持 ASCII 字符，不支持 Unicode。"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "TypeScript 的模板字面量类型以及相关的内在字符串操作类型（Uppercase, Lowercase, Capitalize, Uncapitalize）是编译时的类型系统特性。\\n\\n编译器在编译阶段将这些类型解析为具体的字面量类型。例如 `Uppercase<'hello'>` 直接在类型层面变为 `'HELLO'`。这不会生成任何运行时代码。\\n\\n选项 B 错误，类型操作不生成运行时逻辑。选项 C 错误，TS 运行时辅助函数通常用于展开展开运算符或装饰器，而非类型操作。选项 D 错误，它依赖于编译器对字符编码的理解，通常是语言内置功能。",
+      "knowledge_point": "TS_Intrinsic_Types",
+      "common_mistake": "误选 B。混淆了类型层面的操作和值层面的操作。",
+      "hints": [
+        "提示：TS 类型系统是在什么时候执行的？",
+        "提示：类型会被编译到 JS 中吗？"
+      ],
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html#intrinsic-string-manipulation-types"
+    },
+    {
+      "id": "code-senior-020",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "typeof",
+        "ReturnType",
+        "Generics"
+      ],
+      "source_company": "Alibaba",
+      "score": 10,
+      "title": "获取构造函数实例类型",
+      "content": "如何定义一个工具类型 `InstanceType`，用于获取构造函数返回的实例类型？\\n例如 `InstanceType<typeof Date>` 应返回 `Date`。",
+      "options": [
+        {
+          "id": "A",
+          "text": "type InstanceType = T extends new () => infer R ? R : any;"
+        },
+        {
+          "id": "B",
+          "text": "type InstanceType = T extends () => infer R ? R : any;"
+        },
+        {
+          "id": "C",
+          "text": "type InstanceType = T.prototype;"
+        },
+        {
+          "id": "D",
+          "text": "type InstanceType = T extends { prototype: infer R } ? R : never;"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "选项 A 正确使用了 `infer` 推断构造函数的返回类型。`new () => infer R` 匹配任何构造函数签名，推断出实例类型 R。完整的 TS 标准库实现还包括泛型参数 `new (...args: any[]) => infer R`。\\n\\n选项 B 匹配的是普通函数，不是构造函数。\\n选项 C 语法错误，类型操作符不能直接访问 prototype 属性来获取实例类型。\\n选项 D 错误，构造函数的 prototype 属性指向的是原型对象，而非实例类型本身（虽然有关联，但语义不符且推断逻辑错误）。",
+      "knowledge_point": "TS_InstanceType",
+      "common_mistake": "误选 D。混淆了构造函数的 prototype 属性和实例类型。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/utility-types.html#instanceotypet"
+    },
+    {
+      "id": "code-senior-021",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Module",
+        "esModuleInterop",
+        "Compatibility"
+      ],
+      "source_company": "Tencent",
+      "score": 12,
+      "title": "esModuleInterop 配置",
+      "content": "在 `tsconfig.json` 中启用 `esModuleInterop` 选项会带来哪些影响？",
+      "options": [
+        {
+          "id": "A",
+          "text": "允许从没有默认导出的模块中默认导入（`import React from 'react'`），编译器会自动合成默认导出。"
+        },
+        {
+          "id": "B",
+          "text": "启用后，`import * as` 语法将不再可用。"
+        },
+        {
+          "id": "C",
+          "text": "会自动开启 `allowSyntheticDefaultImports` 选项。"
+        },
+        {
+          "id": "D",
+          "text": "改变了编译器处理 CommonJS 模块导入时的运行时辅助代码行为。"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "C",
+        "D"
+      ],
+      "explanation": "`esModuleInterop` 是解决 ES 模块和 CommonJS 模块互操作问题的关键配置。\\n\\nA 正确：它解决了像 Babel 这样的工具转译出的模块没有 default export 的问题。\\nB 错误：`import * as` 仍然可用。\\nC 正确：启用 esModuleInterop 会自动启用 allowSyntheticDefaultImports。\\nD 正确：生成的代码会引入 `__importStar` 和 `__importDefault` 等辅助函数，以更符合规范的方式处理导入，而不是简单的对象赋值。",
+      "knowledge_point": "TS_Module_Interop",
+      "common_mistake": "忽略 C 或 D。很多开发者只知道它能解决 import default 的问题，但不了解底层机制和连锁配置。",
+      "reference_link": "https://www.typescriptlang.org/tsconfig#esModuleInterop"
+    },
+    {
+      "id": "code-senior-022",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Index Signatures",
+        "Keyof"
+      ],
+      "source_company": "Meituan",
+      "score": 8,
+      "title": "索引签名与 keyof",
+      "content": "以下代码中，`keyof Person` 的类型是什么？\\n\\n```typescript\\ninterface Person {\\n  name: string;\\n  age: number;\\n  [propName: string]: any;\\n}\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "\"name\" | \"age\""
+        },
+        {
+          "id": "B",
+          "text": "string"
+        },
+        {
+          "id": "C",
+          "text": "\"name\" | \"age\" | string"
+        },
+        {
+          "id": "D",
+          "text": "string | number"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "在 TypeScript 中，当一个接口包含字符串索引签名时，`keyof` 操作符返回的结果是具体的属性名与索引签名类型的联合。\\n\\n这里 `name` 和 `age` 是明确的字面量属性，而 `[propName: string]` 表示可以用任意 string 索引。因此 `keyof Person` 为 `\"name\" | \"age\" | string`。\\n\\n由于 `\"name\"` 是 `string` 的子类型，最终类型系统常将其化简显示为 `string`，但在逻辑上是 C。注意如果索引签名是 `[key: symbol]`，则结果会包含 symbol。",
+      "knowledge_point": "TS_Index_Signatures",
+      "common_mistake": "误选 B。虽然最终可以赋值给 string，但 keyof 的精确语义包含了显式属性。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html"
+    },
+    {
+      "id": "code-senior-023",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Generic Constraints",
+        "Object"
+      ],
+      "source_company": "ByteDance",
+      "score": 8,
+      "title": "泛型约束 object vs Object vs {}",
+      "content": "在定义泛型约束时，`extends object`、`extends Object` 和 `extends {}` 有何区别？",
+      "options": [
+        {
+          "id": "A",
+          "text": "三者完全相同，可以互换。"
+        },
+        {
+          "id": "B",
+          "text": "`extends object` 排除原始类型（如 number, string）；`extends Object` 包含原始类型；`extends {}` 最宽松。"
+        },
+        {
+          "id": "C",
+          "text": "`extends object` 排除原始类型；`extends Object` 不推荐使用，但行为与 object 类似；`extends {}` 在严格模式下排除 null/undefined，但不排除原始类型。"
+        },
+        {
+          "id": "D",
+          "text": "`extends {}` 只接受空对象。"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "这是 TS 中容易混淆的概念：\\n\\n1. `object`：指非原始类型，即除 string, number, boolean, symbol, null, undefined 之外的类型。适合用于精确约束对象。\\n2. `Object`：是 TS 最初的全局对象类型，包含了 JS 对象的所有方法（如 toString）。原始类型（如 number）由于其包装对象，也能匹配 Object 接口，因此约束力较弱。不推荐在代码中使用，容易混淆。\\n3. `{}`：空对象类型。在严格模式下，它不包含 null 和 undefined，但允许任何其他类型（包括原始类型），因为原始类型可以被视为“拥有某些属性的对象”（虽然这通常是类型设计的陷阱）。\\n\\n因此 C 是最准确的描述。",
+      "knowledge_point": "TS_Object_Types",
+      "common_mistake": "误选 B 或 A。B 认为 Object 包含原始类型（正确）但忽略了空对象的宽松性。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/functions.html#object"
+    },
+    {
+      "id": "code-senior-024",
+      "type": "true_false",
+      "difficulty": "senior",
+      "tags": [
+        "Decorators",
+        "Runtime"
+      ],
+      "source_company": "Google",
+      "score": 5,
+      "title": "装饰器执行时机",
+      "content": "判断题：TypeScript 中的类装饰器是在类实例化时执行的。",
+      "options": [
+        {
+          "id": "A",
+          "text": "正确"
+        },
+        {
+          "id": "B",
+          "text": "错误"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "错误。类装饰器是在类定义时（类声明被加载时）执行的，而不是在实例化时。\\n\\n装饰器本质上是一个函数，它接收类的构造函数作为参数，并在类定义阶段对类进行修改或替换。这意味着无论该类是否被实例化，装饰器逻辑都会运行。\\n\\n这也适用于方法装饰器、属性装饰器等，它们都在定义阶段生效。",
+      "knowledge_point": "TS_Decorators",
+      "boundary_conditions": "注意区分 Legacy Decorators (Stage 2) 和 Stage 3 Decorators 的细微差别，但执行时机都在定义阶段。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/decorators.html#class-decorators"
+    },
+    {
+      "id": "code-senior-025",
+      "type": "single_choice",
+      "difficulty": "expert",
+      "tags": [
+        "ThisType",
+        "Contextual Typing"
+      ],
+      "source_company": "Alibaba",
+      "score": 15,
+      "title": "ThisType 工具类型",
+      "content": "TypeScript 中的 `ThisType` 工具类型的作用是什么？\\n\\n```typescript\\ninterface MyObject {\\n  sayHello(): void;\\n}\\n\\nconst obj: MyObject & ThisType<MyObject> = {\\n  sayHello() {\\n    console.log(this.name); // Error?\\n  }\\n};\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "它是一个标记接口，用于告诉编译器在对象字面量中 `this` 的类型应该被视为指定的类型。"
+        },
+        {
+          "id": "B",
+          "text": "它创建一个新的类型，包含 MyObject 的所有属性和一个名为 this 的属性。"
+        },
+        {
+          "id": "C",
+          "text": "它强制对象必须包含一个返回 this 的方法。"
+        },
+        {
+          "id": "D",
+          "text": "它用于在运行时绑定 this 上下文。"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "`ThisType` 是一个特殊的工具类型，它本身不改变对象的结构，而是作为一个编译器指令。当对象字面量的类型被推断或标记为包含 `ThisType` 时，该对象内部的 `this` 类型会被显式设定。\\n\\n在示例中，`obj` 被 `& ThisType<MyObject>` 标记，意味着在 `sayHello` 方法内部，`this` 的类型被识别为 `MyObject`。如果没有这个标记，`this` 可能会被推断为该对象字面量本身，或者报错（取决于配置）。\\n\\n注意：代码中 `console.log(this.name)` 会报错，因为 `MyObject` 接口中没有 `name` 属性，这证明了 `this` 被正确约束为 `MyObject`。",
+      "knowledge_point": "TS_ThisType",
+      "common_mistake": "误选 D，混淆了类型系统与运行时绑定。ThisType 纯粹是静态类型检查。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypet"
+    },
+    {
+      "id": "code-senior-026",
+      "type": "multiple_choice",
+      "difficulty": "senior",
+      "tags": [
+        "tsconfig",
+        "Compiler"
+      ],
+      "source_company": "Tencent",
+      "score": 10,
+      "title": "strict 模式包含的选项",
+      "content": "在 `tsconfig.json` 中设置 `\"strict\": true` 会自动启用以下哪些编译选项？",
+      "options": [
+        {
+          "id": "A",
+          "text": "noImplicitAny"
+        },
+        {
+          "id": "B",
+          "text": "strictNullChecks"
+        },
+        {
+          "id": "C",
+          "text": "strictFunctionTypes"
+        },
+        {
+          "id": "D",
+          "text": "alwaysStrict"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "explanation": "`strict` 是一个聚合开关，代表了 TypeScript 推荐的类型检查最佳实践。启用它会自动开启以下所有选项：\\n\\n- `strictNullChecks` (严格的 null 检查)\\n- `strictFunctionTypes` (严格的函数类型检查)\\n- `strictBindCallApply`\\n- `strictPropertyInitialization`\\n- `noImplicitThis`\\n- `alwaysStrict` (始终以严格模式解析 JS)\\n- `noImplicitAny` (禁止隐式 any)\\n- `useUnknownInCatchVariables`\\n\\n这些选项共同构成了 TS 强类型安全网。在现代化项目中应始终开启。",
+      "knowledge_point": "TS_Strict_Mode",
+      "reference_link": "https://www.typescriptlang.org/tsconfig#strict"
+    },
+    {
+      "id": "code-senior-027",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Type Compatibility",
+        "Generics"
+      ],
+      "source_company": "Meituan",
+      "score": 10,
+      "title": "泛型类型兼容性",
+      "content": "以下代码是否编译通过？为什么？\\n\\n```typescript\\ninterface Empty { }\\nlet x: Empty<number>;\\nlet y: Empty<string>;\\nx = y;\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "编译报错，因为 number 和 string 不兼容。"
+        },
+        {
+          "id": "B",
+          "text": "编译通过，因为 Empty 接口没有成员，结构类型系统认为它们兼容。"
+        },
+        {
+          "id": "C",
+          "text": "编译报错，因为泛型参数不同导致类型不匹配。"
+        },
+        {
+          "id": "D",
+          "text": "编译通过，因为所有泛型类型都是 any。"
+        }
+      ],
+      "correct_answer": "B",
+      "explanation": "TypeScript 的类型兼容性是基于结构的，而非基于名义类型或泛型参数的具体值。\\n\\n在这个例子中，`Empty` 接口没有成员。`Empty<number>` 和 `Empty<string>` 在结构上完全相同（都是空对象）。因此，它们可以互相赋值。\\n\\n这被称为“泛型的无关性”。只有当泛型参数被用于成员定义时，泛型参数的差异才会影响兼容性。例如 `interface NotEmpty { value: T }`，此时 `NotEmpty<number>` 和 `NotEmpty<string>` 就不兼容。",
+      "knowledge_point": "TS_Generic_Compatibility",
+      "common_mistake": "误选 A 或 C。习惯性认为泛型参数不同就是不同类型，忽略了结构化类型系统的本质。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/type-compatibility.html#generics"
+    },
+    {
+      "id": "code-senior-028",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "keyof",
+        "typeof",
+        "const"
+      ],
+      "source_company": "ByteDance",
+      "score": 10,
+      "title": "从对象创建联合类型",
+      "content": "若要从一个常量对象中提取键的联合类型，以下哪种写法是正确且最严谨的？\\n\\n```typescript\\nconst colors = {\\n  red: '#FF0000',\\n  green: '#00FF00',\\n  blue: '#0000FF'\\n};\\n```",
+      "options": [
+        {
+          "id": "A",
+          "text": "type ColorKeys = keyof typeof colors;"
+        },
+        {
+          "id": "B",
+          "text": "type ColorKeys = keyof colors;"
+        },
+        {
+          "id": "C",
+          "text": "type ColorKeys = 'red' | 'green' | 'blue';"
+        },
+        {
+          "id": "D",
+          "text": "type ColorKeys = keyof object;"
+        }
+      ],
+      "correct_answer": "A",
+      "explanation": "选项 A 正确：`typeof colors` 获取对象的类型 `{ red: string; green: string; blue: string }`，然后 `keyof` 提取其键名联合类型 `\"red\" | \"green\" | \"blue\"`。这是标准的惯用写法。\\n\\n选项 B 错误：`colors` 是值，不能直接对值使用 `keyof`，必须先获取其类型。\\n选项 C 虽然结果正确，但属于硬编码，缺乏可维护性。\\n选项 D 是语法错误或无意义操作。",
+      "knowledge_point": "TS_Keyof_Typeof",
+      "common_mistake": "误选 C。虽然结果正确，但在工程实践中应避免硬编码，选项 A 能随源对象自动更新。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/typeof-types.html"
+    },
+    {
+      "id": "code-senior-029",
+      "type": "single_choice",
+      "difficulty": "senior",
+      "tags": [
+        "Covariance",
+        "Readonly"
+      ],
+      "source_company": "Microsoft",
+      "score": 12,
+      "title": "只读数组与协变",
+      "content": "为什么 `ReadonlyArray<string>` 可以赋值给 `Array<string>` 的反例是错误的，或者说为什么 `Array<string>` 不能赋值给 `ReadonlyArray<string>`（假设严格模式）？\\n实际上，正确的关系是？",
+      "options": [
+        {
+          "id": "A",
+          "text": "`Array<string>` 可以赋值给 `ReadonlyArray<string>`，因为可变数组是只读数组的子类型。"
+        },
+        {
+          "id": "B",
+          "text": "`ReadonlyArray<string>` 可以赋值给 `Array<string>`，因为只读限制更少。"
+        },
+        {
+          "id": "C",
+          "text": "`Array<string>` 可以赋值给 `ReadonlyArray<string>`（协变），因为可变数组包含只读数组的所有功能。"
+        },
+        {
+          "id": "D",
+          "text": "两者互不兼容。"
+        }
+      ],
+      "correct_answer": "C",
+      "explanation": "在 TypeScript 中，数组在元素类型上是协变的（虽然函数参数是逆变的，但在数组这个问题上，为了实用性 TS 选择了协变，并依赖于开发者的自律）。\\n\\n然而，`ReadonlyArray` 是不可变的。一个可变数组 `Array<string>` 完全具备只读数组的“读取”能力，因此 `Array<string>` 是 `ReadonlyArray<string>` 的子类型。\\n\\n所以：`let a: ReadonlyArray<string> = ['a'];`（源自 Array）是合法的。\\n反之则不行：不能将只读数组赋值给可变数组，因为只读数组缺少 `push` 等修改方法，不符合可变数组的结构要求。\\n\\n选项 A 描述的方向反了。选项 B 描述非法。",
+      "knowledge_point": "TS_Array_Covariance",
+      "common_mistake": "混淆子类型方向。记住原则：能“做更多事”的类型通常是子类型。可读可写数组 能做的事情包含了 只读数组 能做的事，所以前者是子类型，可以赋值给后者。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/2/type-compatibility.html"
+    },
+    {
+      "id": "code-senior-030",
+      "type": "multiple_choice",
+      "difficulty": "expert",
+      "tags": [
+        "Project References",
+        "Monorepo",
+        "Build Mode"
+      ],
+      "source_company": "Google",
+      "score": 15,
+      "title": "TypeScript Project References",
+      "content": "在大型 TypeScript 项目中，使用 `Project References`（项目引用）的主要优势有哪些？",
+      "options": [
+        {
+          "id": "A",
+          "text": "允许将大项目拆分为多个小项目，实现增量构建，提高编译速度。"
+        },
+        {
+          "id": "B",
+          "text": "强制模块间的依赖图是单向的，避免循环依赖。"
+        },
+        {
+          "id": "C",
+          "text": "支持不同子项目使用不同的 TypeScript 版本或编译配置。"
+        },
+        {
+          "id": "D",
+          "text": "自动为每个子项目生成 `package.json`。"
+        }
+      ],
+      "correct_answer": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Project References 是 TS 支持大规模代码库的核心特性。\\n\\nA 正确：通过 `tsconfig.json` 中的 `references` 字段，TS 编译器可以只重新编译修改过的子项目及其依赖者，极大提升构建效率。\\nB 正确：TS 编译器会检查引用关系，如果 A 引用 B，B 就不能引用 A，否则报错。\\nC 正确：每个子项目可以有独立的 `tsconfig.json`，例如前端代码使用严格模式，后端代码可能配置不同。\\nD 错误：Project References 不负责生成 `package.json`，那是包管理工具或 Monorepo 工具（如 Lerna/Nx）的职责。",
+      "knowledge_point": "TS_Project_References",
+      "common_mistake": "误选 D。混淆了 TS 编译器功能与工程化工具功能。",
+      "reference_link": "https://www.typescriptlang.org/docs/handbook/project-references.html"
+    }
+  ]
+}

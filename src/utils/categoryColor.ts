@@ -21,7 +21,14 @@ function fnv1aHash(str: string): number {
  * - 精选 6 组多巴胺核心色相，确保色彩鲜艳不沉闷
  * - 现代风：高饱和(80-92%)、中亮度(62-68%)，极富冲击力
  */
-export function getCategoryColor(categoryId: string): string {
+export function getCategoryColor(categoryId: string, brandHex?: string): string {
+  // 如果提供了官方品牌色且不是特殊值，则优先使用或基于其生成
+  if (brandHex && brandHex.startsWith('#')) {
+    // 这里可以简单直接返回 hex，或者根据主题做微调
+    // 为了保持一致性，我们直接返回 hex，但在某些主题下可能需要不同的处理
+    return brandHex;
+  }
+
   const hash = fnv1aHash(categoryId);
   const theme = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'pixel';
   const isModern = theme === 'modern';
@@ -49,3 +56,4 @@ export function getCategoryColor(categoryId: string): string {
 
   return `hsl(${h.toFixed(1)}, ${s}%, ${l}%)`;
 }
+

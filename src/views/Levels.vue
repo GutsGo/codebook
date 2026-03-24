@@ -3,8 +3,15 @@
     <header class="levels-header">
       <button class="back-btn pixel-btn" @click="goHome">← 返回首页</button>
       <h1 v-if="category" class="category-title">
-        {{ category.icon }} {{ category.name }}
+        <span 
+          class="category-icon-wrapper"
+          :style="{ background: getCategoryColor(categoryId, category.hex), borderColor: getCategoryColor(categoryId, category.hex) }"
+        >
+          <img :src="resolveCategoryIconUrl(category.icon)" class="header-icon-img" />
+        </span>
+        {{ category.name }}
       </h1>
+
     </header>
 
     <div class="mode-tabs">
@@ -63,9 +70,10 @@
             :class="{ locked: !isUnlocked(index) }"
             :style="{
               borderColor: isUnlocked(index)
-                ? getCategoryColor(categoryId)
+                ? getCategoryColor(categoryId, category?.hex)
                 : undefined,
             }"
+
             @click="playLevel(lvl.id, index)"
           >
             <div class="level-info">
@@ -127,6 +135,7 @@ import { fetchCategories, fetchTagsByCategory } from "@/data/questions";
 import { fetchFlashcardDeck } from "@/data/flashcards";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { getCategoryColor } from "@/utils/categoryColor";
+import { resolveCategoryIconUrl } from "@/utils/assets";
 import type { CategoryData } from "@/types/question";
 import type { FlashcardDeck } from "@/types/flashcard";
 
@@ -223,20 +232,51 @@ function startFlashcardReview() {
   gap: 0.6rem;
   overflow: hidden;
 
-  .category-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--theme-text-secondary);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
+    .category-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--theme-text-secondary);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
 
-    @media (min-width: 600px) {
-      font-size: 1.8rem;
+      .category-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: var(--theme-card-bg);
+        border: var(--theme-border-width-xs) solid var(--theme-border-color);
+        border-radius: 6px;
+        padding: 4px;
+        box-shadow: var(--theme-shadow-btn);
+
+        .header-icon-img {
+          width: 85%;
+          height: 85%;
+          object-fit: contain;
+          filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+      }
+
+      @media (min-width: 600px) {
+        font-size: 1.8rem;
+        gap: 0.8rem;
+        
+        .category-icon-wrapper {
+          width: 44px;
+          height: 44px;
+          border-radius: 8px;
+          padding: 6px;
+        }
+      }
     }
-  }
 }
 
 .mode-tabs {

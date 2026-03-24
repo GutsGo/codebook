@@ -80,11 +80,14 @@
               :key="cat.id"
               :to="`/levels/${cat.id}`"
               class="category-card"
-              :style="{ '--card-color': getCategoryColor(cat.id) }"
+              :style="{ '--card-color': getCategoryColor(cat.id, cat.hex) }"
             >
+
               <div class="card-inner">
-                <div class="icon-box">
-                  <div class="icon">{{ cat.icon }}</div>
+                <div class="icon-box" :style="{ background: getCategoryColor(cat.id, cat.hex) }">
+                  <div class="icon">
+                    <img :src="resolveCategoryIconUrl(cat.icon)" :alt="cat.name" class="category-icon-img" />
+                  </div>
                 </div>
                 <div class="card-name">{{ cat.name }}</div>
                 <div class="card-bottom">
@@ -197,6 +200,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useProgressStore } from "@/stores/useProgressStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { getCategoryColor } from "@/utils/categoryColor";
+import { resolveCategoryIconUrl } from "@/utils/assets";
 import type { CategoryData } from "@/types/question";
 
 const categories = ref<CategoryData[]>([]);
@@ -680,9 +684,25 @@ onMounted(async () => {
     }
 
     .icon {
-      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      
+      .category-icon-img {
+        width: 60%;
+        height: 60%;
+        object-fit: contain;
+        /* 使用过滤器将 Simple Icons 的黑色 SVG 转为白色 */
+        filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      }
+
       @media (min-width: 600px) {
-        font-size: 2rem;
+        .category-icon-img {
+          width: 65%;
+          height: 65%;
+        }
       }
     }
   }

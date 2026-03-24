@@ -114,8 +114,10 @@ export interface CategoryData {
   name: string;
   icon: string;
   description?: string;
+  hex?: string;
   levels: Level[];
 }
+
 
 export interface MistakeRecord {
   categoryId: string;

@@ -532,6 +532,8 @@ import type { Question } from "@/types/question";
 import { VueMonacoEditor } from "@guolao/vue-monaco-editor";
 import { useWindowSize } from "@vueuse/core";
 import { renderMarkdown } from "@/utils/markdown";
+import { resolveCategoryIconUrl } from "@/utils/assets";
+
 
 const props = defineProps<{
   question: Question;
@@ -700,7 +702,7 @@ function getCompanyIcon(company: string | undefined) {
     opensource: "opensourcehardware",
   };
   const iconName = iconMap[normalized] || normalized;
-  return `https://v6.gh-proxy.org/https://github.com/simple-icons/simple-icons/raw/develop/icons/${iconName}.svg`;
+  return resolveCategoryIconUrl(iconName);
 }
 
 // 将文本中的字面 \n \t 转为实际换行/制表符，并渲染为 Markdown

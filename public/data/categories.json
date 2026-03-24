@@ -1,98 +1,128 @@
 [
   {
+    "id": "javascript",
+    "name": "JavaScript",
+    "icon": "javascript",
+    "description": "",
+    "hex": "#F7DF1E"
+  },
+  {
     "id": "css_ui",
     "name": "CSS与UI",
-    "icon": "🎨",
-    "description": ""
+    "icon": "css",
+    "description": "",
+    "hex": "#646CFF"
+  },
+  {
+    "id": "typescript",
+    "name": "TypeScript",
+    "icon": "typescript",
+    "description": "",
+    "hex": "#3178C6"
   },
   {
     "id": "framework",
     "name": "前端框架",
-    "icon": "⚛️",
-    "description": "框架原理与源码：深入 React/Vue 内部机制"
+    "icon": "vuedotjs",
+    "description": "框架原理与源码：深入 React/Vue 内部机制",
+    "hex": "#4FC08D"
   },
   {
     "id": "network",
     "name": "浏览器与网络",
-    "icon": "🌐",
-    "description": "浏览器原理与网络协议：从渲染流水线到 HTTP/2"
+    "icon": "googlechrome",
+    "description": "浏览器原理与网络协议：从渲染流水线到 HTTP/2",
+    "hex": "#4285F4"
   },
   {
     "id": "engineering",
     "name": "前端工程化",
-    "icon": "💻",
-    "description": "深度进阶：从 Webpack 插件开发到性能优化全流程"
+    "icon": "webpack",
+    "description": "深度进阶：从 Webpack 插件开发到性能优化全流程",
+    "hex": "#8DD6F9"
   },
   {
     "id": "architecture",
     "name": "前端架构",
-    "icon": "🏗️",
-    "description": "架构设计与微前端：从组件模式到系统级解决方案"
+    "icon": "tiktok",
+    "description": "架构设计与微前端：从组件模式到系统级解决方案",
+    "hex": "#000000"
   },
   {
     "id": "cross-platform",
     "name": "跨平台",
-    "icon": "📱",
-    "description": "Flutter、React Native、小程序等跨平台技术深度解析与实战"
+    "icon": "flutter",
+    "description": "Flutter、React Native、小程序等跨平台技术深度解析与实战",
+    "hex": "#02569B"
   },
   {
     "id": "security",
     "name": "安全",
-    "icon": "🛡️",
-    "description": ""
+    "icon": "guilded",
+    "description": "",
+    "hex": "#F5C400"
   },
   {
     "id": "performance",
     "name": "性能优化",
-    "icon": "⚡",
-    "description": ""
+    "icon": "vite",
+    "description": "",
+    "hex": "#9135FF"
   },
   {
     "id": "nodejs",
     "name": "Nodejs",
-    "icon": "🍊",
-    "description": ""
+    "icon": "nodedotjs",
+    "description": "",
+    "hex": "#5FA04E"
   },
   {
     "id": "visual",
     "name": "图形与可视化",
-    "icon": "🧊",
-    "description": ""
+    "icon": "gitlab",
+    "description": "",
+    "hex": "#FC6D26"
   },
   {
     "id": "devops",
     "name": "DevOps",
-    "icon": "🚀",
-    "description": ""
+    "icon": "githubactions",
+    "description": "",
+    "hex": "#2088FF"
   },
   {
     "id": "v8",
     "name": "引擎开发",
-    "icon": "🧩",
-    "description": ""
+    "icon": "v8",
+    "description": "",
+    "hex": "#4B8BF5"
   },
   {
     "id": "business",
     "name": "业务架构与最佳实践",
-    "icon": "🏗️",
-    "description": "复杂业务场景建模、前沿解决方案（大文件上传、协同编辑、秒杀架构）与领域驱动设计（DDD）"
+    "icon": "bilibili",
+    "description": "复杂业务场景建模、前沿解决方案（大文件上传、协同编辑、秒杀架构）与领域驱动设计（DDD）",
+    "hex": "#00A1D6"
   },
   {
     "id": "ai-frontend",
     "name": "AI赋能前端与大模型应用开发",
-    "icon": "🤖",
-    "description": ""
+    "icon": "chatbot",
+    "description": "",
+    "hex": "#10A37F"
   },
   {
     "id": "infrastructure",
     "name": "基建与研发效能",
-    "icon": "🏗️",
-    "description": ""
+    "icon": "qq",
+    "description": "",
+    "hex": "#646CFF"
   },
   {
     "id": "algorithm",
     "name": "算法",
-    "icon": "✍️",
-    "description": ""
+    "icon": "leetcode",
+    "description": "",
+    "hex": "#FFA116"
   }
 ]

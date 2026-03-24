@@ -49,6 +49,19 @@ export function resolveDataUrl(path: string): string {
 }
 
 /**
+ * 处理分类图标路径 (Simple Icons)
+ * @param icon 图标名称，例如 'javascript'
+ * @returns 完整的 SVG URL
+ */
+export function resolveCategoryIconUrl(icon: string): string {
+  if (!icon) return "";
+  // 如果已经是完整路径则直接返回
+  if (icon.startsWith("http")) return icon;
+  // 拼接 Simple Icons 路径
+  return `https://v6.gh-proxy.org/https://github.com/simple-icons/simple-icons/raw/develop/icons/${icon}.svg`;
+}
+
+/**
  * 判断是否为 URL 路径
  */
 export function isUrl(str: any): boolean {
